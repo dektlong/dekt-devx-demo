@@ -31,7 +31,15 @@ It is designed to run on any k8s.
 
 - Update all values in the ```.config``` directory
 
-- Update image location and domain info in ingress and apps under ```workload``` folder
+- Update runtime specific values in ```workload/dekt4pets``` folder
+
+  - ```image:``` value in ```backend/dekt4pets-backend.yml```
+
+  - ```serverUrl:``` value in ```gateway/dekt4pets-gatway.yml``` and ```gateway/dekt4pets-gatway-dev.yml```
+
+  - ```host:``` value in ```gateway/dekt4pets-ingress.yml``` and ```gateway/dekt4pets-ingress-dev.yml```
+
+- Update ```host:``` value in ```workload/brownfield-apis``` files  
 
 - The ingress setup is based on GoDaddy DNS, if you are using a different one, please modify the ```update-dns``` function in ```demo-builder.sh``` 
 

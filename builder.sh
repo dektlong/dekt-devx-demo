@@ -4,6 +4,10 @@
 
     source .config/config-values.env
     
+    BACKEND_TBS_IMAGE="dekt4pets-backend"
+    FRONTEND_TBS_IMAGE="dekt4pets-frontend"
+    ADOPTER_CHECK_TBS_IMAGE="adopter-check"
+    BUILDER_NAME="online-stores-builder"
     DET4PETS_FRONTEND_IMAGE_LOCATION=$PRIVATE_REGISTRY_URL/$PRIVATE_REGISTRY_APP_REPO/$FRONTEND_TBS_IMAGE:$APP_VERSION
     DET4PETS_BACKEND_IMAGE_LOCATION=$PRIVATE_REGISTRY_URL/$PRIVATE_REGISTRY_APP_REPO/$BACKEND_TBS_IMAGE:$APP_VERSION
     ADOPTER_CHECK_IMAGE_LOCATION=$PRIVATE_REGISTRY_URL/$PRIVATE_REGISTRY_APP_REPO/$ADOPTER_CHECK_TBS_IMAGE:$APP_VERSION
@@ -72,13 +76,11 @@
             --export-to-all-namespaces --namespace $TAP_INSTALL_NS  
 
         tanzu package repository add tanzu-tap-repository \
-            --url registry.tanzu.vmware.com/tanzu-application-tap-packages:$TAP_VERSION \
+            --url registry.tanzu.vmware.com/tanzu-application-platform/tap-packages:$TAP_VERSION \
             --namespace $TAP_INSTALL_NS
 
         wait-for-reconciler
         
-        tanzu package available list --namespace $TAP_INSTALL_NS
-
         tanzu package install source-controller -p controller.source.apps.tanzu.vmware.com -v 0.1.2 -n $TAP_INSTALL_NS
 
         tanzu package install convention-controller -p controller.conventions.apps.tanzu.vmware.com -v 0.4.2 -n $TAP_INSTALL_NS
