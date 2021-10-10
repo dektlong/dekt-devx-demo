@@ -1,35 +1,24 @@
 #!/usr/bin/env bash
 
 
-workload () {
+backend () {
 
-    case $1 in
-    backend)
-        if [ "$2" == "-u" ]
-        then
-            patch-backend
-        else
-            create-backend
-        fi
-        ;;
-    frontend)
-        create-frontend 
-        ;;
-    adopter-check)
-        if [ "$2" == "-u" ]
-        then
-            update-adopter-check
-        else
-            create-adopter-check
-        fi
-        ;;
-    fitness)
-        create-fitness
-        ;;
-    *)
-  	    usage
-  	    ;;
-    esac
+    if [ "$2" == "-u" ]
+    then
+        patch-backend
+    else
+        create-backend
+    fi
+}
+
+adopter-check() {
+    if [ "$2" == "-u" ]
+    then
+        update-adopter-check
+    else
+        create-adopter-check
+    fi
+
 }
 
 
@@ -79,31 +68,11 @@ create-frontend() {
 #patch-backend
 patch-backend() {
     
-    git_commit_msg="add check-adopter api"
-    
     echo
     echo "=========> Commit code changes to $DEMO_APP_GIT_REPO  ..."
     echo
-    git-push "$git_commit_msg"
     
-    echo
-    echo "=========> Auto-build $BACKEND_TBS_IMAGE image on latest git commit (commit: $_latestCommitId) ..."
-    echo
-    
-    kp image patch $BACKEND_TBS_IMAGE --git-revision $_latestCommitId -n $DEMO_APPS_NS
-    
-    echo
-    echo "Waiting for next github polling interval ..."
-    echo  
-    
-    #apply new routes so you can show them in portal while new build is happening
-    kubectl apply -f workloads/dekt4pets/backend/routes/dekt4pets-backend-routes.yaml -n $DEMO_APPS_NS >/dev/null &
-    
-    sleep 10 #enough time, instead of active polling which is not recommended by the TBS team
-    
-    kp build list $BACKEND_TBS_IMAGE -n $DEMO_APPS_NS
-
-    #kp build status $BACKEND_TBS_IMAGE -n $DEMO_APPS_NS
+    wait-for-tbs $BACKEND_TBS_IMAGE
 
     echo
     echo "Starting to tail build logs ..."
@@ -321,22 +290,19 @@ normal=$(tput sgr0)
 
 case $1 in
 backend)
-	workload backend $2
+	backend $2
     ;;
 frontend)
-	workload frontend $2
+	create-frontent
     ;;
 dekt4pets)
     dekt4pets
     ;;
 adopter-check)
-	workload adopter-check $2
+	adopter-check $2
     ;;
 fitness)
-	workload fitness $2
-    ;;
-fortune)
-	workload fortune $2
+	create-fitness $2
     ;;
 cleanup)
     delete-workloads
