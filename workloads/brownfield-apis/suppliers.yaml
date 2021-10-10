@@ -1,0 +1,51 @@
+apiVersion: "tanzu.vmware.com/v1"
+kind: SpringCloudGatewayRouteConfig
+metadata:
+  name: suppliers-routes-config
+spec:
+  service: 
+    name: suppliers-brownfield-proxy
+  routes:
+    - predicates:
+        - Path=/list-outgoing-payments/
+        - Method=GET
+      filters:
+        - RateLimit=2,10s
+    - predicates:
+        - Path=/process-payment/*/supplier/**
+        - Method=POST,PUT,DELETE
+      ssoEnabled: true
+---
+apiVersion: "tanzu.vmware.com/v1"
+kind: SpringCloudGateway
+metadata:
+  name: suppliers-gateway
+spec:
+  count: 1
+  api:
+    serverUrl: http://suppliers.tanzu.dekt.io
+    title: Suppliers Profile
+    description: APIs to provide source of truth for basice supplier information
+    version: 0.5.0
+    cors:
+      allowedOrigins:
+      - http://api-portal.tanzu.dekt.io
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: suppliers-brownfield-proxy
+spec:
+  ports:
+    - port: 80
+      targetPort: 80
+---
+apiVersion: "tanzu.vmware.com/v1"
+kind: SpringCloudGatewayMapping
+metadata:
+  name: suppliers-routes-mapping
+spec:
+  gatewayRef:
+    name: suppliers-gateway
+  routeConfigRef:
+    name: suppliers-routes-config

@@ -1,0 +1,52 @@
+apiVersion: "tanzu.vmware.com/v1"
+kind: SpringCloudGatewayRouteConfig
+metadata:
+  name: payments-routes-config
+spec:
+  service: 
+    name: payments-brownfield-proxy
+  routes:
+    - predicates:
+        - Path=/list-payments
+        - Method=GET
+      ssoEnabled: true
+    - predicates:
+        - Path=/process-donation/*/adoption-request/**
+        - Method=POST
+      ssoEnabled: true
+      filters:
+      - CircuitBreaker="paymentsCircuitBreaker,forward:/alternate-donation-service"
+---
+apiVersion: "tanzu.vmware.com/v1"
+kind: SpringCloudGateway
+metadata:
+  name: payments-gateway
+spec:
+  count: 1
+  api:
+    serverUrl: http://payments.tanzu.dekt.io
+    title: Payment Processing 
+    description: APIs to help with processing payments
+    version: 0.5.0
+    cors:
+      allowedOrigins:
+      - http://api-portal.tanzu.dekt.io
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: payments-brownfield-proxy
+spec:
+  ports:
+    - port: 80
+      targetPort: 80
+---
+apiVersion: "tanzu.vmware.com/v1"
+kind: SpringCloudGatewayMapping
+metadata:
+  name: payments-routes-mapping
+spec:
+  gatewayRef:
+    name: payments-gateway
+  routeConfigRef:
+    name: payments-routes-config

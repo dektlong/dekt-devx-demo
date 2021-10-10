@@ -1,0 +1,63 @@
+apiVersion: accelerator.apps.tanzu.vmware.com/v1alpha1
+kind: Accelerator
+metadata:
+  name: 1-backend-api-for-online-stores
+spec:
+  git:
+    interval: 10s
+    url: https://github.com/dektlong/store-backend-api
+    ref:
+      branch: main
+---
+apiVersion: accelerator.apps.tanzu.vmware.com/v1alpha1
+kind: Accelerator
+metadata:
+  name: 2-frontend-ux-for-online-stores
+spec:
+  git:
+    interval: 10s
+    url: https://github.com/dektlong/store-frontend-ux
+    ref:
+      branch: main
+---
+apiVersion: accelerator.apps.tanzu.vmware.com/v1alpha1
+kind: Accelerator
+metadata:
+  name: 3-brownfield-api-for-online-stores
+spec:
+  git:
+    interval: 10s
+    url: https://github.com/dektlong/store-brownfield-function
+    ref:
+      branch: main
+---
+apiVersion: accelerator.apps.tanzu.vmware.com/v1alpha1
+kind: Accelerator
+metadata:
+  name: api-microservices-workflow
+spec:
+  git:
+    interval: 10s
+    url: https://github.com/dektlong/api-microservices-workflow
+    ref:
+      branch: main
+---
+apiVersion: accelerator.apps.tanzu.vmware.com/v1alpha1
+kind: Accelerator
+metadata:
+  name:  simple-workflow
+spec:
+  git:
+    url: https://github.com/dektlong/simple-workflow
+    ref:
+      branch: main
+---
+apiVersion: accelerator.apps.tanzu.vmware.com/v1alpha1
+kind: Accelerator
+metadata:
+  name: multicluster-workflow
+spec:
+  git:
+    url: https://github.com/dektlong/multicluster-workflow
+    ref:
+      branch: main

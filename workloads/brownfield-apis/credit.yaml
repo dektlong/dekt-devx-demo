@@ -1,0 +1,52 @@
+apiVersion: "tanzu.vmware.com/v1"
+kind: SpringCloudGatewayRouteConfig
+metadata:
+  name: credit-routes-config
+spec:
+  service: 
+    name: credit-brownfield-proxy
+  routes:
+    - predicates:
+        - Path=/list-credit
+        - Method=GET
+      ssoEnabled: true
+    - predicates:
+        - Path=/process-donation/*/adoption-request/**
+        - Method=POST
+      ssoEnabled: true
+      filters:
+      - CircuitBreaker="creditCircuitBreaker,forward:/alternate-donation-service"
+---
+apiVersion: "tanzu.vmware.com/v1"
+kind: SpringCloudGateway
+metadata:
+  name: credit-gateway
+spec:
+  count: 1
+  api:
+    serverUrl: http://credit.tanzu.dekt.io
+    title: Credit Cards 
+    description: APIs to help with processing self-service application to credit cards
+    version: 0.5.0
+    cors:
+      allowedOrigins:
+      - http://api-portal.tanzu.dekt.io
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: credit-brownfield-proxy
+spec:
+  ports:
+    - port: 80
+      targetPort: 80
+---
+apiVersion: "tanzu.vmware.com/v1"
+kind: SpringCloudGatewayMapping
+metadata:
+  name: credit-routes-mapping
+spec:
+  gatewayRef:
+    name: credit-gateway
+  routeConfigRef:
+    name: credit-routes-config

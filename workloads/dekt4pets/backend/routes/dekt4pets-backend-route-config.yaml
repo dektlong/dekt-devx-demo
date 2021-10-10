@@ -1,0 +1,84 @@
+apiVersion: "tanzu.vmware.com/v1"
+kind: SpringCloudGatewayRouteConfig
+metadata:
+  name: dekt4pets-backend-route-config
+spec:
+  service:
+    name: dekt4pets-backend
+  routes:
+    - predicates:
+        - Path=/api/animals
+        - Method=GET
+      filters:
+        - RateLimit=2,10s
+      tags:
+        - "Pets"
+      title: "Retrieve pets for adoption."
+      description: "Retrieve all of the animals who are up for pet adoption."
+    - predicates:
+        - Path=/api/animals/{animalId}/adoption-requests
+        - Method=POST
+      ssoEnabled: true
+      tokenRelay: true
+      tags:
+        - "Adoptions"
+      title: "Pet adoption API"
+      description: "Manage pet adoptions."
+      model:
+        requestBody:
+          description: Manage adoption requests
+          content:
+            'application/json':
+              schema:
+                type: object
+                description: Adoption request schema
+                properties:
+                  adopterName:
+                    type: string
+                  email:
+                    type: string
+                    format: email
+                  notes:
+                    type: string
+                required: [ "adopterName", "email" ]
+    - predicates:
+        - Path=/api/animals/{animalId}/adoption-requests/{adoptionId}
+        - Method=PUT,DELETE
+      ssoEnabled: true
+      tokenRelay: true
+      tags:
+        - "Adoptions"
+      title: "Pet adoption API"
+      description: "Manage pet adoptions."
+      model:
+        requestBody:
+          description: Manage adoption requests
+          content:
+            'application/json':
+              schema:
+                type: object
+                description: Adoption request schema
+                properties:
+                  adopterName:
+                    type: string
+                  email:
+                    type: string
+                    format: email
+                  notes:
+                    type: string
+                required: [ "adopterName", "email" ]
+    - predicates:
+        - Path=/api/actuator/**
+      tags:
+        - Metrics
+      title: "API Actuator endpoints"
+      description: "Access API actuator endpoints to provide current status of backend service."
+    - predicates:
+        - Path=/api/whoami
+        - Method=GET
+      ssoEnabled: true
+      tokenRelay: true
+      tags:
+        - Adoptions
+      title: "Retrieve user information"
+      description: "Retrieve the current authenticated user's information."

@@ -1,0 +1,53 @@
+# the supplychain provides the blueprint for how a workload should go from
+# source code to an app running somewhere (or an artifact delivered).
+#
+apiVersion: carto.run/v1alpha1
+kind: ClusterSupplyChain
+metadata:
+  name: source-to-url
+spec:
+  selector:
+    apps.tanzu.vmware.com/workload-type: web
+
+  #
+  #
+  #     source-provider <--[src]-- image-builder <--[src]-- app-runner
+  #
+  #
+  components:
+    - name: source-provider
+      templateRef:
+        kind: ClusterSourceTemplate
+        name: source-template
+
+    - name: image-builder
+      templateRef:
+        kind: ClusterImageTemplate
+        name: kpack-template
+      sources:
+        - component: source-provider
+          name: source
+
+    - name: config-provider
+      templateRef:
+        kind: ClusterConfigTemplate
+        name: convention-template
+      images:
+        - component: image-builder
+          name: image
+
+    - name: app-deploy
+      templateRef:
+        kind: ClusterTemplate
+        name: deploy-template
+      configs:
+        - component: config-provider
+          name: config
+
+    - name: app-config
+      templateRef:
+        kind: ClusterTemplate
+        name: config-template
+      configs:
+        - component: config-provider
+          name: config

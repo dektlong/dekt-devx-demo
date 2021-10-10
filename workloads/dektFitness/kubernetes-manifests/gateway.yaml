@@ -1,0 +1,60 @@
+apiVersion: "tanzu.vmware.com/v1"
+kind: SpringCloudGateway
+metadata:
+  name: gateway-acme
+spec:
+  api:
+    serverUrl: http://acme.tanzu.dekt.io
+    title: "ACME Fitness Store"
+    description: "Micro Gateway to control API-driven microservices in the ACME Fitness Store"
+    documentation: "https://vmware.wavefront.com/u/pZqvsbb9p6?t=vmware"
+    version: "1.0.0-K8s"
+    cors:
+      allowedOrigins:
+      - "http://api-portal.tanzu.dekt.io"
+      allowedMethods:
+      - "GET"
+      - "PUT"
+      - "POST"
+      - "DELETE"
+  observability:
+    metrics:
+      wavefront:
+        enabled: true
+    wavefront:
+      secret: wavefront-secret
+      source: gateway-acme
+      application: ACME Fitness Store
+      service: acme-fitness
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: scg-ingress
+  annotations: 
+    kubernetes.io/ingress.class: nginx 
+spec:
+  rules:
+  - host: acme.tanzu.dekt.io
+    http:
+      paths:
+      - pathType: Prefix
+        path: "/"
+        backend:
+          service:
+            name: gateway-acme
+            port:
+              number: 80
+# networking.k8s.io/v1beta1 Ingress is deprecated in v1.19+, unavailable in v1.22+
+# apiVersion: networking.k8s.io/v1beta1
+# kind: Ingress
+# metadata:
+#   name: scg-ingress
+# spec:
+#   rules:
+#     - host: gateway-acme.spring.animalrescue.online
+#       http:
+#         paths:
+#           - backend:
+#               serviceName: gateway-acme
+#               servicePort: 80

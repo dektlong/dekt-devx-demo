@@ -1,0 +1,3 @@
+---
+connector_namespaces: [APP_NAMESPACE]
+server_namespace: app-live-view

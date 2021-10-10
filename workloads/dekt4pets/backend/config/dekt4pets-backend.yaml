@@ -1,0 +1,50 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app.kubernetes.io/name: dekt4pets-backend
+  name: dekt4pets-backend
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: dekt4pets-backend
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: dekt4pets-backend
+        app.kubernetes.io/part-of: dekt4pets-backend
+        tanzu.app.live.view: "true"
+        tanzu.app.live.view.application.name: dekt4pets-backend-liveview
+    spec:
+      imagePullSecrets: 
+      - name: imagereg-secret
+      containers:
+        - name: dekt4pets-backend
+          image: dektregistry.azurecr.io/dekt-apps/dekt4pets-backend:1.0.0
+          env:
+            - name: spring.profiles.active
+              value: k8s
+            - name: spring.security.oauth2.resourceserver.jwt.jwk-set-uri
+              valueFrom:
+                secretKeyRef:
+                  name: jwk-secret
+                  key: jwk-set-uri
+          resources:
+            requests:
+              memory: "256Mi"
+              cpu: "100m"
+            limits:
+              memory: "512Mi"
+              cpu: "500m"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: dekt4pets-backend
+spec:
+  ports:
+    - port: 80
+      targetPort: 8080
+  selector:
+    app.kubernetes.io/name: dekt4pets-backend

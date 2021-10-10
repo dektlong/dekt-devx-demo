@@ -1,0 +1,52 @@
+apiVersion: "tanzu.vmware.com/v1"
+kind: SpringCloudGatewayRouteConfig
+metadata:
+  name: mortages-routes-config
+spec:
+  service: 
+    name: mortages-brownfield-proxy
+  routes:
+    - predicates:
+        - Path=/list-mortages
+        - Method=GET
+      ssoEnabled: true
+    - predicates:
+        - Path=/process-donation/*/adoption-request/**
+        - Method=POST
+      ssoEnabled: true
+      filters:
+      - CircuitBreaker="mortagesCircuitBreaker,forward:/alternate-donation-service"
+---
+apiVersion: "tanzu.vmware.com/v1"
+kind: SpringCloudGateway
+metadata:
+  name: mortages-gateway
+spec:
+  count: 1
+  api:
+    serverUrl: http://mortages.tanzu.dekt.io
+    title: Mortgage Rate API
+    description: Determines the general mortgage rate and/or mortgage rate for specific customer
+    version: 0.5.0
+    cors:
+      allowedOrigins:
+      - http://api-portal.tanzu.dekt.io
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: mortages-brownfield-proxy
+spec:
+  ports:
+    - port: 80
+      targetPort: 80
+---
+apiVersion: "tanzu.vmware.com/v1"
+kind: SpringCloudGatewayMapping
+metadata:
+  name: mortages-routes-mapping
+spec:
+  gatewayRef:
+    name: mortages-gateway
+  routeConfigRef:
+    name: mortages-routes-config

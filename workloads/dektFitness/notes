@@ -1,0 +1,7 @@
+
+kustomize build kubernetes-manifests/ | kubectl apply -f -
+
+acme.tanzu.dekt.io/index.html
+
+han
+vmware1!

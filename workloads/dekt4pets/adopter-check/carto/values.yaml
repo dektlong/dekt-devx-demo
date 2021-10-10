@@ -1,0 +1,7 @@
+#@data/values
+---
+image_prefix: carto/check-adopter-
+registry:
+  server: https://dektregistry.azurecr.io
+  username: ccaffdee-b0ab-484e-a268-b35912c7f5b7"
+  password: J2R_r4B0wpJbgSC.vnpiW52QY6N9QRi8et

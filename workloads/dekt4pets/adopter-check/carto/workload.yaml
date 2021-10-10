@@ -1,0 +1,13 @@
+apiVersion: kontinue.io/v1alpha1
+kind: Workload
+metadata:
+  name: adopter-check
+  labels:
+    app.kubernetes.io/name: adopter-check
+    app.tanzu.vmware.com/workload-type: web
+spec:
+  source:
+    git:
+      ref:
+        branch: main
+      url: https://github.com/dektlong/store-brownfield-api

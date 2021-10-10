@@ -1,0 +1,52 @@
+apiVersion: "tanzu.vmware.com/v1"
+kind: SpringCloudGatewayRouteConfig
+metadata:
+  name: atm-routes-config
+spec:
+  service: 
+    name: atm-brownfield-proxy
+  routes:
+    - predicates:
+        - Path=/list-atm
+        - Method=GET
+      ssoEnabled: true
+    - predicates:
+        - Path=/process-donation/*/adoption-request/**
+        - Method=POST
+      ssoEnabled: true
+      filters:
+      - CircuitBreaker="atmCircuitBreaker,forward:/alternate-donation-service"
+---
+apiVersion: "tanzu.vmware.com/v1"
+kind: SpringCloudGateway
+metadata:
+  name: atm-gateway
+spec:
+  count: 1
+  api:
+    serverUrl: http://atm.tanzu.dekt.io
+    title: ATM Enrollment 
+    description: APIs to help automatic enrollment for ATMs
+    version: 0.5.0
+    cors:
+      allowedOrigins:
+      - http://api-portal.tanzu.dekt.io
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: atm-brownfield-proxy
+spec:
+  ports:
+    - port: 80
+      targetPort: 80
+---
+apiVersion: "tanzu.vmware.com/v1"
+kind: SpringCloudGatewayMapping
+metadata:
+  name: atm-routes-mapping
+spec:
+  gatewayRef:
+    name: atm-gateway
+  routeConfigRef:
+    name: atm-routes-config

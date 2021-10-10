@@ -1,0 +1,2 @@
+db_password: "CHANGE_ME"
+app_service_type: "LoadBalancer"

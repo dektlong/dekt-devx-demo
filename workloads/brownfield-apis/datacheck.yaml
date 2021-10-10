@@ -1,0 +1,79 @@
+apiVersion: "tanzu.vmware.com/v1"
+kind: SpringCloudGatewayRouteConfig
+metadata:
+  name: datacheck-routes-config
+spec:
+  service: 
+    name: datacheck-brownfield-proxy
+  routes:
+    - predicates:
+        - Path=/api/adoption-history
+        - Method=GET
+        - Query=adopterID
+      ssoEnabled: true
+      filters:
+        - RateLimit=3,60s
+      title: "Verify a clean pet adotion history"
+      description: "Verify a clean pet adoption history for a given adoper's social security / taxId number "
+      tags:
+        - Compatibility
+    - predicates:
+        - Path=/api/good-credit
+        - Method=GET
+        - Query=adopterID
+      ssoEnabled: true
+      title: "Verify a good credit score"
+      description: "Verify a good credit score for a given adoper's social security / taxId number "
+      tags:
+        - Identity
+    - predicates:
+        - Path=/api/criminal-record/*
+        - Method=GET
+      ssoEnabled: true
+      tokenRelay: true
+      title: "Run criminal-record check"
+      description: "Run a criminal record check for a given adoper's social security / taxId number"
+      tags:
+        - Identity
+    - predicates:
+        - Path=/api/house-visit-request/*/date/**
+        - Method=POST,PUT,DELETE
+      ssoEnabled: true
+      tokenRelay: true
+      title: "Manage house-visits requests"
+      tags:
+        - Compatibility
+---
+apiVersion: "tanzu.vmware.com/v1"
+kind: SpringCloudGateway
+metadata:
+  name: datacheck-gateway
+spec:
+  count: 1
+  api:
+    serverUrl: http://datacheck.tanzu.dekt.io
+    title: User Verification Services
+    description: External API approved for use to provide various user verification ser
+    version: 0.5.0
+    cors:
+      allowedOrigins:
+      - http://api-portal.tanzu.dekt.io
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: datacheck-brownfield-proxy
+spec:
+  ports:
+    - port: 80
+      targetPort: 80
+---
+apiVersion: "tanzu.vmware.com/v1"
+kind: SpringCloudGatewayMapping
+metadata:
+  name: datacheck-routes-mapping
+spec:
+  gatewayRef:
+    name: datacheck-gateway
+  routeConfigRef:
+    name: datacheck-routes-config

@@ -1,0 +1,52 @@
+apiVersion: "tanzu.vmware.com/v1"
+kind: SpringCloudGatewayRouteConfig
+metadata:
+  name: sms-routes-config
+spec:
+  service: 
+    name: sms-brownfield-proxy
+  routes:
+    - predicates:
+        - Path=/list-sms
+        - Method=GET
+      ssoEnabled: true
+    - predicates:
+        - Path=/process-donation/*/adoption-request/**
+        - Method=POST
+      ssoEnabled: true
+      filters:
+      - CircuitBreaker="smsCircuitBreaker,forward:/alternate-donation-service"
+---
+apiVersion: "tanzu.vmware.com/v1"
+kind: SpringCloudGateway
+metadata:
+  name: sms-gateway
+spec:
+  count: 1
+  api:
+    serverUrl: http://sms.tanzu.dekt.io
+    title: SMS Processing
+    description: APIs to help with processing receiving and sending SMS
+    version: 0.5.0
+    cors:
+      allowedOrigins:
+      - http://api-portal.tanzu.dekt.io
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: sms-brownfield-proxy
+spec:
+  ports:
+    - port: 80
+      targetPort: 80
+---
+apiVersion: "tanzu.vmware.com/v1"
+kind: SpringCloudGatewayMapping
+metadata:
+  name: sms-routes-mapping
+spec:
+  gatewayRef:
+    name: sms-gateway
+  routeConfigRef:
+    name: sms-routes-config

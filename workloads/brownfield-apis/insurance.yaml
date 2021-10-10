@@ -1,0 +1,52 @@
+apiVersion: "tanzu.vmware.com/v1"
+kind: SpringCloudGatewayRouteConfig
+metadata:
+  name: insurance-routes-config
+spec:
+  service: 
+    name: insurance-brownfield-proxy
+  routes:
+    - predicates:
+        - Path=/list-insurance
+        - Method=GET
+      ssoEnabled: true
+    - predicates:
+        - Path=/process-donation/*/adoption-request/**
+        - Method=POST
+      ssoEnabled: true
+      filters:
+      - CircuitBreaker="insuranceCircuitBreaker,forward:/alternate-donation-service"
+---
+apiVersion: "tanzu.vmware.com/v1"
+kind: SpringCloudGateway
+metadata:
+  name: insurance-gateway
+spec:
+  count: 1
+  api:
+    serverUrl: http://insurance.tanzu.dekt.io
+    title: Insurace Quotes
+    description: APIs to help with self-service application for an insurance quote
+    version: 0.5.0
+    cors:
+      allowedOrigins:
+      - http://api-portal.tanzu.dekt.io
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: insurance-brownfield-proxy
+spec:
+  ports:
+    - port: 80
+      targetPort: 80
+---
+apiVersion: "tanzu.vmware.com/v1"
+kind: SpringCloudGatewayMapping
+metadata:
+  name: insurance-routes-mapping
+spec:
+  gatewayRef:
+    name: insurance-gateway
+  routeConfigRef:
+    name: insurance-routes-config

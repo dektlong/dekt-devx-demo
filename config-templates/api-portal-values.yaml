@@ -1,0 +1,4 @@
+---
+apiPortalServer.replicaCount: 1
+apiPortalServer.sourceUrls: scg-openapi.SUB-DOMAIN.DOMAIN
+apiPortalServer.sourceUrlsCacheTtlSec: 10

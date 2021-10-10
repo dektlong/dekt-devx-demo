@@ -1,0 +1,5 @@
+---
+registry:
+  server: dektregistry.azurecr.io
+  repository: dekt-apps
+  service_account: service-account

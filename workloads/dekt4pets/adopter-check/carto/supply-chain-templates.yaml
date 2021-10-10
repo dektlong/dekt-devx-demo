@@ -1,0 +1,252 @@
+#@ load("@ytt:data", "data")
+---
+apiVersion: carto.run/v1alpha1
+kind: ClusterSourceTemplate
+metadata:
+  name: source-template
+spec:
+  urlPath: .status.artifact.url
+  revisionPath: .status.artifact.revision
+  ytt: |
+    #@ load("@ytt:data", "data")
+    
+    #@ if hasattr(data.values.workload.spec.source, "git"):
+    apiVersion: source.toolkit.fluxcd.io/v1beta1
+    kind: GitRepository
+    metadata:
+      name: #@ data.values.workload.metadata.name
+      labels:
+        app.kubernetes.io/component: source
+        #@ if/end hasattr(data.values.workload.metadata, "labels") and hasattr(data.values.workload.metadata.labels, "app.kubernetes.io/part-of"):
+        app.kubernetes.io/part-of: #@ data.values.workload.metadata.labels["app.kubernetes.io/part-of"]
+    spec:
+      interval: 1m
+      url: #@ data.values.workload.spec.source.git.url
+      ref: #@ data.values.workload.spec.source.git.ref
+      gitImplementation: libgit2
+      ignore: ""
+    #@ end
+    
+    #@ if hasattr(data.values.workload.spec.source, "image"):
+    apiVersion: source.apps.tanzu.vmware.com/v1alpha1
+    kind: ImageRepository
+    metadata:
+      name: #@ data.values.workload.metadata.name
+      labels:
+        app.kubernetes.io/component: source
+        #@ if/end hasattr(data.values.workload.metadata, "labels") and hasattr(data.values.workload.metadata.labels, "app.kubernetes.io/part-of"):
+        app.kubernetes.io/part-of: #@ data.values.workload.metadata.labels["app.kubernetes.io/part-of"]
+    spec:
+      interval: 1m
+      image: #@ data.values.workload.spec.source.image
+    #@ end
+
+---
+#!
+#!
+#! `kpack-template` instantiates a `kpack/Image` object, responsible for ensuring that
+#! there's a container image built and pushed to a container image registry
+#! whenever there's either new source code, or its image builder gets na update.
+#!
+#!
+#@ load("@ytt:data", "data")
+
+apiVersion: carto.run/v1alpha1
+kind: ClusterImageTemplate
+metadata:
+  name: kpack-template
+spec:
+  imagePath: .status.latestImage
+  #@yaml/text-templated-strings
+  ytt: |
+    #@ load("@ytt:data", "data")
+    
+    #@ def workload_param(name):
+    #@   if not hasattr(data.values.workload.spec, "params"):
+    #@     return None
+    #@   end
+    #@   for p in data.values.workload.spec.params:
+    #@     if p.name == name:
+    #@       return p.value
+    #@     end
+    #@   end
+    #@ end
+
+    apiVersion: kpack.io/v1alpha1
+    kind: Image
+    metadata:
+      name: #@ data.values.workload.metadata.name
+      labels:
+        app.kubernetes.io/component: build
+        #! TODO find a better syntax
+        #@ if/end hasattr(data.values.workload.metadata, "labels") and hasattr(data.values.workload.metadata.labels, "app.kubernetes.io/part-of"):
+        app.kubernetes.io/part-of: #@ data.values.workload.metadata.labels["app.kubernetes.io/part-of"]
+    spec:
+      tag: #@ '(@= data.values.registry.server @)/(@= data.values.registry.repository @)/' + data.values.workload.metadata.name
+      serviceAccount: service-account
+      builder:
+        kind: ClusterBuilder
+        name: builder
+      source:
+        blob:
+          url: #@ data.values.sources[0].url
+      build:
+        #! TODO should we include all workload defined envs?
+        env:
+        - name: BP_OCI_SOURCE
+          value: #@ data.values.sources[0].revision
+        #@ if/end workload_param("debug"):
+        - name: BP_DEBUG_ENABLED
+          value: 'true'
+
+#!
+#! `convention-template` applies opinions to a pod template spec
+#!
+#!
+---
+apiVersion: carto.run/v1alpha1
+kind: ClusterConfigTemplate
+metadata:
+  name: convention-template
+spec:
+  configPath: .status.template
+  ytt: |
+    #@ load("@ytt:data", "data")
+    
+    #@ def workload_param(name):
+    #@   if not hasattr(data.values.workload.spec, "params"):
+    #@     return None
+    #@   end
+    #@   for p in data.values.workload.spec.params:
+    #@     if p.name == name:
+    #@       return p.value
+    #@     end
+    #@   end
+    #@ end
+
+    apiVersion: conventions.apps.tanzu.vmware.com/v1alpha1
+    kind: PodIntent
+    metadata:
+      name: #@ data.values.workload.metadata.name
+      labels:
+        app.kubernetes.io/component: intent
+        #@ if/end hasattr(data.values.workload.metadata, "labels") and hasattr(data.values.workload.metadata.labels, "app.kubernetes.io/part-of"):
+        app.kubernetes.io/part-of: #@ data.values.workload.metadata.labels["app.kubernetes.io/part-of"]
+    spec:
+      template:
+        metadata:
+          annotations:
+            #@ if/end workload_param("debug"):
+            apps.tanzu.vmware.com/debug: "true"
+            #@ if/end workload_param("live-update"):
+            apps.tanzu.vmware.com/live-update: "true"
+            developer.conventions/target-containers: workload
+          labels:
+            app.kubernetes.io/component: run
+            #@ if/end hasattr(data.values.workload.metadata, "labels") and hasattr(data.values.workload.metadata.labels, "app.kubernetes.io/part-of"):
+            app.kubernetes.io/part-of: #@ data.values.workload.metadata.labels["app.kubernetes.io/part-of"]
+            carto.run/workload-name: #@ data.values.workload.metadata.name
+        spec:
+          containers:
+            - name: workload
+              image: #@ data.values.images[0].image
+              securityContext:
+                runAsUser: 1000
+#!
+#! `config-template` instantiates a knative service making use of a built container image.
+#!
+---
+apiVersion: carto.run/v1alpha1
+kind: ClusterTemplate
+metadata:
+  name: config-template
+spec:
+  ytt: |
+    #@ load("@ytt:data", "data")
+    #@ load("@ytt:json", "json")
+
+    apiVersion: v1
+    kind: ConfigMap
+    metadata:
+      name: #@ data.values.workload.metadata.name
+    data:
+      #@yaml/text-templated-strings
+      delivery.yml: |
+        apiVersion: serving.knative.dev/v1
+        kind: Service
+        metadata:
+          name: (@= json.encode(data.values.workload.metadata.name) @)
+          labels:
+            app.kubernetes.io/component: run
+            (@ if hasattr(data.values.workload.metadata, "labels") and hasattr(data.values.workload.metadata.labels, "app.kubernetes.io/part-of"): @)
+            app.kubernetes.io/part-of: (@= json.encode(data.values.workload.metadata.labels["app.kubernetes.io/part-of"]) @)
+            (@ end @)
+            carto.run/workload-name: (@= json.encode(data.values.workload.metadata.name) @)
+        spec:
+          template: (@= json.encode(data.values.configs[0].config) @)
+
+      #@ if/end hasattr(data.values.workload.spec, "serviceClaims") and len(data.values.workload.spec.serviceClaims):
+      #@yaml/text-templated-strings
+      serviceclaims.yml: |
+        (@ for s in data.values.workload.spec.serviceClaims: @)
+          ---
+          apiVersion: servicebinding.io/v1alpha3
+          kind: ServiceBinding
+          metadata:
+            name: (@= json.encode(data.values.workload.metadata.name + '-' + s.name) @)
+            labels:
+              app.kubernetes.io/component: run
+              (@ if hasattr(data.values.workload.metadata, "labels") and hasattr(data.values.workload.metadata.labels, "app.kubernetes.io/part-of"): @)
+              app.kubernetes.io/part-of: (@= json.encode(data.values.workload.metadata.labels["app.kubernetes.io/part-of"]) @)
+              (@ end @)
+              carto.run/workload-name: (@= json.encode(data.values.workload.metadata.name) @)
+          spec:
+            name: (@= json.encode(s.name) @)
+            service: (@= json.encode(s.ref) @)
+            workload:
+              apiVersion: serving.knative.dev/v1
+              kind: Service
+              name: (@= json.encode(data.values.workload.metadata.name) @)
+        (@ end @)
+
+---
+apiVersion: carto.run/v1alpha1
+kind: ClusterTemplate
+metadata:
+  name: deploy-template
+spec:
+  ytt: |
+    #@ load("@ytt:data", "data")
+
+    apiVersion: kappctrl.k14s.io/v1alpha1
+    kind: App
+    metadata:
+      name: #@ data.values.workload.metadata.name
+    spec:
+      serviceAccountName: service-account
+      noopDelete: false
+      fetch:
+        - inline:
+            paths:
+              config.yml: |
+                ---
+                apiVersion: kapp.k14s.io/v1alpha1
+                kind: Config
+                rebaseRules:
+                  - path: [metadata, annotations, serving.knative.dev/creator]
+                    type: copy
+                    sources: [new, existing]
+                    resourceMatchers: &matchers
+                      - apiVersionKindMatcher: {apiVersion: serving.knative.dev/v1, kind: Service}
+                  - path: [metadata, annotations, serving.knative.dev/lastModifier]
+                    type: copy
+                    sources: [new, existing]
+                    resourceMatchers: *matchers
+        - inline:
+            pathsFrom:
+            - configMapRef: 
+                name: #@ data.values.workload.metadata.name
+      template:
+        - ytt: {}
+      deploy:
+        - kapp: {}

@@ -1,0 +1,52 @@
+apiVersion: "tanzu.vmware.com/v1"
+kind: SpringCloudGatewayRouteConfig
+metadata:
+  name: donations-routes-config
+spec:
+  service: 
+    name: donations-brownfield-proxy
+  routes:
+    - predicates:
+        - Path=/list-donations
+        - Method=GET
+      ssoEnabled: true
+    - predicates:
+        - Path=/process-donation/*/adoption-request/**
+        - Method=POST
+      ssoEnabled: true
+      filters:
+      - CircuitBreaker="donationsCircuitBreaker,forward:/alternate-donation-service"
+---
+apiVersion: "tanzu.vmware.com/v1"
+kind: SpringCloudGateway
+metadata:
+  name: donations-gateway
+spec:
+  count: 1
+  api:
+    serverUrl: http://donations.tanzu.dekt.io
+    title: Donation Processing 
+    description: APIs to help with processing donations
+    version: 0.5.0
+    cors:
+      allowedOrigins:
+      - http://api-portal.tanzu.dekt.io
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: donations-brownfield-proxy
+spec:
+  ports:
+    - port: 80
+      targetPort: 80
+---
+apiVersion: "tanzu.vmware.com/v1"
+kind: SpringCloudGatewayMapping
+metadata:
+  name: donations-routes-mapping
+spec:
+  gatewayRef:
+    name: donations-gateway
+  routeConfigRef:
+    name: donations-routes-config
