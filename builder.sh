@@ -142,6 +142,8 @@
         tanzu package install developer-conventions -p developer-conventions.tanzu.vmware.com -v 0.2.0 -n $TAP_INSTALL_NS
 
         tanzu package install service-bindings -p service-bindings.labs.vmware.com -v 0.5.0 -n $TAP_INSTALL_NS
+
+        kubectl apply -f .config/carto-secrets.yaml -n $DEMO_APPS_NS
     }
     
 #################### demo examples ################
@@ -152,8 +154,6 @@
         echo
         echo "===> Setup APIGrid demo examples..."
         echo
-
-        kubectl apply -f .config/carto-secrets.yaml -n $DEMO_APPS_NS
 
         kubectl apply -f workloads/dekt4pets/accelerators.yaml -n accelerator-system #must be same as .config/acc-values.yaml   watched_namespace:
 

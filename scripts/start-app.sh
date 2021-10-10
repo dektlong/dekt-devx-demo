@@ -2,10 +2,10 @@
 
 case $1 in
 octant)
-    open -a Terminal platform/scripts/octant-wrapper.sh
+    open -a Terminal scripts/octant-wrapper.sh
     ;;
 dogfacts)
-    open -a Terminal platform/scripts/dogfacts-wrapper.sh
+    open -a Terminal scripts/dogfacts-wrapper.sh
     ;;
 *)
     ;;
