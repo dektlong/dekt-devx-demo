@@ -31,6 +31,8 @@ It is designed to run on any k8s.
 
 - Update all values in the ```.config``` directory
 
+- Update image location and domain info in ingress and apps under ```workload``` folder
+
 - The ingress setup is based on GoDaddy DNS, if you are using a different one, please modify the ```update-dns``` function in ```demo-builder.sh``` 
 
 - This demo was tested well on AKS with 7 nodes of type ```Standard_DS3_v2``` (4 vCPU, 14GB memory, 28GB temp disk). If you need to change that configuration, please modify the parameters in ```platform/scripts/build-aks-cluster.sh``` function

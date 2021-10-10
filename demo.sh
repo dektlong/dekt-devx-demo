@@ -2,7 +2,7 @@
 
 #################### configs #######################
 
-    source secrets/config-values.env
+    source .config/config-values.env
     ADOPTER_CHECK_IMAGE_LOCATION=$PRIVATE_REGISTRY_URL/$PRIVATE_REGISTRY_APP_REPO/$ADOPTER_CHECK_TBS_IMAGE:$APP_VERSION
 
 #################### menu functions #######################
@@ -121,7 +121,7 @@ patch-backend() {
     echo
     echo "=========> Apply changes to backend app, service and routes ..."
     echo
-    kubectl apply -f workloads/dekt4pets/backend/config/dekt4pets-backend-app.yaml -n $APP_NAMESPACE
+    kubectl apply -f workloads/dekt4pets/backend/dekt4pets-backend-app.yaml -n $APP_NAMESPACE
     kubectl apply -f workloads/dekt4pets/backend/routes/dekt4pets-backend-routes.yaml -n $APP_NAMESPACE
     kubectl apply -f workloads/dekt4pets/backend/routes/dekt4pets-backend-mapping.yaml -n $APP_NAMESPACE
 
@@ -316,18 +316,16 @@ supply-chain-components() {
     echo "${bold}Delivery Flow${normal}"
     echo
     echo "NAME                          KIND                PATH"
-    echo "dekt4pets-backend             app                 workloads/dekt4pets/backend/config/dekt4pets-backend.yaml"
+    echo "dekt4pets-backend             app                 workloads/dekt4pets/backend/dekt4pets-backend.yaml"
     echo "dekt4pets-backend-routes      api-routes          workloads/dekt4pets/backend/routes/dekt4pets-backend-routes.yaml"
     echo "dekt4pets-backend-mapping     route-mapping       workloads/dekt4pets/backend/routes/dekt4pets-backend-mapping.yaml"
     echo
-    echo "dekt4pets-frontend            app                 workloads/dekt4pets/frontend/config/dekt4pets-frontend.yaml"
+    echo "dekt4pets-frontend            app                 workloads/dekt4pets/frontend/dekt4pets-frontend.yaml"
     echo "dekt4pets-frontend-routes     api-routes          workloads/dekt4pets/frontend/routes/dekt4pets-frontend-routes.yaml"
     echo "dekt4pets-frontend-mapping    route-mapping       workloads/dekt4pets/frontend/routes/dekt4pets-frontend-mapping.yaml"
     echo
-    echo "dekt4pets-gateway             gateway-config      workloads/dekt4pets/gateway/config/dekt4pets-gateway.yaml"
-    echo "dekt4pets-ingress             ingress-rule        workloads/dekt4pets/gateway/config/dekt4pets-ingress.yaml"
-    echo "api-portal-ingress            ingress-rule        platform/api-portal/config/api-portal-ingress.yaml"
-    echo "openapi-ingress               ingress-rule        platform/api-portal/config/scg-openapi-ingress.yaml"
+    echo "dekt4pets-gateway             gateway-config      workloads/dekt4pets/gateway/dekt4pets-gateway.yaml"
+    echo "dekt4pets-ingress             ingress-rule        workloads/dekt4pets/gateway/dekt4pets-ingress.yaml"
     echo
     echo "adopter-check                 knative function    "
     echo
