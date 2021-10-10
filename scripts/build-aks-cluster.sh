@@ -48,7 +48,7 @@ incorrect-usage() {
 
 #################### main #######################
 
-source secrets/config-values.env
+source .config/config-values.env
 
 case $1 in 
 create)

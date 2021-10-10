@@ -2,7 +2,7 @@
 
 #################### configs #######################
 
-    source secrets/config-values.env
+    source .config/config-values.env
     
     DET4PETS_FRONTEND_IMAGE_LOCATION=$PRIVATE_REGISTRY_URL/$PRIVATE_REGISTRY_APP_REPO/$FRONTEND_TBS_IMAGE:$APP_VERSION
     DET4PETS_BACKEND_IMAGE_LOCATION=$PRIVATE_REGISTRY_URL/$PRIVATE_REGISTRY_APP_REPO/$BACKEND_TBS_IMAGE:$APP_VERSION
@@ -19,12 +19,10 @@
     #build-all
     build-all() {
 
-        platform/scripts/build-aks-cluster.sh create $CLUSTER_NAME 7
+        scripts/build-aks-cluster.sh create $CLUSTER_NAME 7
 
-        platform/scripts/install-nginx.sh
+        scripts/install-nginx.sh
       
-        update-config-values #remove when all is via carvel
-
         install-tap-core
 
         install-tap-products
@@ -74,7 +72,7 @@
             --export-to-all-namespaces --namespace $TAP_INSTALL_NS  
 
         tanzu package repository add tanzu-tap-repository \
-            --url registry.tanzu.vmware.com/tanzu-application-platform/tap-packages:$TAP_VERSION \
+            --url registry.tanzu.vmware.com/tanzu-application-tap-packages:$TAP_VERSION \
             --namespace $TAP_INSTALL_NS
 
         wait-for-reconciler
@@ -100,39 +98,39 @@
         echo
 
         #cnr
-        tanzu package install cloud-native-runtimes -p cnrs.tanzu.vmware.com -v 1.0.2 -n $TAP_INSTALL_NS -f secrets/cnr-values.yaml --poll-timeout 30m
-        platform/scripts/update-dns.sh "envoy" "contour-external" "*.cnr"
+        tanzu package install cloud-native-runtimes -p cnrs.tanzu.vmware.com -v 1.0.2 -n $TAP_INSTALL_NS -f .config/cnr-values.yaml --poll-timeout 30m
+        scripts/update-dns.sh "envoy" "contour-external" "*.cnr"
 
         #acc
-        tanzu package install app-accelerator -p accelerator.apps.tanzu.vmware.com -v 0.3.0 -n $TAP_INSTALL_NS -f secrets/acc-values.yaml
-        kubectl apply -f secrets/acc-ingress.yaml -n accelerator-system
+        tanzu package install app-accelerator -p accelerator.apps.tanzu.vmware.com -v 0.3.0 -n $TAP_INSTALL_NS -f .config/acc-values.yaml
+        kubectl apply -f .config/acc-ingress.yaml -n accelerator-system
 
         #tbs
-        tanzu package install tbs -p buildservice.tanzu.vmware.com -v 1.3.0 -n $TAP_INSTALL_NS -f secrets/tbs-values.yaml --poll-timeout 30m
+        tanzu package install tbs -p buildservice.tanzu.vmware.com -v 1.3.0 -n $TAP_INSTALL_NS -f .config/tbs-values.yaml --poll-timeout 30m
 
         #supply chain
         tanzu package install cartographer -p cartographer.tanzu.vmware.com -v 0.0.6 -n $TAP_INSTALL_NS
-        tanzu package install default-supply-chain -p default-supply-chain.tanzu.vmware.com -v 0.2.0 -n $TAP_INSTALL_NS -f secrets/default-supply-chain-values.yaml
-        tanzu package install metadata-store -p scst-store.tanzu.vmware.com -v 1.0.0-beta.0 -n $TAP_INSTALL_NS -f secrets/scst-store-values.yaml
+        tanzu package install default-supply-chain -p default-supply-chain.tanzu.vmware.com -v 0.2.0 -n $TAP_INSTALL_NS -f .config/default-supply-chain-values.yaml
+        tanzu package install metadata-store -p scst-store.tanzu.vmware.com -v 1.0.0-beta.0 -n $TAP_INSTALL_NS -f .config/scst-store-values.yaml
 
         #dev convenstions
         tanzu package install developer-conventions -p developer-conventions.tanzu.vmware.com -v 0.2.0 -n $TAP_INSTALL_NS
 
         #alv
-        kubectl create ns $ALV_NS #same as in secrets/alv-values.yaml server_namespace
-        tanzu package install app-live-view -p appliveview.tanzu.vmware.com -v 0.2.0 -n $TAP_INSTALL_NS -f secrets/alv-values.yaml
-        kubectl apply -f secrets/alv-ingress.yaml -n $ALV_NS
+        kubectl create ns $ALV_NS #same as in .config/alv-values.yaml server_namespace
+        tanzu package install app-live-view -p appliveview.tanzu.vmware.com -v 0.2.0 -n $TAP_INSTALL_NS -f .config/alv-values.yaml
+        kubectl apply -f .config/alv-ingress.yaml -n $ALV_NS
 
         #api-portal
-        #tanzu package install api-portal -p api-portal.tanzu.vmware.com -v 1.0.2 -n $TAP_INSTALL_NS -f secrets/api-portal-values.yaml
+        #tanzu package install api-portal -p api-portal.tanzu.vmware.com -v 1.0.2 -n $TAP_INSTALL_NS -f .config/api-portal-values.yaml
         #TEMP until portal installed in its own ns
-        #kubectl apply -f secrets/api-portal-ingress.yaml -n $TAP_INSTALL_NS 
+        #kubectl apply -f .config/api-portal-ingress.yaml -n $TAP_INSTALL_NS 
           #  kubectl set env deployment.apps/api-portal-server API_PORTAL_SOURCE_URLS=http://scg-openapi.$SUB_DOMAIN.$DOMAIN/openapi -n $TAP_INSTALL_NS 
            # kubectl set env deployment.apps/api-portal-server API_PORTAL_SOURCE_URLS_CACHE_TTL_SEC=10 -n $TAP_INSTALL_NS
 
         #api-gw - STILL STAND ALONE INSTALL
         #$GW_INSTALL_DIR/scripts/install-spring-cloud-gateway.sh --namespace $GW_NAMESPACE
-        #kubectl apply -f secrets/scg-openapi-ingress.yaml -n $GW_NAMESPACE
+        #kubectl apply -f .config/scg-openapi-ingress.yaml -n $GW_NAMESPACE
 
     }
     
@@ -146,9 +144,9 @@
         echo
 
         kubectl create ns $APP_NAMESPACE
-        kubectl apply -f secrets/carto-secrets.yaml -n $APP_NAMESPACE
+        kubectl apply -f .config/carto-secrets.yaml -n $APP_NAMESPACE
 
-        kubectl apply -f workloads/dekt4pets/accelerators.yaml -n accelerator-system #must be same as secrets/acc-values.yaml   watched_namespace:
+        kubectl apply -f workloads/dekt4pets/accelerators.yaml -n accelerator-system #must be same as .config/acc-values.yaml   watched_namespace:
 
         create-dekt4pets-images
         
@@ -206,9 +204,9 @@
         kubectl create ns $BROWNFIELD_NAMESPACE
         kustomize build workloads/brownfield-apis | kubectl apply -f -
 
-        kubectl create secret generic sso-secret --from-env-file=secrets/sso-creds.txt -n $APP_NAMESPACE
-        kubectl create secret generic jwk-secret --from-env-file=secrets/jwk-creds.txt -n $APP_NAMESPACE
-        kubectl create secret generic wavefront-secret --from-env-file=secrets/wavefront-creds.txt -n $APP_NAMESPACE
+        kubectl create secret generic sso-secret --from-env-file=.config/sso-creds.txt -n $APP_NAMESPACE
+        kubectl create secret generic jwk-secret --from-env-file=.config/jwk-creds.txt -n $APP_NAMESPACE
+        kubectl create secret generic wavefront-secret --from-env-file=.config/wavefront-creds.txt -n $APP_NAMESPACE
 
         kustomize build workloads/dekt4pets/gateway | kubectl apply -f -
 
@@ -259,7 +257,7 @@
             | kbld -f $TBS_INSTALL_DIR/images-relocated.lock -f- \
             | kapp deploy -a tanzu-build-service -f- -y
 
-        kp import -f platform/tbs/descriptor-full.yaml
+        kp import -f tbs/descriptor-full.yaml
 
     }
 
@@ -278,7 +276,7 @@
             --docker-password=$PRIVATE_REGISTRY_PASSWORD \
             --namespace $API_PORTAL_NAMESPACE 
       
-        kubectl create secret generic sso-credentials --from-env-file=secrets/sso-creds.txt -n $API_PORTAL_NAMESPACE
+        kubectl create secret generic sso-credentials --from-env-file=.config/sso-creds.txt -n $API_PORTAL_NAMESPACE
         
         $API_PORTAL_INSTALL_DIR/scripts/install-api-portal.sh
         
@@ -286,9 +284,9 @@
 
         kubectl set env deployment.apps/api-portal-server API_PORTAL_SOURCE_URLS_CACHE_TTL_SEC=10 -n $API_PORTAL_NAMESPACE #so frontend apis will appear faster, just for this demo
 
-        kubectl apply -f platform/api-portal/config/api-portal-ingress.yaml -n $API_PORTAL_NAMESPACE
+        kubectl apply -f .config/api-portal-ingress.yaml -n $API_PORTAL_NAMESPACE
 
-        kubectl apply -f platform/api-portal/config/scg-openapi-ingress.yaml -n $GW_NAMESPACE
+        kubectl apply -f .config/scg-openapi-ingress.yaml -n $GW_NAMESPACE
     }
     
 #################### misc ################
@@ -390,16 +388,16 @@
             --namespace $API_PORTAL_NAMESPACE
       
         #sso secret for gatwway and portal
-        kubectl create secret generic sso-secret --from-env-file=secrets/sso-creds.txt -n $APP_NAMESPACE
-        kubectl create secret generic sso-credentials --from-env-file=secrets/sso-creds.txt -n $API_PORTAL_NAMESPACE
+        kubectl create secret generic sso-secret --from-env-file=.config/sso-creds.txt -n $APP_NAMESPACE
+        kubectl create secret generic sso-credentials --from-env-file=.config/sso-creds.txt -n $API_PORTAL_NAMESPACE
 
 
         #jwt secret for dekt4pets backend app
-        kubectl create secret generic jwk-secret --from-env-file=secrets/jwk-creds.txt -n $APP_NAMESPACE
+        kubectl create secret generic jwk-secret --from-env-file=.config/jwk-creds.txt -n $APP_NAMESPACE
 
         #wavefront secret for dekt4pets and acme-fitness app
-        kubectl create secret generic wavefront-secret --from-env-file=secrets/wavefront-creds.txt -n $APP_NAMESPACE
-        kubectl create secret generic wavefront-secret --from-env-file=secrets/wavefront-creds.txt -n acme-fitness
+        kubectl create secret generic wavefront-secret --from-env-file=.config/wavefront-creds.txt -n $APP_NAMESPACE
+        kubectl create secret generic wavefront-secret --from-env-file=.config/wavefront-creds.txt -n acme-fitness
     }
 
     
@@ -425,35 +423,6 @@
         echo
     }
 
-    #update-config-values
-    update-config-values () {
-
-        echo
-        echo "===> Updating runtime configurations..."
-        echo
-
-        hostName=$SUB_DOMAIN.$DOMAIN
-
-        #acc
-        platform/scripts/replace-tokens.sh "platform/acc" "acc-ingress.yaml" "{HOST_NAME}" "$hostName"
-        #api-portal
-        platform/scripts/replace-tokens.sh "platform/api-portal" "scg-openapi-ingress.yaml" "{HOST_NAME}" "$hostName"
-        platform/scripts/replace-tokens.sh "platform/api-portal" "api-portal-ingress.yaml" "{HOST_NAME}" "$hostName"
-        #alv
-        platform/scripts/replace-tokens.sh "platform/alv" "alv-ingress.yaml" "{HOST_NAME}" "$hostName"
-        #dekt4pets
-        platform/scripts/replace-tokens.sh "workloads/dekt4pets/backend" "dekt4pets-backend.yaml" "{BACKEND_IMAGE}" "$DET4PETS_BACKEND_IMAGE_LOCATION"
-        #platform/scripts/replace-tokens.sh "workloads/dekt4pets/frontend" "dekt4pets-frontend.yaml" "{FRONTEND_IMAGE}" "$DET4PETS_FRONTEND_IMAGE_LOCATION" 
-        platform/scripts/replace-tokens.sh "workloads/dekt4pets/frontend" "dekt4pets-frontend.yaml" "{FRONTEND_IMAGE}" "springcloudservices/animal-rescue-frontend" 
-        platform/scripts/replace-tokens.sh "workloads/dekt4pets/gateway" "dekt4pets-gateway.yaml" "{HOST_NAME}" "$hostName"
-        platform/scripts/replace-tokens.sh "workloads/dekt4pets/gateway" "dekt4pets-gateway-dev.yaml" "{HOST_NAME}" "$hostName"
-        platform/scripts/replace-tokens.sh "workloads/dekt4pets/gateway" "dekt4pets-ingress.yaml" "{HOST_NAME}" "$hostName"
-        platform/scripts/replace-tokens.sh "workloads/dekt4pets/gateway" "dekt4pets-ingress-dev.yaml" "{HOST_NAME}" "$hostName"
-        
-    
-    }
-
-
 
 #################### main ##########################
 
@@ -462,7 +431,7 @@ init)
     build-all
     ;;
 cleanup)
-	platform/scripts/build-aks-cluster.sh delete $CLUSTER_NAME 
+	scripts/build-aks-cluster.sh delete $CLUSTER_NAME 
     ;;
 runme)
     $2

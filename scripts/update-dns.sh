@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-source secrets/config-values.env
+source .config/config-values.env
 
 #update-dns
     update-dns ()
