@@ -41,7 +41,7 @@ It is designed to run on any k8s.
 
 - Update ```host:``` value in ```workload/brownfield-apis``` files  
 
-- The ingress setup is based on GoDaddy DNS, if you are using a different one, please modify ```scripts/update-dns,sh```
+- The ingress setup is based on GoDaddy DNS, if you are using a different one, please modify ```scripts/update-dns.sh```
 
 - This demo was tested well on AKS with 7 nodes of type ```Standard_DS3_v2``` (4 vCPU, 14GB memory, 28GB temp disk). If you need to change that configuration, please modify the parameters in ```platform/scripts/build-aks-cluster.sh``` function
 

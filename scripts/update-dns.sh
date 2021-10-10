@@ -10,10 +10,6 @@ source .config/config-values.env
         record_name=$3
 
         echo
-        echo "====> Updating your DNS ..."
-        echo
-        
-        echo
         printf "Waiting for ingress controller to receive public IP address from loadbalancer ."
 
         ingress_public_ip=""

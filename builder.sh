@@ -23,17 +23,13 @@
     #build-all
     build-all() {
 
-        scripts/build-aks-cluster.sh create $CLUSTER_NAME 7
-
-        scripts/install-nginx.sh
-      
+        setup-cluster
+        
         install-tap-core
 
-        install-tap-products
+        install-apigrid
 
-        install-gw-helm
-
-        install-api-portal-helm
+        install-tap-supplychain
 
         setup-demo-examples
 
@@ -43,6 +39,18 @@
 
     }
 
+    #setup-cluster
+    setup-cluster () {
+
+        scripts/build-aks-cluster.sh create $CLUSTER_NAME 7
+
+        scripts/install-nginx.sh
+
+        kubectl create ns $TAP_INSTALL_NS
+
+        kubectl create ns $APP_NAMESPACE
+
+    }
     #install-tap-core
     install-tap-core () {
 
@@ -50,9 +58,6 @@
         echo "===> Install TAP core components..."
         echo
 
-        
-        kubectl create ns $TAP_INSTALL_NS
-        
         TAP_VERSION=0.2.0
 
         kapp deploy -y -a kc -f https://github.com/vmware-tanzu/carvel-kapp-controller/releases/download/v0.25.0/release.yml
@@ -80,23 +85,17 @@
             --namespace $TAP_INSTALL_NS
 
         wait-for-reconciler
-        
-        tanzu package install source-controller -p controller.source.apps.tanzu.vmware.com -v 0.1.2 -n $TAP_INSTALL_NS
-
-        tanzu package install convention-controller -p controller.conventions.apps.tanzu.vmware.com -v 0.4.2 -n $TAP_INSTALL_NS
-
-        tanzu package install service-bindings -p service-bindings.labs.vmware.com -v 0.5.0 -n $TAP_INSTALL_NS
-
+      
         #Export a secret for storing container images to all namespaces
         tanzu imagepullsecret add registry-credentials --registry $PRIVATE_REGISTRY_URL --username $PRIVATE_REGISTRY_USER --password $PRIVATE_REGISTRY_PASSWORD --export-to-all-namespaces --namespace $TAP_INSTALL_NS
     }
 
     #install-tap-products
-    install-tap-products() {
+    install-apigrid () {
 
 
         echo
-        echo "===> Install TAP products ..."
+        echo "===> Install APIGrid components ..."
         echo
 
         #cnr
@@ -110,30 +109,44 @@
         #tbs
         tanzu package install tbs -p buildservice.tanzu.vmware.com -v 1.3.0 -n $TAP_INSTALL_NS -f .config/tbs-values.yaml --poll-timeout 30m
 
-        #supply chain
-        tanzu package install cartographer -p cartographer.tanzu.vmware.com -v 0.0.6 -n $TAP_INSTALL_NS
-        tanzu package install default-supply-chain -p default-supply-chain.tanzu.vmware.com -v 0.2.0 -n $TAP_INSTALL_NS -f .config/default-supply-chain-values.yaml
-        tanzu package install metadata-store -p scst-store.tanzu.vmware.com -v 1.0.0-beta.0 -n $TAP_INSTALL_NS -f .config/scst-store-values.yaml
-
-        #dev convenstions
-        tanzu package install developer-conventions -p developer-conventions.tanzu.vmware.com -v 0.2.0 -n $TAP_INSTALL_NS
-
         #alv
         kubectl create ns $ALV_NS #same as in .config/alv-values.yaml server_namespace
         tanzu package install app-live-view -p appliveview.tanzu.vmware.com -v 0.2.0 -n $TAP_INSTALL_NS -f .config/alv-values.yaml
         kubectl apply -f .config/alv-ingress.yaml -n $ALV_NS
 
+        #gateway
+        install-gw-helm
+        
         #api-portal
-        #tanzu package install api-portal -p api-portal.tanzu.vmware.com -v 1.0.2 -n $TAP_INSTALL_NS -f .config/api-portal-values.yaml
-        #TEMP until portal installed in its own ns
-        #kubectl apply -f .config/api-portal-ingress.yaml -n $TAP_INSTALL_NS 
-          #  kubectl set env deployment.apps/api-portal-server API_PORTAL_SOURCE_URLS=http://scg-openapi.$SUB_DOMAIN.$DOMAIN/openapi -n $TAP_INSTALL_NS 
-           # kubectl set env deployment.apps/api-portal-server API_PORTAL_SOURCE_URLS_CACHE_TTL_SEC=10 -n $TAP_INSTALL_NS
+        install-api-portal-helm
+            #tanzu package install api-portal -p api-portal.tanzu.vmware.com -v 1.0.2 -n $TAP_INSTALL_NS -f .config/api-portal-values.yaml
+            #TEMP until portal installed in its own ns
+            #kubectl apply -f .config/api-portal-ingress.yaml -n $TAP_INSTALL_NS 
+            #  kubectl set env deployment.apps/api-portal-server API_PORTAL_SOURCE_URLS=http://scg-openapi.$SUB_DOMAIN.$DOMAIN/openapi -n $TAP_INSTALL_NS 
+            # kubectl set env deployment.apps/api-portal-server API_PORTAL_SOURCE_URLS_CACHE_TTL_SEC=10 -n $TAP_INSTALL_NS
 
-        #api-gw - STILL STAND ALONE INSTALL
-        #$GW_INSTALL_DIR/scripts/install-spring-cloud-gateway.sh --namespace $GW_NAMESPACE
-        #kubectl apply -f .config/scg-openapi-ingress.yaml -n $GW_NAMESPACE
+    }
 
+    #install-supply-chain
+    install-tap-supplychain () {
+
+        echo
+        echo "===> Install TAP supllychain components..."
+        echo
+
+        tanzu package install source-controller -p controller.source.apps.tanzu.vmware.com -v 0.1.2 -n $TAP_INSTALL_NS
+        
+        tanzu package install convention-controller -p controller.conventions.apps.tanzu.vmware.com -v 0.4.2 -n $TAP_INSTALL_NS
+        
+        tanzu package install cartographer -p cartographer.tanzu.vmware.com -v 0.0.6 -n $TAP_INSTALL_NS
+        
+        tanzu package install default-supply-chain -p default-supply-chain.tanzu.vmware.com -v 0.2.0 -n $TAP_INSTALL_NS -f .config/default-supply-chain-values.yaml
+        
+        tanzu package install metadata-store -p scst-store.tanzu.vmware.com -v 1.0.0-beta.0 -n $TAP_INSTALL_NS -f .config/scst-store-values.yaml
+
+        tanzu package install developer-conventions -p developer-conventions.tanzu.vmware.com -v 0.2.0 -n $TAP_INSTALL_NS
+
+        tanzu package install service-bindings -p service-bindings.labs.vmware.com -v 0.5.0 -n $TAP_INSTALL_NS
     }
     
 #################### demo apps ################
@@ -145,7 +158,6 @@
         echo "===> Setup APIGrid demo examples..."
         echo
 
-        kubectl create ns $APP_NAMESPACE
         kubectl apply -f .config/carto-secrets.yaml -n $APP_NAMESPACE
 
         kubectl apply -f workloads/dekt4pets/accelerators.yaml -n accelerator-system #must be same as .config/acc-values.yaml   watched_namespace:
@@ -298,7 +310,12 @@
     incorrect-usage() {
         
         echo
-        echo "Incorrect usage. Please specify one of the following: init, cleanup, runme"
+        echo "Incorrect usage. Please specify one of the following: "
+        echo
+        echo " init"
+        echo " cleanup"
+        echo " runme"
+        echo
     
     }
 
