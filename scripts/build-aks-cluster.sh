@@ -53,11 +53,11 @@ source .config/config-values.env
 case $1 in 
 create)
 	create-cluster $2 $3
-	platform/scripts/start-app.sh "octant"
+	scripts/start-app.sh "octant"
 	;;
 delete)
 	delete-cluster $2
-	platform/scripts/stop-app.sh "octant"
+	scripts/stop-app.sh "octant"
   	;;
 *)
   	incorrect-usage
