@@ -4,9 +4,6 @@
 
     source .config/config-values.env
     
-    BACKEND_TBS_IMAGE="dekt4pets-backend"
-    FRONTEND_TBS_IMAGE="dekt4pets-frontend"
-    ADOPTER_CHECK_TBS_IMAGE="adopter-check"
     BUILDER_NAME="online-stores-builder"
     TAP_INSTALL_NS="tap-install"
     GATEWAY_NS="scgw-system"
@@ -181,6 +178,11 @@
             --registry-user $PRIVATE_REGISTRY_USER \
             --namespace $DEMO_APPS_NS 
         
+        kp builder save $BUILDER_NAME -n $DEMO_APPS_NS  \
+        --tag $PRIVATE_REGISTRY_URL/$PRIVATE_REGISTRY_APP_REPO/$BUILDER_NAME \
+        --stack full \
+        --store default
+
         kp image create $BACKEND_TBS_IMAGE -n $DEMO_APPS_NS \
         --tag $backend_image_location \
         --git $DEMO_APP_GIT_REPO  \

@@ -1,11 +1,5 @@
 #!/usr/bin/env bash
 
-#################### configs #######################
-
-    source .config/config-values.env
-    ADOPTER_CHECK_IMAGE_LOCATION=$PRIVATE_REGISTRY_URL/$PRIVATE_REGISTRY_APP_REPO/$ADOPTER_CHECK_TBS_IMAGE:$APP_VERSION
-
-#################### menu functions #######################
 
 workload () {
 
@@ -38,7 +32,6 @@ workload () {
     esac
 }
 
-#################### core functions #######################
 
 #TAP experimental workflow for adopter-check
 adopter-check-tap()
@@ -165,28 +158,13 @@ create-fitness () {
     kustomize build kubernetes-manifests/ | kubectl apply -f -
 }
 
-#dekt44pets-native
-create-dekt4pets-native () {
-
-    kn service create dekt4pets-frontend \
-        --image springcloudservices/animal-rescue-frontend  \
-        --env REV="revision 1 of dekt4pets-native-frontend" \
-        --revision-name dekt4pets-frontend-v1 \
-        -n dekt-apps 
-
-    kn service create dekt4pets-backend \
-        --image harbor.apps.cf.tanzutime.com/dekt-apps/dekt4pets-backend:1.0.0\
-        --env REV="revision 1 of dekt4pets-native-backend" \
-        --revision-name dekt4pets-backend-v1 \
-        -n dekt-apps
-}
-
-
 #adopter-check
 create-adopter-check () {
 
+    adopter_image_location=$PRIVATE_REGISTRY_URL/$PRIVATE_REGISTRY_APP_REPO/$ADOPTER_CHECK_TBS_IMAGE:$APP_VERSION
+
     kn service create adopter-check \
-        --image $ADOPTER_CHECK_IMAGE_LOCATION \
+        --image $adopter_image_location \
         --env REV="1.0" \
         --revision-name adopter-check-v1 \
         --namespace $DEMO_APPS_NS
@@ -194,6 +172,8 @@ create-adopter-check () {
 
 update-adopter-check () {
 
+    adopter_image_location=$PRIVATE_REGISTRY_URL/$PRIVATE_REGISTRY_APP_REPO/$ADOPTER_CHECK_TBS_IMAGE:$APP_VERSION
+    
     echo
 
     wait-for-tbs $ADOPTER_CHECK_TBS_IMAGE
@@ -205,7 +185,7 @@ update-adopter-check () {
     kp build logs $ADOPTER_CHECK_TBS_IMAGE -n $DEMO_APPS_NS
 
     kn service update $ADOPTER_CHECK_TBS_IMAGE \
-        --image $ADOPTER_CHECK_IMAGE_LOCATION \
+        --image $adopter_image_location \
         --env REV="2.0" \
         --revision-name adopter-check-v2 \
         --traffic adopter-check-v2=70,adopter-check-v1=30 \
@@ -333,6 +313,8 @@ supply-chain-components() {
 
 
 #################### main #######################
+
+source .config/config-values.env
 
 bold=$(tput bold)
 normal=$(tput sgr0)
