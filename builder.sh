@@ -8,20 +8,16 @@
     FRONTEND_TBS_IMAGE="dekt4pets-frontend"
     ADOPTER_CHECK_TBS_IMAGE="adopter-check"
     BUILDER_NAME="online-stores-builder"
-    DET4PETS_FRONTEND_IMAGE_LOCATION=$PRIVATE_REGISTRY_URL/$PRIVATE_REGISTRY_APP_REPO/$FRONTEND_TBS_IMAGE:$APP_VERSION
-    DET4PETS_BACKEND_IMAGE_LOCATION=$PRIVATE_REGISTRY_URL/$PRIVATE_REGISTRY_APP_REPO/$BACKEND_TBS_IMAGE:$APP_VERSION
-    ADOPTER_CHECK_IMAGE_LOCATION=$PRIVATE_REGISTRY_URL/$PRIVATE_REGISTRY_APP_REPO/$ADOPTER_CHECK_TBS_IMAGE:$APP_VERSION
     TAP_INSTALL_NS="tap-install"
-    GW_NAMESPACE="scgw-system"
-    CARTO_NAMESPACE="cartographer-system"
-    API_PORTAL_NAMESPACE="api-portal"
-    BROWNFIELD_NAMESPACE="brownfield-apis"
+    GATEWAY_NS="scgw-system"
+    API_PORTAL_NS="api-portal"
+    BROWNFIELD_NS="brownfield-apis"
     ALV_NS="app-live-view"
 
-#################### TAP installers ################
+#################### installers ################
 
-    #build-all
-    build-all() {
+    #install-all
+    install-all() {
 
         setup-cluster
         
@@ -47,8 +43,11 @@
         scripts/install-nginx.sh
 
         kubectl create ns $TAP_INSTALL_NS
-
-        kubectl create ns $APP_NAMESPACE
+        kubectl create ns $GATEWAY_NS
+        kubectl create ns $API_PORTAL_NS 
+        kubectl create ns $ALV_NS #same as in .config/alv-values.yaml server_namespace
+        kubectl create ns $DEMO_APPS_NS
+        kubectl create ns $BROWNFIELD_NS
 
     }
     #install-tap-core
@@ -110,7 +109,6 @@
         tanzu package install tbs -p buildservice.tanzu.vmware.com -v 1.3.0 -n $TAP_INSTALL_NS -f .config/tbs-values.yaml --poll-timeout 30m
 
         #alv
-        kubectl create ns $ALV_NS #same as in .config/alv-values.yaml server_namespace
         tanzu package install app-live-view -p appliveview.tanzu.vmware.com -v 0.2.0 -n $TAP_INSTALL_NS -f .config/alv-values.yaml
         kubectl apply -f .config/alv-ingress.yaml -n $ALV_NS
 
@@ -149,7 +147,7 @@
         tanzu package install service-bindings -p service-bindings.labs.vmware.com -v 0.5.0 -n $TAP_INSTALL_NS
     }
     
-#################### demo apps ################
+#################### demo examples ################
 
     #setup-demo-examples
     setup-demo-examples() {
@@ -158,7 +156,7 @@
         echo "===> Setup APIGrid demo examples..."
         echo
 
-        kubectl apply -f .config/carto-secrets.yaml -n $APP_NAMESPACE
+        kubectl apply -f .config/carto-secrets.yaml -n $DEMO_APPS_NS
 
         kubectl apply -f workloads/dekt4pets/accelerators.yaml -n accelerator-system #must be same as .config/acc-values.yaml   watched_namespace:
 
@@ -173,21 +171,25 @@
     #create dekt4pets images
     create-dekt4pets-images () {
 
+        frontend_image_location=$PRIVATE_REGISTRY_URL/$PRIVATE_REGISTRY_APP_REPO/$FRONTEND_TBS_IMAGE:$APP_VERSION
+        backend_image_location=$PRIVATE_REGISTRY_URL/$PRIVATE_REGISTRY_APP_REPO/$BACKEND_TBS_IMAGE:$APP_VERSION
+    
+
         export REGISTRY_PASSWORD=$PRIVATE_REGISTRY_PASSWORD
         kp secret create imagereg-secret \
             --registry $PRIVATE_REGISTRY_URL \
             --registry-user $PRIVATE_REGISTRY_USER \
-            --namespace $APP_NAMESPACE 
+            --namespace $DEMO_APPS_NS 
         
-        kp image create $BACKEND_TBS_IMAGE -n $APP_NAMESPACE \
-        --tag $DET4PETS_BACKEND_IMAGE_LOCATION \
+        kp image create $BACKEND_TBS_IMAGE -n $DEMO_APPS_NS \
+        --tag $backend_image_location \
         --git $DEMO_APP_GIT_REPO  \
         --sub-path ./workloads/dekt4pets/backend \
         --git-revision main \
         --wait
         
-        kp image save $FRONTEND_TBS_IMAGE -n $APP_NAMESPACE \
-        --tag $DET4PETS_FRONTEND_IMAGE_LOCATION \
+        kp image save $FRONTEND_TBS_IMAGE -n $DEMO_APPS_NS \
+        --tag $frontend_image_location= \
         --git $DEMO_APP_GIT_REPO  \
         --sub-path ./workloads/dekt4pets/frontend \
         --git-revision main \
@@ -199,9 +201,10 @@
     #create adopter-check image
     create-adopter-check-image () {
 
+        adopter_image_location=$PRIVATE_REGISTRY_URL/$PRIVATE_REGISTRY_APP_REPO/$ADOPTER_CHECK_TBS_IMAGE:$APP_VERSION
         
-        kp image save $ADOPTER_CHECK_TBS_IMAGE -n $APP_NAMESPACE \
-            --tag $ADOPTER_CHECK_IMAGE_LOCATION \
+        kp image save $ADOPTER_CHECK_TBS_IMAGE -n $DEMO_APPS_NS \
+            --tag $adopter_image_location \
             --git https://github.com/dektlong/adopter-check \
             --wait #\
             #--sub-path ./workloads/dekt4pets/adopter-check/java-native \
@@ -215,12 +218,13 @@
     #create-api-examples
     create-api-examples() {
 
-        kubectl create ns $BROWNFIELD_NAMESPACE
+        kubectl apply -f .config/scg-openapi-ingress.yaml -n $GATEWAY_NS
+        
         kustomize build workloads/brownfield-apis | kubectl apply -f -
 
-        kubectl create secret generic sso-secret --from-env-file=.config/sso-creds.txt -n $APP_NAMESPACE
-        kubectl create secret generic jwk-secret --from-env-file=.config/jwk-creds.txt -n $APP_NAMESPACE
-        kubectl create secret generic wavefront-secret --from-env-file=.config/wavefront-creds.txt -n $APP_NAMESPACE
+        kubectl create secret generic sso-secret --from-env-file=.config/sso-creds.txt -n $DEMO_APPS_NS
+        kubectl create secret generic jwk-secret --from-env-file=.config/jwk-creds.txt -n $DEMO_APPS_NS
+        kubectl create secret generic wavefront-secret --from-env-file=.config/wavefront-creds.txt -n $DEMO_APPS_NS
 
         kustomize build workloads/dekt4pets/gateway | kubectl apply -f -
 
@@ -228,14 +232,7 @@
 
 
     }
-    #frontend-image workaround
-    create-frontend-image () {
-        docker pull springcloudservices/animal-rescue-frontend
-        docker tag springcloudservices/animal-rescue-frontend:latest $DET4PETS_FRONTEND_IMAGE_LOCATION
-        docker push $DET4PETS_FRONTEND_IMAGE_LOCATION
-    }
-
-
+    
 
 #################### pre-tap installers ################
     
@@ -246,16 +243,16 @@
         echo "===> Installing Spring Cloud Gateway operator using HELM..."
         echo
     
-        kubectl create ns $GW_NAMESPACE
+        
         
         #scgw
         kubectl create secret docker-registry spring-cloud-gateway-image-pull-secret \
             --docker-server=$PRIVATE_REGISTRY_URL \
             --docker-username=$PRIVATE_REGISTRY_USER \
             --docker-password=$PRIVATE_REGISTRY_PASSWORD \
-            --namespace $GW_NAMESPACE
+            --namespace $GATEWAY_NS
 
-        $GW_INSTALL_DIR/scripts/install-spring-cloud-gateway.sh --namespace $GW_NAMESPACE
+        $GW_INSTALL_DIR/scripts/install-spring-cloud-gateway.sh --namespace $GATEWAY_NS
 
                 
     }
@@ -282,25 +279,22 @@
         echo "===> Installing API portal using helm..."
         echo
 
-        kubectl create ns $API_PORTAL_NAMESPACE 
-
         kubectl create secret docker-registry api-portal-image-pull-secret \
             --docker-server=$PRIVATE_REGISTRY_URL \
             --docker-username=$PRIVATE_REGISTRY_USER \
             --docker-password=$PRIVATE_REGISTRY_PASSWORD \
-            --namespace $API_PORTAL_NAMESPACE 
+            --namespace $API_PORTAL_NS
       
-        kubectl create secret generic sso-credentials --from-env-file=.config/sso-creds.txt -n $API_PORTAL_NAMESPACE
+        kubectl create secret generic sso-credentials --from-env-file=.config/sso-creds.txt -n $API_PORTAL_NS
         
         $API_PORTAL_INSTALL_DIR/scripts/install-api-portal.sh
         
-        kubectl set env deployment.apps/api-portal-server API_PORTAL_SOURCE_URLS=http://scg-openapi.$SUB_DOMAIN.$DOMAIN/openapi -n $API_PORTAL_NAMESPACE
+        kubectl set env deployment.apps/api-portal-server API_PORTAL_SOURCE_URLS=http://scg-openapi.$SUB_DOMAIN.$DOMAIN/openapi -n $API_PORTAL_NS
 
-        kubectl set env deployment.apps/api-portal-server API_PORTAL_SOURCE_URLS_CACHE_TTL_SEC=10 -n $API_PORTAL_NAMESPACE #so frontend apis will appear faster, just for this demo
+        kubectl set env deployment.apps/api-portal-server API_PORTAL_SOURCE_URLS_CACHE_TTL_SEC=10 -n $API_PORTAL_NS #so frontend apis will appear faster, just for this demo
 
-        kubectl apply -f .config/api-portal-ingress.yaml -n $API_PORTAL_NAMESPACE
-
-        kubectl apply -f .config/scg-openapi-ingress.yaml -n $GW_NAMESPACE
+        kubectl apply -f .config/api-portal-ingress.yaml -n $API_PORTAL_NS
+      
     }
     
 #################### misc ################
@@ -338,7 +332,7 @@
 
 case $1 in
 init)
-    build-all
+    install-all
     ;;
 cleanup)
 	scripts/build-aks-cluster.sh delete $CLUSTER_NAME 

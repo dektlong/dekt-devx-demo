@@ -3,7 +3,7 @@ kind: Kustomization
 namespace: dekt-apps
 
 resources:
-  - config/dekt4pets-gateway.yaml
-  - config/dekt4pets-gateway-dev.yaml
-  - config/dekt4pets-ingress.yaml
-  - config/dekt4pets-ingress-dev.yaml
+  - dekt4pets-gateway.yaml
+  - dekt4pets-gateway-dev.yaml
+  - dekt4pets-ingress.yaml
+  - dekt4pets-ingress-dev.yaml

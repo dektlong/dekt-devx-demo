@@ -60,7 +60,7 @@ create-backend() {
     #git-push "local-development-completed"
     #codechanges=$?
 
-    kp image patch $BACKEND_TBS_IMAGE -n $APP_NAMESPACE
+    kp image patch $BACKEND_TBS_IMAGE -n $DEMO_APPS_NS
     
     echo
     echo "Apply backend app, service and routes ..."
@@ -75,7 +75,7 @@ create-frontend() {
     echo "$DEMO_APP_GIT_REPO/frontend remote git synced (no change)"
     echo
 
-    kp image patch $FRONTEND_TBS_IMAGE -n $APP_NAMESPACE
+    kp image patch $FRONTEND_TBS_IMAGE -n $DEMO_APPS_NS
 
     echo
     echo "Apply frontend app, service and routes ..."
@@ -97,33 +97,33 @@ patch-backend() {
     echo "=========> Auto-build $BACKEND_TBS_IMAGE image on latest git commit (commit: $_latestCommitId) ..."
     echo
     
-    kp image patch $BACKEND_TBS_IMAGE --git-revision $_latestCommitId -n $APP_NAMESPACE
+    kp image patch $BACKEND_TBS_IMAGE --git-revision $_latestCommitId -n $DEMO_APPS_NS
     
     echo
     echo "Waiting for next github polling interval ..."
     echo  
     
     #apply new routes so you can show them in portal while new build is happening
-    kubectl apply -f workloads/dekt4pets/backend/routes/dekt4pets-backend-routes.yaml -n $APP_NAMESPACE >/dev/null &
+    kubectl apply -f workloads/dekt4pets/backend/routes/dekt4pets-backend-routes.yaml -n $DEMO_APPS_NS >/dev/null &
     
     sleep 10 #enough time, instead of active polling which is not recommended by the TBS team
     
-    kp build list $BACKEND_TBS_IMAGE -n $APP_NAMESPACE
+    kp build list $BACKEND_TBS_IMAGE -n $DEMO_APPS_NS
 
-    #kp build status $BACKEND_TBS_IMAGE -n $APP_NAMESPACE
+    #kp build status $BACKEND_TBS_IMAGE -n $DEMO_APPS_NS
 
     echo
     echo "Starting to tail build logs ..."
     echo
     
-    kp build logs $BACKEND_TBS_IMAGE -n $APP_NAMESPACE
+    kp build logs $BACKEND_TBS_IMAGE -n $DEMO_APPS_NS
     
     echo
     echo "=========> Apply changes to backend app, service and routes ..."
     echo
-    kubectl apply -f workloads/dekt4pets/backend/dekt4pets-backend-app.yaml -n $APP_NAMESPACE
-    kubectl apply -f workloads/dekt4pets/backend/routes/dekt4pets-backend-routes.yaml -n $APP_NAMESPACE
-    kubectl apply -f workloads/dekt4pets/backend/routes/dekt4pets-backend-mapping.yaml -n $APP_NAMESPACE
+    kubectl apply -f workloads/dekt4pets/backend/dekt4pets-backend-app.yaml -n $DEMO_APPS_NS
+    kubectl apply -f workloads/dekt4pets/backend/routes/dekt4pets-backend-routes.yaml -n $DEMO_APPS_NS
+    kubectl apply -f workloads/dekt4pets/backend/routes/dekt4pets-backend-mapping.yaml -n $DEMO_APPS_NS
 
 }
 
@@ -144,12 +144,12 @@ dekt4pets() {
     echo
     echo "=========> dekt4pets-backend route mapping change to production gateway ..."
     echo
-    kubectl apply -f workloads/dekt4pets/backend/routes/dekt4pets-backend-mapping.yaml -n $APP_NAMESPACE
+    kubectl apply -f workloads/dekt4pets/backend/routes/dekt4pets-backend-mapping.yaml -n $DEMO_APPS_NS
 
     echo
     echo "=========> dekt4pets-frontend route mapping change to production gateway..."
     echo
-    kubectl apply -f workloads/dekt4pets/frontend/routes/dekt4pets-frontend-mapping.yaml -n $APP_NAMESPACE
+    kubectl apply -f workloads/dekt4pets/frontend/routes/dekt4pets-frontend-mapping.yaml -n $DEMO_APPS_NS
 
     echo
     echo "=========> dekt4pets micro-gateway (w/ external traffic)..."
@@ -189,7 +189,7 @@ create-adopter-check () {
         --image $ADOPTER_CHECK_IMAGE_LOCATION \
         --env REV="1.0" \
         --revision-name adopter-check-v1 \
-        --namespace $APP_NAMESPACE
+        --namespace $DEMO_APPS_NS
 }
 
 update-adopter-check () {
@@ -202,16 +202,16 @@ update-adopter-check () {
     echo "Starting to tail build logs ..."
     echo
 
-    kp build logs $ADOPTER_CHECK_TBS_IMAGE -n $APP_NAMESPACE
+    kp build logs $ADOPTER_CHECK_TBS_IMAGE -n $DEMO_APPS_NS
 
     kn service update $ADOPTER_CHECK_TBS_IMAGE \
         --image $ADOPTER_CHECK_IMAGE_LOCATION \
         --env REV="2.0" \
         --revision-name adopter-check-v2 \
         --traffic adopter-check-v2=70,adopter-check-v1=30 \
-        --namespace $APP_NAMESPACE
+        --namespace $DEMO_APPS_NS
 
-    kn service describe adopter-check -n $APP_NAMESPACE
+    kn service describe adopter-check -n $DEMO_APPS_NS
 }
 
 
@@ -225,14 +225,14 @@ delete-workloads() {
     #kustomize build workloads/dekt4pets/gateway | kubectl delete -f -  
     kustomize build workloads/dekt4pets/backend | kubectl delete -f -  
     kustomize build workloads/dekt4pets/frontend | kubectl delete -f -  
-    kubectl delete -f workloads/dekt4pets/backend/routes/dekt4pets-backend-mapping.yaml -n $APP_NAMESPACE
-    kubectl delete -f workloads/dekt4pets/frontend/routes/dekt4pets-frontend-mapping.yaml -n $APP_NAMESPACE
+    kubectl delete -f workloads/dekt4pets/backend/routes/dekt4pets-backend-mapping.yaml -n $DEMO_APPS_NS
+    kubectl delete -f workloads/dekt4pets/frontend/routes/dekt4pets-frontend-mapping.yaml -n $DEMO_APPS_NS
 
     kustomize build workloads/dektFitness/kubernetes-manifests/ | kubectl delete -f -  
 
-    kn service delete adopter-check -n $APP_NAMESPACE 
+    kn service delete adopter-check -n $DEMO_APPS_NS 
 
-    #kn service delete dekt-fortune -n $APP_NAMESPACE 
+    #kn service delete dekt-fortune -n $DEMO_APPS_NS 
 
 }
 
@@ -309,10 +309,10 @@ supply-chain-components() {
     echo
     echo "${bold}Workload Images${normal}"
     echo
-    kp images list -n $APP_NAMESPACE
+    kp images list -n $DEMO_APPS_NS
     echo "${bold}Cluster Builders${normal}"
     echo
-    kp builder list -n $APP_NAMESPACE
+    kp builder list -n $DEMO_APPS_NS
     echo "${bold}Delivery Flow${normal}"
     echo
     echo "NAME                          KIND                PATH"
