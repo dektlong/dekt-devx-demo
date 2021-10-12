@@ -33,8 +33,10 @@ public class AnimalController {
 
 	@GetMapping("/check-adopter")
 	  public String checkAdopter(Principal adopter) {
+
+		String adopterID = adopter.getName().substring (0,5);  
     
-		String adoptionHistoryCheckURI = "http://datacheck.tanzu.dekt.io/api/adoption-history?adopterID=55" + adopter.getName();
+		String adoptionHistoryCheckURI = "http://datacheck.tanzu.dekt.io/api/adoption-history?adopterID=" + adopterID;
 
    		RestTemplate restTemplate = new RestTemplate();
 		
@@ -45,8 +47,7 @@ public class AnimalController {
 		  catch (Exception e) {}
 
   		return "<h1>Congratulations,</h1>" + 
-				"<h2>You are cleared to adopt your next best friend.</h2>" +
-				"<p>token:"+adopter.getName()+"</p>";
+				"<h2>Adopter " + adopterID + ", you are cleared to adopt your next best friend.</h2>";
 	}
 	
 	@GetMapping("/whoami")
