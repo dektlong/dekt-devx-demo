@@ -34,7 +34,7 @@ public class AnimalController {
 	@GetMapping("/check-adopter")
 	  public String checkAdopter(Principal adopter) {
     
-		String adoptionHistoryCheckURI = "http://datacheck.tanzu.dekt.io/api/adoption-history?adopterID=" + adopter.getName();
+		String adoptionHistoryCheckURI = "http://datacheck.tanzu.dekt.io/api/adoption-history?adopterID=55" + adopter.getName();
 
    		RestTemplate restTemplate = new RestTemplate();
 		
