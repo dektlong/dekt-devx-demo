@@ -30,6 +30,24 @@ public class AnimalController {
 		this.animalRepository = animalRepository;
 	}
 
+	@GetMapping("/check-adopter")
+	  public String checkAdopter(Principal adopter) {
+    
+		String adoptionHistoryCheckURI = "http://datacheck.tanzu.dekt.io/api/adoption-history?adopterID=" + adopter.getName()
+
+   		RestTemplate restTemplate = new RestTemplate();
+		
+		  try
+		  {
+   			String result = restTemplate.getForObject(adoptionHistoryCheckURI, String.class);
+		  }
+		  catch (Exception e) {}
+
+  		return "<h1>Congratulations,</h1>" + 
+				"<h2>You are cleared to adopt your next best friend.</h2>" +
+				"<p>token:"+adopter.getName()+"</p>";
+	}
+	
 	@GetMapping("/whoami")
 	public String whoami(Principal principal) {
 		if (principal == null) {
