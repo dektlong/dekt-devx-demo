@@ -34,20 +34,21 @@ public class AnimalController {
 	@GetMapping("/check-adopter")
 	  public String checkAdopter(Principal adopter) {
 
-		String adopterID = adopter.getName();
+		//String adopterID = adopter.getName();
     
-		String adoptionHistoryCheckURI = "http://datacheck.tanzu.dekt.io/api/adoption-history?adopterID=" + adopterID;
+		//String adoptionHistoryCheckURI = "http://datacheck.tanzu.dekt.io/api/adoption-history?adopterID=" + adopterID;
 
-   		RestTemplate restTemplate = new RestTemplate();
+   		//RestTemplate restTemplate = new RestTemplate();
 		
-		  try
-		  {
-   			String result = restTemplate.getForObject(adoptionHistoryCheckURI, String.class);
-		  }
-		  catch (Exception e) {}
+		  //try
+		  //{
+   			//String result = restTemplate.getForObject(adoptionHistoryCheckURI, String.class);
+		  //}
+		  //catch (Exception e) {}
 
-  		return "<h1>Congratulations,</h1>" + 
-				"<h2>Adopter " + adopterID + ", you are cleared to adopt your next best friend.</h2>";
+  		//return "<h1>Congratulations,</h1>" + 
+		//		"<h2>Adopter " + adopterID + ", you are cleared to adopt your next best friend.</h2>";
+		return "test me";
 	}
 
 	@GetMapping("/whoami")
