@@ -106,17 +106,9 @@ adopter-check () {
     echo "=========> Create adopte-check TAP workload and deploy via default supply-chain ..."
     echo
 
-    tanzu apps workload create adopter-check \
-        --git-repo https://github.com/dektlong/adopter-check \
-        --git-branch main \
-        --type web \
-        --yes \
-        --namespace $DEMO_APPS_NS
+    tanzu apps workload create adopter-check -f workloads/dekt4pets/adopter-check/workload-go.yaml -y -n $DEMO_APPS_NS
 
-    echo
-    echo "Waiting for supplychain build logs ..."
-
-    #tanzu apps workload tail adopter-check -n dekt-apps --since 10m --timestamp
+    sleep 5
 
     tanzu apps workload get adopter-check -n dekt-apps
 

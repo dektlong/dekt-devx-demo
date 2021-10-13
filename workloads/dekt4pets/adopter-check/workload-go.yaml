@@ -1,4 +1,5 @@
-apiVersion: kontinue.io/v1alpha1
+
+apiVersion: carto.run/v1alpha1
 kind: Workload
 metadata:
   name: adopter-check
@@ -8,6 +9,9 @@ metadata:
 spec:
   source:
     git:
+      url: https://github.com/dektlong/adopter-check
       ref:
         branch: main
-      url: https://github.com/dektlong/store-brownfield-api
+  env:
+  - name: BROWNFIELD_API
+    value: "https://brownfieldapi.example.com/my-brownfield-api"
