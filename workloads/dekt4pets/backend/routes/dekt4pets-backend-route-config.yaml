@@ -9,8 +9,8 @@ spec:
     - predicates:
         - Path=/api/check-adopter
         - Method=GET
-      ssoEnabled: true
-      tokenRelay: true
+      filters:
+        - RateLimit=3,60s
       tags:
         - "Pets"  
     - predicates:
