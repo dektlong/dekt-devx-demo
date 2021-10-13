@@ -32,7 +32,7 @@ public class AnimalController {
 	}
 
 	@GetMapping("/check-adopter")
-	  public String checkAdopter(Principal adopter) {
+	public String checkAdopter(Principal adopter) {
 
 		//String adopterID = adopter.getName();
     
