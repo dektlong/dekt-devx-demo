@@ -12,7 +12,7 @@ spec:
       ssoEnabled: true
       tokenRelay: true
       tags:
-        - Pets  
+        - "Pets"  
     - predicates:
         - Path=/api/animals
         - Method=GET
