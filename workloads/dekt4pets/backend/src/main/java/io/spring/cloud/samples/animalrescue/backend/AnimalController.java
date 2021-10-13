@@ -34,7 +34,7 @@ public class AnimalController {
 	@GetMapping("/check-adopter")
 	  public String checkAdopter(Principal adopter) {
 
-		String adopterID = adopter.getName().substring (0,5);  
+		String adopterID = adopter.getName();
     
 		String adoptionHistoryCheckURI = "http://datacheck.tanzu.dekt.io/api/adoption-history?adopterID=" + adopterID;
 
