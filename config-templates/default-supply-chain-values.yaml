@@ -1,5 +1,5 @@
 ---
 registry:
-  server: dektregistry.azurecr.io
-  repository: dekt-apps
+  server: PRIVATE_REGISTRY
+  repository: PRIVATE_REGISTRY_APP_REPO
   service_account: service-account

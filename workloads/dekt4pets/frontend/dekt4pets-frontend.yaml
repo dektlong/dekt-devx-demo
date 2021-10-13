@@ -12,7 +12,7 @@ spec:
         app: dekt4pets-frontend
     spec:
       imagePullSecrets: 
-        - name: imagereg-secret
+        - name: dekt-registry
       containers:
         - name: dekt4pets-frontend
           image: springcloudservices/animal-rescue-frontend

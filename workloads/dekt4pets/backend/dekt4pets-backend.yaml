@@ -18,7 +18,7 @@ spec:
         tanzu.app.live.view.application.name: dekt4pets-backend-liveview
     spec:
       imagePullSecrets: 
-      - name: imagereg-secret
+      - name: private-registry-creds
       containers:
         - name: dekt4pets-backend
           image: dektregistry.azurecr.io/dekt-apps/dekt4pets-backend:1.0.0

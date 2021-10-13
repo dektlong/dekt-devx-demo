@@ -61,3 +61,13 @@ spec:
     url: https://github.com/dektlong/multicluster-workflow
     ref:
       branch: main
+apiVersion: accelerator.apps.tanzu.vmware.com/v1alpha1
+kind: Accelerator
+metadata:
+  name: my-api-gateway
+spec:
+  git:
+    url: https://github.com/fombico/spring-cloud-gateway-accelerator
+    ref:
+      branch: main
+      

@@ -29,15 +29,13 @@ It is designed to run on any k8s.
 
 - Rename the folder ```config-template``` to  ```.config``` 
 
-- Update all values in the ```.config``` directory
+- Set all UPDATE_ME values in the ```.config``` directory
 
-- Update runtime specific values in ```workload/dekt4pets``` folder
+- Update your runtime specific values in ```workload/dekt4pets``` folder
 
   - ```image:``` value in ```backend/dekt4pets-backend.yml```
 
   - ```serverUrl:``` value in ```gateway/dekt4pets-gatway.yml``` and ```gateway/dekt4pets-gatway-dev.yml```
-
-  - ```host:``` value in ```gateway/dekt4pets-ingress.yml``` and ```gateway/dekt4pets-ingress-dev.yml```
 
 - Update ```host:``` value in ```workload/brownfield-apis``` files  
 
@@ -109,20 +107,26 @@ It is designed to run on any k8s.
 #### Demo brownfield API use via adding a route and patching the backend app
   - In ```workloads/dekt4pets/backend/routes/dekt4pets-backend-routes.yaml``` add
   ```
-    - predicates:
+     - predicates:
         - Path=/api/check-adopter
         - Method=GET
-      ssoEnabled: true
-      tokenRelay: true
+      filters:
+        - RateLimit=3,60s
       tags:
-        - pets      
+        - "Pets"    
   ```
   - In ```workloads/dekt4pets/backend/src/main/.../AnimalController.java``` add
   ```
 	  @GetMapping("/check-adopter")
-	  public String checkAdopter(Principal adopter) {
+	public String checkAdopter(Principal adopter) {
+
+		if (adopter == null) {
+			return "Error: Invalid adopter ID";
+		}
+
+		String adopterID = adopter.getName();
     
-		  String adoptionHistoryCheckURI = //TODO add adoption-history request URL;
+		String adoptionHistoryCheckURI = "UPDATE_FROM_API_PORTAL" + adopterID;
 
    		RestTemplate restTemplate = new RestTemplate();
 		
@@ -133,9 +137,8 @@ It is designed to run on any k8s.
 		  catch (Exception e) {}
 
   		return "<h1>Congratulations,</h1>" + 
-				"<h2>You are cleared to adopt your next best friend.</h2>" +
-				"<p>token:"+adopter.getName()+"</p>";
-	  }
+				"<h2>Adopter " + adopterID + ", you are cleared to adopt your next best friend.</h2>";
+	}
 
   ```
   - ```./demo.sh backend -u ```

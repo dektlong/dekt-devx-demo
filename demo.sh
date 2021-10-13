@@ -1,38 +1,6 @@
 #!/usr/bin/env bash
 
 
-backend () {
-
-    if [ "$2" == "-u" ]
-    then
-        patch-backend
-    else
-        create-backend
-    fi
-}
-
-adopter-check() {
-    if [ "$2" == "-u" ]
-    then
-        update-adopter-check
-    else
-        create-adopter-check
-    fi
-
-}
-
-
-#TAP experimental workflow for adopter-check
-adopter-check-tap()
-    {
-        #backend workload
-        tanzu apps workload create adopter-check -f workloads/dekt4pets/adopter-check/carto/workload.yaml -y
-        tanzu apps workload tail adopter-check --since 1h
-
-        #verify workload deployments
-        tanzu apps workload list
-    }
-
 #create-backend 
 create-backend() {
 
@@ -72,7 +40,9 @@ patch-backend() {
     echo "=========> Commit code changes to $DEMO_APP_GIT_REPO  ..."
     echo
     
-    wait-for-tbs $BACKEND_TBS_IMAGE
+    commit-adopter-check-api
+
+    scripts/wait-for-tbs.sh $BACKEND_TBS_IMAGE $DEMO_APPS_NS
 
     echo
     echo "Starting to tail build logs ..."
@@ -83,9 +53,10 @@ patch-backend() {
     echo
     echo "=========> Apply changes to backend app, service and routes ..."
     echo
-    kubectl apply -f workloads/dekt4pets/backend/dekt4pets-backend-app.yaml -n $DEMO_APPS_NS
-    kubectl apply -f workloads/dekt4pets/backend/routes/dekt4pets-backend-routes.yaml -n $DEMO_APPS_NS
-    kubectl apply -f workloads/dekt4pets/backend/routes/dekt4pets-backend-mapping.yaml -n $DEMO_APPS_NS
+    
+    kubectl delete -f workloads/dekt4pets/backend/dekt4pets-backend.yaml -n $DEMO_APPS_NS
+    kubectl apply -f workloads/dekt4pets/backend/dekt4pets-backend.yaml -n $DEMO_APPS_NS
+    kubectl apply -f workloads/dekt4pets/backend/routes/dekt4pets-backend-route-config.yaml -n $DEMO_APPS_NS
 
 }
 
@@ -116,7 +87,8 @@ dekt4pets() {
     echo
     echo "=========> dekt4pets micro-gateway (w/ external traffic)..."
     echo
-    kustomize build workloads/dekt4pets/gateway | kubectl apply -f -
+    kubectl apply -f workloads/dekt4pets/gateway/dekt4pets-gateway.yaml -n $DEMO_APPS_NS
+    scripts/apply-ingress.sh "dekt4pets" "dekt4pets-gateway" "80" $DEMO_APPS_NS
 }
 
 #deploy-fitness app
@@ -127,45 +99,41 @@ create-fitness () {
     kustomize build kubernetes-manifests/ | kubectl apply -f -
 }
 
-#adopter-check
-create-adopter-check () {
-
-    adopter_image_location=$PRIVATE_REGISTRY_URL/$PRIVATE_REGISTRY_APP_REPO/$ADOPTER_CHECK_TBS_IMAGE:$APP_VERSION
-
-    kn service create adopter-check \
-        --image $adopter_image_location \
-        --env REV="1.0" \
-        --revision-name adopter-check-v1 \
-        --namespace $DEMO_APPS_NS
-}
-
-update-adopter-check () {
-
-    adopter_image_location=$PRIVATE_REGISTRY_URL/$PRIVATE_REGISTRY_APP_REPO/$ADOPTER_CHECK_TBS_IMAGE:$APP_VERSION
-    
-    echo
-
-    wait-for-tbs $ADOPTER_CHECK_TBS_IMAGE
+#adopter-check-workload
+adopter-check () {
 
     echo
-    echo "Starting to tail build logs ..."
+    echo "=========> Create adopte-check TAP workload and deploy via default supply-chain ..."
     echo
 
-    kp build logs $ADOPTER_CHECK_TBS_IMAGE -n $DEMO_APPS_NS
-
-    kn service update $ADOPTER_CHECK_TBS_IMAGE \
-        --image $adopter_image_location \
-        --env REV="2.0" \
-        --revision-name adopter-check-v2 \
-        --traffic adopter-check-v2=70,adopter-check-v1=30 \
+    tanzu apps workload create adopter-check \
+        --git-repo https://github.com/dektlong/adopter-check \
+        --git-branch main \
+        --type web \
+        --yes \
         --namespace $DEMO_APPS_NS
 
-    kn service describe adopter-check -n $DEMO_APPS_NS
+    echo
+    echo "Waiting for supplychain build logs ..."
+
+    #tanzu apps workload tail adopter-check -n dekt-apps --since 10m --timestamp
+
+    tanzu apps workload get adopter-check -n dekt-apps
+
 }
 
+#commit-adopter-check-api
+commit-adopter-check-api () {
 
-#delete-workloads
-delete-workloads() {
+    git commit -m "add check-adpoter api route" workloads/dekt4pets/backend/routes/dekt4pets-backend-route-config.yaml
+
+    git commit -m "add check-adpoter function" workloads/dekt4pets/backend/src/main/java/io/spring/cloud/samples/animalrescue/backend/AnimalController.java
+
+    git push
+}
+
+#cleanup
+cleanup() {
 
     echo
     echo "=========> Remove all workloads..."
@@ -179,43 +147,9 @@ delete-workloads() {
 
     kustomize build workloads/dektFitness/kubernetes-manifests/ | kubectl delete -f -  
 
-    kn service delete adopter-check -n $DEMO_APPS_NS 
-
-    #kn service delete dekt-fortune -n $DEMO_APPS_NS 
+    tanzu apps workload delete adopter-check -y -n $DEMO_APPS_NS 
 
 }
-
-#################### helper functions #######################
-
-#git-push
-#   param: commit message
-git-push() {
-
-    #check if this commit will have actual code changes (for later pipeline operations)
-    #git diff --exit-code --quiet
-    #local_changes=$? #1 if prior to commit any code changes were made, 0 if no changes made
-
-	git commit -a -m "$1"
-	git push  
-	
-    _latestCommitId="$(git rev-parse HEAD)"
-}
-
-wait-for-tbs () {
-
-    image_name=$1
-
-    status=""
-    printf "Waiting for tanzu build service to start building $image_name image."
-    while [ "$status" == "" ]
-    do
-        printf "."
-        status="$(kp image status $image_name -n dekt-apps | grep 'Building')" 
-        sleep 1
-    done
-    echo
-}
-
 
 #usage
 usage() {
@@ -224,18 +158,16 @@ usage() {
 	echo "A mockup script to illustrate upcoming App Stack concepts. Please specify one of the following:"
 	echo
     echo "${bold}backend${normal} - deploy the dekt4pets backend service and APIs"
+    echo "          (use -u for update)"
     echo
     echo "${bold}frontend${normal} - deploy the dekt4pets frotend service and APIs"
     echo
     echo "${bold}dekt4pets${normal} - run end-to-end supplychain for dekt4pets deployment to production"
     echo
-    echo "${bold}adopter-check${normal} - deploy the dekt4pets adopter check function"
+    echo "${bold}adopter-check${normal} - deploy the adopter-check TAP workload using the default supply-chain"
     echo
     echo "${bold}fitness${normal} - deploy the Fitenss app, services and APIs"
-    echo
-    echo "${bold}fortune${normal} - deploy the fortune backend service and App Viewer sidecar"
-    echo
-    echo "(use -u for update)"
+    echo 
   	exit   
  
 }
@@ -244,25 +176,22 @@ usage() {
 supply-chain-components() {
 
     echo
-    echo "${bold}TAP installed packages${normal}"
+    echo "${bold}Supply chain(s)${normal}"
     echo
-    tanzu package available list -n tap-install
+    tanzu apps cluster-supply-chain list
     echo
 
-    echo "${bold}Workload Repositories${normal}"
+    echo "${bold}Workloads${normal}"
     echo
-    echo "NAME                      URL                                               STATUS"
-    echo "dekt4pets-backend         https://github.com/dektlong/dekt4pets-backend     Fetched revision: main"
-    echo "dekt4pets-frontend        https://github.com/dektlong/dekt4pets-frontend    Fetched revision: main"
-    echo "adopter-check             https://github.com/dektlong/adopter-check         Fetched revision: main"
+    echo "NAME                      GIT"
+    echo "dekt4pets-backend         https://github.com/dektlong/dekt4pets-backend"     
+    echo "dekt4pets-frontend        https://github.com/dektlong/dekt4pets-frontend" 
+    echo "adopter-check             https://github.com/dektlong/adopter-check"
     echo
     echo "${bold}Workload Images${normal}"
     echo
     kp images list -n $DEMO_APPS_NS
-    echo "${bold}Cluster Builders${normal}"
-    echo
-    kp builder list -n $DEMO_APPS_NS
-    echo "${bold}Delivery Flow${normal}"
+    echo "${bold}API Delivery Flow${normal}"
     echo
     echo "NAME                          KIND                PATH"
     echo "dekt4pets-backend             app                 workloads/dekt4pets/backend/dekt4pets-backend.yaml"
@@ -276,7 +205,6 @@ supply-chain-components() {
     echo "dekt4pets-gateway             gateway-config      workloads/dekt4pets/gateway/dekt4pets-gateway.yaml"
     echo "dekt4pets-ingress             ingress-rule        workloads/dekt4pets/gateway/dekt4pets-ingress.yaml"
     echo
-    echo "adopter-check                 knative function    "
     echo
 }
 
@@ -290,16 +218,21 @@ normal=$(tput sgr0)
 
 case $1 in
 backend)
-	backend $2
+	if [ "$2" == "-u" ]
+    then
+        patch-backend
+    else
+        create-backend
+    fi
     ;;
 frontend)
-	create-frontent
+	create-frontend
     ;;
 dekt4pets)
     dekt4pets
     ;;
 adopter-check)
-	adopter-check $2
+	adopter-check
     ;;
 fitness)
 	create-fitness $2

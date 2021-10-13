@@ -12,7 +12,7 @@ data:
 apiVersion: v1
 kind: Secret
 metadata:
-  name: registry-credentials
+  name: private-registry-creds
   annotations:
     secretgen.carvel.dev/image-pull-secret: ""
 type: kubernetes.io/dockerconfigjson
@@ -25,9 +25,10 @@ kind: ServiceAccount
 metadata:
   name: service-account # use value from "Install Default Supply Chain"
 secrets:
-  - name: registry-credentials
+  - name: private-registry-creds
+  - name: tap-registry
 imagePullSecrets:
-  - name: registry-credentials
+  - name: private-registry-creds
   - name: tap-registry
 
 ---

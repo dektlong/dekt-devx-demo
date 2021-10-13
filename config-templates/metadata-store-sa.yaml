@@ -1,0 +1,33 @@
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: metadata-store-read-write
+  namespace: metadata-store
+rules:
+- resources: ["all"]
+  verbs: ["get", "create", "update"]
+  apiGroups: [ "metadata-store/v1" ]
+
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: metadata-store-read-write
+  namespace: metadata-store
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: metadata-store-read-write
+subjects:
+- kind: ServiceAccount
+  name: metadata-store-read-write-client
+  namespace: metadata-store
+
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: metadata-store-read-write-client
+  namespace: metadata-store
+automountServiceAccountToken: false
