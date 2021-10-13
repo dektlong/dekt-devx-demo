@@ -18,16 +18,14 @@
 
 #################### installers ################
 
-    #install-all
-    install-all() {
+    #install-standard
+    install-standard() {
 
         setup-cluster
         
         install-tap-core
 
         install-tap-products
-
-        #install-tap-security-tools
 
         install-gw-helm
 
@@ -307,6 +305,7 @@
         echo "Incorrect usage. Please specify one of the following: "
         echo
         echo " init"
+        echo " add-DevSecOps"
         echo " cleanup"
         echo " runme"
         echo
@@ -332,7 +331,10 @@
 
 case $1 in
 init)
-    install-all
+    standard
+    ;;
+add-DevSecOps)
+    install-tap-security-tools
     ;;
 cleanup)
 	scripts/build-aks-cluster.sh delete $CLUSTER_NAME 
