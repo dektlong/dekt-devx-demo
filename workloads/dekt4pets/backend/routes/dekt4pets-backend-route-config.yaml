@@ -7,6 +7,13 @@ spec:
     name: dekt4pets-backend
   routes:
     - predicates:
+        - Path=/api/check-adopter
+        - Method=GET
+      ssoEnabled: true
+      tokenRelay: true
+      tags:
+        - Pets  
+    - predicates:
         - Path=/api/animals
         - Method=GET
       filters:
