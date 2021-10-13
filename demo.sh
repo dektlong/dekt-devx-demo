@@ -106,7 +106,7 @@ adopter-check () {
     echo "=========> Create adopte-check TAP workload and deploy via default supply-chain ..."
     echo
 
-    tanzu apps workload create adopter-check -f workloads/dekt4pets/adopter-check/workload-go.yaml -y -n $DEMO_APPS_NS
+    tanzu apps workload create adopter-check -f workloads/dekt4pets/adopter-check-workload.yaml -y -n $DEMO_APPS_NS
 
     sleep 5
 
