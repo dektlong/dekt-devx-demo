@@ -18,20 +18,20 @@
 
 #################### installers ################
 
-    #install-standard
-    install-standard() {
+    #install-all
+    install-all() {
 
         setup-cluster
         
         install-tap-core
 
-        install-tap-products
+        install-tap-packages
 
-        install-gw-helm
-
-        install-api-portal-helm
-
-        setup-demo-examples
+        install-api-grid
+        
+        setup-dekt-apigrid
+        
+        setup-dekt-supplychain
 
         echo
         echo "Demo install completed. Enjoy your demo."
@@ -90,8 +90,8 @@
 
     }
 
-    #install-tap prodcuts
-    install-tap-products () {
+    #install-tap packages
+    install-tap-packages () {
 
         echo
         echo "===> Install Tanzu products as TAP packages..."
@@ -145,6 +145,8 @@
         #service control plane
         echo
         tanzu package install scp-toolkit -p scp-toolkit.tanzu.vmware.com -v 0.3.0 -n $TAP_INSTALL_NS 
+
+        install-tap-security-tools
        
     }
 
@@ -180,9 +182,9 @@
 
     }
 
-    #install-gw-helm
-    install-gw-helm() {
-        
+    #install-api-grid
+    install-api-grid () {
+
         echo
         echo "===> Installing Spring Cloud Gateway operator using HELM..."
         echo
@@ -196,12 +198,6 @@
         #$GW_INSTALL_DIR/scripts/relocate-images.sh $PRIVATE_REGISTRY_URL/$PRIVATE_REGISTRY_SYSTEM_REPO
         
         $GW_INSTALL_DIR/scripts/install-spring-cloud-gateway.sh --namespace $GATEWAY_NS
-
-                
-    }
-
-    #install-api-portal-helm
-    install-api-portal-helm() {
 
         echo
         echo "===> Installing API portal using helm..."
@@ -228,13 +224,14 @@
         
         #kubectl apply -f .config/scg-openapi-ingress.yaml -n $GATEWAY_NS
         scripts/apply-ingress.sh "scg-openapi" "scg-operator" "80" $GATEWAY_NS
-      
+
+
     }
 
 #################### demo examples ################
 
-    #setup-demo-examples
-    setup-demo-examples() {
+    #setup-dekt-apigrid
+    setup-dekt-apigrid () {
 
         echo
         echo "===> Setup APIGrid demo examples..."
@@ -251,13 +248,29 @@
         kubectl apply -f workloads/dekt4pets/gateway/dekt4pets-gateway-dev.yaml -n $DEMO_APPS_NS
         scripts/apply-ingress.sh "dekt4pets-dev" "dekt4pets-gateway-dev" "80" $DEMO_APPS_NS
 
-
         create-dekt4pets-images
-       
+
+    }
+
+    #setup-dekt-supplchain
+    setup-dekt-supplychain () {
+        
+        echo
+        echo "===> Setup dekt-supplychain..."
+        echo
+
+        tanzu imagepullsecret add registry-credentials \
+             --registry $PRIVATE_REGISTRY_URL \
+             --username $PRIVATE_REGISTRY_USER \
+             --password $PRIVATE_REGISTRY_PASSWORD \
+             --namespace $DEMO_APPS_NS
+
+        kubectl apply -f .config/supplychain-rbac.yaml -n $DEMO_APPS_NS
     }
 
     #create dekt4pets images
     create-dekt4pets-images () {
+
 
         frontend_image_location=$PRIVATE_REGISTRY_URL/$PRIVATE_REGISTRY_APP_REPO/$FRONTEND_TBS_IMAGE:$APP_VERSION
         backend_image_location=$PRIVATE_REGISTRY_URL/$PRIVATE_REGISTRY_APP_REPO/$BACKEND_TBS_IMAGE:$APP_VERSION
@@ -268,6 +281,10 @@
             --registry-user $PRIVATE_REGISTRY_USER \
             --namespace $DEMO_APPS_NS 
     
+        echo
+        echo "===> Create dekt4pets-backend TBS image..."
+        echo
+
         kp image create $BACKEND_TBS_IMAGE -n $DEMO_APPS_NS \
         --tag $backend_image_location \
         --git $DEMO_APP_GIT_REPO  \
@@ -277,6 +294,10 @@
         scripts/wait-for-tbs.sh $BACKEND_TBS_IMAGE $DEMO_APPS_NS
         kp build logs $BACKEND_TBS_IMAGE -n $DEMO_APPS_NS
                 
+        echo
+        echo "===> Create dekt4pets-frontend TBS image..."
+        echo
+
         kp image save $FRONTEND_TBS_IMAGE -n $DEMO_APPS_NS \
         --tag $frontend_image_location \
         --git $DEMO_APP_GIT_REPO  \
@@ -299,7 +320,6 @@
         echo "Incorrect usage. Please specify one of the following: "
         echo
         echo " init"
-        echo " add-DevSecOps"
         echo " cleanup"
         echo " runme"
         echo
@@ -325,10 +345,7 @@
 
 case $1 in
 init)
-    install-standard
-    ;;
-add-DevSecOps)
-    install-tap-security-tools
+    install-all
     ;;
 cleanup)
 	scripts/build-aks-cluster.sh delete $CLUSTER_NAME 

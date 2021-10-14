@@ -11,6 +11,3 @@ spec:
       url: https://github.com/dektlong/adopter-check
       ref:
         branch: main
-  env:
-  - name: BROWNFIELD_API
-    value: "https://brownfieldapi.example.com/my-brownfield-api"

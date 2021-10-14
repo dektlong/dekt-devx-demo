@@ -106,13 +106,9 @@ adopter-check () {
     echo "=========> Apply adopte-check TAP workload and deploy via default supply-chain ..."
     echo
 
-    tanzu imagepullsecret add registry-credentials --registry $PRIVATE_REGISTRY_URL --username $PRIVATE_REGISTRY_USER --password $PRIVATE_REGISTRY_PASSWORD --namespace $DEMO_APPS_NS
-
-    kubectl apply -f .config/supplychain-rbac.yaml -n $DEMO_APPS_NS
-    
     tanzu apps workload apply adopter-check -f workloads/dekt4pets/adopter-check-workload.yaml -y -n $DEMO_APPS_NS
 
-    sleep 5
+    #tanzu apps workload tail adopter-check --since 10m --timestamp  -n dekt-apps
 
     tanzu apps workload get adopter-check -n dekt-apps
 

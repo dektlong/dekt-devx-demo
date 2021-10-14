@@ -31,8 +31,6 @@ It is designed to run on any k8s.
 
 - Set all UPDATE_ME values in the ```.config``` directory
 
-  - note: if you are not planing a DevSecOps demos, no need to update files in the ```tap-security-tools``` folder
-
 - Update your runtime specific values in ```workload/dekt4pets``` folder
 
   - ```image:``` value in ```backend/dekt4pets-backend.yml```
@@ -55,6 +53,10 @@ It is designed to run on any k8s.
     - App Live View
     - Build Service
     - Supply Chain components
+    - Image metadata store
+    - Image policy webhook
+    - Scan controller
+    - Grype scanner
   - Spring Cloud Gateway
   - API portal
   - Demo examples
@@ -63,11 +65,7 @@ It is designed to run on any k8s.
     - Det4Pets backend TBS image
     - Det4Pets frontend TBS image
     - dev source-to-image supply-chain 
-- run ```./builder.sh add-DevSecOps``` to add the following TAP packages:
-  - Image metadata store
-  - Image policy webhook
-  - Scan controller
-  - Grype scanner
+  
 
 ### Inner loop
 - Access app accelerator developer instance  on ```acc.<APPS_APPS_SUB_DOMAIN>.<DOMAIN>```
