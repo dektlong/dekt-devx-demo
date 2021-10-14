@@ -242,9 +242,17 @@
 
         kubectl apply -f workloads/accelerators.yaml -n accelerator-system #must be same as .config/acc-values.yaml   watched_namespace:
 
+        kustomize build workloads/brownfield-apis | kubectl apply -f -
+
+        kubectl create secret generic sso-secret --from-env-file=.config/sso-creds.txt -n $DEMO_APPS_NS
+        kubectl create secret generic jwk-secret --from-env-file=.config/jwk-creds.txt -n $DEMO_APPS_NS
+        kubectl create secret generic wavefront-secret --from-env-file=.config/wavefront-creds.txt -n $DEMO_APPS_NS
+
+        kubectl apply -f workloads/dekt4pets/gateway/dekt4pets-gateway-dev.yaml -n $DEMO_APPS_NS
+        scripts/apply-ingress.sh "dekt4pets-dev" "dekt4pets-gateway-dev" "80" $DEMO_APPS_NS
+
+
         create-dekt4pets-images
-        
-        create-api-examples
        
     }
 
@@ -277,20 +285,6 @@
 
         scripts/wait-for-tbs.sh $FRONTEND_TBS_IMAGE $DEMO_APPS_NS
         kp build logs $FRONTEND_TBS_IMAGE -n $DEMO_APPS_NS
-
-    }
-    
-    #create-api-examples
-    create-api-examples() {
-
-        kustomize build workloads/brownfield-apis | kubectl apply -f -
-
-        kubectl create secret generic sso-secret --from-env-file=.config/sso-creds.txt -n $DEMO_APPS_NS
-        kubectl create secret generic jwk-secret --from-env-file=.config/jwk-creds.txt -n $DEMO_APPS_NS
-        kubectl create secret generic wavefront-secret --from-env-file=.config/wavefront-creds.txt -n $DEMO_APPS_NS
-
-        kubectl apply -f workloads/dekt4pets/gateway/dekt4pets-gateway-dev.yaml -n $DEMO_APPS_NS
-        scripts/apply-ingress.sh "dekt4pets-dev" "dekt4pets-gateway-dev" "80" $DEMO_APPS_NS
 
     }
     
