@@ -24,13 +24,13 @@ metadata:
 spec:
   count: 1
   api:
-    serverUrl: http://locations.tanzu.dekt.io
+    serverUrl: http://locations.apps.dekt.io
     title: GEO-Location Services
     description: APIs to help with geo-locations and physical branches
     version: 0.5.0
     cors:
       allowedOrigins:
-      - http://api-portal.tanzu.dekt.io
+      - http://api-portal.apps.dekt.io
 ---
 apiVersion: v1
 kind: Service

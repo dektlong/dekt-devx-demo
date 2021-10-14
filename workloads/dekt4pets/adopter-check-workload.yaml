@@ -4,8 +4,7 @@ kind: Workload
 metadata:
   name: adopter-check
   labels:
-    app.kubernetes.io/name: adopter-check
-    app.tanzu.vmware.com/workload-type: web
+    apps.tanzu.vmware.com/workload-type: web
 spec:
   source:
     git:

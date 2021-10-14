@@ -24,13 +24,13 @@ metadata:
 spec:
   count: 1
   api:
-    serverUrl: http://sms.tanzu.dekt.io
+    serverUrl: http://sms.apps.dekt.io
     title: SMS Processing
     description: APIs to help with processing receiving and sending SMS
     version: 0.5.0
     cors:
       allowedOrigins:
-      - http://api-portal.tanzu.dekt.io
+      - http://api-portal.apps.dekt.io
 ---
 apiVersion: v1
 kind: Service

@@ -70,7 +70,7 @@ It is designed to run on any k8s.
   - Grype scanner
 
 ### Inner loop
-- Access app accelerator developer instance  on ```acc.<SUB_DOMAIN>.<DOMAIN>```
+- Access app accelerator developer instance  on ```acc.<APPS_APPS_SUB_DOMAIN>.<DOMAIN>```
 - Development curated start 
   - Select ```onlinestore-dev``` tag
   - Select the ```Backend API for online-stores``` accelerator 
@@ -79,12 +79,12 @@ It is designed to run on any k8s.
 - ```./demo.sh backend```
 - Show how build service detects git-repo changes and auto re-build backend-image (if required)
 - Show how the ```dekt4pets-gateway``` micro-gateway starts quickly as just a component of your app
-- Access API Hub on ```api-portal.<SUB_DOMAIN>.<DOMAIN>```
+- Access API Hub on ```api-portal.<APPS_APPS_SUB_DOMAIN>.<DOMAIN>```
   - Show the dekt4Pets API group auto-populated with the API spec you defined
   - now the frontend team can easily discover and test the backend APIs and reuse
   - Show the other API groups ('brownfield APIs')
 - ```./demo.sh frontend```
-- Access Spring Boot Observer at ```http://alv.<SUB_DOMAIN>.<DOMAIN>/apps``` to show actuator information on the backend application 
+- Access Spring Boot Observer at ```http://alv.<APPS_APPS_SUB_DOMAIN>.<DOMAIN>/apps``` to show actuator information on the backend application 
 - Show the new frontend APIs that where auto-populated to the API portal
 
 ### Outer loop
@@ -101,7 +101,7 @@ It is designed to run on any k8s.
   - Frontend and backend microservices still cannot be accessed directly) 
   - Access the application on 
   ```
-  https://dekt4pets.<SUB_DOMAIN>.<DOMAIN>
+  https://dekt4pets.<APPS_SUB_DOMAIN>.<DOMAIN>
   ```
   - login and show SSO functionality 
 
@@ -151,14 +151,14 @@ It is designed to run on any k8s.
   - show how build-service is invoking a new image build based on the git-commit-id
   - run the new check-adopter api 
   ```
-  dekt4pets.<SUB_DOMAIN>.<DOMAIN>/api/check-adopter
+  dekt4pets.<APPS_SUB_DOMAIN>.<DOMAIN>/api/check-adopter
   ```
   - you should see the 'Congratulations...' message with the same token you received following login
 #### Demo brownfield API use via a Cloud Native Runtime function
   - ```./demo.sh adopter-check ```
   - call the function via curl
   ```
-    curl -w'\n' -H 'Content-Type: text/plain' adopter-check.dekt-apps.cnr.dekt.io \
+    curl -w'\n' -H 'Content-Type: text/plain' adopter-check.dekt-apps.SERVING_SUB_DOMAIN.dekt.io \
     -d "datacheck.tanzu.dekt.io/adoption-history/109141744605375013560"
   ```
   - example output

@@ -24,13 +24,13 @@ metadata:
 spec:
   count: 1
   api:
-    serverUrl: http://mortages.tanzu.dekt.io
+    serverUrl: http://mortages.apps.dekt.io
     title: Mortgage Rate API
     description: Determines the general mortgage rate and/or mortgage rate for specific customer
     version: 0.5.0
     cors:
       allowedOrigins:
-      - http://api-portal.tanzu.dekt.io
+      - http://api-portal.apps.dekt.io
 ---
 apiVersion: v1
 kind: Service

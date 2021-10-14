@@ -24,13 +24,13 @@ metadata:
 spec:
   count: 1
   api:
-    serverUrl: http://credit.tanzu.dekt.io
+    serverUrl: http://credit.apps.dekt.io
     title: Credit Cards 
     description: APIs to help with processing self-service application to credit cards
     version: 0.5.0
     cors:
       allowedOrigins:
-      - http://api-portal.tanzu.dekt.io
+      - http://api-portal.apps.dekt.io
 ---
 apiVersion: v1
 kind: Service

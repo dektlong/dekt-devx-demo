@@ -99,8 +99,11 @@
 
         #cnr
         tanzu package install cloud-native-runtimes -p cnrs.tanzu.vmware.com -v 1.0.2 -n $TAP_INSTALL_NS -f .config/cnr-values.yaml --poll-timeout 30m
-        kubectl patch configmap/config-domain --namespace knative-serving --type merge --patch '{"data":{"cnr.dekt.io":""}}'
-        scripts/update-dns.sh "envoy" "contour-external" "*.cnr"
+        kubectl patch configmap/config-domain \
+            --namespace knative-serving \
+            --type merge \
+            --patch '{"data":{"'$SERVING_SUB_DOMAIN.$DOMAIN'":""}}'
+        scripts/update-dns.sh "envoy" "contour-external" "*.$SERVING_SUB_DOMAIN"
 
         #acc
         echo
@@ -218,7 +221,7 @@
        
         kubectl set env deployment.apps/api-portal-server API_PORTAL_SOURCE_URLS_CACHE_TTL_SEC=10 -n $API_PORTAL_NS #so frontend apis will appear faster, just for this demo
 
-        kubectl set env deployment.apps/api-portal-server API_PORTAL_SOURCE_URLS=http://scg-openapi.$SUB_DOMAIN.$DOMAIN/openapi -n $API_PORTAL_NS
+        kubectl set env deployment.apps/api-portal-server API_PORTAL_SOURCE_URLS=http://scg-openapi.$APPS_SUB_DOMAIN.$DOMAIN/openapi -n $API_PORTAL_NS
         
         #kubectl apply -f .config/api-portal-ingress.yaml -n $API_PORTAL_NS
         scripts/apply-ingress.sh "api-portal" "api-portal-server" "8080" $API_PORTAL_NS
@@ -237,15 +240,6 @@
         echo "===> Setup APIGrid demo examples..."
         echo
 
-        #used for both TBS standalone and the TAP supplychain
-        export REGISTRY_PASSWORD=$PRIVATE_REGISTRY_PASSWORD
-        kp secret create private-registry-creds \
-            --registry $PRIVATE_REGISTRY_URL \
-            --registry-user $PRIVATE_REGISTRY_USER \
-            --namespace $DEMO_APPS_NS 
-
-        kubectl apply -f .config/supplychain-rbac.yaml -n $DEMO_APPS_NS
-
         kubectl apply -f workloads/accelerators.yaml -n accelerator-system #must be same as .config/acc-values.yaml   watched_namespace:
 
         create-dekt4pets-images
@@ -259,6 +253,12 @@
 
         frontend_image_location=$PRIVATE_REGISTRY_URL/$PRIVATE_REGISTRY_APP_REPO/$FRONTEND_TBS_IMAGE:$APP_VERSION
         backend_image_location=$PRIVATE_REGISTRY_URL/$PRIVATE_REGISTRY_APP_REPO/$BACKEND_TBS_IMAGE:$APP_VERSION
+
+        export REGISTRY_PASSWORD=$PRIVATE_REGISTRY_PASSWORD
+        kp secret create private-registry-creds \
+            --registry $PRIVATE_REGISTRY_URL \
+            --registry-user $PRIVATE_REGISTRY_USER \
+            --namespace $DEMO_APPS_NS 
     
         kp image create $BACKEND_TBS_IMAGE -n $DEMO_APPS_NS \
         --tag $backend_image_location \
@@ -331,7 +331,7 @@
 
 case $1 in
 init)
-    standard
+    install-standard
     ;;
 add-DevSecOps)
     install-tap-security-tools

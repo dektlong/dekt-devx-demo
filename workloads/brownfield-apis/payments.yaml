@@ -24,13 +24,13 @@ metadata:
 spec:
   count: 1
   api:
-    serverUrl: http://payments.tanzu.dekt.io
+    serverUrl: http://payments.apps.dekt.io
     title: Payment Processing 
     description: APIs to help with processing payments
     version: 0.5.0
     cors:
       allowedOrigins:
-      - http://api-portal.tanzu.dekt.io
+      - http://api-portal.apps.dekt.io
 ---
 apiVersion: v1
 kind: Service
