@@ -63,11 +63,7 @@ patch-backend() {
 #dekt4pets
 dekt4pets() {
 
-    echo
-    echo "${bold}Dekt4pets supply-chain components${normal}"
-    echo "-------------------------------------"
-
-    supply-chain-components
+    describe-supplychain
 
     echo
     echo "${bold}Hit any key to start deploying dekt4pets workloads to production...${normal}"
@@ -89,6 +85,8 @@ dekt4pets() {
     echo
     kubectl apply -f workloads/dekt4pets/gateway/dekt4pets-gateway.yaml -n $DEMO_APPS_NS
     scripts/apply-ingress.sh "dekt4pets" "dekt4pets-gateway" "80" $DEMO_APPS_NS
+
+    describe-apigrid
 }
 
 #deploy-fitness app
@@ -164,42 +162,49 @@ usage() {
  
 }
 
-#supplychain-dekt4pets
-supply-chain-components() {
+#describe-supplychain
+describe-supplychain() {
 
     echo
-    echo "${bold}Supply chain(s)${normal}"
+    echo "${bold}Dekt4pets supply-chain components${normal}"
+    echo "-------------------------------------"
+    echo
+    echo "${bold}TAP packages${normal}"
+    echo
+    tanzu package installed list -n tap-install
+    echo
+    echo "${bold}Supply chains${normal}"
     echo
     tanzu apps cluster-supply-chain list
-    echo
-
-    echo "${bold}Workloads${normal}"
-    echo
-    echo "NAME                      GIT"
-    echo "dekt4pets-backend         https://github.com/dektlong/dekt4pets-backend"     
-    echo "dekt4pets-frontend        https://github.com/dektlong/dekt4pets-frontend" 
-    echo "adopter-check             https://github.com/dektlong/adopter-check"
     echo
     echo "${bold}Workload Images${normal}"
     echo
     kp images list -n $DEMO_APPS_NS
-    echo "${bold}API Delivery Flow${normal}"
-    echo
-    echo "NAME                          KIND                PATH"
-    echo "dekt4pets-backend             app                 workloads/dekt4pets/backend/dekt4pets-backend.yaml"
-    echo "dekt4pets-backend-routes      api-routes          workloads/dekt4pets/backend/routes/dekt4pets-backend-routes.yaml"
-    echo "dekt4pets-backend-mapping     route-mapping       workloads/dekt4pets/backend/routes/dekt4pets-backend-mapping.yaml"
-    echo
-    echo "dekt4pets-frontend            app                 workloads/dekt4pets/frontend/dekt4pets-frontend.yaml"
-    echo "dekt4pets-frontend-routes     api-routes          workloads/dekt4pets/frontend/routes/dekt4pets-frontend-routes.yaml"
-    echo "dekt4pets-frontend-mapping    route-mapping       workloads/dekt4pets/frontend/routes/dekt4pets-frontend-mapping.yaml"
-    echo
-    echo "dekt4pets-gateway             gateway-config      workloads/dekt4pets/gateway/dekt4pets-gateway.yaml"
-    echo "dekt4pets-ingress             ingress-rule        workloads/dekt4pets/gateway/dekt4pets-ingress.yaml"
-    echo
-    echo
 }
 
+#describe-apigrid
+describe-apigrid() {
+
+    echo
+    echo "${bold}Dekt4pets api-grid components${normal}"
+    echo "-------------------------------------"
+    echo
+    echo "${bold}API Routes${normal}"
+    echo
+    kubectl get SpringCloudGatewayRouteConfig -n $DEMO_APPS_NS 
+    echo
+    echo "${bold}API Mappings${normal}"
+    echo
+    kubectl get SpringCloudGatewayMapping -n $DEMO_APPS_NS 
+    echo
+    echo "${bold}API Gateways${normal}"
+    echo
+    kubectl get SpringCloudGateway -n $DEMO_APPS_NS 
+    echo
+    echo "${bold}Ingress rules${normal}"
+    kubectl get ingress --field-selector metadata.name=dekt4pets-ingress -n $DEMO_APPS_NS
+    echo
+}
 
 #################### main #######################
 
