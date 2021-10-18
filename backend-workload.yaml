@@ -1,0 +1,12 @@
+apiVersion: carto.run/v1alpha1
+kind: Workload
+metadata:
+  name: backend
+  labels:
+    apps.tanzu.vmware.com/workload-type: dekel
+spec:
+  source:
+    git:
+      url: https://github.com/dektlong/adopter-check
+      ref:
+        branch: main

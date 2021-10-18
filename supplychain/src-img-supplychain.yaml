@@ -1,0 +1,20 @@
+apiVersion: carto.run/v1alpha1
+kind: ClusterSupplyChain
+metadata:
+  name: dekt-src-to-image
+spec:
+  selector:
+    apps.tanzu.vmware.com/workload-type: dekel
+  components:
+    - name: dekt-source-provider
+      templateRef:
+        kind: ClusterSourceTemplate
+        name: dekt-source
+
+    - name: dekt-image-builder
+      templateRef:
+        kind: ClusterImageTemplate
+        name: dekt-image
+      sources:
+        - component: dekt-source-provider
+          name: dekt-source

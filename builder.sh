@@ -237,7 +237,7 @@
         echo "===> Setup APIGrid demo examples..."
         echo
 
-        kubectl apply -f workloads/accelerators.yaml -n accelerator-system #must be same as .config/acc-values.yaml   watched_namespace:
+        kubectl apply -f supplychain/accelerators.yaml -n accelerator-system #must be same as .config/acc-values.yaml   watched_namespace:
 
         kustomize build workloads/brownfield-apis | kubectl apply -f -
 
