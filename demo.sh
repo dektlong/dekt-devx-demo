@@ -107,6 +107,28 @@ adopter-check () {
 
 }
 
+update-adopter-check-pre-TAP () {
+
+    echo
+
+    wait-for-tbs $ADOPTER_CHECK_TBS_IMAGE
+
+    echo
+    echo "Starting to tail build logs ..."
+    echo
+
+    kp build logs $ADOPTER_CHECK_TBS_IMAGE -n $APP_NAMESPACE
+
+    kn service update $ADOPTER_CHECK_TBS_IMAGE \
+        --image $ADOPTER_CHECK_IMAGE_LOCATION \
+        --env REV="2.0" \
+        --revision-name adopter-check-v2 \
+        --traffic adopter-check-v2=70,adopter-check-v1=30 \
+        --namespace $APP_NAMESPACE
+
+    kn service describe adopter-check -n $APP_NAMESPACE
+}
+
 #commit-adopter-check-api
 commit-adopter-check-api () {
 

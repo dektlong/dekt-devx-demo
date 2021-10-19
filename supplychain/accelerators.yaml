@@ -34,7 +34,7 @@ spec:
 apiVersion: accelerator.apps.tanzu.vmware.com/v1alpha1
 kind: Accelerator
 metadata:
-  name: api-microservices-workflow
+  name: online-store-workflow
 spec:
   git:
     interval: 10s
