@@ -123,10 +123,9 @@
         echo
         tanzu package install tbs -p buildservice.tanzu.vmware.com -v 1.3.0 -n $TAP_INSTALL_NS -f .config/tbs-values.yaml --poll-timeout 30m
         
-        #supply-chain
+        #carto
         echo
         tanzu package install cartographer -p cartographer.tanzu.vmware.com -v 0.0.6 -n $TAP_INSTALL_NS
-        tanzu package install default-supply-chain -p default-supply-chain.tanzu.vmware.com -v 0.2.0 -n $TAP_INSTALL_NS -f .config/default-supply-chain-values.yaml
         
         #dev conventions
         echo
@@ -256,8 +255,10 @@
     setup-dekt-supplychain () {
         
         echo
-        echo "===> Setup dekt-supplychain..."
+        echo "===> Setup dekt-supplychains..."
         echo
+
+        tanzu package install default-supply-chain -p default-supply-chain.tanzu.vmware.com -v 0.2.0 -n $TAP_INSTALL_NS -f .config/default-supply-chain-values.yaml
 
         tanzu imagepullsecret add registry-credentials \
              --registry $PRIVATE_REGISTRY_URL \
@@ -266,6 +267,11 @@
              --namespace $DEMO_APPS_NS
 
         kubectl apply -f .config/supplychain-rbac.yaml -n $DEMO_APPS_NS
+
+        #due to a limitation of TAP-beta2, only one supply chain at a time can be used
+        kubectl apply -f supplychain/src-img-supplychain.yaml
+        kubectl apply -f supplychain/src-img-supplychain-template.yaml
+
     }
 
     #create dekt4pets images

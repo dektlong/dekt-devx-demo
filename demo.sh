@@ -4,16 +4,14 @@
 #create-backend 
 create-backend() {
 
-    echo "Syncing local code with remote git..."
-    echo "$DEMO_APP_GIT_REPO/backend remote git synced (no change)"
     echo
-    #git-push "local-development-completed"
-    #codechanges=$?
+    echo "=========> Create dekt4pets-backend (inner loop) ..."
+    echo "           1. Deploy app via src-to-img supply-chain"
+    echo "           2. Apply development routes, mapping and micro-gateway"
+    echo
 
     kp image patch $BACKEND_TBS_IMAGE -n $DEMO_APPS_NS
     
-    echo
-    echo "Apply backend app, service and routes ..."
     kustomize build workloads/dekt4pets/backend | kubectl apply -f -
     
 }
@@ -21,14 +19,14 @@ create-backend() {
 #create-frontend 
 create-frontend() {
 	
-    echo "Syncing local code with remote git..."
-    echo "$DEMO_APP_GIT_REPO/frontend remote git synced (no change)"
+    echo
+    echo "=========> Create dekt4pets-frontend (inner loop) ..."
+    echo "           1. Deploy app via src-to-img supply-chain"
+    echo "           2. Apply development routes, mapping and micro-gateway"
     echo
 
     kp image patch $FRONTEND_TBS_IMAGE -n $DEMO_APPS_NS
-
-    echo
-    echo "Apply frontend app, service and routes ..."
+    
 	kustomize build workloads/dekt4pets/frontend | kubectl apply -f -
 
 }
@@ -63,30 +61,27 @@ patch-backend() {
 #dekt4pets
 dekt4pets() {
 
-    describe-supplychain
-
     echo
-    echo "${bold}Hit any key to start deploying dekt4pets workloads to production...${normal}"
-    echo
-    read
-
-    echo
-    echo "=========> dekt4pets-backend route mapping change to production gateway ..."
+    echo "=========> Promote dekt4pets-backend to production (outer loop) ..."
+    echo "           1. Deploy app via src-to-img supply-chain"
+    echo "           2. Apply production routes, mapping and micro-gateway"
     echo
     kubectl apply -f workloads/dekt4pets/backend/routes/dekt4pets-backend-mapping.yaml -n $DEMO_APPS_NS
 
     echo
-    echo "=========> dekt4pets-frontend route mapping change to production gateway..."
+    echo "=========> Promote dekt4pets-frontend to production (outer loop) ..."
+    echo "           1. Deploy app via src-to-img supply-chain"
+    echo "           2. Apply production routes, mapping and micro-gateway"
     echo
     kubectl apply -f workloads/dekt4pets/frontend/routes/dekt4pets-frontend-mapping.yaml -n $DEMO_APPS_NS
 
     echo
-    echo "=========> dekt4pets micro-gateway (w/ external traffic)..."
+    echo "=========> Create dekt4pets micro-gateway (w/ external traffic)..."
     echo
     kubectl apply -f workloads/dekt4pets/gateway/dekt4pets-gateway.yaml -n $DEMO_APPS_NS
     scripts/apply-ingress.sh "dekt4pets" "dekt4pets-gateway" "80" $DEMO_APPS_NS
 
-    describe-apigrid
+    adopter-check
 }
 
 #deploy-fitness app
@@ -101,7 +96,7 @@ create-fitness () {
 adopter-check () {
 
     echo
-    echo "=========> Apply adopte-check TAP workload and deploy via default supply-chain ..."
+    echo "=========> Apply adopter-check TAP workload and deploy via src-to-url supply-chain ..."
     echo
 
     tanzu apps workload apply adopter-check -f workloads/dekt4pets/adopter-check-workload.yaml -y -n $DEMO_APPS_NS
@@ -145,14 +140,16 @@ cleanup() {
 usage() {
 
     echo
-	echo "A mockup script to illustrate upcoming App Stack concepts. Please specify one of the following:"
+	echo "Incorrect usage. Please specify one of the following:"
 	echo
+    echo "${bold}describe${normal} - deploy the dekt4pets supply chain components"
+    echo
     echo "${bold}backend${normal} - deploy the dekt4pets backend service and APIs"
     echo "          (use -u for update)"
     echo
     echo "${bold}frontend${normal} - deploy the dekt4pets frotend service and APIs"
     echo
-    echo "${bold}dekt4pets${normal} - run end-to-end supplychain for dekt4pets deployment to production"
+    echo "${bold}dekt4pets${normal} - run end-to-end dekt4pets deployment to production"
     echo
     echo "${bold}adopter-check${normal} - deploy the adopter-check TAP workload using the default supply-chain"
     echo
@@ -180,6 +177,10 @@ describe-supplychain() {
     echo "${bold}Workload Images${normal}"
     echo
     kp images list -n $DEMO_APPS_NS
+    echo
+    echo "${bold}Micro Gateways${normal}"
+    echo
+    kubectl get SpringCloudGateway -A
 }
 
 #describe-apigrid
@@ -199,7 +200,7 @@ describe-apigrid() {
     echo
     echo "${bold}API Gateways${normal}"
     echo
-    kubectl get SpringCloudGateway -n $DEMO_APPS_NS 
+    
     echo
     echo "${bold}Ingress rules${normal}"
     kubectl get ingress --field-selector metadata.name=dekt4pets-ingress -n $DEMO_APPS_NS
@@ -230,6 +231,9 @@ dekt4pets)
     ;;
 adopter-check)
 	adopter-check
+    ;;
+describe)
+    describe-supplychain
     ;;
 fitness)
 	create-fitness $2
