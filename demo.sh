@@ -200,9 +200,23 @@ describe-supplychain() {
     echo
     kp images list -n $DEMO_APPS_NS
     echo
-    echo "${bold}Micro Gateways${normal}"
+    echo "${bold}API configs${normal}"
     echo
-    kubectl get SpringCloudGateway -A
+    echo "NAME                              KIND                "
+    echo "dekt4pets-backend-routes          api-routes          "
+    echo "dekt4pets-backend-mapping-dev     route-mapping       "
+    echo "dekt4pets-backend-mapping         route-mapping       "
+    echo
+    echo "dekt4pets-frontend-routes         api-routes          "
+    echo "dekt4pets-frontend-mapping-dev    route-mapping       "
+    echo "dekt4pets-frontend-mapping        route-mapping       "
+    echo
+    echo "dekt4pets-gateway-dev             gateway-config      "
+    echo "dekt4pets-gateway                 gateway-config      "
+    echo "dekt4pets-ingress                 ingress-rule        "
+    echo
+    echo "dekt4pets-openapi                 ingress-rule        "
+    echo "brownfield-openapi                ingress-rule        "
 }
 
 #describe-apigrid
