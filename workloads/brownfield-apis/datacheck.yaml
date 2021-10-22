@@ -7,9 +7,8 @@ spec:
     name: datacheck-brownfield-proxy
   routes:
     - predicates:
-        - Path=/api/adoption-history
+        - Path=/api/adoption-history/{adopterID}
         - Method=GET
-        - Query=adopterID
       ssoEnabled: true
       filters:
         - RateLimit=3,60s
@@ -18,16 +17,15 @@ spec:
       tags:
         - Compatibility
     - predicates:
-        - Path=/api/good-credit
+        - Path=/api/good-credit/{adopterID}
         - Method=GET
-        - Query=adopterID
       ssoEnabled: true
       title: "Verify a good credit score"
       description: "Verify a good credit score for a given adoper's social security / taxId number "
       tags:
         - Identity
     - predicates:
-        - Path=/api/criminal-record/*
+        - Path=/api/criminal-record/{adopterID}
         - Method=GET
       ssoEnabled: true
       tokenRelay: true
@@ -36,7 +34,7 @@ spec:
       tags:
         - Identity
     - predicates:
-        - Path=/api/house-visit-request/*/date/**
+        - Path=/api/house-visit-request/{adopterID}/date/**
         - Method=POST,PUT,DELETE
       ssoEnabled: true
       tokenRelay: true
