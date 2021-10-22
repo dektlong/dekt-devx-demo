@@ -53,7 +53,7 @@ spec:
   api:
     serverUrl: http://datacheck.apps.dekt.io
     title: User Verification Services
-    description: External APIs to provide various user verification ser
+    description: External APIs to provide user verification services
     version: 0.5.0
     cors:
       allowedOrigins:
