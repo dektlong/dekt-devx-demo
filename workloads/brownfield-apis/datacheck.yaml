@@ -34,7 +34,7 @@ spec:
       tags:
         - Identity
     - predicates:
-        - Path=/api/house-visit-request/{adopterID}/date/**
+        - Path=/api/house-visit-request/{adopterID}/date/{visitDate}
         - Method=POST,PUT,DELETE
       ssoEnabled: true
       tokenRelay: true
