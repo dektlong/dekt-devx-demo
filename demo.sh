@@ -275,7 +275,7 @@ fitness)
 	create-fitness $2
     ;;
 cleanup)
-    delete-workloads
+    cleanup
     ;;
 *)
   	usage
