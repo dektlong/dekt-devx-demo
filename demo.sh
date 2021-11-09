@@ -188,9 +188,9 @@ describe-supplychain() {
     echo "${bold}Dekt4pets supply-chain components${normal}"
     echo "-------------------------------------"
     echo
-    echo "${bold}TAP packages${normal}"
+    echo "${bold}Installed TAP packages${normal}"
     echo
-    tanzu package installed list -n tap-install
+    kubectl get pkgi -n $TAP_INSTALL_NS
     echo
     echo "${bold}Supply chains${normal}"
     echo

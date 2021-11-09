@@ -1,6 +1,0 @@
----
-kp_default_repository: PRIVATE_REGISTRY_URL/PRIVATE_REGISTRY_SYSTEM_REPO/build-service
-kp_default_repository_username: PRIVATE_REGISTRY_USER
-kp_default_repository_password: PRIVATE_REGISTRY_PASSWORD
-tanzunet_username: TANZU_NETWORK_USER
-tanzunet_password: TANZU_NETWORK_USER_PASSWORD

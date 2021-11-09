@@ -1,5 +1,0 @@
----
-registry:
-  server: PRIVATE_REGISTRY
-  repository: PRIVATE_REGISTRY_APP_REPO
-  service_account: service-account

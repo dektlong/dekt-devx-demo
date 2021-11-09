@@ -10,25 +10,13 @@ data:
 
 ---
 apiVersion: v1
-kind: Secret
-metadata:
-  name: private-registry-creds
-  annotations:
-    secretgen.carvel.dev/image-pull-secret: ""
-type: kubernetes.io/dockerconfigjson
-data:
-  .dockerconfigjson: e30K
-
----
-apiVersion: v1
 kind: ServiceAccount
 metadata:
-  name: service-account # use value from "Install Default Supply Chain"
+  name: default
 secrets:
-  - name: private-registry-creds
-  - name: tap-registry
+  - name: registry-credentials
 imagePullSecrets:
-  - name: private-registry-creds
+  - name: registry-credentials
   - name: tap-registry
 
 ---
@@ -42,6 +30,10 @@ rules:
   - apiGroups:
       - servicebinding.io
     resources: ['servicebindings']
+    verbs: ['*']
+  - apiGroups:
+      - services.tanzu.vmware.com
+    resources: ['resourceclaims']
     verbs: ['*']
   - apiGroups:
       - serving.knative.dev
@@ -64,4 +56,4 @@ roleRef:
   name: kapp-permissions
 subjects:
   - kind: ServiceAccount
-    name: service-account # use value from "Install Default Supply Chain"
+    name: default

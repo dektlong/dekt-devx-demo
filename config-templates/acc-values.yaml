@@ -1,4 +1,0 @@
-server:
-  # Set the engine.service_type to "NodePort" for local clusters like minikube or kind.
-  service_type: "ClusterIP"
-  watched_namespace: "accelerator-system"

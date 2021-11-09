@@ -1,7 +1,0 @@
----
-metadataStoreUrl: https://metadata-store-app.metadata-store.svc.cluster.local:8443
-metadataStoreCa: |-
-  -----BEGIN CERTIFICATE-----
-  UPDATE_ME
-  -----END CERTIFICATE-----
-metadataStoreTokenSecret: metadata-store-secret

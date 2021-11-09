@@ -21,7 +21,7 @@ spec:
       - name: private-registry-creds
       containers:
         - name: dekt4pets-backend
-          image: dektregistry.azurecr.io/dekt-apps/dekt4pets-backend:1.0.0
+          image: harbor.apps.cf.tanzutime.com/dekt-apps/dekt4pets-backend:1.0.0
           env:
             - name: spring.profiles.active
               value: k8s

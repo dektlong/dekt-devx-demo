@@ -53,6 +53,7 @@ source .config/config-values.env
 case $1 in 
 create)
 	create-cluster $2 $3
+	scripts/install-nginx.sh
 	scripts/start-app.sh "octant"
 	;;
 delete)
