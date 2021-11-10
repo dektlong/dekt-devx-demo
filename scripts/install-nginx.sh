@@ -18,3 +18,5 @@ helm install dekt ingress-nginx/ingress-nginx \
     --set controller.nodeSelector."beta\.kubernetes\.io/os"=linux \
     --set defaultBackend.nodeSelector."beta\.kubernetes\.io/os"=linux \
     --set controller.admissionWebhooks.patch.nodeSelector."beta\.kubernetes\.io/os"=linux
+
+scripts/update-dns.sh "dekt-ingress-nginx-controller" "nginx-system" "*.$APPS_SUB_DOMAIN"

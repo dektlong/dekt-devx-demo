@@ -264,8 +264,7 @@
             --type merge \
             --patch '{"data":{"'$SERVING_SUB_DOMAIN.$DOMAIN'":""}}'
         
-        scripts/update-dns.sh "manual" "envoy" "contour-external" "*.$SERVING_SUB_DOMAIN"
-        #scripts/update-dns.sh "auto" "envoy" "contour-external" "*.$SERVING_SUB_DOMAIN"
+        scripts/update-dns.sh "envoy" "contour-external" "*.$SERVING_SUB_DOMAIN"
     }
     
     
@@ -309,7 +308,7 @@
             ;;
         eks)
             scripts/build-eks-cluster.sh create $CLUSTER_NAME
-            install-all
+            install-all 
             ;;
         *)
             incorrect-usage
