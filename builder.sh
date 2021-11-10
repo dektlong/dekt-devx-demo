@@ -267,7 +267,11 @@
         scripts/update-dns.sh "envoy" "contour-external" "*.$SERVING_SUB_DOMAIN"
     }
     
-    
+    #update-tap
+    update-tap () {
+
+        tanzu package installed update tap --package-name tap.tanzu.vmware.com --version 0.3.0 -n $TAP_INSTALL_NS -f .config/tap-values.yml
+    }
 #################### misc ################
     
      
