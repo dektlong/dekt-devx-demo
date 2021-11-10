@@ -15,7 +15,7 @@ create-cluster() {
 	echo "==========> Creating AKS cluster named $clusterName with $numberOfNodes nodes of size $nodeSize ..."
 	echo
 	
-	az login -u $AZURE_USER -p $AZURE_PASSWORD --allow-no-subscriptions
+	#make sure your run 'azure login' and use WorkspaceOn SSO prior to running this
 	
 	az group create --name $RESOURCE_GROUP --location westus
 
@@ -27,8 +27,6 @@ create-cluster() {
 delete-cluster() {
 	
 	clusterName=$1
-
-	az login -u $AZURE_USER -p $AZURE_PASSWORD
 
 	echo
 	echo "==========> Starting deletion of AKS cluster named $clusterName"
