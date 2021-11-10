@@ -26,8 +26,9 @@ done
 echo
 
 if [[ "$ingressType" == *"hostname"* ]]; then
-    #host-name=$(kubectl get svc $ingress_service_name --namespace $ingress_namespace -o=jsonpath='{.status.loadBalancer.ingress[0].hostname}')
-    read -p "Enter public IP of loadbalancer: " ingress_public_ip
+    hostname=$(kubectl get svc $ingress_service_name --namespace $ingress_namespace -o=jsonpath='{.status.loadBalancer.ingress[0].hostname}')
+    ingress_public_ip=$(dig +short $hostname| head -1)
+    #read -p "Enter public IP of loadbalancer: " ingress_public_ip
 elif [[ "$ingressType" == *"ip"* ]]; then
     ingress_public_ip=$(kubectl get svc $ingress_service_name --namespace $ingress_namespace -o=jsonpath='{.status.loadBalancer.ingress[0].ip}')
 fi
