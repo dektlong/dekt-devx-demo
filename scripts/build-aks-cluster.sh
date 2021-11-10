@@ -54,6 +54,7 @@ case $1 in
 create)
 	create-cluster $2 $3
 	scripts/install-nginx.sh
+	scripts/update-dns.sh "auto" "dekt-ingress-nginx-controller" "nginx-system" "*.$APPS_SUB_DOMAIN"
 	scripts/start-app.sh "octant"
 	;;
 delete)

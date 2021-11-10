@@ -18,8 +18,6 @@
     #install-all
     install-all() {
 
-        scripts/build-aks-cluster.sh create $CLUSTER_NAME 7 
- 
         install-tap
 
         install-api-gateway
@@ -163,7 +161,7 @@
       
         kubectl create secret generic sso-credentials --from-env-file=.config/sso-creds.txt -n $API_PORTAL_NS
         
-        $API_PORTAL_INSTALL_DIR/scripts/relocate-images.sh $PRIVATE_REGISTRY_URL/$PRIVATE_REGISTRY_SYSTEM_REPO
+        #$API_PORTAL_INSTALL_DIR/scripts/relocate-images.sh $PRIVATE_REGISTRY_URL/$PRIVATE_REGISTRY_SYSTEM_REPO
 
         $API_PORTAL_INSTALL_DIR/scripts/install-api-portal.sh
        
@@ -187,7 +185,7 @@
         kubectl apply -f supplychain/accelerators.yaml
 
         #supplychain
-        kubectl apply -f ./config/supplychain-rbac.yaml -n $DEMO_APPS_NS
+        kubectl apply -f .config/supplychain-rbac.yaml -n $DEMO_APPS_NS
         tanzu secret registry add registry-credentials --server $PRIVATE_REGISTRY_URL --username $PRIVATE_REGISTRY_USER --password $PRIVATE_REGISTRY_PASSWORD -n $DEMO_APPS_NS
 
         #brownfield
@@ -265,7 +263,9 @@
             --namespace knative-serving \
             --type merge \
             --patch '{"data":{"'$SERVING_SUB_DOMAIN.$DOMAIN'":""}}'
-        scripts/update-dns.sh "envoy" "contour-external" "*.$SERVING_SUB_DOMAIN"
+        
+        scripts/update-dns.sh "manual" "envoy" "contour-external" "*.$SERVING_SUB_DOMAIN"
+        #scripts/update-dns.sh "auto" "envoy" "contour-external" "*.$SERVING_SUB_DOMAIN"
     }
     
     
@@ -278,9 +278,9 @@
         echo
         echo "Incorrect usage. Please specify one of the following: "
         echo
-        echo " init"
-        echo " cleanup"
-        echo " runme"
+        echo " init [aks/eks/tkg]"
+        echo " cleanup [aks/eks/tkg]"
+        echo " runme [function-name]"
         echo
     
     }
@@ -299,15 +299,51 @@
         echo
     }
 
+    #init
+    init () {
+
+        case $1 in
+        aks)
+            scripts/build-aks-cluster.sh create $CLUSTER_NAME 7 
+            install-all
+            ;;
+        eks)
+            scripts/build-eks-cluster.sh create $CLUSTER_NAME
+            install-all
+            ;;
+        *)
+            incorrect-usage
+            ;;
+        esac
+    }
+
+    #cleanup
+    cleanup () {
+
+        case $1 in
+        aks)
+            scripts/build-aks-cluster.sh delete $CLUSTER_NAME 
+            ;;
+        eks)
+            scripts/build-eks-cluster.sh delete $CLUSTER_NAME
+            ;;
+        *)
+            incorrect-usage
+            ;;
+        esac
+    }
+
+
+    
 
 #################### main ##########################
 
 case $1 in
 init)
-    install-all
+    init $2
     ;;
 cleanup)
-	scripts/build-aks-cluster.sh delete $CLUSTER_NAME 
+	cleanup $2
     ;;
 runme)
     $2
