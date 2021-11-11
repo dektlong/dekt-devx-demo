@@ -13,7 +13,8 @@ create-backend() {
     echo "=========> 1. Commit code changes to $DEMO_APP_GIT_REPO"
     echo            
     
-    touch .config/dummy-commit.me
+    touch config-templates/dummy-commit.me
+    
     git add .
     git commit -q -a -m "done backend inner-loop"
     git push
@@ -184,7 +185,7 @@ cleanup() {
 
     tanzu apps workload delete adopter-check -y -n $DEMO_APPS_NS 
 
-    rm .config/dummy-commit.me
+    rm config-templates/dummy-commit.me
 
 }
 
