@@ -5,15 +5,37 @@
 create-backend() {
 
     echo
-    echo "=========> Create dekt4pets-backend (inner loop) ..."
-    echo "           1. Deploy app via src-to-img supply-chain"
+    echo "=========> Deploy dekt4pets-backend (inner loop) ..."
+    echo "           1. Commit code changes to $DEMO_APP_GIT_REPO"
     echo "           2. Apply development routes, mapping and micro-gateway"
+    echo "           3. Create backend app via src-to-img supply-chain"
     echo
 
-    kp image patch $BACKEND_TBS_IMAGE -n $DEMO_APPS_NS
+    git commit -a -m "done backend inner-loop"
+    git push
+
+    kubectl apply -f workloads/dekt4pets/backend/routes/dekt4pets-backend-mapping-dev.yamlyaml -n $DEMO_APPS_NS
+    kubectl apply -f workloads/dekt4pets/backend/routes/dekt4pets-backend-route-config.yaml.yaml -n $DEMO_APPS_NS
+    #dekt4pets-dev gateway instances created as part of demo build to save time
+
+    #kp image patch $BACKEND_TBS_IMAGE -n $DEMO_APPS_NS
+
+    scripts/wait-for-tbs.sh $BACKEND_TBS_IMAGE $DEMO_APPS_NS
+
+    echo
+    echo "Starting to tail build logs ..."
+    echo
     
-    kustomize build workloads/dekt4pets/backend | kubectl apply -f -
+    kp build logs $BACKEND_TBS_IMAGE -n $DEMO_APPS_NS
     
+    echo
+    echo "=========> Apply changes to backend app, service and routes ..."
+    echo
+    
+    kubectl delete -f workloads/dekt4pets/backend/dekt4pets-backend.yaml -n $DEMO_APPS_NS
+    kubectl apply -f workloads/dekt4pets/backend/dekt4pets-backend.yaml -n $DEMO_APPS_NS
+    
+     
 }
 
 #create-frontend 

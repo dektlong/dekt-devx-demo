@@ -1,6 +1,8 @@
 
 # Demo of Tanzu API Grid ♥️😺 ♥️🐶
 
+Completed backend inner loop
+
 This repo contains artifacts to run a demo illustrating the vision and capabilities of Tanzu API Grid.
 
 It is designed to run on any k8s.
