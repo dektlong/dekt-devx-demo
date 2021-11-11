@@ -13,6 +13,8 @@ create-backend() {
     echo "=========> 1. Commit code changes to $DEMO_APP_GIT_REPO"
     echo            
     
+    touch dummy-commit.me
+    git add .
     git commit -a -m "done backend inner-loop"
     git push
 
