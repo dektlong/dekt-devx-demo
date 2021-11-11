@@ -16,7 +16,7 @@ create-backend() {
     touch .config/dummy-commit.me
     git add .
     git commit -q -a -m "done backend inner-loop"
-    git push -q
+    git push 
 
     echo
     echo "=========> 2. Apply development routes, mapping and micro-gateway"
