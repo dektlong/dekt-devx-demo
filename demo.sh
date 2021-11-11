@@ -13,10 +13,10 @@ create-backend() {
     echo "=========> 1. Commit code changes to $DEMO_APP_GIT_REPO"
     echo            
     
-    touch dummy-commit.me
+    touch .config/dummy-commit.me
     git add .
-    git commit -a -m "done backend inner-loop"
-    git push
+    git commit -q -a -m "done backend inner-loop"
+    git push -q
 
     echo
     echo "=========> 2. Apply development routes, mapping and micro-gateway"
@@ -185,6 +185,8 @@ cleanup() {
     kustomize build workloads/dektFitness/kubernetes-manifests/ | kubectl delete -f -  
 
     tanzu apps workload delete adopter-check -y -n $DEMO_APPS_NS 
+
+    rm .config/dummy-commit.me
 
 }
 
