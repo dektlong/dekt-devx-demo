@@ -288,6 +288,19 @@
     
     }
 
+    update-tap-gui () {
+
+        kubectl get svc -n tap-gui
+
+        read -p "update the ip in tap-values.yaml...then hit any key"
+
+        tanzu package installed update tap --package-name tap.tanzu.vmware.com --version 0.3.0 -n tap-install -f .config/tap-values.yml
+
+        kubectl delete pod -l app=backstage -n tap-gui
+
+
+    }
+
     #wait-for-tap
     wait-for-reconciler () {
         #wait for Reconcile to complete 
