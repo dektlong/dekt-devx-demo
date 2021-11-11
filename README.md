@@ -1,7 +1,7 @@
 
 # Demo of Tanzu API Grid ♥️😺 ♥️🐶
 
-Completed backend inner loop
+Completed backend inner-loop
 
 This repo contains artifacts to run a demo illustrating the vision and capabilities of Tanzu API Grid.
 
