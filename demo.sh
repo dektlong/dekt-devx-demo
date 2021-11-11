@@ -16,7 +16,7 @@ create-backend() {
     touch .config/dummy-commit.me
     git add .
     git commit -q -a -m "done backend inner-loop"
-    git push -q
+    git push
 
     echo
     echo "=========> 2. Apply development routes, mapping and micro-gateway"
@@ -173,16 +173,14 @@ cleanup() {
     echo "=========> Remove all workloads..."
     echo
 
-    #kustomize build workloads/dekt4pets/gateway | kubectl delete -f -  
     kubectl delete -f workloads/dekt4pets/backend/routes/dekt4pets-backend-mapping-dev.yaml -n $DEMO_APPS_NS
     kubectl delete -f workloads/dekt4pets/backend/routes/dekt4pets-backend-route-config.yaml -n $DEMO_APPS_NS
     kubectl delete -f workloads/dekt4pets/backend/dekt4pets-backend.yaml -n $DEMO_APPS_NS
+    kubectl delete -f workloads/dekt4pets/backend/dekt4pets-gateway.yaml -n $DEMO_APPS_NS
 
     kustomize build workloads/dekt4pets/frontend | kubectl delete -f -  
-    kubectl delete -f workloads/dekt4pets/backend/routes/dekt4pets-backend-mapping.yaml -n $DEMO_APPS_NS
-    kubectl delete -f workloads/dekt4pets/frontend/routes/dekt4pets-frontend-mapping.yaml -n $DEMO_APPS_NS
-
-    kustomize build workloads/dektFitness/kubernetes-manifests/ | kubectl delete -f -  
+    
+    #kustomize build workloads/dektFitness/kubernetes-manifests/ | kubectl delete -f -  
 
     tanzu apps workload delete adopter-check -y -n $DEMO_APPS_NS 
 
