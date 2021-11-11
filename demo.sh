@@ -14,9 +14,9 @@ create-backend() {
     echo            
     
     touch config-templates/dummy-commit.me
-    
+
     git add .
-    git commit -q -a -m "done backend inner-loop"
+    git commit -q -m "done backend inner-loop" config-templates/dummy-commit.me
     git push
 
     echo
