@@ -221,7 +221,7 @@ describe-supplychain() {
     echo
     echo "${bold}Installed TAP packages${normal}"
     echo
-    kubectl get pkgi -n $TAP_INSTALL_NS
+    kubectl get pkgi -n $TAP_INSTALL_NS 
     echo
     echo "${bold}Supply chains${normal}"
     echo

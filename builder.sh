@@ -58,6 +58,12 @@
 
         wait-for-reconciler
 
+        tanzu package install tap \
+            --package-name tap.tanzu.vmware.com \
+            --version 0.0.3 \
+            --values-file .config/tap-values.yml \
+            --namespace tap-install
+
         echo
         echo "===> Install TAP with 'full' packages profile..."
         echo
@@ -281,8 +287,8 @@
         echo
         echo "Incorrect usage. Please specify one of the following: "
         echo
-        echo " init [aks/eks/tkg]"
-        echo " cleanup [aks/eks/tkg]"
+        echo " init [azure/aws/vsphere]"
+        echo " cleanup [azure/aws/vsphere]"
         echo " runme [function-name]"
         echo
     
