@@ -47,7 +47,7 @@ It is designed to run on any k8s.
 ## API Grid
 
 ### Installation
-- run ```./builder.sh init aks/eks``` to install the following:
+- run ```./builder.sh init [ azure | aws ]``` to install the following:
   - TAP with the following packages
     - Clound Native Runtime
     - App Accelerator
@@ -177,6 +177,6 @@ It is designed to run on any k8s.
 
 ## Cleanup
 
-- ```./builder.sh cleanup [ aks | tkg ]```
+- ```./builder.sh cleanup [ azure | aws ]```
 
 # Enjoy!

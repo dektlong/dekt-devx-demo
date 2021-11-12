@@ -319,11 +319,11 @@
     init () {
 
         case $1 in
-        aks)
+        azure)
             scripts/build-aks-cluster.sh create $CLUSTER_NAME 7 
             install-all
             ;;
-        eks)
+        aws)
             scripts/build-eks-cluster.sh create $CLUSTER_NAME
             install-all 
             ;;
@@ -337,10 +337,10 @@
     cleanup () {
 
         case $1 in
-        aks)
+        azure)
             scripts/build-aks-cluster.sh delete $CLUSTER_NAME 
             ;;
-        eks)
+        aws)
             scripts/build-eks-cluster.sh delete $CLUSTER_NAME
             ;;
         *)
