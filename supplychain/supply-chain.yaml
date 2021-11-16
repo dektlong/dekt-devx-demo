@@ -1,10 +1,10 @@
 apiVersion: carto.run/v1alpha1
 kind: ClusterSupplyChain
 metadata:
-  name: dekt4pets
+  name: source-to-url
 spec:
   selector:
-    app.tanzu.vmware.com/workload-type: online-store
+    app.tanzu.vmware.com/workload-type: web
   components:
   - name: source-provider
     templateRef:

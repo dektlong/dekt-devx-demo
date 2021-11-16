@@ -1,7 +1,7 @@
 apiVersion: accelerator.apps.tanzu.vmware.com/v1alpha1
 kind: Accelerator
 metadata:
-  name: 1-backend-api-for-online-stores
+  name: my-backend-api-service
 spec:
   git:
     interval: 10s
@@ -12,7 +12,7 @@ spec:
 apiVersion: accelerator.apps.tanzu.vmware.com/v1alpha1
 kind: Accelerator
 metadata:
-  name: 2-frontend-ux-for-online-stores
+  name: my-frontend-ux
 spec:
   git:
     interval: 10s
@@ -23,7 +23,7 @@ spec:
 apiVersion: accelerator.apps.tanzu.vmware.com/v1alpha1
 kind: Accelerator
 metadata:
-  name: 3-brownfield-api-for-online-stores
+  name: my-brownfield-function
 spec:
   git:
     interval: 10s
@@ -34,7 +34,7 @@ spec:
 apiVersion: accelerator.apps.tanzu.vmware.com/v1alpha1
 kind: Accelerator
 metadata:
-  name: online-store-workflow
+  name: my-supplychain
 spec:
   git:
     interval: 10s
@@ -61,13 +61,36 @@ spec:
     url: https://github.com/dektlong/multicluster-workflow
     ref:
       branch: main
+---
 apiVersion: accelerator.apps.tanzu.vmware.com/v1alpha1
 kind: Accelerator
 metadata:
-  name: my-api-gateway
+  name: my-phyton-data-transform-process
 spec:
   git:
-    url: https://github.com/fombico/spring-cloud-gateway-accelerator
+    interval: 5s
+    url: https://github.com/dektlong/python-data-transform
     ref:
       branch: main
-      
+---
+apiVersion: accelerator.apps.tanzu.vmware.com/v1alpha1
+kind: Accelerator
+metadata:
+  name: my-kafka-eventing-app
+spec:
+  git:
+    interval: 5s
+    url: https://github.com/dektlong/spring-kafka
+    ref:
+      branch: main
+---
+apiVersion: accelerator.apps.tanzu.vmware.com/v1alpha1
+kind: Accelerator
+metadata:
+  name: my-kube-flow-ml-model
+spec:
+  git:
+    interval: 5s
+    url: https://github.com/dektlong/kubeflow
+    ref:
+      branch: main

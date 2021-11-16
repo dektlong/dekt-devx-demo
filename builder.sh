@@ -58,12 +58,6 @@
 
         wait-for-reconciler
 
-        tanzu package install tap \
-            --package-name tap.tanzu.vmware.com \
-            --version 0.0.3 \
-            --values-file .config/tap-values.yml \
-            --namespace tap-install
-
         echo
         echo "===> Install TAP with 'full' packages profile..."
         echo
