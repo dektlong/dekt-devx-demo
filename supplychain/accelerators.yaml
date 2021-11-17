@@ -38,27 +38,17 @@ metadata:
 spec:
   git:
     interval: 10s
-    url: https://github.com/dektlong/api-microservices-workflow
+    url: https://github.com/dektlong/full-supplychain
     ref:
       branch: main
 ---
 apiVersion: accelerator.apps.tanzu.vmware.com/v1alpha1
 kind: Accelerator
 metadata:
-  name:  simple-workflow
+  name:  my-simple-supplychain
 spec:
   git:
     url: https://github.com/dektlong/simple-workflow
-    ref:
-      branch: main
----
-apiVersion: accelerator.apps.tanzu.vmware.com/v1alpha1
-kind: Accelerator
-metadata:
-  name: multicluster-workflow
-spec:
-  git:
-    url: https://github.com/dektlong/multicluster-workflow
     ref:
       branch: main
 ---

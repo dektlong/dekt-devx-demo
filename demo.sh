@@ -174,10 +174,10 @@ cleanup() {
     echo "=========> Remove all workloads..."
     echo
 
-    kubectl delete -f workloads/dekt4pets/backend/routes/dekt4pets-backend-mapping-dev.yaml -n $DEMO_APPS_NS
-    kubectl delete -f workloads/dekt4pets/backend/routes/dekt4pets-backend-route-config.yaml -n $DEMO_APPS_NS
-    kubectl delete -f workloads/dekt4pets/backend/dekt4pets-backend.yaml -n $DEMO_APPS_NS
-    kubectl delete -f workloads/dekt4pets/backend/dekt4pets-gateway.yaml -n $DEMO_APPS_NS
+    kubectl delete -f workloads/dekt4pets/backend/routes/dekt4pets-backend-mapping-dev.yaml -n dekt-apps
+    kubectl delete -f workloads/dekt4pets/backend/routes/dekt4pets-backend-route-config.yaml -n dekt-apps
+    kubectl delete -f workloads/dekt4pets/backend/dekt4pets-backend.yaml -n dekt-apps
+    kubectl delete -f workloads/dekt4pets/backend/dekt4pets-gateway.yaml -n dekt-apps
 
     kustomize build workloads/dekt4pets/frontend | kubectl delete -f -  
     
@@ -187,31 +187,6 @@ cleanup() {
 
     rm config-templates/dummy-commit.me
 
-}
-
-#devx-mood
-devx-mood() {
-
-    case $1 in
-    create)
-        tanzu apps workload apply devx-mood -f workloads/devx-mood-workload.yaml -y -n $DEMO_APPS_NS
-        ;;
-    status)
-        tanzu apps workload get devx-mood -n $DEMO_APPS_NS
-        ;;
-    logs)
-        tanzu apps workload tail devx-mood --since 10m --timestamp  -n $DEMO_APPS_NS
-        ;;
-    delete)
-        tanzu apps workload delete devx-mood -y -n $DEMO_APPS_NS
-        ;;
-    supplychain)
-        tanzu apps cluster-supply-chain list
-        ;;
-    *)
-        usage
-        ;;
-    esac    
 }
 
 #usage
@@ -230,8 +205,6 @@ usage() {
     echo "${bold}dekt4pets${normal} - run end-to-end dekt4pets deployment to production"
     echo
     echo "${bold}adopter-check${normal} - deploy the adopter-check TAP workload using the default supply-chain"
-    echo
-    echo "${bold}devx-mood${normal} - supplychain | create | status | logs | delete"
     echo
     echo "${bold}fitness${normal} - deploy the Fitenss app, services and APIs"
     echo 

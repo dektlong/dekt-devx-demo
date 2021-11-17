@@ -1,40 +1,56 @@
-apiVersion: carto.run/v1alpha1
+piVersion: carto.run/v1alpha1
 kind: ClusterSupplyChain
 metadata:
-  name: source-to-url
+  name: mood-supplychain
 spec:
   selector:
     app.tanzu.vmware.com/workload-type: web
-  components:
-  - name: source-provider
-    templateRef:
-      kind: ClusterSourceTemplate
-      name: source-code
-  - name: source-scanner
-    templateRef:
-      kind: ClusterSourceTemplate
-      name: source
-    sources:
-    - component: source-provider
-      name: scanned-source
-  - name: image-builder
-    templateRef:
-      kind: ClusterImageTemplate
-      name: image
-    sources:
-    - component: source-provider
-      name: scanned-source
-  - name: pre-prod-tester
-    templateRef:
-      kind: RunTemplate
-      name: run-pre-prod-testing
-    sources:
-    - component: source-scanner
-      name: scanned-source
-  - name: app-runner
-    templateRef:
-      kind: ClusterTemplate
-      name: app-deploy
-    images:
-    - component: image-builder
-      name: image
+
+  resources:
+    - name: source-provider
+      templateRef:
+        kind: ClusterSourceTemplate
+        name: source
+
+   # - name: source-scanner
+   #   templateRef:
+   #     kind: ClusterSourceTemplate
+   #     name: source
+   #  sources:
+   #   - component: source-provider
+   #     name: scanned-source
+
+    - name: image-builder
+      templateRef:
+        kind: ClusterImageTemplate
+        name: image
+      sources:
+        - resource: source-provider
+          name: source
+
+    #- name: image-scanner
+    #  templateRef:
+    #    kind: ClusterImageTemplate
+    #    name: scanned-image
+    #  images:
+    #    - component: image-builder
+    #      name: built-image
+
+    #- name: pre-prod-tester
+    #  templateRef:
+    #    kind: RunTemplate
+    #    name: run-pre-prod-testing
+    #  sources:
+    #    - component: source-scanner
+    #      name: scanned-source
+    
+    - name: deployer
+      templateRef:
+        kind: ClusterTemplate
+        name: app-deploy
+      images:
+        - resource: image-builder
+          name: image
+
+
+           
