@@ -52,11 +52,11 @@ case $1 in
 create)
 	create-cluster $2 $3
 	scripts/install-nginx.sh
-	scripts/start-app.sh "octant"
+	#scripts/start-app.sh "octant"
 	;;
 delete)
 	delete-cluster $2
-	scripts/stop-app.sh "octant"
+	#scripts/stop-app.sh "octant"
   	;;
 *)
   	incorrect-usage

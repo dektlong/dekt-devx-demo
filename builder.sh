@@ -58,6 +58,8 @@
 
         wait-for-reconciler
 
+        
+
         echo
         echo "===> Install TAP with 'full' packages profile..."
         echo
