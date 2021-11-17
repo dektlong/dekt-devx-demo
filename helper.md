@@ -15,3 +15,6 @@ tanzu apps workload apply devx-mood \
 tanzu apps workload get devx-mood -n dekt-apps
 
 tanzu apps workload tail devx-mood --since 10m --timestamp  -n dekt-apps
+
+kp images list -n dekt-apps
+

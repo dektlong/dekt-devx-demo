@@ -1,7 +1,7 @@
 piVersion: carto.run/v1alpha1
 kind: ClusterSupplyChain
 metadata:
-  name: mood-supplychain
+  name: source-to-url
 spec:
   selector:
     app.tanzu.vmware.com/workload-type: web
