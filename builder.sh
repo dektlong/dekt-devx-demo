@@ -194,6 +194,9 @@
         kubectl create ns $BROWNFIELD_NS
         kustomize build workloads/brownfield-apis | kubectl apply -f -
 
+        #devx-mood
+        tanzu apps workload apply devx-mood -f workloads//devx-mood-workload.yaml -n $DEMO_APPS_NS
+
         #dekt4pets
         kubectl create secret generic sso-secret --from-env-file=.config/sso-creds.txt -n $DEMO_APPS_NS
         kubectl create secret generic jwk-secret --from-env-file=.config/jwk-creds.txt -n $DEMO_APPS_NS
