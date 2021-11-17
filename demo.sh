@@ -189,6 +189,31 @@ cleanup() {
 
 }
 
+#devx-mood
+devx-mood() {
+
+    case $1 in
+    create)
+        tanzu apps workload apply devx-mood -f workloads/devx-mood-workload.yaml -y -n $DEMO_APPS_NS
+        ;;
+    status)
+        tanzu apps workload get devx-mood -n $DEMO_APPS_NS
+        ;;
+    logs)
+        tanzu apps workload tail devx-mood --since 10m --timestamp  -n $DEMO_APPS_NS
+        ;;
+    delete)
+        tanzu apps workload delete devx-mood -y -n $DEMO_APPS_NS
+        ;;
+    supplychain)
+        tanzu apps cluster-supply-chain list
+        ;;
+    *)
+        usage
+        ;;
+    esac    
+}
+
 #usage
 usage() {
 
@@ -205,6 +230,8 @@ usage() {
     echo "${bold}dekt4pets${normal} - run end-to-end dekt4pets deployment to production"
     echo
     echo "${bold}adopter-check${normal} - deploy the adopter-check TAP workload using the default supply-chain"
+    echo
+    echo "${bold}devx-mood${normal} - supplychain | create | status | logs | delete"
     echo
     echo "${bold}fitness${normal} - deploy the Fitenss app, services and APIs"
     echo 
@@ -304,6 +331,9 @@ describe)
     ;;
 fitness)
 	create-fitness $2
+    ;;
+devx-mood)
+	devx-mood $2
     ;;
 cleanup)
     cleanup
