@@ -286,8 +286,12 @@
         echo
         echo "Incorrect usage. Please specify one of the following: "
         echo
-        echo " init [azure/aws/vsphere]"
-        echo " cleanup [azure/aws/vsphere]"
+        echo " init-aks"
+        echo " init-eks"
+        echo
+        echo " cleanup-aks"
+        echo " cleanup-eks"
+        echo 
         echo " runme [function-name]"
         echo
     
@@ -320,51 +324,22 @@
         echo
     }
 
-    #init
-    init () {
-
-        case $1 in
-        azure)
-            scripts/build-aks-cluster.sh create $CLUSTER_NAME 7 
-            install-all
-            ;;
-        aws)
-            scripts/build-eks-cluster.sh create $CLUSTER_NAME
-            install-all 
-            ;;
-        *)
-            incorrect-usage
-            ;;
-        esac
-    }
-
-    #cleanup
-    cleanup () {
-
-        case $1 in
-        azure)
-            scripts/build-aks-cluster.sh delete $CLUSTER_NAME 
-            ;;
-        aws)
-            scripts/build-eks-cluster.sh delete $CLUSTER_NAME
-            ;;
-        *)
-            incorrect-usage
-            ;;
-        esac
-    }
-
-
-    
-
 #################### main ##########################
 
 case $1 in
-init)
-    init $2
+init-aks)
+    scripts/build-aks-cluster.sh create $CLUSTER_NAME 7 
+    install-all 
     ;;
-cleanup)
-	cleanup $2
+init-eks)
+	scripts/build-eks-cluster.sh create $CLUSTER_NAME
+    install-all 
+    ;;
+cleanup-aks)
+    scripts/build-aks-cluster.sh delete $CLUSTER_NAME 
+    ;;
+cleanup-eks)
+    scripts/build-eks-cluster.sh delete $CLUSTER_NAME
     ;;
 runme)
     $2
