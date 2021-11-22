@@ -12,14 +12,6 @@ spec:
         kind: ClusterSourceTemplate
         name: source
 
-   # - name: source-scanner
-   #   templateRef:
-   #     kind: ClusterSourceTemplate
-   #     name: source
-   #  sources:
-   #   - component: source-provider
-   #     name: scanned-source
-
     - name: image-builder
       templateRef:
         kind: ClusterImageTemplate
@@ -28,22 +20,6 @@ spec:
         - resource: source-provider
           name: source
 
-    #- name: image-scanner
-    #  templateRef:
-    #    kind: ClusterImageTemplate
-    #    name: scanned-image
-    #  images:
-    #    - component: image-builder
-    #      name: built-image
-
-    #- name: pre-prod-tester
-    #  templateRef:
-    #    kind: RunTemplate
-    #    name: run-pre-prod-testing
-    #  sources:
-    #    - component: source-scanner
-    #      name: scanned-source
-    
     - name: deployer
       templateRef:
         kind: ClusterTemplate
