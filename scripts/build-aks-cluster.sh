@@ -58,6 +58,7 @@ create)
 	create-cluster $2 $3
 	#scripts/install-nginx.sh
 	scripts/update-dns.sh "addon-http-application-routing-nginx-ingress" "kube-system " "*.$APPS_SUB_DOMAIN"
+	export INGRESS_CLASS="addon-http-application-routing" 
 	#scripts/start-app.sh "octant"
 	;;
 delete)

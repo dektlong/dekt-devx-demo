@@ -7,7 +7,7 @@ serviceName=$2
 servicePort=$3
 namespace=$4
 host=$APPS_SUB_DOMAIN.$DOMAIN
-ingressclass="addon-http-application-routing" 
+
 #ingress-class="nginx" 
 
 cat > output.yaml <<EOF
@@ -16,7 +16,7 @@ kind: Ingress
 metadata: 
   name: $product-ingress
   annotations: 
-    kubernetes.io/ingress.class: $ingressclass
+    kubernetes.io/ingress.class: $INGRESS_CLASS
 spec: 
   rules: 
     - host: $product.$host
