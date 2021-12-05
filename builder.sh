@@ -286,13 +286,11 @@
         echo
         echo "Incorrect usage. Please specify one of the following: "
         echo
-        echo " init-aks"
-        echo " init-eks"
+        echo "  init [aks | eks]"
         echo
-        echo " cleanup-aks"
-        echo " cleanup-eks"
+        echo "  cleanup [aks | eks]"
         echo 
-        echo " runme [function-name]"
+        echo "  runme [function-name]"
         echo
     
     }
@@ -324,22 +322,45 @@
         echo
     }
 
+    #init 
+    init () {
+        case $1 in
+        aks)
+            scripts/build-aks-cluster.sh create $CLUSTER_NAME 7 
+            install-all 
+            ;;
+        eks)
+	        scripts/build-eks-cluster.sh create $CLUSTER_NAME
+            install-all 
+            ;;
+        *)
+            incorrect-usage
+            ;;
+        esac
+    }
+
+    #cleanup 
+    cleanup () {
+        case $1 in
+        aks)
+            scripts/build-aks-cluster.sh delete $CLUSTER_NAME
+            ;;
+        eks)
+	        scripts/build-eks-cluster.sh delete $CLUSTER_NAME
+            ;;
+        *)
+            incorrect-usage
+            ;;
+        esac
+    }
 #################### main ##########################
 
 case $1 in
-init-aks)
-    scripts/build-aks-cluster.sh create $CLUSTER_NAME 7 
-    install-all 
+init)
+    init $2
     ;;
-init-eks)
-	scripts/build-eks-cluster.sh create $CLUSTER_NAME
-    install-all 
-    ;;
-cleanup-aks)
-    scripts/build-aks-cluster.sh delete $CLUSTER_NAME 
-    ;;
-cleanup-eks)
-    scripts/build-eks-cluster.sh delete $CLUSTER_NAME
+cleanup)
+    cleanup $2
     ;;
 runme)
     $2

@@ -19,7 +19,12 @@ create-cluster() {
 	
 	az group create --name $RESOURCE_GROUP --location westus
 
-	az aks create --resource-group $RESOURCE_GROUP --name $clusterName --node-count $numberOfNodes --node-vm-size $nodeSize --generate-ssh-keys
+	az aks create --name $clusterName \
+		--resource-group $RESOURCE_GROUP \
+		--node-count $numberOfNodes \
+		--node-vm-size $nodeSize \
+		--generate-ssh-keys \
+		--enable-addons http_application_routing 
 
 	az aks get-credentials --overwrite-existing --resource-group $RESOURCE_GROUP --name $1
 }
@@ -51,7 +56,8 @@ source .config/config-values.env
 case $1 in 
 create)
 	create-cluster $2 $3
-	scripts/install-nginx.sh
+	#scripts/install-nginx.sh
+	scripts/update-dns.sh "addon-http-application-routing-nginx-ingress" "kube-system " "*.$APPS_SUB_DOMAIN"
 	#scripts/start-app.sh "octant"
 	;;
 delete)

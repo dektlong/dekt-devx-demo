@@ -14,10 +14,9 @@ tanzu apps workload apply devx-mood \
 # run for actual deployment
 tanzu apps cluster-supply-chain list
 
-tanzu apps workload get devx-mood -n dekt-apps
 
+tanzu apps workload get devx-mood -n dekt-apps
 # real-time debug
 tanzu apps workload tail devx-mood --since 10m --timestamp  -n dekt-apps
 
 kp images list -n dekt-apps
-

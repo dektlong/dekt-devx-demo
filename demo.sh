@@ -33,7 +33,7 @@ create-backend() {
 
     #kp image patch $BACKEND_TBS_IMAGE -n $DEMO_APPS_NS
 
-    scripts/wait-for-tbs.sh $BACKEND_TBS_IMAGE $DEMO_APPS_NS
+    #scripts/wait-for-tbs.sh $BACKEND_TBS_IMAGE $DEMO_APPS_NS
 
     echo
     echo "Starting to tail build logs ..."
