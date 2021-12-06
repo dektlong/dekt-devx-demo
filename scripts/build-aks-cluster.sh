@@ -10,6 +10,8 @@ create-cluster() {
 	numberOfNodes=$2
 	
 	nodeSize="Standard_DS3_v2" # 4 vCPU, 14GB memory, 28GB temp disk
+
+	resourceGroup="tap-aks"
 	
 	echo
 	echo "==========> Creating AKS cluster named $clusterName with $numberOfNodes nodes of size $nodeSize ..."
@@ -17,16 +19,16 @@ create-cluster() {
 	
 	#make sure your run 'azure login' and use WorkspaceOn SSO prior to running this
 	
-	az group create --name $RESOURCE_GROUP --location westus
+	az group create --name $resourceGroup --location westus
 
 	az aks create --name $clusterName \
-		--resource-group $RESOURCE_GROUP \
+		--resource-group $resourceGroup \
 		--node-count $numberOfNodes \
 		--node-vm-size $nodeSize \
 		--generate-ssh-keys \
 		--enable-addons http_application_routing 
 
-	az aks get-credentials --overwrite-existing --resource-group $RESOURCE_GROUP --name $1
+	az aks get-credentials --overwrite-existing --resource-group $resourceGroup --name $1
 }
 
 delete-cluster() {
@@ -37,7 +39,7 @@ delete-cluster() {
 	echo "==========> Starting deletion of AKS cluster named $clusterName"
 	echo
 
-	az aks delete --name $clusterName --resource-group $RESOURCE_GROUP --yes --no-wait
+	az aks delete --name $clusterName --resource-group $resourceGroup --yes --no-wait
 
 }
 
@@ -56,9 +58,7 @@ source .config/config-values.env
 case $1 in 
 create)
 	create-cluster $2 $3
-	#scripts/install-nginx.sh
 	scripts/update-dns.sh "addon-http-application-routing-nginx-ingress" "kube-system " "*.$APPS_SUB_DOMAIN"
-	export INGRESS_CLASS="addon-http-application-routing" 
 	#scripts/start-app.sh "octant"
 	;;
 delete)

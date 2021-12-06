@@ -286,9 +286,9 @@
         echo
         echo "Incorrect usage. Please specify one of the following: "
         echo
-        echo "  init [aks | eks]"
+        echo "  init"
         echo
-        echo "  cleanup [aks | eks]"
+        echo "  cleanup"
         echo 
         echo "  runme [function-name]"
         echo
@@ -322,9 +322,11 @@
         echo
     }
 
-    #init 
-    init () {
-        case $1 in
+#################### main ##########################
+
+case $1 in
+init)
+    case $K8S_DIALTONE in
         aks)
             scripts/build-aks-cluster.sh create $CLUSTER_NAME 7 
             install-all 
@@ -334,14 +336,14 @@
             install-all 
             ;;
         *)
-            incorrect-usage
+            echo
+            echo "Invalid K8S Dialtone. Supported dialtones are: aks, eks, tkg"
+            echo
             ;;
-        esac
-    }
-
-    #cleanup 
-    cleanup () {
-        case $1 in
+    esac
+    ;;
+cleanup)
+    case $K8S_DIALTONE in
         aks)
             scripts/build-aks-cluster.sh delete $CLUSTER_NAME
             ;;
@@ -349,18 +351,11 @@
 	        scripts/build-eks-cluster.sh delete $CLUSTER_NAME
             ;;
         *)
-            incorrect-usage
+            echo
+            echo "Invalid K8S Dialtone. Supported dialtones are: aks, eks, tkg"
+            echo
             ;;
-        esac
-    }
-#################### main ##########################
-
-case $1 in
-init)
-    init $2
-    ;;
-cleanup)
-    cleanup $2
+    esac
     ;;
 runme)
     $2

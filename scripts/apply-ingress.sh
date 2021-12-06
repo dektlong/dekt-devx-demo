@@ -8,7 +8,15 @@ servicePort=$3
 namespace=$4
 host=$APPS_SUB_DOMAIN.$DOMAIN
 
-#ingress-class="nginx" 
+case $K8S_DIALTONE in
+  aks)
+    ingress_class="addon-http-application-routing"
+    ;;
+  eks)
+	  ingress_class="nginx" 
+    ;;      
+esac
+
 
 cat > output.yaml <<EOF
 apiVersion: networking.k8s.io/v1
@@ -16,7 +24,7 @@ kind: Ingress
 metadata: 
   name: $product-ingress
   annotations: 
-    kubernetes.io/ingress.class: $INGRESS_CLASS
+    kubernetes.io/ingress.class: $ingress_class
 spec: 
   rules: 
     - host: $product.$host
