@@ -20,3 +20,13 @@ tanzu apps workload get devx-mood -n dekt-apps
 tanzu apps workload tail devx-mood --since 10m --timestamp  -n dekt-apps
 
 kp images list -n dekt-apps
+
+
+# Troubleshooting
+
+on EKS, if cloudformation stack fails to delete do the following:
+  * Search "Elastic IP Address", delete all ips
+  * Search "Elastic Load Balancing", delete all instances
+  * Search "network interfaces", delete all instances
+  * ignore the errors!, click refresh to make sure they are both delete
+  * Search "cloud formation",  delete the faild stack, do not check any resources to retain

@@ -24,8 +24,10 @@
 
         install-api-portal #still needed until portal can be installed in its own ns
         
+        add-ingress
+
         setup-dekt-apigrid
-        
+
         echo
         echo "Demo install completed. Enjoy your demo."
         echo
@@ -69,7 +71,6 @@
             #for install status use:
             #watch "kubectl get pkgi -n tap-install"
 
-        add-tap-ingress-rules
 
     }
 
@@ -143,7 +144,6 @@
         
         $GW_INSTALL_DIR/scripts/install-spring-cloud-gateway.sh --namespace $GATEWAY_NS
 
-        scripts/apply-ingress.sh "scg-openapi" "scg-operator" "80" $GATEWAY_NS
     }
 
     #install-api-portal (not via TAP)
@@ -170,8 +170,6 @@
         kubectl set env deployment.apps/api-portal-server API_PORTAL_SOURCE_URLS_CACHE_TTL_SEC=10 -n $API_PORTAL_NS #so frontend apis will appear faster, just for this demo
 
         kubectl set env deployment.apps/api-portal-server API_PORTAL_SOURCE_URLS=http://scg-openapi.$APPS_SUB_DOMAIN.$DOMAIN/openapi -n $API_PORTAL_NS
-
-        scripts/apply-ingress.sh "api-portal" "api-portal-server" "8080" $API_PORTAL_NS
 
     }
 
@@ -233,7 +231,7 @@
         --sub-path ./workloads/dekt4pets/backend \
         --git-revision main
 
-        scripts/wait-for-tbs.sh $BACKEND_TBS_IMAGE $DEMO_APPS_NS
+        #scripts/wait-for-tbs.sh $BACKEND_TBS_IMAGE $DEMO_APPS_NS
         kp build logs $BACKEND_TBS_IMAGE -n $DEMO_APPS_NS
                 
         echo
@@ -251,8 +249,8 @@
 
     }
 
-    #add-tap-ingress-rules
-    add-tap-ingress-rules() {
+    #add-ingress-rules
+    add-ingress() {
 
         echo
         echo "===> Add ingress rules for TAP components..."
@@ -270,6 +268,10 @@
             --patch '{"data":{"'$SERVING_SUB_DOMAIN.$DOMAIN'":""}}'
         
         scripts/update-dns.sh "envoy" "contour-external" "*.$SERVING_SUB_DOMAIN"
+
+        scripts/apply-ingress.sh "api-portal" "api-portal-server" "8080" $API_PORTAL_NS
+
+        scripts/apply-ingress.sh "scg-openapi" "scg-operator" "80" $GATEWAY_NS
     }
     
     #update-tap
