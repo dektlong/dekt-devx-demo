@@ -43,9 +43,7 @@ It is designed to run on any k8s.
 
 - This demo was tested well on AKS with 7 nodes of type ```Standard_DS3_v2``` (4 vCPU, 14GB memory, 28GB temp disk). If you need to change that configuration, please modify the parameters in ```platform/scripts/build-aks-cluster.sh``` function
 
-## TAP
-
-### Installation
+## Installation
 - run ```./builder.sh init``` to install the following:
   - TAP with the following packages
     - Clound Native Runtime
@@ -70,6 +68,7 @@ It is designed to run on any k8s.
       - Det4Pets frontend TBS image
     
   
+## Demo flow
 
 ### Inner loop
 - Access app accelerator developer instance  on ```acc.<APPS_APPS_SUB_DOMAIN>.<DOMAIN>```
