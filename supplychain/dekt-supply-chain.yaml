@@ -1,10 +1,10 @@
-piVersion: carto.run/v1alpha1
+apiVersion: carto.run/v1alpha1
 kind: ClusterSupplyChain
 metadata:
-  name: source-to-url
+  name: dekt-supplychain
 spec:
   selector:
-    app.tanzu.vmware.com/workload-type: web
+    app.tanzu.vmware.com/workload-type: dekt
 
   resources:
     - name: source-provider

@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-#################### functions #######################
+resourceGroup="tap-aks"
 
 #create cluster
 create-cluster() {
@@ -11,8 +11,6 @@ create-cluster() {
 	
 	nodeSize="Standard_DS3_v2" # 4 vCPU, 14GB memory, 28GB temp disk
 
-	resourceGroup="tap-aks"
-	
 	echo
 	echo "==========> Creating AKS cluster named $clusterName with $numberOfNodes nodes of size $nodeSize ..."
 	echo

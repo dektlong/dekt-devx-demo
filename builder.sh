@@ -20,13 +20,16 @@
 
         install-tap
 
-        install-api-gateway
+        setup-dekt-tap-examples
 
-        install-api-portal #still needed until portal can be installed in its own ns
-        
-        add-ingress
+        if [ "$API_GRID" == "yes" ] 
+        then
+            install-api-gateway
 
-        setup-dekt-apigrid
+            install-api-portal
+
+            setup-dekt-apigrid-examples
+        fi
 
         echo
         echo "Demo install completed. Enjoy your demo."
@@ -70,6 +73,8 @@
 
             #for install status use:
             #watch "kubectl get pkgi -n tap-install"
+
+        add-tap-ingress
 
 
     }
@@ -173,11 +178,11 @@
 
     }
 
-    #setup-dekt-apigrid
-    setup-dekt-apigrid () {
+    #setup-tap-examples
+    setup-tap-examples () {
 
         echo
-        echo "===> Setup APIGrid demo examples..."
+        echo "===> Setup TAP demo examples..."
         echo
 
         #accelerators
@@ -188,12 +193,20 @@
         kubectl apply -f .config/supplychain-rbac.yaml -n $DEMO_APPS_NS
         tanzu secret registry add registry-credentials --server $PRIVATE_REGISTRY_URL --username $PRIVATE_REGISTRY_USER --password $PRIVATE_REGISTRY_PASSWORD -n $DEMO_APPS_NS
 
+        #devx-mood
+        #tanzu apps workload apply devx-mood -f workloads//devx-mood-workload.yaml -y -n $DEMO_APPS_NS
+
+        add-tap-ingress
+
+        
+    }
+
+    #setup-taapigrid-examples
+    setup-apigrid-examples () {
+
         #brownfield
         kubectl create ns $BROWNFIELD_NS
         kustomize build workloads/brownfield-apis | kubectl apply -f -
-
-        #devx-mood
-        tanzu apps workload apply devx-mood -f workloads//devx-mood-workload.yaml -y -n $DEMO_APPS_NS
 
         #dekt4pets
         kubectl create secret generic sso-secret --from-env-file=.config/sso-creds.txt -n $DEMO_APPS_NS
@@ -202,9 +215,9 @@
 
         kubectl apply -f workloads/dekt4pets/gateway/dekt4pets-gateway-dev.yaml -n $DEMO_APPS_NS
 
-        scripts/apply-ingress.sh "dekt4pets-dev" "dekt4pets-gateway-dev" "80" $DEMO_APPS_NS
-
         create-dekt4pets-images
+
+        add-apigrid-ingress
 
     }
 
@@ -249,8 +262,8 @@
 
     }
 
-    #add-ingress-rules
-    add-ingress() {
+    #add-tap-ingress-rules
+    add-tap-ingress() {
 
         echo
         echo "===> Add ingress rules for TAP components..."
@@ -269,10 +282,17 @@
         
         scripts/update-dns.sh "envoy" "contour-external" "*.$SERVING_SUB_DOMAIN"
 
+    }
+
+    #add-apigrid-ingress-rules
+    add-apigrid-ingress() {
+
         scripts/apply-ingress.sh "api-portal" "api-portal-server" "8080" $API_PORTAL_NS
 
         scripts/apply-ingress.sh "scg-openapi" "scg-operator" "80" $GATEWAY_NS
-    }
+
+        scripts/apply-ingress.sh "dekt4pets-dev" "dekt4pets-gateway-dev" "80" $DEMO_APPS_NS
+    }    
     
     #update-tap
     update-tap () {
@@ -331,11 +351,11 @@ init)
     case $K8S_DIALTONE in
         aks)
             scripts/build-aks-cluster.sh create $CLUSTER_NAME 7 
-            install-all 
+            install-all
             ;;
         eks)
 	        scripts/build-eks-cluster.sh create $CLUSTER_NAME
-            install-all 
+            install-all
             ;;
         *)
             echo
