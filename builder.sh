@@ -15,29 +15,26 @@
 
 #################### installers ################
 
-    #install-all
-    install-all() {
+    #init
+    init() {
 
         install-tap
 
         setup-dekt-tap-examples
 
-        if [ "$API_GRID" == "yes" ] 
-        then
-            install-api-gateway
-
-            install-api-portal
-
-            setup-dekt-apigrid-examples
-        fi
-
-        echo
-        echo "Demo install completed. Enjoy your demo."
-        echo
-
     }
 
-     
+    #add-api-grid
+    add-api-grid() {
+
+        install-api-gateway
+
+        install-api-portal
+
+        setup-dekt-apigrid-examples
+
+
+    }     
     #install tap with 'full' profile
     install-tap () {
 
@@ -310,6 +307,8 @@
         echo
         echo "  init"
         echo
+        echo "  api-grid"
+        echo
         echo "  cleanup"
         echo 
         echo "  runme [function-name]"
@@ -364,7 +363,10 @@ init)
             ;;
     esac
     ;;
-cleanup)
+api-grid)
+    add-api-grid
+    ;;
+leanup)
     case $K8S_DIALTONE in
         aks)
             scripts/build-aks-cluster.sh delete $CLUSTER_NAME

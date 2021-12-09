@@ -43,7 +43,7 @@ It is designed to run on any k8s.
 
 - This demo was tested well on AKS with 7 nodes of type ```Standard_DS3_v2``` (4 vCPU, 14GB memory, 28GB temp disk). If you need to change that configuration, please modify the parameters in ```platform/scripts/build-aks-cluster.sh``` function
 
-## API Grid
+## TAP
 
 ### Installation
 - run ```./builder.sh init``` to install the following:
@@ -57,14 +57,18 @@ It is designed to run on any k8s.
     - Image policy webhook
     - Scan controller
     - Grype scanner
-  - Spring Cloud Gateway
-  - API portal
-  - Demo examples
-    - App Accelerators
-    - Brownfield APIs examples for API portal
-    - Det4Pets backend TBS image
-    - Det4Pets frontend TBS image
-    - dev source-to-image supply-chain 
+    - Demo examples
+      - App Accelerators
+      - Source-to-image supply-chain 
+      - DevXMood workload
+- run ```./builder.sh api-grid``` to add the following:    
+    - Spring Cloud Gateway
+    - API portal
+    - Demo examples
+      - Brownfield APIs examples for API portal
+      - Det4Pets backend TBS image
+      - Det4Pets frontend TBS image
+    
   
 
 ### Inner loop
