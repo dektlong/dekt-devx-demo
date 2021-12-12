@@ -1,3 +1,21 @@
+tanzu package available list --n tap-install
+
+tanzu apps workload apply devx-mood -f Downloads/devx-mood/config/workload.yaml --n dekt-apps
+
+tanzu apps cluster-supply-chain list  
+
+tanzu apps workload get devx-mood -n dekt-apps
+
+tanzu apps workload tail devx-mood --since 10m --timestamp -n dekt-apps
+
+
+
+
+
+
+
+
+
 # Helper commands for running the TAP supply chain demo (in logical order)
 
 # Devs
