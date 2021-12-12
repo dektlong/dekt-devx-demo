@@ -4,10 +4,10 @@ items:
   - apiVersion: carto.run/v1alpha1
     kind: ClusterSupplyChain
     metadata:
-      name: spring-native-rabbitmq
+      name: source-to-url
     spec:
       selector:
-        apps.tanzu.vmware.com/workload-type: web-backend
+        apps.tanzu.vmware.com/workload-type: web
       resources:
         - name: source-provider
           params:
