@@ -15,8 +15,8 @@
 
 #################### installers ################
 
-    #init
-    init() {
+    #install-core
+    install-core() {
 
         install-tap
 
@@ -175,8 +175,8 @@
 
     }
 
-    #setup-tap-examples
-    setup-tap-examples () {
+    #setup-dekt-tap-examples
+    setup-dekt-tap-examples () {
 
         echo
         echo "===> Setup TAP demo examples..."
@@ -190,8 +190,13 @@
         kubectl apply -f .config/supplychain-rbac.yaml -n $DEMO_APPS_NS
         tanzu secret registry add registry-credentials --server $PRIVATE_REGISTRY_URL --username $PRIVATE_REGISTRY_USER --password $PRIVATE_REGISTRY_PASSWORD -n $DEMO_APPS_NS
 
+        #rabbitmq operator
+        kapp -y deploy --app rmq-operator --file https://github.com/rabbitmq/cluster-operator/releases/download/v1.9.0/cluster-operator.yml
+        kubectl apply -f supplychain/rabbitmq/rabbitmq-clusterrole.yaml
+        kubectl apply -f supplychain/rabbitmq/rabbitmq-instance.yaml -n $DEMO_APPS_NS
+
         #devx-mood
-        #tanzu apps workload apply devx-mood -f workloads//devx-mood-workload.yaml -y -n $DEMO_APPS_NS
+        #tanzu apps workload apply devx-mood -f workloads/devx-mood-workload.yaml -y -n $DEMO_APPS_NS
 
         add-tap-ingress
 
@@ -199,7 +204,7 @@
     }
 
     #setup-taapigrid-examples
-    setup-apigrid-examples () {
+    setup-dekt-apigrid-examples () {
 
         #brownfield
         kubectl create ns $BROWNFIELD_NS
@@ -296,6 +301,7 @@
 
         tanzu package installed update tap --package-name tap.tanzu.vmware.com --version 0.3.0 -n $TAP_INSTALL_NS -f .config/tap-values.yml
     }
+    
 #################### misc ################
     
      
@@ -350,11 +356,11 @@ init)
     case $K8S_DIALTONE in
         aks)
             scripts/build-aks-cluster.sh create $CLUSTER_NAME 7 
-            install-all
+            install-core
             ;;
         eks)
 	        scripts/build-eks-cluster.sh create $CLUSTER_NAME
-            install-all
+            install-core
             ;;
         *)
             echo
@@ -366,7 +372,7 @@ init)
 api-grid)
     add-api-grid
     ;;
-leanup)
+cleanup)
     case $K8S_DIALTONE in
         aks)
             scripts/build-aks-cluster.sh delete $CLUSTER_NAME
