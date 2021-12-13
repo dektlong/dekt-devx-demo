@@ -56,7 +56,6 @@ source .config/config-values.env
 case $1 in 
 create)
 	create-cluster $2 $3
-	scripts/update-dns.sh "addon-http-application-routing-nginx-ingress" "kube-system " "*.$APPS_SUB_DOMAIN"
 	#scripts/start-app.sh "octant"
 	;;
 delete)

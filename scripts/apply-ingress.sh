@@ -15,6 +15,9 @@ case $K8S_DIALTONE in
   eks)
 	  ingress_class="nginx" 
     ;;      
+  tkg)
+	  ingress_class="contour" 
+    ;;
 esac
 
 
@@ -37,7 +40,6 @@ spec:
               name: $serviceName
               port:
                 number: $servicePort
-
 EOF
 
 kubectl apply -f output.yaml -n $namespace

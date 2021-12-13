@@ -2,45 +2,54 @@
 
 source .config/config-values.env
 
-if [ "$1" == "" ] | [ "$2" == "" ] | [ "$3" == "" ]; then
-    echo "Incorrect usage. Please specify ingress_service_name , ingress_namespace , record_name"
-    exit
-fi
+update-dns-A-record()
+{
 
-ingress_service_name=$1
-ingress_namespace=$2
-record_name=$3
+    ingress_service_name=$1
+    ingress_namespace=$2
+    record_name=$3
 
-ingressType=""
+    ingressType=""
 
-echo
-printf "Waiting for ingress controller to receive public address from loadbalancer ."
+    printf "Waiting for ingress controller to receive public address from loadbalancer ."
 
-while [ "$ingressType" == "" ]
-do
-    printf "."
-    ingressType=$(kubectl get svc $ingress_service_name --namespace $ingress_namespace -o=jsonpath='{.status.loadBalancer.ingress[0]}')
-    sleep 1
-done
+    while [ "$ingressType" == "" ]
+    do
+        printf "."
+        ingressType=$(kubectl get svc $ingress_service_name --namespace $ingress_namespace -o=jsonpath='{.status.loadBalancer.ingress[0]}')
+        sleep 1
+    done
 
-echo
-
-if [[ "$ingressType" == *"hostname"* ]]; then
-    echo "load-balancer hostname in namespace $ingress_namespace:" 
-    ingress_host_name=$(kubectl get svc $ingress_service_name --namespace $ingress_namespace -o=jsonpath='{.status.loadBalancer.ingress[0].hostname}')
-    echo
-    ingress_public_ip=$(dig +short $ingress_host_name| head -1)
-    #read -p "Enter public IP of load-balancer: " ingress_public_ip
-elif [[ "$ingressType" == *"ip"* ]]; then
-    ingress_public_ip=$(kubectl get svc $ingress_service_name --namespace $ingress_namespace -o=jsonpath='{.status.loadBalancer.ingress[0].ip}')
-fi
+    if [[ "$ingressType" == *"hostname"* ]]; then
+        echo "load-balancer hostname in namespace $ingress_namespace:" 
+        ingress_host_name=$(kubectl get svc $ingress_service_name --namespace $ingress_namespace -o=jsonpath='{.status.loadBalancer.ingress[0].hostname}')
+        ingress_public_ip=$(dig +short $ingress_host_name| head -1)
+        #read -p "Enter public IP of load-balancer: " ingress_public_ip
+    elif [[ "$ingressType" == *"ip"* ]]; then
+        ingress_public_ip=$(kubectl get svc $ingress_service_name --namespace $ingress_namespace -o=jsonpath='{.status.loadBalancer.ingress[0].ip}')
+    fi
         
-echo
-echo "updating this A record in GoDaddy:  $record_name.$DOMAIN --> $ingress_public_ip..."
+    echo
+    echo "updating this A record in GoDaddy:  $record_name.$DOMAIN --> $ingress_public_ip..."
 
-# Update/Create DNS A Record
+    # Update/Create DNS A Record
 
-curl -s -X PUT \
-    -H "Authorization: sso-key $GODADDY_API_KEY:$GODADDY_API_SECRET" "https://api.godaddy.com/v1/domains/$DOMAIN/records/A/$record_name" \
-    -H "Content-Type: application/json" \
-    -d "[{\"data\": \"${ingress_public_ip}\"}]"
+    curl -s -X PUT \
+        -H "Authorization: sso-key $GODADDY_API_KEY:$GODADDY_API_SECRET" "https://api.godaddy.com/v1/domains/$DOMAIN/records/A/$record_name" \
+        -H "Content-Type: application/json" \
+        -d "[{\"data\": \"${ingress_public_ip}\"}]"
+}
+
+case $K8S_DIALTONE in
+aks)
+    update-dns-A-record "addon-http-application-routing-nginx-ingress" "kube-system " "*.$APPS_SUB_DOMAIN"
+    update-dns-A-record "envoy" "contour-external" "*.$SERVING_SUB_DOMAIN"    
+    ;;
+eks)
+    update-dns-A-record "dekt-ingress-nginx-controller" "nginx-system" "*.$APPS_SUB_DOMAIN"
+    update-dns-A-record "envoy" "contour-external" "*.$SERVING_SUB_DOMAIN"    
+    ;;
+*)
+    echo "Invalid K8S Dialtone. Supported dialtones are: aks, eks, tkg"
+    ;;
+esac

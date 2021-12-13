@@ -271,10 +271,8 @@
         echo "===> Add ingress rules for TAP components..."
         echo
 
-        scripts/update-dns.sh "dekt-ingress-nginx-controller" "nginx-system" "*.$APPS_SUB_DOMAIN"
-
-        scripts/update-dns.sh "envoy" "contour-external" "*.$SERVING_SUB_DOMAIN"
-
+        scripts/update-dns.sh
+        
         scripts/apply-ingress.sh "acc" "acc-ui-server" "80" "accelerator-system"
         
         scripts/apply-ingress.sh "tap-gui" "server" "7000" "tap-gui"
