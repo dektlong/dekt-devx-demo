@@ -1,27 +1,9 @@
-tanzu package available list --n tap-install
-
-tanzu apps workload apply devx-mood -f Downloads/devx-mood/config/workload.yaml --n dekt-apps
-
-tanzu apps cluster-supply-chain list  
-
-tanzu apps workload get devx-mood -n dekt-apps
-
-tanzu apps workload tail devx-mood --since 10m --timestamp -n dekt-apps
-
-
-
-
-
-
-
-
+kubectl get pkgi -n tap-install
 
 # Helper commands for running the TAP supply chain demo (in logical order)
 
 # Devs
-tanzu apps workload apply devx-mood \
-  -f workloads/devx-mood/config/workload.yaml \
-  --namespace dekt-apps
+tanzu apps workload apply devx-mood -f workloads/devx-mood/devx-mood.yaml -n dekt-apps
 
 # AppOps
 tanzu package repository add tanzu-tap-repository \
@@ -39,8 +21,6 @@ tanzu apps workload get devx-mood -n dekt-apps
 
 # AppOps
 kp images list -n dekt-apps
-
-
 
 
 

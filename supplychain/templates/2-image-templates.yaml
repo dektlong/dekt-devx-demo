@@ -51,3 +51,20 @@ spec:
         #@ if/end workload_param("live-update"):
         - name: BP_LIVE_RELOAD_ENABLED
           value: 'true'
+---
+apiVersion: carto.run/v1alpha1
+kind: ClusterImageTemplate
+metadata:
+  name: image-scanning-template
+spec:
+  imagePath: .status.artifact.registry.image
+  template:
+    apiVersion: scanning.apps.tanzu.vmware.com/v1alpha1
+    kind: ImageScan
+    metadata:
+      name: $(workload.metadata.name)$-image-scan
+    spec:
+      registry:
+        image: $(images.built-image.image)$
+      scanTemplate: private-image-scan-template
+      scanPolicy: scan-policy

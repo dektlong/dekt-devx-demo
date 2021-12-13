@@ -43,3 +43,22 @@ spec:
       interval: 1m0s
       image: #@ data.values.workload.spec.source.image
     #@ end
+---
+apiVersion: carto.run/v1alpha1
+kind: ClusterSourceTemplate
+metadata:
+  name: source-scanning-template
+spec:
+  urlPath: .status.artifact.blob.url
+  revisionPath: .status.artifact.blob.url
+  template:
+    apiVersion: scanning.apps.tanzu.vmware.com/v1alpha1
+    kind: SourceScan
+    metadata:
+      name: $(workload.metadata.name)$-source-scan
+    spec:
+      blob:
+        url: $(sources.source-code.url)$
+        revision: $(sources.source-code.revision)$
+      scanTemplate: blob-source-scan-template
+      scanPolicy: scan-policy
