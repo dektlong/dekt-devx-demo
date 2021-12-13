@@ -1,7 +1,7 @@
 
-# Demo of Tanzu API Grid ♥️😺 ♥️🐶
+# Demo of DevX with Tanzu 
 
-This repo contains artifacts to run a demo illustrating the vision and capabilities of Tanzu API Grid.
+This repo contains artifacts to run a demo illustrating the vision and capabilities of Tanzu for DevX on any k8s
 
 It is designed to run on any k8s.
 
