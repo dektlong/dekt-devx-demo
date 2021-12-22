@@ -192,8 +192,9 @@
 
         #rabbitmq operator
         kapp -y deploy --app rmq-operator --file https://github.com/rabbitmq/cluster-operator/releases/download/v1.9.0/cluster-operator.yml
-        kubectl apply -f supplychain/rabbitmq/rabbitmq-clusterrole.yaml
-        kubectl apply -f supplychain/rabbitmq/rabbitmq-instance.yaml -n $DEMO_APPS_NS
+        kubectl apply -f supplychain/templates/rabbitmq-clusterrole.yaml
+        #rabbitmq instance
+        kubectl apply -f workloads/sensors/rabbitmq-instance.yaml -n $DEMO_APPS_NS
 
         #devx-mood
         #tanzu apps workload apply devx-mood -f workloads/devx-mood-workload.yaml -y -n $DEMO_APPS_NS
@@ -272,7 +273,7 @@
         echo
 
         scripts/update-dns.sh
-        
+
         scripts/apply-ingress.sh "acc" "acc-ui-server" "80" "accelerator-system"
         
         scripts/apply-ingress.sh "tap-gui" "server" "7000" "tap-gui"
