@@ -206,7 +206,9 @@
 
     #setup-taapigrid-examples
     setup-dekt-apigrid-examples () {
-
+        
+        add-apigrid-ingress
+        
         #brownfield
         kubectl create ns $BROWNFIELD_NS
         kustomize build workloads/brownfield-apis | kubectl apply -f -
@@ -220,7 +222,7 @@
 
         create-dekt4pets-images
 
-        add-apigrid-ingress
+        
 
     }
 
