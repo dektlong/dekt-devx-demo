@@ -1,14 +1,12 @@
-kubectl get pkgi -n tap-install
-
-# Helper commands for running the TAP supply chain demo (in logical order)
 
 # Devs
 tanzu apps workload apply devx-mood -f workloads/devx-mood/devx-mood.yaml -n dekt-apps
 
 # AppOps
 tanzu package repository add tanzu-tap-repository \
-  --url registry.tanzu.vmware.com/tanzu-application-platform/tap-packages:0.3.0 \
+  --url registry.tanzu.vmware.com/tanzu-application-platform/tap-packages:1.0.1 \
   --namespace tap-install
+
 
 kubectl get pkgi -n tap-install
 
