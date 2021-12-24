@@ -23,7 +23,7 @@ spec:
 apiVersion: accelerator.apps.tanzu.vmware.com/v1alpha1
 kind: Accelerator
 metadata:
-  name: my-brownfield-function
+  name: my-web-function
 spec:
   git:
     interval: 10s
@@ -34,7 +34,7 @@ spec:
 apiVersion: accelerator.apps.tanzu.vmware.com/v1alpha1
 kind: Accelerator
 metadata:
-  name: my-supplychain
+  name: source-to-x
 spec:
   git:
     interval: 10s

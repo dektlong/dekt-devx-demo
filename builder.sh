@@ -196,8 +196,8 @@
         #rabbitmq instance
         kubectl apply -f workloads/sensors/rabbitmq-instance.yaml -n $DEMO_APPS_NS
 
-        #devx-mood
-        #tanzu apps workload apply devx-mood -f workloads/devx-mood-workload.yaml -y -n $DEMO_APPS_NS
+        #devx-mood-backend (no rabbitMQ)
+        tanzu apps workload apply devx-mood-backend -f workloads/devx-mood-backend.yaml -n $DEMO_APPS_NS -y
 
         add-tap-ingress
 
@@ -206,7 +206,6 @@
 
     #setup-taapigrid-examples
     setup-dekt-apigrid-examples () {
-        
         add-apigrid-ingress
         
         #brownfield

@@ -1,18 +1,29 @@
 
-# Devs
-tanzu apps workload apply devx-mood -f workloads/devx-mood/devx-mood.yaml -n dekt-apps
+# AppOps: tap install on any k8s
 
-# AppOps
 tanzu package repository add tanzu-tap-repository \
   --url registry.tanzu.vmware.com/tanzu-application-platform/tap-packages:1.0.1 \
   --namespace tap-install
 
-
 kubectl get pkgi -n tap-install
+
+
+# Devs: devx-mood workload
+tanzu apps workload apply devx-mood -f workloads/devx-mood.yaml -n dekt-apps
+
+tanzu apps workload list -n dekt-apps
+
+# Devs: devx-mood-backend workload (pre-deployed via the source-to-api supplchain)
+
+curl http://devx-mood-backend.dekt-apps.serving.dekt.io/write //run a few times
+
+curl http://devx-mood-backend.dekt-apps.serving.dekt.io/sensors-data
+
+
+# AppOps: source-to-url supply chain
 
 tanzu apps cluster-supply-chain list
 
-# Devs
 tanzu apps workload tail devx-mood --since 10m --timestamp  -n dekt-apps
 
 tanzu apps workload get devx-mood -n dekt-apps

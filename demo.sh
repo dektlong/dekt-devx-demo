@@ -109,7 +109,7 @@ dekt4pets() {
     kubectl apply -f workloads/dekt4pets/gateway/dekt4pets-gateway.yaml -n $DEMO_APPS_NS
     scripts/apply-ingress.sh "dekt4pets" "dekt4pets-gateway" "80" $DEMO_APPS_NS
 
-    adopter-check
+    #adopter-check
 }
 
 #deploy-fitness app
