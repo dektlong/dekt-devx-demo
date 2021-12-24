@@ -9,21 +9,24 @@ kubectl get pkgi -n tap-install
 
 
 # Devs: devx-mood workload
-tanzu apps workload apply devx-mood -f workloads/devx-mood.yaml -n dekt-apps
+tanzu apps workload apply devx-mood -f workloads/devx-mood/devx-mood.yaml -n dekt-apps
 
 tanzu apps workload list -n dekt-apps
 
-# Devs: devx-mood-backend workload (pre-deployed via the source-to-api supplchain)
-
-curl http://devx-mood-backend.dekt-apps.serving.dekt.io/write //run a few times
-
-curl http://devx-mood-backend.dekt-apps.serving.dekt.io/sensors-data
-
-
-# AppOps: source-to-url supply chain
+# AppOps: supply chains
 
 tanzu apps cluster-supply-chain list
 
+(let's see how each supply chain was created)
+
+# Devs: devx-mood-backend api
+
+//run a few times (first time will take a few seconds to kick off the function)
+curl http://devx-mood-backend.dekt-apps.serving.dekt.io/write 
+
+curl http://devx-mood-backend.dekt-apps.serving.dekt.io/sensors-data
+
+# Devs: devx-mood function
 tanzu apps workload tail devx-mood --since 10m --timestamp  -n dekt-apps
 
 tanzu apps workload get devx-mood -n dekt-apps

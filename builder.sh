@@ -186,9 +186,10 @@
             #kubectl apply -f supplychain/accelerators.yaml -n $DEMO_APPS_NS
         kubectl apply -f supplychain/accelerators.yaml
 
-        #supplychain
+        #supplychain (default + web-backend 'dummy')
         kubectl apply -f .config/supplychain-rbac.yaml -n $DEMO_APPS_NS
         tanzu secret registry add registry-credentials --server $PRIVATE_REGISTRY_URL --username $PRIVATE_REGISTRY_USER --password $PRIVATE_REGISTRY_PASSWORD -n $DEMO_APPS_NS
+        kubeclt apply -f supplychain/supplychain-src-to-api.yaml
 
         #rabbitmq operator
         kapp -y deploy --app rmq-operator --file https://github.com/rabbitmq/cluster-operator/releases/download/v1.9.0/cluster-operator.yml
