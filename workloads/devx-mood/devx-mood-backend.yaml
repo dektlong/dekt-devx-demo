@@ -10,4 +10,3 @@ spec:
       url: https://github.com/dektlong/devx-mood-backend
       ref:
         branch: main
-"{Sensor_ID:" + String.valueOf(sensor.getId()) + ",Type:" + sensor.getType() + ",Mood:" + sensor.getMood() + "}";
