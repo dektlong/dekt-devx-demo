@@ -194,10 +194,15 @@
         kapp -y deploy --app rmq-operator --file https://github.com/rabbitmq/cluster-operator/releases/download/v1.9.0/cluster-operator.yml
         kubectl apply -f supplychain/templates/rabbitmq-clusterrole.yaml
         #rabbitmq instance
-        kubectl apply -f workloads/sensors/rabbitmq-instance.yaml -n $DEMO_APPS_NS
+        kubectl apply -f workloads/devx-mood/rabbitmq-instance.yaml -n $DEMO_APPS_NS
 
         #devx-mood-backend (no rabbitMQ)
-        tanzu apps workload apply devx-mood-backend -f workloads/devx-mood-backend.yaml -n $DEMO_APPS_NS -y
+        tanzu apps workload apply devx-mood-backend \
+            --type web \
+            --git-repo https://github.com/dektlong/devx-mood-backend \
+            --git-branch main \
+            --namespace $DEMO_APPS_NS \
+            --yes
 
         add-tap-ingress
 
