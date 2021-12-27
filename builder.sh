@@ -197,11 +197,12 @@
         #rabbitmq instance
         kubectl apply -f workloads/devx-mood/rabbitmq-instance.yaml -n $DEMO_APPS_NS
 
-        #devx-mood-backend (no rabbitMQ)
+        #devx-mood-backend without scale2zero (no rabbitMQ)
         tanzu apps workload apply devx-mood-backend \
             --type web \
             --git-repo https://github.com/dektlong/devx-mood-backend \
             --git-branch main \
+            --label autoscaling.knative.dev/minScale=2 \
             --namespace $DEMO_APPS_NS \
             --yes
 

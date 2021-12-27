@@ -13,18 +13,19 @@ tanzu apps workload apply devx-mood -f workloads/devx-mood/devx-mood.yaml -n dek
 
 tanzu apps workload list -n dekt-apps
 
+# Devs: devx-mood-backend api
+
+tanzu apps workload apply devx-mood-backend --type web --git-repo https://github.com/dektlong/devx-mood-backend --git-branch main --label autoscaling.knative.dev/minScale=2 -n dekt-apps -y
+
+curl http://devx-mood-backend.dekt-apps.serving.dekt.io/write 
+
+curl http://devx-mood-backend.dekt-apps.serving.dekt.io/sensors-data
+
 # AppOps: supply chains
 
 tanzu apps cluster-supply-chain list
 
 (let's see how each supply chain was created)
-
-# Devs: devx-mood-backend api
-
-//run a few times (first time will take a few seconds to kick off the function)
-curl http://devx-mood-backend.dekt-apps.serving.dekt.io/write 
-
-curl http://devx-mood-backend.dekt-apps.serving.dekt.io/sensors-data
 
 # Devs: devx-mood function
 tanzu apps workload tail devx-mood --since 10m --timestamp  -n dekt-apps
