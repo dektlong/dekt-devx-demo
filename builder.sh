@@ -71,9 +71,6 @@
             #for install status use:
             #watch "kubectl get pkgi -n tap-install"
 
-        add-tap-ingress
-
-
     }
 
     #install-tap packages (for use without profile)
