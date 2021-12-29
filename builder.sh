@@ -3,6 +3,9 @@
 #################### configs #######################
 
     source .config/config-values.env
+    PRIVATE_REPO=$(yq e .buildservice.kp_default_repository .config/tap-values.yml)
+    PRIVATE_REPO_USER=$(yq e .buildservice.kp_default_repository_username .config/tap-values.yml)
+    PRIVATE_REPO_PASSWORD=$(yq e .buildservice.kp_default_repository_password .config/tap-values.yml)
     
     BUILDER_NAME="online-stores-builder"
     GATEWAY_NS="scgw-system"
@@ -134,13 +137,11 @@
         kubectl create ns $GATEWAY_NS
 
         kubectl create secret docker-registry spring-cloud-gateway-image-pull-secret \
-            --docker-server=$PRIVATE_REGISTRY_URL \
-            --docker-username=$PRIVATE_REGISTRY_USER \
-            --docker-password=$PRIVATE_REGISTRY_PASSWORD \
+            --docker-server=$PRIVATE_REPO \
+            --docker-username=$PRIVATE_REPO_USER \
+            --docker-password=$PRIVATE_REPO_PASSWORD \
             --namespace $GATEWAY_NS
-
-        $GW_INSTALL_DIR/scripts/relocate-images.sh $PRIVATE_REGISTRY_URL/$PRIVATE_REGISTRY_SYSTEM_REPO
-        
+ 
         $GW_INSTALL_DIR/scripts/install-spring-cloud-gateway.sh --namespace $GATEWAY_NS
 
     }
@@ -155,15 +156,13 @@
         kubectl create ns $API_PORTAL_NS
 
         kubectl create secret docker-registry api-portal-image-pull-secret \
-            --docker-server=$PRIVATE_REGISTRY_URL \
-            --docker-username=$PRIVATE_REGISTRY_USER \
-            --docker-password=$PRIVATE_REGISTRY_PASSWORD \
+            --docker-server=$PRIVATE_REPO \
+            --docker-username=$PRIVATE_REPO_USER \
+            --docker-password=$PRIVATE_REPO_PASSWORD \
             --namespace $API_PORTAL_NS
       
         kubectl create secret generic sso-credentials --from-env-file=.config/sso-creds.txt -n $API_PORTAL_NS
         
-        $API_PORTAL_INSTALL_DIR/scripts/relocate-images.sh $PRIVATE_REGISTRY_URL/$PRIVATE_REGISTRY_SYSTEM_REPO
-
         $API_PORTAL_INSTALL_DIR/scripts/install-api-portal.sh
        
         kubectl set env deployment.apps/api-portal-server API_PORTAL_SOURCE_URLS_CACHE_TTL_SEC=10 -n $API_PORTAL_NS #so frontend apis will appear faster, just for this demo
@@ -185,7 +184,7 @@
 
         #supplychain (default + web-backend 'dummy')
         kubectl apply -f .config/supplychain-rbac.yaml -n $DEMO_APPS_NS
-        tanzu secret registry add registry-credentials --server $PRIVATE_REGISTRY_URL --username $PRIVATE_REGISTRY_USER --password $PRIVATE_REGISTRY_PASSWORD -n $DEMO_APPS_NS
+        tanzu secret registry add registry-credentials --server $PRIVATE_REPO --username $PRIVATE_REPO_USER --password $PRIVATE_REPO_PASSWORD -n $DEMO_APPS_NS
         kubectl apply -f supplychain/supplychain-src-to-api.yaml
 
         #rabbitmq operator
@@ -233,13 +232,13 @@
     create-dekt4pets-images () {
 
 
-        frontend_image_location=$PRIVATE_REGISTRY_URL/$PRIVATE_REGISTRY_APP_REPO/$FRONTEND_TBS_IMAGE:$APP_VERSION
-        backend_image_location=$PRIVATE_REGISTRY_URL/$PRIVATE_REGISTRY_APP_REPO/$BACKEND_TBS_IMAGE:$APP_VERSION
+        frontend_image_location=$PRIVATE_REPO/$PRIVATE_REGISTRY_APP_REPO/$FRONTEND_TBS_IMAGE:$APP_VERSION
+        backend_image_location=$PRIVATE_REPO/$PRIVATE_REGISTRY_APP_REPO/$BACKEND_TBS_IMAGE:$APP_VERSION
 
-        export REGISTRY_PASSWORD=$PRIVATE_REGISTRY_PASSWORD
+        export REGISTRY_PASSWORD=$PRIVATE_REPO_PASSWORD
         kp secret create private-registry-creds \
-            --registry $PRIVATE_REGISTRY_URL \
-            --registry-user $PRIVATE_REGISTRY_USER \
+            --registry $PRIVATE_REPO \
+            --registry-user $PRIVATE_REPO_USER \
             --namespace $DEMO_APPS_NS 
     
         echo
@@ -302,12 +301,7 @@
         scripts/apply-ingress.sh "dekt4pets-dev" "dekt4pets-gateway-dev" "80" $DEMO_APPS_NS
     }    
     
-    #update-tap
-    update-tap () {
-
-        tanzu package installed update tap --package-name tap.tanzu.vmware.com --version 0.3.0 -n $TAP_INSTALL_NS -f .config/tap-values.yml
-    }
-    
+      
 #################### misc ################
     
      
@@ -322,6 +316,8 @@
         echo "  api-grid"
         echo
         echo "  cleanup"
+        echo
+        echo "  relocate-images"
         echo 
         echo "  runme [function-name]"
         echo
@@ -339,6 +335,25 @@
         kubectl delete pod -l app=backstage -n tap-gui
 
 
+    }
+
+    #update-tap
+    update-tap () {
+
+        tanzu package installed update tap --package-name tap.tanzu.vmware.com --version 0.3.0 -n $TAP_INSTALL_NS -f .config/tap-values.yml
+    }
+
+    #relocate-images
+    relocate-images() {
+
+        echo "Make sure docker deamon is running..."
+        read
+        
+        docker login $PRIVATE_REPO -u $PRIVATE_REPO_USER -p $PRIVATE_REPO_PASSWORD
+        
+        $GW_INSTALL_DIR/scripts/relocate-images.sh $PRIVATE_REPO/$PRIVATE_REGISTRY_SYSTEM_REPO
+
+        $API_PORTAL_INSTALL_DIR/scripts/relocate-images.sh $PRIVATE_REPO/$PRIVATE_REGISTRY_SYSTEM_REPO
     }
 
     #wait-for-tap
@@ -377,6 +392,9 @@ init)
     ;;
 api-grid)
     add-api-grid
+    ;;
+relocate-images)
+    relocate-images
     ;;
 cleanup)
     case $K8S_DIALTONE in

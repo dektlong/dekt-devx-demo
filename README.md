@@ -29,7 +29,7 @@ It is designed to run on any k8s.
 
 - Rename the folder ```config-template``` to  ```.config``` 
 
-- Set all UPDATE_ME values in the ```.config``` directory
+- Update all values in the ```.config``` directory
 
 - Update your runtime specific values in ```workload/dekt4pets``` folder
 
