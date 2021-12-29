@@ -3,7 +3,7 @@
 #################### configs #######################
 
     source .config/config-values.env
-    PRIVATE_REPO=$(yq e .buildservice.kp_default_repository .config/tap-values.yml)
+    PRIVATE_REPO=$(yq e .ootb_supply_chain_basic.registry.server .config/tap-values.yml)
     PRIVATE_REPO_USER=$(yq e .buildservice.kp_default_repository_username .config/tap-values.yml)
     PRIVATE_REPO_PASSWORD=$(yq e .buildservice.kp_default_repository_password .config/tap-values.yml)
     
