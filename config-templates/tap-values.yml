@@ -33,7 +33,6 @@ contour:
 accelerator:
   server:
     service_type: "ClusterIP"
-    watched_namespace: ""
 
 tap_gui:
   service_type: ClusterIP
