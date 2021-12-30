@@ -3,16 +3,16 @@
 #################### configs #######################
 
     source .config/config-values.env
-    PRIVATE_REPO=$(yq e .ootb_supply_chain_basic.registry.server .config/tap-values.yml)
-    PRIVATE_REPO_USER=$(yq e .buildservice.kp_default_repository_username .config/tap-values.yml)
-    PRIVATE_REPO_PASSWORD=$(yq e .buildservice.kp_default_repository_password .config/tap-values.yml)
+    PRIVATE_REPO=$(yq e .ootb_supply_chain_basic.registry.server .config/tap-values.yaml)
+    PRIVATE_REPO_USER=$(yq e .buildservice.kp_default_repository_username .config/tap-values.yaml)
+    PRIVATE_REPO_PASSWORD=$(yq e .buildservice.kp_default_repository_password .config/tap-values.yaml)
     
     BUILDER_NAME="online-stores-builder"
     GATEWAY_NS="scgw-system"
     API_PORTAL_NS="api-portal"
     BROWNFIELD_NS="brownfield-apis"
     
-    TAP_VERSION="0.3.0"
+    TAP_VERSION="0.4.0"
     KAPP_CONTROLER_VERSION="v0.29.0"
     SECRET_GEN_VERSION="v0.6.0"
 
@@ -21,7 +21,9 @@
     #install-core
     install-core() {
 
-        install-tap
+        install-tap-prereq
+
+        tanzu package install tap -p tap.tanzu.vmware.com -v $TAP_VERSION  --values-file .config/tap-values.yaml -n tap-install
 
         setup-dekt-tap-examples
 
@@ -38,93 +40,28 @@
 
 
     }     
-    #install tap with 'full' profile
-    install-tap () {
+    #install-tap-prereq
+    install-tap-prereq () {
 
-        echo
-        echo "===> Setup TAP prerequisites.."
-        echo
-        
-        kubectl create ns $TAP_INSTALL_NS
+        export INSTALL_BUNDLE=registry.tanzu.vmware.com/tanzu-cluster-essentials/cluster-essentials-bundle@sha256:82dfaf70656b54dcba0d4def85ccae1578ff27054e7533d08320244af7fb0343
+        export INSTALL_REGISTRY_HOSTNAME=registry.tanzu.vmware.com
+        export INSTALL_REGISTRY_USERNAME=$TANZU_NETWORK_USER
+        export INSTALL_REGISTRY_PASSWORD=$TANZU_NETWORK_PASSWORD
+        pushd config-templates/tanzu-cluster-essentials
+        ./install.sh
+        pushd
+
+        kubectl create ns tap-install
         kubectl create ns $DEMO_APPS_NS
         
-        kapp deploy -y -a kc -f https://github.com/vmware-tanzu/carvel-kapp-controller/releases/download/$KAPP_CONTROLER_VERSION/release.yml
-
-        kapp deploy -y -a sg -f https://github.com/vmware-tanzu/carvel-secretgen-controller/releases/download/$SECRET_GEN_VERSION/release.yml
-
         tanzu secret registry add tap-registry \
-            --username $TANZU_NETWORK_USER --password $TANZU_NETWORK_PASSWORD \
-            --server registry.tanzu.vmware.com \
-            --export-to-all-namespaces --yes --namespace $TAP_INSTALL_NS
+            --username ${INSTALL_REGISTRY_USERNAME} --password ${INSTALL_REGISTRY_PASSWORD} \
+            --server ${INSTALL_REGISTRY_HOSTNAME} \
+            --export-to-all-namespaces --yes --namespace tap-install
 
         tanzu package repository add tanzu-tap-repository \
             --url registry.tanzu.vmware.com/tanzu-application-platform/tap-packages:$TAP_VERSION \
-            --namespace $TAP_INSTALL_NS
-
-        wait-for-reconciler
-
-        
-
-        echo
-        echo "===> Install TAP with 'full' packages profile..."
-        echo
-
-        tanzu package install tap -p tap.tanzu.vmware.com -v $TAP_VERSION  --values-file .config/tap-values.yml -n $TAP_INSTALL_NS
-
-            #for install status use:
-            #watch "kubectl get pkgi -n tap-install"
-
-    }
-
-    #install-tap packages (for use without profile)
-    install-tap-seperate-packages () {
-
-        echo
-        echo "===> Install Tanzu products as TAP packages..."
-        echo
-
-        #cnr
-        tanzu package install cloud-native-runtimes -p cnrs.tanzu.vmware.com -v 1.0.2 -n $TAP_INSTALL_NS -f .config/cnr-values.yaml --poll-timeout 30m
-
-        #acc
-        echo
-        tanzu package install app-accelerator -p accelerator.apps.tanzu.vmware.com -v 0.3.0 -n $TAP_INSTALL_NS -f .config/acc-values.yaml
-        #kubectl apply -f .config/acc-ingress.yaml -n accelerator-system
-
-        #convention service
-        echo
-        tanzu package install convention-controller -p controller.conventions.apps.tanzu.vmware.com -v 0.4.2 -n $TAP_INSTALL_NS
-
-        #source controller
-        echo
-        tanzu package install source-controller -p controller.source.apps.tanzu.vmware.com -v 0.1.2 -n $TAP_INSTALL_NS
-
-        #tbs
-        echo
-        tanzu package install tbs -p buildservice.tanzu.vmware.com -v 1.3.0 -n $TAP_INSTALL_NS -f .config/tbs-values.yaml --poll-timeout 30m
-        
-        #carto
-        echo
-        tanzu package install cartographer -p cartographer.tanzu.vmware.com -v 0.0.6 -n $TAP_INSTALL_NS
-        
-        #dev conventions
-        echo
-        tanzu package install developer-conventions -p developer-conventions.tanzu.vmware.com -v 0.2.0 -n $TAP_INSTALL_NS
-        
-        #alv
-        echo
-        tanzu package install app-live-view -p appliveview.tanzu.vmware.com -v 0.2.0 -n $TAP_INSTALL_NS -f .config/alv-values.yaml
-        
-        #service-binding
-        echo
-        tanzu package install service-bindings -p service-bindings.labs.vmware.com -v 0.5.0 -n $TAP_INSTALL_NS
-        
-        #service control plane
-        echo
-        tanzu package install scp-toolkit -p scp-toolkit.tanzu.vmware.com -v 0.3.0 -n $TAP_INSTALL_NS 
-
-        install-tap-security-tools
-       
+            --namespace tap-install
     }
 
     #install-api-gateway
@@ -179,12 +116,11 @@
         echo
 
         #accelerators
-            #kubectl apply -f supplychain/accelerators.yaml -n $DEMO_APPS_NS
-        kubectl apply -f supplychain/accelerators.yaml
+        kubectl apply -f supplychain/accelerators.yaml -n $DEMO_APPS_NS
 
         #supplychain (default + web-backend 'dummy')
-        kubectl apply -f .config/supplychain-rbac.yaml -n $DEMO_APPS_NS
         tanzu secret registry add registry-credentials --server $PRIVATE_REPO --username $PRIVATE_REPO_USER --password $PRIVATE_REPO_PASSWORD -n $DEMO_APPS_NS
+        kubectl apply -f .config/supplychain-rbac.yaml -n $DEMO_APPS_NS
         kubectl apply -f supplychain/supplychain-src-to-api.yaml
 
         #rabbitmq operator
@@ -202,7 +138,8 @@
             --namespace $DEMO_APPS_NS \
             --yes
 
-        add-tap-ingress
+        #add-tap-ingress
+        scripts/update-dns.sh
 
         
     }
@@ -278,11 +215,11 @@
 
         scripts/update-dns.sh
 
-        scripts/apply-ingress.sh "acc" "acc-ui-server" "80" "accelerator-system"
+        #scripts/apply-ingress.sh "acc" "acc-ui-server" "80" "accelerator-system"
         
-        scripts/apply-ingress.sh "tap-gui" "server" "7000" "tap-gui"
+        #scripts/apply-ingress.sh "tap-gui" "server" "7000" "tap-gui"
         
-        scripts/apply-ingress.sh "alv" "application-live-view-5112" "5112" "app-live-view"
+        #scripts/apply-ingress.sh "alv" "application-live-view-5112" "5112" "app-live-view"
         
         kubectl patch configmap/config-domain \
             --namespace knative-serving \
@@ -330,7 +267,7 @@
 
         read -p "update the ip in tap-values.yaml...then hit any key"
 
-        tanzu package installed update tap --package-name tap.tanzu.vmware.com --version 0.3.0 -n tap-install -f .config/tap-values.yml
+        update-tap
 
         kubectl delete pod -l app=backstage -n tap-gui
 
@@ -340,7 +277,7 @@
     #update-tap
     update-tap () {
 
-        tanzu package installed update tap --package-name tap.tanzu.vmware.com --version 0.3.0 -n $TAP_INSTALL_NS -f .config/tap-values.yml
+        tanzu package installed update tap --package-name tap.tanzu.vmware.com --version $TAP_VERSION -n tap-install -f .config/tap-values.yaml
     }
 
     #relocate-images
@@ -364,7 +301,7 @@
         while [ "$status" == "" ]
         do
             printf "."
-            status="$(tanzu package repository get tanzu-tap-repository --namespace $TAP_INSTALL_NS  -o=json | grep 'succeeded')" 
+            status="$(tanzu package repository get tanzu-tap-repository --namespace tap-install  -o=json | grep 'succeeded')" 
             sleep 1
         done
         echo

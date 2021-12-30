@@ -1,0 +1,8 @@
+site_name: 'Backstage system'
+
+nav:
+  - The System: index.md
+  - Adding Documentation: add-docs.md
+
+plugins:
+  - techdocs-core

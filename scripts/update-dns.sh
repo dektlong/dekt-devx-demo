@@ -42,12 +42,12 @@ update-dns-A-record()
 
 case $K8S_DIALTONE in
 aks)
-    update-dns-A-record "addon-http-application-routing-nginx-ingress" "kube-system " "*.$APPS_SUB_DOMAIN"
-    update-dns-A-record "envoy" "contour-external" "*.$SERVING_SUB_DOMAIN"    
+    #update-dns-A-record "addon-http-application-routing-nginx-ingress" "kube-system " "*.$APPS_SUB_DOMAIN"
+    update-dns-A-record "envoy" "tanzu-system-ingress" "*.$APPS_SUB_DOMAIN"    
     ;;
 eks)
-    update-dns-A-record "dekt-ingress-nginx-controller" "nginx-system" "*.$APPS_SUB_DOMAIN"
-    update-dns-A-record "envoy" "contour-external" "*.$SERVING_SUB_DOMAIN"    
+    #update-dns-A-record "dekt-ingress-nginx-controller" "nginx-system" "*.$APPS_SUB_DOMAIN"
+    update-dns-A-record "envoy" "tanzu-system-ingress" "*.$SERVING_SUB_DOMAIN"    
     ;;
 *)
     echo "Invalid K8S Dialtone. Supported dialtones are: aks, eks, tkg"

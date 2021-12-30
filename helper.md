@@ -5,7 +5,7 @@ tanzu package repository add tanzu-tap-repository \
   --url registry.tanzu.vmware.com/tanzu-application-platform/tap-packages:1.0.1 \
   --namespace tap-install
 
-kubectl get pkgi -n tap-install
+tanzu package installed list -A
 
 
 # Devs: devx-mood workload

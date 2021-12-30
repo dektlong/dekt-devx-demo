@@ -34,7 +34,7 @@ spec:
     - name: image-scanner
       templateRef:
         kind: ClusterImageTemplate
-        name: scanner-template
+        name: image-scanner-template
       images:
         - resource: image-builder
           name: image
@@ -42,7 +42,7 @@ spec:
     - name: deployer
       templateRef:
         kind: ClusterTemplate
-        name: deploy-template
+        name: deliverable-template
       images:
         - resource: image-builder
           name: image

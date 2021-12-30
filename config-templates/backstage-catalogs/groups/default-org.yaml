@@ -1,0 +1,25 @@
+apiVersion: backstage.io/v1alpha1
+kind: Group
+metadata:
+  name: default-org
+  description: The Default Organization
+  links:
+    - url: https://tanzu.vmware.com/support
+      title: Tanzu Support Website
+spec:
+  type: organization
+  profile:
+    displayName: Default Organization
+    email: demo@example.com
+    picture: https://avatars.dicebear.com/api/identicon/info@example.com.svg?background=%23fff&margin=25
+  children: [default-team]
+---
+apiVersion: backstage.io/v1alpha1
+kind: Location
+metadata:
+  name: default-group
+  description: A Default Group Location
+spec:
+  targets:
+    - ./default-team.yaml
+    - ./guest-user.yaml
