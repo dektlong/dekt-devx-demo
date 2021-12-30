@@ -1,7 +1,7 @@
-site_name: 'Backstage demo catalog'
+site_name: 'Yelb demo catalog'
 
 nav:
-  - The Catalog: index.md
+  - Home: index.md
   - Adding Documentation: add-docs.md
 
 plugins:

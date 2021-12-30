@@ -215,11 +215,11 @@
 
         scripts/update-dns.sh
 
-        #scripts/apply-ingress.sh "acc" "acc-ui-server" "80" "accelerator-system"
+        scripts/apply-ingress.sh "acc" "acc-server" "80" "accelerator-system"
         
         #scripts/apply-ingress.sh "tap-gui" "server" "7000" "tap-gui"
         
-        #scripts/apply-ingress.sh "alv" "application-live-view-5112" "5112" "app-live-view"
+        scripts/apply-ingress.sh "alv" "application-live-view-5112" "5112" "app-live-view"
         
         kubectl patch configmap/config-domain \
             --namespace knative-serving \
