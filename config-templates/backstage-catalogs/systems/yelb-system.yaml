@@ -1,0 +1,10 @@
+apiVersion: backstage.io/v1alpha1
+kind: System
+metadata:
+  name: yelb
+  description: YELB Application
+  annotations:
+    'backstage.io/techdocs-ref': dir:.
+spec:
+  owner: team-a
+  domain: cloud-apps

@@ -1,0 +1,7 @@
+site_name: 'yelb-ui'
+
+nav:
+  - Home: index.md
+
+plugins:
+  - techdocs-core

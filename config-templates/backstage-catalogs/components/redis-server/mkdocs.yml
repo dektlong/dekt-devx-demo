@@ -1,0 +1,7 @@
+site_name: 'Redis server'
+
+nav:
+  - Home: index.md
+
+plugins:
+  - techdocs-core

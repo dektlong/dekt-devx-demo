@@ -1,0 +1,13 @@
+apiVersion: backstage.io/v1alpha1
+kind: Group
+metadata:
+  name: development
+  description: The Development sub-department
+spec:
+  type: sub-department
+  profile:
+    displayName: Development
+    email: backstage@example.com
+    picture: https://avatars.dicebear.com/api/identicon/backstage@example.com.svg?background=%23fff&margin=25
+  parent: it
+  children: [team-a, team-b]

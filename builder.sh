@@ -215,27 +215,25 @@
 
         scripts/update-dns.sh
 
-        scripts/apply-ingress.sh "acc" "acc-server" "80" "accelerator-system"
+        scripts/add-gw-ingress.sh "acc" "acc-server" "80" "accelerator-system"
         
-        #scripts/apply-ingress.sh "tap-gui" "server" "7000" "tap-gui"
+        scripts/add-gw-ingress.sh "alv" "application-live-view-5112" "5112" "app-live-view"
         
-        scripts/apply-ingress.sh "alv" "application-live-view-5112" "5112" "app-live-view"
-        
-        kubectl patch configmap/config-domain \
-            --namespace knative-serving \
-            --type merge \
-            --patch '{"data":{"'$CNR_SUB_DOMAIN.$DOMAIN'":""}}'
+#        kubectl patch configmap/config-domain \
+ #           --namespace knative-serving \
+  #          --type merge \
+   #         --patch '{"data":{"'$CNR_SUB_DOMAIN.$DOMAIN'":""}}'
 
     }
 
     #add-apigrid-ingress-rules
     add-apigrid-ingress() {
 
-        scripts/apply-ingress.sh "api-portal" "api-portal-server" "8080" $API_PORTAL_NS
+        scripts/add-gw-ingress.sh "api-portal" "api-portal-server" "8080" $API_PORTAL_NS
 
-        scripts/apply-ingress.sh "scg-openapi" "scg-operator" "80" $GATEWAY_NS
+        scripts/add-gw-ingress.sh "scg-openapi" "scg-operator" "80" $GATEWAY_NS
 
-        scripts/apply-ingress.sh "dekt4pets-dev" "dekt4pets-gateway-dev" "80" $DEMO_APPS_NS
+        scripts/add-gw-ingress.sh "dekt4pets-dev" "dekt4pets-gateway-dev" "80" $DEMO_APPS_NS
     }    
     
       
