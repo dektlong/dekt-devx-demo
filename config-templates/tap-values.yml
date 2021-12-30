@@ -1,57 +1,59 @@
 profile: full
-
+#profile: light
+ceip_policy_disclosed: true # Installation fails if this is set to 'false'
 buildservice:
-  kp_default_repository: PRIVATE_REGISTRY_URL/PRIVATE_REGISTRY_SYSTEM_REPO/build-service
-  kp_default_repository_username: PRIVATE_REGISTRY_USER
-  kp_default_repository_password: PRIVATE_REGISTRY_PASSWORD
-  tanzunet_username: TANZU_NETWORK_USER
-  tanzunet_password: TANZU_NETWORK_USER_PASSWORD
+  kp_default_repository: ""
+  kp_default_repository_username: ""
+  kp_default_repository_password: ""
+  tanzunet_username: ""
+  tanzunet_password: "#"
+  descriptor_name: "tap-1.0.0-full"
+  enable_automatic_dependency_updates: true
+supply_chain: basic
 
 ootb_supply_chain_basic:
   registry:
-    server: PRIVATE_REGISTRY
-    repository: PRIVATE_REGISTRY_APP_REPO
-ootb_supply_chain_testing:
-  registry:
-    server: PRIVATE_REGISTRY
-    repository: PRIVATE_REGISTRY_APP_REPO
-ootb_supply_chain_testing_scanning:
-  registry:
-    server: PRIVATE_REGISTRY
-    repository: PRIVATE_REGISTRY_APP_REPO
+    server: ""
+    repository: ""
+  git_ops:
+    ssh_secret: ""
+
+learningcenter:
+  ingressDomain: ""
+  
+cnrs:
+  domain_template: "{{.Name}}.{{.Domain}}"
+  domain_name: ""
+
+contour:
+  envoy:
+    service:
+      type: LoadBalancer
 
 accelerator:
-  server.service_type: "ClusterIP"
-  server.watched_namespace: "DEMO_APPS_NS"
-
-api_portal:
-  apiPortalServer.replicaCount: 1
-  apiPortalServer.sourceUrls: scg-openapi.APPS_SUB_DOMAIN.DOMAIN
-  apiPortalServer.sourceUrlsCacheTtlSec: 10
-
-appliveview:
-  connector_namespaces: [DEMO_APPS_NS]
-  server_namespace: app-live-view
-
-  learningcenter:
-  ingressDomain: APPS_SUB_DOMAIN.DOMAIN
+  server:
+    service_type: "ClusterIP"
+    watched_namespace: ""
 
 tap_gui:
   service_type: ClusterIP
-  # Existing tap-values.yml above  
-  app-config:
+  ingressEnabled: "true"
+  ingressDomain: ""
+  app_config:
     app:
-      baseUrl: tap.APPS_SUB_DOMAIN.DOMAIN
-
-    integrations:
-      github: # Other integrations available see NOTE below
-        - host: github.com
-          token: <YOUR_TOKEN>
+        baseUrl: http://tap-gui.INGRESS_DOMAIN
     catalog:
-      locations:
+        locations:
         - type: url
-          target: https://github.com/<YOUR_PATH_TO>/catalog-info.yaml
+          target: https://github.com/dektlong/_DevXDemo/blob/main/config-templates/backstage-catalogs/catalog-info.yaml
     backend:
-        baseUrl: tap.APPS_SUB_DOMAIN.DOMAIN
+        baseUrl: http://tap-gui.INGRESS_DOMAIN
         cors:
-            origin: tap.APPS_SUB_DOMAIN.DOMAIN
+            origin: http://tap-gui.INGRESS_DOMAIN
+
+metadata_store:
+  app_service_type: LoadBalancer # (optional) Defaults to LoadBalancer. Change to NodePort for distributions that don't support LoadBalancer
+
+grype:
+  namespace: "" # (optional) Defaults to default namespace.
+  targetImagePullSecret: "registry-credentials"
