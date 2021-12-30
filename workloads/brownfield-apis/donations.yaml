@@ -24,13 +24,13 @@ metadata:
 spec:
   count: 1
   api:
-    serverUrl: http://donations.apps.dekt.io
+    serverUrl: http://donations.gw.dekt.io
     title: Donation Processing 
     description: APIs to help with processing donations
     version: 0.5.0
     cors:
       allowedOrigins:
-      - http://api-portal.apps.dekt.io
+      - http://api-portal.gw.dekt.io
 ---
 apiVersion: v1
 kind: Service

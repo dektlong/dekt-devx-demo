@@ -24,7 +24,7 @@ metadata:
 spec:
   count: 1
   api:
-    serverUrl: http://locations.apps.dekt.io
+    serverUrl: http://locations.gw.dekt.io
     title: GEO-Location Services
     description: APIs to help with geo-locations and physical branches
     version: 0.5.0

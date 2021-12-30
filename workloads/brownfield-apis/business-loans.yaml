@@ -24,7 +24,7 @@ metadata:
 spec:
   count: 1
   api:
-    serverUrl: http://business-loans.apps.dekt.io
+    serverUrl: http://business-loans.gw.dekt.io
     title: Business Loans 
     description: APIs to help with processing business loans
     version: 0.5.0

@@ -49,13 +49,13 @@ metadata:
 spec:
   count: 1
   api:
-    serverUrl: http://datacheck.apps.dekt.io
+    serverUrl: http://datacheck.gw.dekt.io
     title: User Verification Services
     description: External APIs to provide user verification services
     version: 0.5.0
     cors:
       allowedOrigins:
-      - http://api-portal.apps.dekt.io
+      - http://api-portal.gw.dekt.io
 ---
 apiVersion: v1
 kind: Service

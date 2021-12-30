@@ -104,7 +104,7 @@
        
         kubectl set env deployment.apps/api-portal-server API_PORTAL_SOURCE_URLS_CACHE_TTL_SEC=10 -n $API_PORTAL_NS #so frontend apis will appear faster, just for this demo
 
-        kubectl set env deployment.apps/api-portal-server API_PORTAL_SOURCE_URLS=http://scg-openapi.$APPS_SUB_DOMAIN.$DOMAIN/openapi -n $API_PORTAL_NS
+        kubectl set env deployment.apps/api-portal-server API_PORTAL_SOURCE_URLS=http://scg-openapi.$GW_SUB_DOMAIN.$DOMAIN/openapi -n $API_PORTAL_NS
 
     }
 
@@ -224,7 +224,7 @@
         kubectl patch configmap/config-domain \
             --namespace knative-serving \
             --type merge \
-            --patch '{"data":{"'$SERVING_SUB_DOMAIN.$DOMAIN'":""}}'
+            --patch '{"data":{"'$CNR_SUB_DOMAIN.$DOMAIN'":""}}'
 
     }
 
