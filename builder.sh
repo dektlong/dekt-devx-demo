@@ -116,7 +116,7 @@
         echo
 
         #accelerators 
-        kubectl apply -f supplychain/accelerators.yaml
+        kustomize build supplychain/accelerators | kubectl apply -f -
 
         #supplychain (default + web-backend 'dummy')
         tanzu secret registry add registry-credentials --server $PRIVATE_REPO --username $PRIVATE_REPO_USER --password $PRIVATE_REPO_PASSWORD -n $DEMO_APPS_NS
@@ -138,10 +138,7 @@
             --namespace $DEMO_APPS_NS \
             --yes
 
-        #add-tap-ingress
-        scripts/update-dns.sh
-
-        
+        add-tap-ingress
     }
 
     #setup-taapigrid-examples
@@ -261,15 +258,9 @@
 
     update-tap-gui () {
 
-        kubectl get svc -n tap-gui
-
-        read -p "update the ip in tap-values.yaml...then hit any key"
-
-        update-tap
-
         kubectl delete pod -l app=backstage -n tap-gui
 
-
+        update-tap
     }
 
     #update-tap

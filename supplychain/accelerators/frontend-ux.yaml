@@ -1,0 +1,10 @@
+apiVersion: accelerator.apps.tanzu.vmware.com/v1alpha1
+kind: Accelerator
+metadata:
+  name: my-frontend-ux
+spec:
+  git:
+    #interval: 10s
+    url: https://github.com/dektlong/store-frontend-ux
+    ref:
+      branch: main

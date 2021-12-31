@@ -1,0 +1,10 @@
+apiVersion: accelerator.apps.tanzu.vmware.com/v1alpha1
+kind: Accelerator
+metadata:
+  name: my-web-function
+spec:
+  git:
+    #interval: 10s
+    url: https://github.com/dektlong/store-brownfield-function
+    ref:
+      branch: main

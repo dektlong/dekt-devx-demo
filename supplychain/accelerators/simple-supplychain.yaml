@@ -1,0 +1,9 @@
+apiVersion: accelerator.apps.tanzu.vmware.com/v1alpha1
+kind: Accelerator
+metadata:
+  name:  my-simple-supplychain
+spec:
+  git:
+    url: https://github.com/dektlong/simple-workflow
+    ref:
+      branch: main

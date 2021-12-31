@@ -1,0 +1,10 @@
+apiVersion: accelerator.apps.tanzu.vmware.com/v1alpha1
+kind: Accelerator
+metadata:
+  name: my-kafka-eventing-app
+spec:
+  git:
+    #interval: 5s
+    url: https://github.com/dektlong/spring-kafka
+    ref:
+      branch: main
