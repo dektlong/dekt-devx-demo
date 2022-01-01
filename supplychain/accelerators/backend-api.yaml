@@ -4,6 +4,7 @@ metadata:
   name: my-backend-api-service
 spec:
   git:
+    #interval: 10s
     url: https://github.com/dektlong/store-backend-api
     ref:
       branch: main

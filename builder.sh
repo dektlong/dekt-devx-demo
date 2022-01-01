@@ -116,7 +116,11 @@
         echo
 
         #accelerators 
+<<<<<<< HEAD
         kubectl apply -f supplychain/accelerators.yaml -n accelerator-system
+=======
+        kustomize build supplychain/accelerators | kubectl apply -f -
+>>>>>>> 274f0bbcfdf6da60fa5ab50966a5df8cbe4cbb78
 
         #supplychain (default + web-backend 'dummy')
         tanzu secret registry add registry-credentials --server $PRIVATE_REPO --username $PRIVATE_REPO_USER --password $PRIVATE_REPO_PASSWORD -n $DEMO_APPS_NS
@@ -258,15 +262,9 @@
 
     update-tap-gui () {
 
-        kubectl get svc -n tap-gui
-
-        read -p "update the ip in tap-values.yaml...then hit any key"
-
-        update-tap
-
         kubectl delete pod -l app=backstage -n tap-gui
 
-
+        update-tap
     }
 
     #update-tap
