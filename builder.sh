@@ -116,7 +116,7 @@
         echo
 
         #accelerators 
-        kubectl apply -f supplychain/accelerators.yaml
+        kubectl apply -f supplychain/accelerators.yaml -n accelerator-system
 
         #supplychain (default + web-backend 'dummy')
         tanzu secret registry add registry-credentials --server $PRIVATE_REPO --username $PRIVATE_REPO_USER --password $PRIVATE_REPO_PASSWORD -n $DEMO_APPS_NS
@@ -138,10 +138,7 @@
             --namespace $DEMO_APPS_NS \
             --yes
 
-        #add-tap-ingress
-        scripts/update-dns.sh
-
-        
+        add-tap-ingress
     }
 
     #setup-taapigrid-examples
