@@ -13,9 +13,7 @@
     BROWNFIELD_NS="brownfield-apis"
     
     TAP_VERSION="0.4.0"
-    KAPP_CONTROLER_VERSION="v0.29.0"
-    SECRET_GEN_VERSION="v0.6.0"
-
+  
 #################### installers ################
 
     #install-core
