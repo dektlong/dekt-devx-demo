@@ -114,7 +114,7 @@
         echo
 
         #accelerators 
-        kubectl apply -f supplychain/accelerators.yaml -n accelerator-system
+        kustomize build supplychain/accelerators | kubectl apply -f -
 
         #supplychain (default + web-backend 'dummy')
         tanzu secret registry add registry-credentials --server $PRIVATE_REPO --username $PRIVATE_REPO_USER --password $PRIVATE_REPO_PASSWORD -n $DEMO_APPS_NS
