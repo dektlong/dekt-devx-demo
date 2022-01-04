@@ -1,9 +1,7 @@
 
 # AppOps: tap install on any k8s
 
-tanzu package repository add tanzu-tap-repository \
-  --url registry.tanzu.vmware.com/tanzu-application-platform/tap-packages:1.0.1 \
-  --namespace tap-install
+tanzu package install tap -p tap.tanzu.vmware.com -v 1.0.1  --values-file tap-values.yaml -n tap-install
 
 tanzu package installed list -A
 
