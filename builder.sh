@@ -127,14 +127,8 @@
         #rabbitmq instance
         kubectl apply -f workloads/devx-mood/rabbitmq-instance.yaml -n $DEMO_APPS_NS
 
-        #devx-mood-backend without scale2zero (no rabbitMQ)
-        tanzu apps workload apply devx-mood-backend \
-            --type web \
-            --git-repo https://github.com/dektlong/devx-mood-backend \
-            --git-branch main \
-            --label autoscaling.knative.dev/minScale=2 \
-            --namespace $DEMO_APPS_NS \
-            --yes
+        #devx-mood-sensors without scale2zero (no rabbitMQ)
+        tanzu apps workload apply -f workloads/devx-mood/devx-mood-sensors.yaml -n $DEMO_APPS_NS -y
 
         add-tap-ingress
     }

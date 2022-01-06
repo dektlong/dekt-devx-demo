@@ -5,6 +5,6 @@ metadata:
 spec:
   git:
     #interval: 10s
-    url: https://github.com/dektlong/store-backend-api
+    url: https://github.com/dektlong/backend-api-service
     ref:
       branch: main
