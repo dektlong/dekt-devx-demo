@@ -13,6 +13,8 @@
     GATEWAY_NS="scgw-system"
     API_PORTAL_NS="api-portal"
     BROWNFIELD_NS="brownfield-apis"
+    GW_SUB_DOMAIN="gw"
+    CNR_SUB_DOMAIN="cnr"
     
     #TAP_VERSION="0.4.0"
     TAP_VERSION="0.5.0-build.5"
@@ -205,10 +207,11 @@
         echo "===> Add ingress rules for TAP components..."
         echo
 
-        scripts/update-dns.sh
+        scripts/update-dns.sh $GW_SUB_DOMAIN $CNR_SUB_DOMAIN
 
-        tapGUIHost=$(yq e .tap_gui.app_config.appbaseUrl .config/tap-values.yaml)
-        scripts/create-ingress.sh "tap-gui-ingress" $tapGUIHost "contour" "server" "7000" "tap-gui"
+        scripts/create-ingress.sh "tap-gui-ingress" "tap-gui.$CNR_SUB_DOMAIN.$DOMAIN" "contour" "server" "7000" "tap-gui"
+
+        tanzu package installed update tap --package-name tap.tanzu.vmware.com --version $TAP_VERSION -n tap-install -f .config/tap-values.yaml
 
     }
 

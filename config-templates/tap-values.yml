@@ -23,7 +23,7 @@ learningcenter:
   
 cnrs:
   domain_template: "{{.Name}}.{{.Domain}}"
-  domain_name: ""
+  domain_name: "cnr.$DOMAIN"
 
 contour:
   envoy:
@@ -37,10 +37,10 @@ accelerator:
 tap_gui:
   service_type: ClusterIP
   ingressEnabled: "true"
-  ingressDomain: 'example.com'
+  ingressDomain: "cnr.$DOMAIN"
   app_config:
     app:
-        baseUrl: http://tap-gui.example.com
+        baseUrl: http://tap-gui.cnr.$DOMAIN
     catalog:
         locations:
         - type: url
@@ -50,9 +50,9 @@ tap_gui:
         - type: url
           target: https://github.com/dektlong/devx-mood/blob/main/config/backstage/catalog-info.yaml
     backend:
-        baseUrl: http://tap-gui.example.com
+        baseUrl: http://tap-gui.cnr.$DOMAIN
         cors:
-            origin: http://tap-gui.example.com
+            origin: http://tap-gui.cnr.$DOMAIN
 
 metadata_store:
   app_service_type: LoadBalancer # (optional) Defaults to LoadBalancer. Change to NodePort for distributions that don't support LoadBalancer

@@ -2,6 +2,9 @@
 
 source .config/config-values.env
 
+gwSubDomain=$1
+cnrSubDomain=$2
+
 update-dns-A-record()
 {
 
@@ -41,14 +44,15 @@ update-dns-A-record()
 
 case $K8S_DIALTONE in
 aks)
-    update-dns-A-record "addon-http-application-routing-nginx-ingress" "kube-system " "*.$GW_SUB_DOMAIN"
-    update-dns-A-record "envoy" "tanzu-system-ingress" "*.$CNR_SUB_DOMAIN"    
+    update-dns-A-record "addon-http-application-routing-nginx-ingress" "kube-system " "*.$gwSubDomain"
     ;;
 eks)
-    update-dns-A-record "dekt-ingress-nginx-controller" "nginx-system" "*.$GW_SUB_DOMAIN"
-    update-dns-A-record "envoy" "tanzu-system-ingress" "*.$CNR_SUB_DOMAIN"    
+    update-dns-A-record "dekt-ingress-nginx-controller" "nginx-system" "*.$gwSubDomain"
+    
     ;;
 *)
     echo "Invalid K8S Dialtone. Supported dialtones are: aks, eks, tkg"
     ;;
 esac
+
+update-dns-A-record "envoy" "tanzu-system-ingress" "*.$cnrSubDomain"
