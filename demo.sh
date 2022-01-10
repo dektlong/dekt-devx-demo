@@ -107,7 +107,7 @@ dekt4pets() {
     echo "=========> Create dekt4pets micro-gateway (w/ external traffic)..."
     echo
     kubectl apply -f workloads/dekt4pets/gateway/dekt4pets-gateway.yaml -n $DEMO_APPS_NS
-    scripts/add-gw-ingress.sh "dekt4pets" "dekt4pets-gateway" "80" $DEMO_APPS_NS
+    scripts/create-ingress.sh "dekt4pets" "dekt4pets.$GW_SUB_DOMAIN.$DOMAIN"  $ingressClass "dekt4pets-gateway" "80" $DEMO_APPS_NS
 
     #adopter-check
 }

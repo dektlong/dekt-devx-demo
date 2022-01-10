@@ -2,35 +2,23 @@
 
 source .config/config-values.env
 
-product=$1
-serviceName=$2
-servicePort=$3
-namespace=$4
-host=$GW_SUB_DOMAIN.$DOMAIN
-
-case $K8S_DIALTONE in
-  aks)
-    ingress_class="addon-http-application-routing"
-    ;;
-  eks)
-	  ingress_class="nginx" 
-    ;;      
-  tkg)
-	  ingress_class="contour" 
-    ;;
-esac
-
+ingressName=$1
+ingressHost=$2
+ingressClass=$3
+serviceName=$4
+servicePort=$5
+namespace=$6
 
 cat > output.yaml <<EOF
 apiVersion: networking.k8s.io/v1
 kind: Ingress 
 metadata: 
-  name: $product-ingress
+  name: $ingressName
   annotations: 
-    kubernetes.io/ingress.class: $ingress_class
+    kubernetes.io/ingress.class: $ingressClass
 spec: 
   rules: 
-    - host: $product.$host
+    - host: $ingressHost
       http: 
         paths:
         - path: /

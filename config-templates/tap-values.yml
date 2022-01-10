@@ -6,7 +6,7 @@ buildservice:
   kp_default_repository_username: ""
   kp_default_repository_password: ""
   tanzunet_username: ""
-  tanzunet_password: "#"
+  tanzunet_password: ""
   descriptor_name: "tap-1.0.0-full"
   enable_automatic_dependency_updates: true
 supply_chain: basic
@@ -37,18 +37,22 @@ accelerator:
 tap_gui:
   service_type: ClusterIP
   ingressEnabled: "true"
-  ingressDomain: ""
+  ingressDomain: 'example.com'
   app_config:
     app:
-        baseUrl: http://tap-gui.INGRESS_DOMAIN
+        baseUrl: http://tap-gui.example.com
     catalog:
         locations:
         - type: url
           target: https://github.com/dektlong/_DevXDemo/blob/main/config-templates/backstage-catalogs/catalog-info.yaml
+        - type: url
+          target: https://github.com/dektlong/devx-mood-sensors/blob/main/config/backstage/catalog-info.yaml
+        - type: url
+          target: https://github.com/dektlong/devx-mood/blob/main/config/backstage/catalog-info.yaml
     backend:
-        baseUrl: http://tap-gui.INGRESS_DOMAIN
+        baseUrl: http://tap-gui.example.com
         cors:
-            origin: http://tap-gui.INGRESS_DOMAIN
+            origin: http://tap-gui.example.com
 
 metadata_store:
   app_service_type: LoadBalancer # (optional) Defaults to LoadBalancer. Change to NodePort for distributions that don't support LoadBalancer

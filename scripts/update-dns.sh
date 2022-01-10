@@ -21,7 +21,6 @@ update-dns-A-record()
     done
 
     if [[ "$ingressType" == *"hostname"* ]]; then
-        echo "load-balancer hostname in namespace $ingress_namespace:" 
         ingress_host_name=$(kubectl get svc $ingress_service_name --namespace $ingress_namespace -o=jsonpath='{.status.loadBalancer.ingress[0].hostname}')
         ingress_public_ip=$(dig +short $ingress_host_name| head -1)
         #read -p "Enter public IP of load-balancer: " ingress_public_ip

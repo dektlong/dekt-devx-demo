@@ -6,13 +6,16 @@
     PRIVATE_REPO=$(yq e .ootb_supply_chain_basic.registry.server .config/tap-values.yaml)
     PRIVATE_REPO_USER=$(yq e .buildservice.kp_default_repository_username .config/tap-values.yaml)
     PRIVATE_REPO_PASSWORD=$(yq e .buildservice.kp_default_repository_password .config/tap-values.yaml)
+    TANZU_NETWORK_USER=$(yq e .buildservice.tanzunet_username .config/tap-values.yaml)
+    TANZU_NETWORK_PASSWORD=$(yq e .buildservice.tanzunet_password .config/tap-values.yaml)
     
     BUILDER_NAME="online-stores-builder"
     GATEWAY_NS="scgw-system"
     API_PORTAL_NS="api-portal"
     BROWNFIELD_NS="brownfield-apis"
     
-    TAP_VERSION="0.4.0"
+    #TAP_VERSION="0.4.0"
+    TAP_VERSION="0.5.0-build.5"
   
 #################### installers ################
 
@@ -204,25 +207,29 @@
 
         scripts/update-dns.sh
 
-        scripts/add-gw-ingress.sh "acc" "acc-server" "80" "accelerator-system"
-        
-        scripts/add-gw-ingress.sh "alv" "application-live-view-5112" "5112" "app-live-view"
-        
-#        kubectl patch configmap/config-domain \
- #           --namespace knative-serving \
-  #          --type merge \
-   #         --patch '{"data":{"'$CNR_SUB_DOMAIN.$DOMAIN'":""}}'
+        tapGUIHost=$(yq e .tap_gui.app_config.appbaseUrl .config/tap-values.yaml)
+        scripts/create-ingress.sh "tap-gui-ingress" $tapGUIHost "contour" "server" "7000" "tap-gui"
 
     }
 
     #add-apigrid-ingress-rules
     add-apigrid-ingress() {
 
-        scripts/add-gw-ingress.sh "api-portal" "api-portal-server" "8080" $API_PORTAL_NS
+        case $K8S_DIALTONE in
+        aks)
+            ingressClass="addon-http-application-routing"
+            ;;
+        eks)
+	        ingressClass="nginx" 
+            ;;      
+        tkg)
+	        ingressClass="contour" 
+            ;;
+        esac
 
-        scripts/add-gw-ingress.sh "scg-openapi" "scg-operator" "80" $GATEWAY_NS
-
-        scripts/add-gw-ingress.sh "dekt4pets-dev" "dekt4pets-gateway-dev" "80" $DEMO_APPS_NS
+        scripts/create-ingress.sh "api-portal-ingress" "acc.$GW_SUB_DOMAIN.$DOMAIN"  $ingressClass "api-portal-server" "8080" $API_PORTAL_NS
+        scripts/create-ingress.sh "scg-openapi-ingress" "scg-openapi.$GW_SUB_DOMAIN.$DOMAIN"  $ingressClass "scg-operator" "80" $GATEWAY_NS
+        scripts/create-ingress.sh "dekt4pets-dev" "dekt4pets-dev.$GW_SUB_DOMAIN.$DOMAIN"  $ingressClass "dekt4pets-gateway-dev" "80" $DEMO_APPS_NS
     }    
     
       
