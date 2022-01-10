@@ -16,8 +16,8 @@
     GW_SUB_DOMAIN="gw"
     CNR_SUB_DOMAIN="cnr"
     
-    #TAP_VERSION="0.4.0"
-    TAP_VERSION="0.5.0-build.5"
+    TAP_VERSION="0.4.0"
+    #TAP_VERSION="0.5.0-build.5"
   
 #################### installers ################
 
@@ -138,8 +138,9 @@
         add-tap-ingress
     }
 
-    #setup-taapigrid-examples
+    #setup-apigrid-examples
     setup-dekt-apigrid-examples () {
+        
         add-apigrid-ingress
         
         #brownfield
