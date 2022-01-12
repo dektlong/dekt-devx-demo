@@ -167,6 +167,25 @@ cleanup() {
 
 }
 
+#test-sensors (devx-mood)
+test-sensors () {
+
+    echo
+    echo "Writing random mood data"
+    echo "  API: http://devx-mood-sensors.cnr.dekt.io/write"
+    for ((i=0; i<=10; i++)); do
+        curl -s http://devx-mood-sensors.cnr.dekt.io/write > /dev/null
+    done
+    
+    echo
+    echo
+    echo "Reading sensors data"
+    echo "  API: http://devx-mood-sensors.cnr.dekt.io/sensors-data"
+    echo
+    curl http://devx-mood-sensors.cnr.dekt.io/sensors-data
+
+}
+
 #usage
 usage() {
 
@@ -185,6 +204,8 @@ usage() {
     echo "${bold}adopter-check${normal} - deploy the adopter-check TAP workload using the default supply-chain"
     echo
     echo "${bold}fitness${normal} - deploy the Fitenss app, services and APIs"
+    echo
+    echo "${bold}test-sensors${normal} - load sensors as part of the devx-mood demo"
     echo 
   	exit   
  
@@ -283,8 +304,8 @@ describe)
 fitness)
 	create-fitness $2
     ;;
-devx-mood)
-	devx-mood $2
+test-sensors)
+	test-sensors
     ;;
 cleanup)
     cleanup

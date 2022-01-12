@@ -15,8 +15,7 @@ tanzu apps workload list -n dekt-apps
 
 tanzu apps workload apply devx-mood-sensors --type web --git-repo https://github.com/dektlong/devx-mood-sensors --git-branch main --label autoscaling.knative.dev/minScale=2 -n dekt-apps -y
 
-curl http://devx-mood-backend.dekt-apps.cnr.dekt.io/write 
-curl http://devx-mood-backend.dekt-apps.cnr.dekt.io/sensors-data
+./demo.sh test-sensors   
 
 # AppOps: supply chains
 

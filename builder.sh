@@ -16,8 +16,8 @@
     GW_SUB_DOMAIN="gw"
     CNR_SUB_DOMAIN="cnr"
     
-    TAP_VERSION="0.4.0"
-    #TAP_VERSION="0.5.0-build.5"
+    #TAP_VERSION="0.4.0"
+    TAP_VERSION="1.0.0"
   
 #################### installers ################
 
@@ -132,7 +132,10 @@
         #rabbitmq instance
         kubectl apply -f workloads/devx-mood/rabbitmq-instance.yaml -n $DEMO_APPS_NS
 
-        #devx-mood-sensors without scale2zero (no rabbitMQ)
+        #cluster wide disable scale2zero
+        kubectl apply -f config-templates/disable-scale2zero.yaml 
+
+        #devx-mood-sensors (no rabbitMQ)
         tanzu apps workload apply -f workloads/devx-mood/devx-mood-sensors.yaml -n $DEMO_APPS_NS -y
 
         add-tap-ingress
