@@ -11,10 +11,8 @@
     
     BUILDER_NAME="online-stores-builder"
     GATEWAY_NS="scgw-system"
-    API_PORTAL_NS="api-portal"
     BROWNFIELD_NS="brownfield-apis"
     GW_SUB_DOMAIN="gw"
-    CNR_SUB_DOMAIN="cnr"
     
     #TAP_VERSION="0.4.0"
     TAP_VERSION="1.0.0"
@@ -29,6 +27,8 @@
         tanzu package install tap -p tap.tanzu.vmware.com -v $TAP_VERSION  --values-file .config/tap-values.yaml -n tap-install
 
         setup-dekt-tap-examples
+
+        add-tap-ingress
 
     }
 
@@ -86,31 +86,6 @@
 
     }
 
-    #install-api-portal (not via TAP)
-    install-api-portal () {
-    
-        echo
-        echo "===> Installing API portal using helm..."
-        echo
-
-        kubectl create ns $API_PORTAL_NS
-
-        kubectl create secret docker-registry api-portal-image-pull-secret \
-            --docker-server=$PRIVATE_REPO \
-            --docker-username=$PRIVATE_REPO_USER \
-            --docker-password=$PRIVATE_REPO_PASSWORD \
-            --namespace $API_PORTAL_NS
-      
-        kubectl create secret generic sso-credentials --from-env-file=.config/sso-creds.txt -n $API_PORTAL_NS
-        
-        $API_PORTAL_INSTALL_DIR/scripts/install-api-portal.sh
-       
-        kubectl set env deployment.apps/api-portal-server API_PORTAL_SOURCE_URLS_CACHE_TTL_SEC=10 -n $API_PORTAL_NS #so frontend apis will appear faster, just for this demo
-
-        kubectl set env deployment.apps/api-portal-server API_PORTAL_SOURCE_URLS=http://scg-openapi.$GW_SUB_DOMAIN.$DOMAIN/openapi -n $API_PORTAL_NS
-
-    }
-
     #setup-dekt-tap-examples
     setup-dekt-tap-examples () {
 
@@ -137,15 +112,16 @@
 
         #devx-mood-sensors (no rabbitMQ)
         tanzu apps workload apply -f workloads/devx-mood/devx-mood-sensors.yaml -n $DEMO_APPS_NS -y
-
-        add-tap-ingress
     }
 
     #setup-apigrid-examples
     setup-dekt-apigrid-examples () {
         
-        add-apigrid-ingress
-        
+        #enhance the ootb api-portal tap install
+        kubectl create secret generic sso-credentials --from-env-file=.config/sso-creds.txt -n api-portal
+        kubectl set env deployment.apps/api-portal-server API_PORTAL_SOURCE_URLS_CACHE_TTL_SEC=10 -n api-portal #so frontend apis will appear faster, just for this demo
+        kubectl set env deployment.apps/api-portal-server API_PORTAL_SOURCE_URLS=http://scg-openapi.$GW_SUB_DOMAIN.$DOMAIN/openapi -n api-portal
+
         #brownfield
         kubectl create ns $BROWNFIELD_NS
         kustomize build workloads/brownfield-apis | kubectl apply -f -
@@ -211,9 +187,10 @@
         echo "===> Add ingress rules for TAP components..."
         echo
 
-        scripts/update-dns.sh $GW_SUB_DOMAIN $CNR_SUB_DOMAIN
+        scripts/update-dns.sh
 
-        scripts/create-ingress.sh "tap-gui-ingress" "tap-gui.$CNR_SUB_DOMAIN.$DOMAIN" "contour" "server" "7000" "tap-gui"
+        scripts/create-ingress.sh "tap-gui-ingress" "tap-gui.sys.$DOMAIN" "contour" "server" "7000" "tap-gui"
+        scripts/create-ingress.sh "api-portal-ingress" "api-portal.sys.$DOMAIN"  "contour" "api-portal-server" "8080" "api-portal"
 
         tanzu package installed update tap --package-name tap.tanzu.vmware.com --version $TAP_VERSION -n tap-install -f .config/tap-values.yaml
 
@@ -234,7 +211,6 @@
             ;;
         esac
 
-        scripts/create-ingress.sh "api-portal-ingress" "acc.$GW_SUB_DOMAIN.$DOMAIN"  $ingressClass "api-portal-server" "8080" $API_PORTAL_NS
         scripts/create-ingress.sh "scg-openapi-ingress" "scg-openapi.$GW_SUB_DOMAIN.$DOMAIN"  $ingressClass "scg-operator" "80" $GATEWAY_NS
         scripts/create-ingress.sh "dekt4pets-dev" "dekt4pets-dev.$GW_SUB_DOMAIN.$DOMAIN"  $ingressClass "dekt4pets-gateway-dev" "80" $DEMO_APPS_NS
     }    

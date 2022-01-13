@@ -2,9 +2,6 @@
 
 source .config/config-values.env
 
-gwSubDomain=$1
-cnrSubDomain=$2
-
 update-dns-A-record()
 {
 
@@ -44,10 +41,10 @@ update-dns-A-record()
 
 case $K8S_DIALTONE in
 aks)
-    update-dns-A-record "addon-http-application-routing-nginx-ingress" "kube-system " "*.$gwSubDomain"
+    update-dns-A-record "addon-http-application-routing-nginx-ingress" "kube-system " "*.gw"
     ;;
 eks)
-    update-dns-A-record "dekt-ingress-nginx-controller" "nginx-system" "*.$gwSubDomain"
+    update-dns-A-record "dekt-ingress-nginx-controller" "nginx-system" "*.gw"
     
     ;;
 *)
@@ -55,4 +52,5 @@ eks)
     ;;
 esac
 
-update-dns-A-record "envoy" "tanzu-system-ingress" "*.$cnrSubDomain"
+update-dns-A-record "envoy" "tanzu-system-ingress" "*.sys"
+update-dns-A-record "envoy" "tanzu-system-ingress" "*.apps"
