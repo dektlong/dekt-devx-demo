@@ -24,13 +24,13 @@ metadata:
 spec:
   count: 1
   api:
-    serverUrl: http://sentiment.gw.dekt.io
+    serverUrl: http://sentiment.brownfield.dekt.io
     title: User Sentiments
     description: APIs to help with user sentiments 
     version: 0.5.0
     cors:
       allowedOrigins:
-      - http://api-portal.gw.dekt.io
+      - http://api-portal.sys.dekt.io
 ---
 apiVersion: v1
 kind: Service

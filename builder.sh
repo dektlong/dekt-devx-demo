@@ -26,7 +26,7 @@
 
         tanzu package install tap -p tap.tanzu.vmware.com -v $TAP_VERSION  --values-file .config/tap-values.yaml -n tap-install
 
-        setup-dekt-tap-examples
+        setup-tap-examples
 
         add-tap-ingress
 
@@ -37,9 +37,9 @@
 
         install-api-gateway
 
-        install-api-portal
+        setup-apigrid-examples
 
-        setup-dekt-apigrid-examples
+        add-apigrid-ingress
 
 
     }     
@@ -86,8 +86,8 @@
 
     }
 
-    #setup-dekt-tap-examples
-    setup-dekt-tap-examples () {
+    #setup-tap-examples
+    setup-tap-examples () {
 
         echo
         echo "===> Setup TAP demo examples..."
@@ -115,12 +115,12 @@
     }
 
     #setup-apigrid-examples
-    setup-dekt-apigrid-examples () {
+    setup-apigrid-examples () {
         
         #enhance the ootb api-portal tap install
         kubectl create secret generic sso-credentials --from-env-file=.config/sso-creds.txt -n api-portal
         kubectl set env deployment.apps/api-portal-server API_PORTAL_SOURCE_URLS_CACHE_TTL_SEC=10 -n api-portal #so frontend apis will appear faster, just for this demo
-        kubectl set env deployment.apps/api-portal-server API_PORTAL_SOURCE_URLS=http://scg-openapi.$GW_SUB_DOMAIN.$DOMAIN/openapi -n api-portal
+        kubectl set env deployment.apps/api-portal-server API_PORTAL_SOURCE_URLS=http://scg-openapi.sys.$DOMAIN/openapi -n api-portal
 
         #brownfield
         kubectl create ns $BROWNFIELD_NS
@@ -152,22 +152,12 @@
             --registry-user $PRIVATE_REPO_USER \
             --namespace $DEMO_APPS_NS 
     
-        echo
-        echo "===> Create dekt4pets-backend TBS image..."
-        echo
-
         kp image create $BACKEND_TBS_IMAGE -n $DEMO_APPS_NS \
         --tag $backend_image_location \
         --git $DEMO_APP_GIT_REPO  \
         --sub-path ./workloads/dekt4pets/backend \
         --git-revision main
-
-        #scripts/wait-for-tbs.sh $BACKEND_TBS_IMAGE $DEMO_APPS_NS
-        kp build logs $BACKEND_TBS_IMAGE -n $DEMO_APPS_NS
-                
-        echo
-        echo "===> Create dekt4pets-frontend TBS image..."
-        echo
+       
 
         kp image save $FRONTEND_TBS_IMAGE -n $DEMO_APPS_NS \
         --tag $frontend_image_location \
@@ -175,17 +165,10 @@
         --sub-path ./workloads/dekt4pets/frontend \
         --git-revision main 
 
-        scripts/wait-for-tbs.sh $FRONTEND_TBS_IMAGE $DEMO_APPS_NS
-        kp build logs $FRONTEND_TBS_IMAGE -n $DEMO_APPS_NS
-
     }
 
     #add-tap-ingress-rules
     add-tap-ingress() {
-
-        echo
-        echo "===> Add ingress rules for TAP components..."
-        echo
 
         scripts/update-dns.sh
 
@@ -211,8 +194,10 @@
             ;;
         esac
 
-        scripts/create-ingress.sh "scg-openapi-ingress" "scg-openapi.$GW_SUB_DOMAIN.$DOMAIN"  $ingressClass "scg-operator" "80" $GATEWAY_NS
-        scripts/create-ingress.sh "dekt4pets-dev" "dekt4pets-dev.$GW_SUB_DOMAIN.$DOMAIN"  $ingressClass "dekt4pets-gateway-dev" "80" $DEMO_APPS_NS
+        #scripts/create-ingress.sh "scg-openapi-ingress" "scg-openapi.$GW_SUB_DOMAIN.$DOMAIN"  $ingressClass "scg-operator" "80" $GATEWAY_NS
+        scripts/create-ingress.sh "scg-openapi-ingress" "scg-openapi.sys.$DOMAIN"  "contour" "scg-operator" "80" $GATEWAY_NS
+        #scripts/create-ingress.sh "dekt4pets-dev" "dekt4pets-dev.$GW_SUB_DOMAIN.$DOMAIN"  $ingressClass "dekt4pets-gateway-dev" "80" $DEMO_APPS_NS
+        scripts/create-ingress.sh "dekt4pets-dev" "dekt4pets-dev.apps.$DOMAIN"  "contour" "dekt4pets-gateway-dev" "80" $DEMO_APPS_NS
     }    
     
       
@@ -252,7 +237,7 @@
     }
 
     #relocate-images
-    relocate-images() {
+    relocate-gw-images() {
 
         echo "Make sure docker deamon is running..."
         read
@@ -260,22 +245,6 @@
         docker login $PRIVATE_REPO -u $PRIVATE_REPO_USER -p $PRIVATE_REPO_PASSWORD
         
         $GW_INSTALL_DIR/scripts/relocate-images.sh $PRIVATE_REPO/$PRIVATE_REGISTRY_SYSTEM_REPO
-
-        $API_PORTAL_INSTALL_DIR/scripts/relocate-images.sh $PRIVATE_REPO/$PRIVATE_REGISTRY_SYSTEM_REPO
-    }
-
-    #wait-for-tap
-    wait-for-reconciler () {
-        #wait for Reconcile to complete 
-        status=""
-        printf "Waiting for tanzu package repository list to reconcile ."
-        while [ "$status" == "" ]
-        do
-            printf "."
-            status="$(tanzu package repository get tanzu-tap-repository --namespace tap-install  -o=json | grep 'succeeded')" 
-            sleep 1
-        done
-        echo
     }
 
 #################### main ##########################
@@ -301,8 +270,8 @@ init)
 api-grid)
     add-api-grid
     ;;
-relocate-images)
-    relocate-images
+relocate-gw-images)
+    relocate-gw-images
     ;;
 cleanup)
     case $K8S_DIALTONE in
@@ -318,6 +287,7 @@ cleanup)
             echo
             ;;
     esac
+    rm ~/Downloads/workload.yaml
     ;;
 runme)
     $2

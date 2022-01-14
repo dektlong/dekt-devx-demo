@@ -23,13 +23,13 @@ metadata:
 spec:
   count: 1
   api:
-    serverUrl: http://suppliers.gw.dekt.io
+    serverUrl: http://suppliers.brownfield.dekt.io
     title: Suppliers Profile
     description: APIs to provide source of truth for basice supplier information
     version: 0.5.0
     cors:
       allowedOrigins:
-      - http://api-portal.gw.dekt.io
+      - http://api-portal.sys.dekt.io
 ---
 apiVersion: v1
 kind: Service

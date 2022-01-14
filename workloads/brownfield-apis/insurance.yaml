@@ -24,13 +24,13 @@ metadata:
 spec:
   count: 1
   api:
-    serverUrl: http://insurance.gw.dekt.io
+    serverUrl: http://insurance.brownfield.dekt.io
     title: Insurace Quotes
     description: APIs to help with self-service application for an insurance quote
     version: 0.5.0
     cors:
       allowedOrigins:
-      - http://api-portal.gw.dekt.io
+      - http://api-portal.sys.dekt.io
 ---
 apiVersion: v1
 kind: Service
