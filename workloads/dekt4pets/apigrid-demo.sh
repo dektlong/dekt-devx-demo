@@ -1,5 +1,51 @@
 #!/usr/bin/env bash
 
+Init() {
+
+f -
+
+        #dekt4pets
+        kubectl create secret generic sso-secret --from-env-file=.config/sso-creds.txt -n $DEMO_APPS_NS
+        kubectl create secret generic jwk-secret --from-env-file=.config/jwk-creds.txt -n $DEMO_APPS_NS
+        kubectl create secret generic wavefront-secret --from-env-file=.config/wavefront-creds.txt -n $DEMO_APPS_NS
+
+        kubectl apply -f workloads/dekt4pets/gateway/dekt4pets-gateway-dev.yaml -n $DEMO_APPS_NS
+
+        create-dekt4pets-images
+
+        
+
+    }
+
+    #create dekt4pets images
+    create-dekt4pets-images () {
+
+
+        frontend_image_location=$PRIVATE_REPO/$PRIVATE_REGISTRY_APP_REPO/$FRONTEND_TBS_IMAGE:$APP_VERSION
+        backend_image_location=$PRIVATE_REPO/$PRIVATE_REGISTRY_APP_REPO/$BACKEND_TBS_IMAGE:$APP_VERSION
+
+        export REGISTRY_PASSWORD=$PRIVATE_REPO_PASSWORD
+        kp secret create private-registry-creds \
+            --registry $PRIVATE_REPO \
+            --registry-user $PRIVATE_REPO_USER \
+            --namespace $DEMO_APPS_NS 
+    
+        kp image create $BACKEND_TBS_IMAGE -n $DEMO_APPS_NS \
+        --tag $backend_image_location \
+        --git $DEMO_APP_GIT_REPO  \
+        --sub-path ./workloads/dekt4pets/backend \
+        --git-revision main
+       
+
+        kp image save $FRONTEND_TBS_IMAGE -n $DEMO_APPS_NS \
+        --tag $frontend_image_location \
+        --git $DEMO_APP_GIT_REPO  \
+        --sub-path ./workloads/dekt4pets/frontend \
+        --git-revision main 
+
+    }
+
+}
 
 #create-backend 
 create-backend() {
