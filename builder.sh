@@ -9,7 +9,6 @@
     TANZU_NETWORK_USER=$(yq e .buildservice.tanzunet_username .config/tap-values.yaml)
     TANZU_NETWORK_PASSWORD=$(yq e .buildservice.tanzunet_password .config/tap-values.yaml)
     
-    BUILDER_NAME="online-stores-builder"
     GATEWAY_NS="scgw-system"
     BROWNFIELD_NS="brownfield-apis"
     GW_SUB_DOMAIN="gw"
@@ -31,6 +30,8 @@
         add-demo-components
 
         add-ingress
+
+        tanzu package installed update tap --package-name tap.tanzu.vmware.com --version $TAP_VERSION -n tap-install -f .config/tap-values.yaml
 
     }
 
@@ -108,37 +109,16 @@
         #brownfield
         kubectl create ns $BROWNFIELD_NS
         kustomize build workloads/brownfield-apis | kubectl apply -
+    }
 
-    #add-tap-ingress-rules
-    add-tap-ingress() {
+    #add-ingress
+    add-ingress() {
 
         scripts/update-dns.sh
 
         scripts/create-ingress.sh "tap-gui-ingress" "tap-gui.sys.$DOMAIN" "contour" "server" "7000" "tap-gui"
         scripts/create-ingress.sh "api-portal-ingress" "api-portal.sys.$DOMAIN"  "contour" "api-portal-server" "8080" "api-portal"
-
-        tanzu package installed update tap --package-name tap.tanzu.vmware.com --version $TAP_VERSION -n tap-install -f .config/tap-values.yaml
-
-    }
-
-    #add-apigrid-ingress-rules
-    add-apigrid-ingress() {
-
-        case $K8S_DIALTONE in
-        aks)
-            ingressClass="addon-http-application-routing"
-            ;;
-        eks)
-	        ingressClass="nginx" 
-            ;;      
-        tkg)
-	        ingressClass="contour" 
-            ;;
-        esac
-
-        #scripts/create-ingress.sh "scg-openapi-ingress" "scg-openapi.$GW_SUB_DOMAIN.$DOMAIN"  $ingressClass "scg-operator" "80" $GATEWAY_NS
         scripts/create-ingress.sh "scg-openapi-ingress" "scg-openapi.sys.$DOMAIN"  "contour" "scg-operator" "80" $GATEWAY_NS
-        #scripts/create-ingress.sh "dekt4pets-dev" "dekt4pets-dev.$GW_SUB_DOMAIN.$DOMAIN"  $ingressClass "dekt4pets-gateway-dev" "80" $DEMO_APPS_NS
         scripts/create-ingress.sh "dekt4pets-dev" "dekt4pets-dev.apps.$DOMAIN"  "contour" "dekt4pets-gateway-dev" "80" $DEMO_APPS_NS
     }    
     
