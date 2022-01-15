@@ -7,13 +7,13 @@ spec:
     name: datacheck-brownfield-proxy
   routes:
     - predicates:
-        - Path=/api/adoption-history/{adopterID}
+        - Path=/api/medical-history/{adopterID}
         - Method=GET
       ssoEnabled: true
       filters:
         - RateLimit=3,60s
-      title: "Verify a clean pet adotion history"
-      description: "Verify a clean pet adoption history for a given adoper's social security / taxId number "
+      title: "Verify a clean medical history"
+      description: "Verify a medical history for a given social security / taxId number "
       tags:
         - Compatibility
     - predicates:
@@ -49,7 +49,7 @@ metadata:
 spec:
   count: 1
   api:
-    serverUrl: http://datacheck.brownfield.dekt.io
+    serverUrl: http://datacheck.gw.dekt.io
     title: User Verification Services
     description: External APIs to provide user verification services
     version: 0.5.0
