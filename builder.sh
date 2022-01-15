@@ -11,7 +11,6 @@
     
     GATEWAY_NS="scgw-system"
     BROWNFIELD_NS="brownfield-apis"
-    GW_SUB_DOMAIN="gw"
     
     #TAP_VERSION="0.4.0"
     TAP_VERSION="1.0.0"
@@ -119,7 +118,6 @@
         scripts/create-ingress.sh "tap-gui-ingress" "tap-gui.sys.$DOMAIN" "contour" "server" "7000" "tap-gui"
         scripts/create-ingress.sh "api-portal-ingress" "api-portal.sys.$DOMAIN"  "contour" "api-portal-server" "8080" "api-portal"
         scripts/create-ingress.sh "scg-openapi-ingress" "scg-openapi.sys.$DOMAIN"  "contour" "scg-operator" "80" $GATEWAY_NS
-        scripts/create-ingress.sh "dekt4pets-dev" "dekt4pets-dev.apps.$DOMAIN"  "contour" "dekt4pets-gateway-dev" "80" $DEMO_APPS_NS
     }    
     
       
@@ -134,12 +132,8 @@
         echo
         echo "  init"
         echo
-        echo "  api-grid"
-        echo
         echo "  cleanup"
         echo
-        echo "  relocate-images"
-        echo 
         echo "  runme [function-name]"
         echo
     
@@ -176,11 +170,9 @@ init)
     case $K8S_DIALTONE in
         aks)
             scripts/build-aks-cluster.sh create $CLUSTER_NAME 7 
-            install-core
             ;;
         eks)
-	        scripts/build-eks-cluster.sh create $CLUSTER_NAME
-            install-core
+	    scripts/build-eks-cluster.sh create $CLUSTER_NAME
             ;;
         *)
             echo
@@ -188,12 +180,9 @@ init)
             echo
             ;;
     esac
-    ;;
-api-grid)
-    add-api-grid
-    ;;
-relocate-gw-images)
-    relocate-gw-images
+
+    install
+
     ;;
 cleanup)
     case $K8S_DIALTONE in
@@ -201,7 +190,7 @@ cleanup)
             scripts/build-aks-cluster.sh delete $CLUSTER_NAME
             ;;
         eks)
-	        scripts/build-eks-cluster.sh delete $CLUSTER_NAME
+	    scripts/build-eks-cluster.sh delete $CLUSTER_NAME
             ;;
         *)
             echo
