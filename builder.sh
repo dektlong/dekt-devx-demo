@@ -110,8 +110,8 @@
         #cluster wide disable scale2zero
         kubectl apply -f config-templates/disable-scale2zero.yaml 
 
-        #devx-mood-sensors (no rabbitMQ)
-        tanzu apps workload apply -f workloads/devx-mood/devx-mood-sensors.yaml -n $DEMO_APPS_NS -y
+        #mood-sensors (no rabbitMQ)
+        tanzu apps workload apply -f workloads/devx-mood/mood-sensors.yaml -n $DEMO_APPS_NS -y
     }
 
     #setup-apigrid-examples
