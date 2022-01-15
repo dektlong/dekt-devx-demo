@@ -19,30 +19,21 @@
   
 #################### installers ################
 
-    #install-core
-    install-core() {
+    #install
+    install() {
 
         install-tap-prereq
 
         tanzu package install tap -p tap.tanzu.vmware.com -v $TAP_VERSION  --values-file .config/tap-values.yaml -n tap-install
 
-        setup-tap-examples
+           install-api-gateway #temp until GW is available as a TAP package 
+        
+        add-demo-components
 
-        add-tap-ingress
+        add-ingress
 
     }
 
-    #add-api-grid
-    add-api-grid() {
-
-        install-api-gateway
-
-        setup-apigrid-examples
-
-        add-apigrid-ingress
-
-
-    }     
     #install-tap-prereq
     install-tap-prereq () {
 
@@ -70,10 +61,6 @@
     #install-api-gateway
     install-api-gateway () {
 
-        echo
-        echo "===> Installing Spring Cloud Gateway operator using HELM..."
-        echo
-
         kubectl create ns $GATEWAY_NS
 
         kubectl create secret docker-registry spring-cloud-gateway-image-pull-secret \
@@ -86,11 +73,11 @@
 
     }
 
-    #setup-tap-examples
-    setup-tap-examples () {
+    #add-demo-components
+    add-demo-components () {
 
         echo
-        echo "===> Setup TAP demo examples..."
+        echo "===> Add demo components..."
         echo
 
         #accelerators 
@@ -112,10 +99,6 @@
 
         #mood-sensors (no rabbitMQ)
         tanzu apps workload apply -f workloads/devx-mood/mood-sensors.yaml -n $DEMO_APPS_NS -y
-    }
-
-    #setup-apigrid-examples
-    setup-apigrid-examples () {
         
         #enhance the ootb api-portal tap install
         kubectl create secret generic sso-credentials --from-env-file=.config/sso-creds.txt -n api-portal
@@ -124,48 +107,7 @@
 
         #brownfield
         kubectl create ns $BROWNFIELD_NS
-        kustomize build workloads/brownfield-apis | kubectl apply -f -
-
-        #dekt4pets
-        kubectl create secret generic sso-secret --from-env-file=.config/sso-creds.txt -n $DEMO_APPS_NS
-        kubectl create secret generic jwk-secret --from-env-file=.config/jwk-creds.txt -n $DEMO_APPS_NS
-        kubectl create secret generic wavefront-secret --from-env-file=.config/wavefront-creds.txt -n $DEMO_APPS_NS
-
-        kubectl apply -f workloads/dekt4pets/gateway/dekt4pets-gateway-dev.yaml -n $DEMO_APPS_NS
-
-        create-dekt4pets-images
-
-        
-
-    }
-
-    #create dekt4pets images
-    create-dekt4pets-images () {
-
-
-        frontend_image_location=$PRIVATE_REPO/$PRIVATE_REGISTRY_APP_REPO/$FRONTEND_TBS_IMAGE:$APP_VERSION
-        backend_image_location=$PRIVATE_REPO/$PRIVATE_REGISTRY_APP_REPO/$BACKEND_TBS_IMAGE:$APP_VERSION
-
-        export REGISTRY_PASSWORD=$PRIVATE_REPO_PASSWORD
-        kp secret create private-registry-creds \
-            --registry $PRIVATE_REPO \
-            --registry-user $PRIVATE_REPO_USER \
-            --namespace $DEMO_APPS_NS 
-    
-        kp image create $BACKEND_TBS_IMAGE -n $DEMO_APPS_NS \
-        --tag $backend_image_location \
-        --git $DEMO_APP_GIT_REPO  \
-        --sub-path ./workloads/dekt4pets/backend \
-        --git-revision main
-       
-
-        kp image save $FRONTEND_TBS_IMAGE -n $DEMO_APPS_NS \
-        --tag $frontend_image_location \
-        --git $DEMO_APP_GIT_REPO  \
-        --sub-path ./workloads/dekt4pets/frontend \
-        --git-revision main 
-
-    }
+        kustomize build workloads/brownfield-apis | kubectl apply -
 
     #add-tap-ingress-rules
     add-tap-ingress() {
