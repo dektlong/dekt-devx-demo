@@ -11,7 +11,7 @@ spec:
         - Method=GET
       ssoEnabled: true
     - predicates:
-        - Path=/process-donation/*/adoption-request/**
+        - Path=/process-sentiment/*/user-id/**
         - Method=POST
       ssoEnabled: true
       filters:
@@ -24,7 +24,7 @@ metadata:
 spec:
   count: 1
   api:
-    serverUrl: http://sentiment.brownfield.dekt.io
+    serverUrl: http://sentiment.gw.dekt.io
     title: User Sentiments
     description: APIs to help with user sentiments 
     version: 0.5.0
