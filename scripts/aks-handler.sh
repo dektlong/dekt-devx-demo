@@ -2,11 +2,11 @@
 
 source .config/config-values.env
 
+resourceGroup="tap-aks"
+
 #create-aks-cluster
 create-aks-cluster() {
 
-	resourceGroup="tap-aks"
-	
 	numberOfNodes="7"
 	
 	nodeSize="Standard_DS3_v2" # 4 vCPU, 14GB memory, 28GB temp disk

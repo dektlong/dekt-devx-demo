@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-
+source .config/config-values.env
 
 #create-cluster
 create-eks-cluster () {
