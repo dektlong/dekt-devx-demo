@@ -47,34 +47,25 @@ It is designed to run on any k8s.
 
 ### TAP
 
-- run ```./builder.sh init``` to install the following:
+- run ```./builder.sh init [aks / eks]``` to install the following:
   - TAP with the following packages
     - Clound Native Runtime
     - App Accelerator
     - App Live View
+    - API Portal
     - Build Service
     - Supply Chain components
     - Image metadata store
     - Image policy webhook
     - Scan controller
     - Grype scanner
+    - Spring Cloud Gateway (via HELM)
     - Demo examples
       - App Accelerators
       - Source-to-image supply-chain 
       - DevXMood workload
+      - brownfield APIs
 
-### Add API-Grid
-
-- run ```./builder.sh api-grid``` to add the following:    
-    - Spring Cloud Gateway
-    - API portal
-    - Demo examples
-      - Brownfield APIs examples for API portal
-      - Det4Pets backend TBS image
-      - Det4Pets frontend TBS image
-    
-  
-## Demo flow
 
 ### Inner loop
 - Access app accelerator developer instance  on ```acc.<APPS_APPS_SUB_DOMAIN>.<DOMAIN>```

@@ -5,9 +5,9 @@ source .config/config-values.env
 update-dns-A-record()
 {
 
-    ingress_service_name=$1
-    ingress_namespace=$2
-    record_name=$3
+    record_name=$1
+    ingress_service_name="envoy" 
+    ingress_namespace="tanzu-system-ingress"
 
     ingressType=""
 
@@ -39,18 +39,6 @@ update-dns-A-record()
         -d "[{\"data\": \"${ingress_public_ip}\"}]"
 }
 
-case $K8S_DIALTONE in
-aks)
-    update-dns-A-record "addon-http-application-routing-nginx-ingress" "kube-system " "*.gw"
-    ;;
-eks)
-    update-dns-A-record "dekt-ingress-nginx-controller" "nginx-system" "*.gw"
-    
-    ;;
-*)
-    echo "Invalid K8S Dialtone. Supported dialtones are: aks, eks, tkg"
-    ;;
-esac
-
-update-dns-A-record "envoy" "tanzu-system-ingress" "*.sys"
-update-dns-A-record "envoy" "tanzu-system-ingress" "*.apps"
+update-dns-A-record "*.sys"
+update-dns-A-record "*.apps"
+update-dns-A-record "*.gw"

@@ -4,10 +4,10 @@ source .config/config-values.env
 
 ingressName=$1
 ingressHost=$2
-ingressClass=$3
-serviceName=$4
-servicePort=$5
-namespace=$6
+serviceName=$3
+servicePort=$4
+namespace=$5
+ingressClass="contour"
 
 cat > output.yaml <<EOF
 apiVersion: networking.k8s.io/v1

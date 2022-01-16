@@ -88,12 +88,6 @@
         kubectl apply -f .config/supplychain-rbac.yaml -n $DEMO_APPS_NS
         kubectl apply -f supplychain/supplychain-src-to-api.yaml
 
-        #rabbitmq operator
-        kapp -y deploy --app rmq-operator --file https://github.com/rabbitmq/cluster-operator/releases/download/v1.9.0/cluster-operator.yml
-        kubectl apply -f supplychain/templates/rabbitmq-clusterrole.yaml
-        #rabbitmq instance
-        kubectl apply -f workloads/devx-mood/rabbitmq-instance.yaml -n $DEMO_APPS_NS
-
         #cluster wide disable scale2zero
         kubectl apply -f config-templates/disable-scale2zero.yaml 
 
@@ -108,6 +102,11 @@
         #brownfield
         kubectl create ns $BROWNFIELD_NS
         kustomize build workloads/brownfield-apis | kubectl apply -
+
+        #rabbitmq (operator and instance)
+        kapp -y deploy --app rmq-operator --file https://github.com/rabbitmq/cluster-operator/releases/download/v1.9.0/cluster-operator.yml
+        kubectl apply -f supplychain/templates/rabbitmq-clusterrole.yaml
+        kubectl apply -f workloads/devx-mood/rabbitmq-instance.yaml -n $DEMO_APPS_NS
     }
 
     #add-ingress
@@ -115,9 +114,9 @@
 
         scripts/update-dns.sh
 
-        scripts/create-ingress.sh "tap-gui-ingress" "tap-gui.sys.$DOMAIN" "contour" "server" "7000" "tap-gui"
-        scripts/create-ingress.sh "api-portal-ingress" "api-portal.sys.$DOMAIN"  "contour" "api-portal-server" "8080" "api-portal"
-        scripts/create-ingress.sh "scg-openapi-ingress" "scg-openapi.sys.$DOMAIN"  "contour" "scg-operator" "80" $GATEWAY_NS
+        scripts/create-ingress.sh "tap-gui-ingress" "tap-gui.sys.$DOMAIN" "server" "7000" "tap-gui"
+        scripts/create-ingress.sh "api-portal-ingress" "api-portal.sys.$DOMAIN" "api-portal-server" "8080" "api-portal"
+        scripts/create-ingress.sh "scg-openapi-ingress" "scg-openapi.gw.$DOMAIN"  "scg-operator" "80" $GATEWAY_NS
     }    
     
       
@@ -130,24 +129,19 @@
         echo
         echo "Incorrect usage. Please specify one of the following: "
         echo
-        echo "  init"
+        echo "  init [aks / eks]"
         echo
-        echo "  cleanup"
+        echo "  cleanup [aks / eks]"
         echo
         echo "  runme [function-name]"
         echo
+        exit
     
     }
 
     update-tap-gui () {
 
         kubectl delete pod -l app=backstage -n tap-gui
-
-        update-tap
-    }
-
-    #update-tap
-    update-tap () {
 
         tanzu package installed update tap --package-name tap.tanzu.vmware.com --version $TAP_VERSION -n tap-install -f .config/tap-values.yaml
     }
@@ -167,36 +161,30 @@
 
 case $1 in
 init)
-    case $K8S_DIALTONE in
-        aks)
-            scripts/build-aks-cluster.sh create $CLUSTER_NAME 7 
-            ;;
-        eks)
-	    scripts/build-eks-cluster.sh create $CLUSTER_NAME
-            ;;
-        *)
-            echo
-            echo "Invalid K8S Dialtone. Supported dialtones are: aks, eks, tkg"
-            echo
-            ;;
+    case $2 in
+    aks)
+        scripts/aks-handler.sh create
+        ;;
+    eks)
+        scripts/eks-handler.sh create
+        ;;
+    *)
+        incorrect-usage
+        ;;
     esac
-
     install
-
     ;;
 cleanup)
-    case $K8S_DIALTONE in
-        aks)
-            scripts/build-aks-cluster.sh delete $CLUSTER_NAME
-            ;;
-        eks)
-	    scripts/build-eks-cluster.sh delete $CLUSTER_NAME
-            ;;
-        *)
-            echo
-            echo "Invalid K8S Dialtone. Supported dialtones are: aks, eks, tkg"
-            echo
-            ;;
+    case $2 in
+    aks)
+        scripts/aks-handler.sh delete
+        ;;
+    eks)
+        scripts/eks-handler.sh delete
+        ;;
+    *)
+        incorrect-usage
+        ;;
     esac
     rm ~/Downloads/workload.yaml
     ;;
