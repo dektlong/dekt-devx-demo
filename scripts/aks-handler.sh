@@ -7,7 +7,7 @@ create-aks-cluster() {
 
 	resourceGroup="tap-aks"
 	
-	numberOfNodes=7
+	numberOfNodes="7"
 	
 	nodeSize="Standard_DS3_v2" # 4 vCPU, 14GB memory, 28GB temp disk
 
@@ -15,7 +15,7 @@ create-aks-cluster() {
 	echo "==========> Creating AKS cluster named $CLUSTER_NAME with $numberOfNodes nodes of size $nodeSize ..."
 	echo
 	
-	#make sure your run 'azure login' and use WorkspaceOn SSO prior to running this
+	#make sure your run 'az login' and use WorkspaceOn SSO prior to running this
 	
 	az group create --name $resourceGroup --location westus
 
@@ -23,10 +23,10 @@ create-aks-cluster() {
 		--resource-group $resourceGroup \
 		--node-count $numberOfNodes \
 		--node-vm-size $nodeSize \
-		--generate-ssh-keys \
-		--enable-addons http_application_routing 
+		--generate-ssh-keys 
+	#	--enable-addons http_application_routing 
 
-	az aks get-credentials --overwrite-existing --resource-group $resourceGroup --name $1
+	az aks get-credentials --overwrite-existing --resource-group $resourceGroup --name $CLUSTER_NAME
 }
 
 delete-aks-cluster() {

@@ -7,7 +7,7 @@ spec:
     name: datacheck-brownfield-proxy
   routes:
     - predicates:
-        - Path=/api/medical-history/{adopterID}
+        - Path=/api/medical-history/{personID}
         - Method=GET
       ssoEnabled: true
       filters:
@@ -17,7 +17,7 @@ spec:
       tags:
         - Compatibility
     - predicates:
-        - Path=/api/good-credit/{adopterID}
+        - Path=/api/good-credit/{personID}
         - Method=GET
       ssoEnabled: true
       title: "Verify a good credit score"
@@ -25,7 +25,7 @@ spec:
       tags:
         - Identity
     - predicates:
-        - Path=/api/criminal-record/{adopterID}
+        - Path=/api/criminal-record/{personID}
         - Method=GET
       ssoEnabled: true
       tokenRelay: true
@@ -34,7 +34,7 @@ spec:
       tags:
         - Identity
     - predicates:
-        - Path=/api/house-visit-request/{adopterID}/date/{visitDate}
+        - Path=/api/house-visit-request/{personID}/date/{visitDate}
         - Method=POST,PUT,DELETE
       ssoEnabled: true
       tokenRelay: true

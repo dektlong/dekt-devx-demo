@@ -11,8 +11,7 @@ spec:
         - Method=GET
       ssoEnabled: true
     - predicates:
-        - Path=/process-donation/*/adoption-request/**
-        - Method=POST
+        - Path=/process-payment/{teamID}
       ssoEnabled: true
       filters:
       - CircuitBreaker="paymentsCircuitBreaker,forward:/alternate-donation-service"
@@ -24,7 +23,7 @@ metadata:
 spec:
   count: 1
   api:
-    serverUrl: http://payments.brownfield.dekt.io
+    serverUrl: http://payments.gw.dekt.io
     title: Payment Processing 
     description: APIs to help with processing payments
     version: 0.5.0

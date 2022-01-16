@@ -11,7 +11,7 @@ spec:
         - Method=GET
       ssoEnabled: true
     - predicates:
-        - Path=/process-sentiment/*/user-id/**
+        - Path=/process-sentiment/{teamID}/sensor/{sensorID}
         - Method=POST
       ssoEnabled: true
       filters:
