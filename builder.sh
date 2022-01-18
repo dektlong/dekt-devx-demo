@@ -30,7 +30,7 @@
 
         add-ingress
 
-        tanzu package installed update tap --package-name tap.tanzu.vmware.com --version $TAP_VERSION -n tap-install -f .config/tap-values.yaml
+        update-tap
 
     }
 
@@ -94,13 +94,9 @@
         #mood-sensors (no rabbitMQ)
         tanzu apps workload apply -f workloads/devx-mood/mood-sensors.yaml -n $DEMO_APPS_NS -y
         
-        #api-portal sso
-        kubectl create secret generic sso-credentials --from-env-file=.config/sso-creds.txt -n api-portal
-        kubectl set env deployment.apps/api-portal-server API_PORTAL_SOURCE_URLS_CACHE_TTL_SEC=10 -n api-portal #so frontend apis will appear faster, just for this demo
-        kubectl set env deployment.apps/api-portal-server API_PORTAL_SOURCE_URLS=https://petstore.swagger.io/v2/swagger.json,https://petstore3.swagger.io/api/v3/openapi.json,http://scg-openapi.gw.$DOMAIN/openapi -n api-portal
-
-        #brownfield
+        #brownfield API
         kubectl create ns $BROWNFIELD_NS
+        kubectl create secret generic sso-credentials --from-env-file=.config/sso-creds.txt -n api-portal
         kustomize build workloads/brownfield-apis | kubectl apply -f -
 
         #rabbitmq (operator and instance)
@@ -139,9 +135,7 @@
     
     }
 
-    update-tap-gui () {
-
-        kubectl delete pod -l app=backstage -n tap-gui
+    update-tap () {
 
         tanzu package installed update tap --package-name tap.tanzu.vmware.com --version $TAP_VERSION -n tap-install -f .config/tap-values.yaml
     }
