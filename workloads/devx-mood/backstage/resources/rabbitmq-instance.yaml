@@ -1,7 +1,7 @@
 apiVersion: backstage.io/v1alpha1
 kind: Resource
 metadata:
-  name: rabbitmq-cluster
+  name: rabbitmq-instance
   description: The k8s cluster hosting the RabbitMQ instance
   tags:
     - rabbitmq

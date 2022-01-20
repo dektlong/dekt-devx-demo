@@ -2,7 +2,7 @@ apiVersion: backstage.io/v1alpha1
 kind: Component
 metadata:
   name: mood-sensors
-  description: Sensors backend component for the DevX Mood app
+  description: Sensors backend api for the DevX Mood app
   tags:
     - spring-boot
     - spring-cloud-stream
@@ -14,5 +14,5 @@ spec:
   owner: dekt-dev-team2
   system: devx-mood-app
   dependsOn: 
-    - resource:rds-connector
-    - resource:rabbitmq-cluster
+    - component:sensors-inventory
+    - component:sensors-reading

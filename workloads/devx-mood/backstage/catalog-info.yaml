@@ -7,8 +7,10 @@ metadata:
     'backstage.io/techdocs-ref': dir:.
 spec:
   targets:
-    - mood-portal-component.yaml
-    - mood-sensors-component.yaml
-    - rabbitmq-resource.yaml
-    - rds-resource.yaml
-    - devx-mood-system.yaml
+    - ./components/mood-portal.yaml
+    - ./components/mood-sensors.yaml
+    - ./components/mood-inventory.yaml
+    - ./components/mood-reading.yaml
+    - ./reources/rds-instance.yaml
+    - ./reources/rabbitmq-instance.yaml
+    - ./systems/devx-mood-app.yaml

@@ -2,7 +2,7 @@ apiVersion: backstage.io/v1alpha1
 kind: Resource
 metadata:
   name: rds-instance
-  description: The CRD providing connection to the RDS instance
+  description: The RDS database on AWS
   tags:
     - aws
     - database
