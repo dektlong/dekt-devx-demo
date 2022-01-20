@@ -10,6 +10,7 @@ spec:
     email: dekel@vmware.com
     picture: https://avatars.dicebear.com/api/identicon/team-a@example.com.svg?background=%23fff&margin=25
   parent: default-org
+  children: []
 ---
 apiVersion: backstage.io/v1alpha1
 kind: Group
@@ -23,6 +24,7 @@ spec:
     email: dekel@vmware.com
     picture: https://avatars.dicebear.com/api/identicon/team-a@example.com.svg?background=%23fff&margin=25
   parent: default-org
+  children: []
 ---
 apiVersion: backstage.io/v1alpha1
 kind: Group
@@ -36,6 +38,7 @@ spec:
     email: dekel@vmware.com
     picture: https://avatars.dicebear.com/api/identicon/team-a@example.com.svg?background=%23fff&margin=25
   parent: default-org
+  children: []
 ---
 apiVersion: backstage.io/v1alpha1
 kind: Group
@@ -49,3 +52,4 @@ spec:
     email: dekel@vmware.com
     picture: https://avatars.dicebear.com/api/identicon/team-a@example.com.svg?background=%23fff&margin=25
   parent: default-org
+  children: []
