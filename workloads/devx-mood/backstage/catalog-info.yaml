@@ -9,8 +9,8 @@ spec:
   targets:
     - ./components/mood-portal.yaml
     - ./components/mood-sensors.yaml
-    - ./components/mood-inventory.yaml
-    - ./components/mood-reading.yaml
-    - ./reources/rds-instance.yaml
-    - ./reources/rabbitmq-instance.yaml
+    - ./components/sensors-inventory.yaml
+    - ./components/sensors-reading.yaml
+    - ./resources/rds-instance.yaml
+    - ./resources/rabbitmq-instance.yaml
     - ./systems/devx-mood-app.yaml
