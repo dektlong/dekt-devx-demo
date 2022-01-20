@@ -28,7 +28,7 @@
         
         add-demo-components
 
-        add-ingress
+        scripts/ingress-handler.sh tap
 
         update-tap
 
@@ -104,17 +104,6 @@
         kubectl apply -f supplychain/templates/rabbitmq-clusterrole.yaml
         kubectl apply -f workloads/devx-mood/rabbitmq-instance.yaml -n $DEMO_APPS_NS
     }
-
-    #add-ingress
-    add-ingress() {
-
-        scripts/update-dns.sh
-
-        scripts/create-ingress.sh "tap-gui-ingress" "tap-gui.sys.$DOMAIN" "server" "7000" "tap-gui"
-        scripts/create-ingress.sh "api-portal-ingress" "api-portal.sys.$DOMAIN" "api-portal-server" "8080" "api-portal"
-        scripts/create-ingress.sh "scg-openapi-ingress" "scg-openapi.gw.$DOMAIN"  "scg-operator" "80" $GATEWAY_NS
-    }    
-    
       
 #################### misc ################
     
@@ -137,6 +126,8 @@
 
     update-tap () {
 
+        kubectl delete pod -l app=backstage -n tap-gui
+        
         tanzu package installed update tap --package-name tap.tanzu.vmware.com --version $TAP_VERSION -n tap-install -f .config/tap-values.yaml
     }
 

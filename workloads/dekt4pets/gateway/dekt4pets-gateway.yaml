@@ -4,7 +4,7 @@ metadata:
   name: dekt4pets-gateway
 spec:
   api:
-    serverUrl: http://dekt4pets.apps.dekt.io 
+    serverUrl: http://dekt4pets.gw.dekt.io 
     title: "Dekt4pets"
     description: "Micro Gateway to control internal and external APIs for operating the dekt4pets online store"
     documentation: "https://vmware.wavefront.com/u/1RyhnsRys4?t=vmware"

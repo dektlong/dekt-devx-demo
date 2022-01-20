@@ -4,7 +4,7 @@ metadata:
   name: dekt4pets-gateway-dev
 spec:
   api:
-    serverUrl: http://dekt4pets-dev.apps.dekt.io 
+    serverUrl: http://dekt4pets-dev.gw.dekt.io 
     title: "Dekt4pets-dev"
     description: "Micro Gateway to control internal APIs for developing the dekt4pets online store"
     version: "1.0.0-K8s"

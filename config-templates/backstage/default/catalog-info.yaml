@@ -11,3 +11,4 @@ spec:
     - ./groups/default-org.yaml
     - ./systems/tap-gui-system.yaml
     - ./domains/tap-gui-domain.yaml
+    - ./domains/dekt-domain.yaml
