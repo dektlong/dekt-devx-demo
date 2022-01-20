@@ -1,8 +1,8 @@
 apiVersion: backstage.io/v1alpha1
 kind: Component
 metadata:
-  name: mood-sensors
-  description: Sensors backend component for the DevX Mood app
+  name: mood-portal
+  description: Web Portal frontend component for the DevX Mood app
   tags:
     - golang
     - functions
