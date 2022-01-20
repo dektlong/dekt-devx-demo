@@ -12,6 +12,4 @@ tanzu apps workload get mood-portal -n dekt-apps
 
 tanzu apps workload tail mood-portal --since 10m --timestamp  -n dekt-apps
 
-tanzu apps workload get mood-sensors -n dekt-apps
-
 https://github.com/dektlong/_DevXDemo/blob/main/workloads/devx-mood/backstage/catalog-info.yaml
