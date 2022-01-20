@@ -1,0 +1,12 @@
+apiVersion: backstage.io/v1alpha1
+kind: Group
+metadata:
+  name: dekt-org
+  description: The Dekt Line of Business
+spec:
+  type: organization
+  profile:
+    displayName: The Dekt Line of Business
+    email: dekel@vmware.com
+    picture: https://avatars.dicebear.com/api/identicon/info@example.com.svg?background=%23fff&margin=25
+  children: [dekt-dev-team1, dekt-dev-team2, dekt-ops-apps, dekt-ops-platform]

@@ -1,0 +1,14 @@
+apiVersion: backstage.io/v1alpha1
+kind: Resource
+metadata:
+  name: rabbitmq-cluster
+  description: The k8s cluster hosting the RabbitMQ instance
+  tags:
+    - rabbitmq
+    - messagebus
+  annotations:
+    'backstage.io/techdocs-ref': dir:.
+spec:
+  type: messagebus
+  owner: dekt-app-ops
+  system: devx-mood-app

@@ -1,0 +1,14 @@
+apiVersion: backstage.io/v1alpha1
+kind: Location
+metadata:
+  name: devx-mood-app-info
+  description: A catalog for the DevX Mood application
+  annotations:
+    'backstage.io/techdocs-ref': dir:.
+spec:
+  targets:
+    - mood-portal-component.yaml
+    - mood-sensors-component.yaml
+    - rabbitmq-resource.yaml
+    - rds-resource.yaml
+    - devx-mood-system.yaml

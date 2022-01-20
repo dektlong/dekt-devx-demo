@@ -1,0 +1,14 @@
+apiVersion: backstage.io/v1alpha1
+kind: Resource
+metadata:
+  name: rds-instance
+  description: The CRD providing connection to the RDS instance
+  tags:
+    - aws
+    - database
+  annotations:
+    'backstage.io/techdocs-ref': dir:.
+spec:
+  type: database
+  owner: dekt-platform-ops
+  system: devx-mood-app

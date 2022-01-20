@@ -5,7 +5,7 @@ metadata:
   labels:
     apps.tanzu.vmware.com/workload-type: web
     #apps.tanzu.vmware.com/workload-type: web-backend
-    app.kubernetes.io/part-of: devx-mood
+    app.kubernetes.io/part-of: devx-mood-app
 spec:
   source:
     git:
