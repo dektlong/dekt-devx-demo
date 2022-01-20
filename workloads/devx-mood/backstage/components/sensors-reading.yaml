@@ -14,4 +14,4 @@ spec:
   owner: dekt-dev-team2
   system: devx-mood-app
   dependsOn: 
-    - resource:rabbitmq-cluster
+    - resource:rabbitmq-instance
