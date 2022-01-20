@@ -27,7 +27,7 @@ cnrs:
 
 api_portal:
   apiPortalServer:
-    sourceUrls: "http://scg-openapi.gw.$DOMAIN/openapi,https://petstore.swagger.io/v2/swagger.json,https://petstore3.swagger.io/api/v3/openapi.json"
+    sourceUrls: "http://scg-openapi.sys.$DOMAIN/openapi,https://petstore.swagger.io/v2/swagger.json,https://petstore3.swagger.io/api/v3/openapi.json"
     sourceUrlsCacheTtlSec: "10"
 
 contour:
@@ -53,9 +53,7 @@ tap_gui:
         - type: url
           target: https://github.com/dektlong/_DevXDemo/blob/main/config-templates/backstage/yelb/catalog-info.yaml
         - type: url
-          target: https://github.com/dektlong/mood-portal/blob/main/config/backstage/catalog-info.yaml
-        - type: url
-          target: https://github.com/dektlong/mood-sensors/blob/main/config/backstage/catalog-info.yaml
+          target: https://github.com/dektlong/_DevXDemo/blob/main/config-templates/backstage/dekt/catalog-info.yaml
     backend:
         baseUrl: http://tap-gui.cnr.$DOMAIN
         cors:
