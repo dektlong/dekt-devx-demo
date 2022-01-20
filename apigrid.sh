@@ -8,6 +8,8 @@ PRIVATE_REPO_PASSWORD=$(yq e .buildservice.kp_default_repository_password .confi
 #init (assumes api-portal and api-gw are installed)
 init() {
 
+        echo "!!! currently only working on AKS due to SCGW issue. Hit any key to continue..."
+        read
         #dekt4pets images
         frontend_image_location=$PRIVATE_REPO/$PRIVATE_REGISTRY_APP_REPO/$FRONTEND_TBS_IMAGE:$APP_VERSION
         backend_image_location=$PRIVATE_REPO/$PRIVATE_REGISTRY_APP_REPO/$BACKEND_TBS_IMAGE:$APP_VERSION
@@ -150,9 +152,7 @@ dekt4pets() {
     echo "=========> Create dekt4pets micro-gateway (w/ external traffic)..."
     echo
     kubectl apply -f workloads/dekt4pets/gateway/dekt4pets-gateway.yaml -n $DEMO_APPS_NS
-    scripts/create-ingress.sh "dekt4pets" "dekt4pets.$GW_SUB_DOMAIN.$DOMAIN"  "dekt4pets-gateway" "80" $DEMO_APPS_NS
 
-    #adopter-check
 }
 
 #adopter-check-workload
