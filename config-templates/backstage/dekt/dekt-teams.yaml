@@ -9,7 +9,7 @@ spec:
     displayName: dekt-dev-team1
     email: dekel@vmware.com
     picture: https://avatars.dicebear.com/api/identicon/team-a@example.com.svg?background=%23fff&margin=25
-  parent: dekt-org
+  parent: default-org
 ---
 apiVersion: backstage.io/v1alpha1
 kind: Group
@@ -22,7 +22,7 @@ spec:
     displayName: dekt-dev-team2
     email: dekel@vmware.com
     picture: https://avatars.dicebear.com/api/identicon/team-a@example.com.svg?background=%23fff&margin=25
-  parent: dekt-org
+  parent: default-org
 ---
 apiVersion: backstage.io/v1alpha1
 kind: Group
@@ -35,7 +35,7 @@ spec:
     displayName: Applications operation team
     email: dekel@vmware.com
     picture: https://avatars.dicebear.com/api/identicon/team-a@example.com.svg?background=%23fff&margin=25
-  parent: dekt-org
+  parent: default-org
 ---
 apiVersion: backstage.io/v1alpha1
 kind: Group
@@ -48,4 +48,4 @@ spec:
     displayName: Platform operation team
     email: dekel@vmware.com
     picture: https://avatars.dicebear.com/api/identicon/team-a@example.com.svg?background=%23fff&margin=25
-  parent: dekt-org
+  parent: default-org

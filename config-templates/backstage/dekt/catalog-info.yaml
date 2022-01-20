@@ -7,7 +7,5 @@ metadata:
     'backstage.io/techdocs-ref': dir:.
 spec:
   targets:
-    - dekt-user.yaml
-    - dekt-org.yaml
     - dekt-teams.yaml
     - dekt-domain.yaml
