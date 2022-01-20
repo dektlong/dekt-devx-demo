@@ -1,8 +1,8 @@
 apiVersion: backstage.io/v1alpha1
 kind: Location
 metadata:
-  name: tap-gui-catalog-info
-  description: A sample catalog for Backstage
+  name: dekt-catalog-info
+  description: A catalog for the dekt group
   annotations:
     'backstage.io/techdocs-ref': dir:.
 spec:
