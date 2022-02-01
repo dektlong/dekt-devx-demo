@@ -17,4 +17,4 @@ spec:
   #    ref:
   #      apiVersion: rabbitmq.com/v1beta1
   #      kind: RabbitmqCluster
-  #      name: mood-sensors-queue
+  #      name: sensors-reading

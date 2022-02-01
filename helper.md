@@ -4,6 +4,8 @@ tanzu package installed list -n tap-install
 
 tanzu apps workload apply -f ~/Downloads/workload.yaml -n dekt-apps
 
+    tanzu apps workload apply -f workloads/devx-mood/mood-sensors.yaml -n dekt-apps -y
+
 tanzu apps workload list -n dekt-apps
 
 tanzu apps cluster-supply-chain list

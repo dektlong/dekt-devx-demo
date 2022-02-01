@@ -12,7 +12,6 @@
     GATEWAY_NS="scgw-system"
     BROWNFIELD_NS="brownfield-apis"
     
-    #TAP_VERSION="0.4.0"
     TAP_VERSION="1.0.0"
   
 #################### installers ################
@@ -130,6 +129,14 @@
         
         tanzu package installed update tap --package-name tap.tanzu.vmware.com --version $TAP_VERSION -n tap-install -f .config/tap-values.yaml
     }
+
+    reset () {
+
+        tanzu apps workload delete mood-portal -n $DEMO_APPS_NS -y
+        tanzu apps workload delete mood-sensors -n $DEMO_APPS_NS -y
+        update-tap
+        rm ~/Downloads/workload.yaml
+    } 
 
     #relocate-images
     relocate-gw-images() {
