@@ -31,7 +31,10 @@ create-aks-cluster() {
 
 delete-aks-cluster() {
 	
-	az aks delete --name $CLUSTER_NAME --resource-group $resourceGroup --yes --no-wait
+	echo
+	echo "Starting deleting resources of AKS cluster $CLUSTER_NAME ..."
+	echo
+	az aks delete --name $CLUSTER_NAME --resource-group $resourceGroup --yes
 
 }
 #################### main #######################

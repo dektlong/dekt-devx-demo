@@ -19,6 +19,9 @@ create-eks-cluster () {
 #delete-cluster
 delete-eks-cluster () {
 
+   	echo
+	echo "Starting deleting resources of EKS cluster $CLUSTER_NAME ..."
+	echo
     eksctl delete cluster --name $CLUSTER_NAME --force
 }
 
