@@ -89,7 +89,7 @@ tap)
     update-dns-A-record "*.apps" "envoy" "tanzu-system-ingress"
     create-ingress-rule "api-portal-ingress" "contour" "api-portal.sys.$DOMAIN" "api-portal-server" "8080" "api-portal"
     create-ingress-rule "scg-openapi-ingress" "contour" "scg-openapi.sys.$DOMAIN"  "scg-operator" "80" "scgw-system"
-    #scripts/create-ingress.sh "tap-gui-ingress" "contour" "tap-gui.sys.$DOMAIN" "server" "7000" "tap-gui"
+#    create-ingress-rule "tap-gui-ingress" "contour" "tap-gui.sys.$DOMAIN" "server" "7000" "tap-gui"
     ;;
 scgw)
     scripts/install-nginx.sh
