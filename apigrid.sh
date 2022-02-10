@@ -19,27 +19,32 @@ init() {
             --registry $PRIVATE_REPO \
             --registry-user $PRIVATE_REPO_USER \
             --namespace $DEMO_APPS_NS 
+
     
         kp image create $BACKEND_TBS_IMAGE -n $DEMO_APPS_NS \
         --tag $backend_image_location \
         --git $DEMO_APP_GIT_REPO  \
         --sub-path ./workloads/dekt4pets/backend \
-        --git-revision main
+        --git-revision main \
+        --wait
        
 
         kp image save $FRONTEND_TBS_IMAGE -n $DEMO_APPS_NS \
         --tag $frontend_image_location \
         --git $DEMO_APP_GIT_REPO  \
         --sub-path ./workloads/dekt4pets/frontend \
-        --git-revision main 
+        --git-revision main \
+        --wait
 
         #dekt4pets secrets
         kubectl create secret generic sso-secret --from-env-file=.config/sso-creds.txt -n $DEMO_APPS_NS
         kubectl create secret generic jwk-secret --from-env-file=.config/jwk-creds.txt -n $DEMO_APPS_NS
         kubectl create secret generic wavefront-secret --from-env-file=.config/wavefront-creds.txt -n $DEMO_APPS_NS
 
-        #dev gateway
+        #dev gateway and apps
         kubectl apply -f workloads/dekt4pets/gateway/dekt4pets-gateway-dev.yaml -n $DEMO_APPS_NS
+        create-backend
+        create-frontend
 
         #ingress rules
         scripts/ingress-handler.sh scgw
@@ -183,20 +188,21 @@ commit-adopter-check-api () {
 #cleanup
 cleanup() {
 
-    echo
-    echo "=========> Remove all workloads..."
-    echo
+    kp secret delete private-registry-creds -n $DEMO_APPS_NS
+    kubectl delete secret sso-secret -n $DEMO_APPS_NS
+    kubectl delete secret jwk-secret -n $DEMO_APPS_NS
+    kubectl delete secret wavefront-secret -n $DEMO_APPS_NS
+    kp image delete $BACKEND_TBS_IMAGE -n $DEMO_APPS_NS
+    kp image delete $FRONTEND_TBS_IMAGE -n $DEMO_APPS_NS
+    kubectl delete -f workloads/dekt4pets/backend/dekt4pets-backend.yaml -n $DEMO_APPS_NS
+    kubectl delete -f workloads/dekt4pets/backend/routes/dekt4pets-backend-mapping.yaml -n $DEMO_APPS_NS
+    kubectl delete -f workloads/dekt4pets/frontend/routes/dekt4pets-frontend-mapping.yaml -n $DEMO_APPS_NS
+    kubectl delete -f workloads/dekt4pets/gateway/dekt4pets-gateway.yaml -n $DEMO_APPS_NS
+    kubectl delete -f workloads/dekt4pets/gateway/dekt4pets-gateway-dev.yaml -n $DEMO_APPS_NS
+    kubectl delete -f workloads/dekt4pets/backend/routes/dekt4pets-backend-mapping-dev.yaml -n $DEMO_APPS_NS
+    kubectl delete -f workloads/dekt4pets/backend/routes/dekt4pets-backend-route-config.yaml -n $DEMO_APPS_NS
+    kustomize build workloads/dekt4pets/frontend | kubectl delete -f -
 
-    kubectl delete -f workloads/dekt4pets/backend/routes/dekt4pets-backend-mapping-dev.yaml -n dekt-apps
-    kubectl delete -f workloads/dekt4pets/backend/routes/dekt4pets-backend-route-config.yaml -n dekt-apps
-    kubectl delete -f workloads/dekt4pets/backend/dekt4pets-backend.yaml -n dekt-apps
-    kubectl delete -f workloads/dekt4pets/backend/dekt4pets-gateway.yaml -n dekt-apps
-
-    kustomize build workloads/dekt4pets/frontend | kubectl delete -f -  
-    
-    #kustomize build workloads/dektFitness/kubernetes-manifests/ | kubectl delete -f -  
-
-    tanzu apps workload delete adopter-check -y -n $DEMO_APPS_NS 
 
     rm dummy-commit.me
 
@@ -224,18 +230,17 @@ usage() {
     echo
 	echo "Incorrect usage. Please specify one of the following:"
 	echo
-    echo "${bold}init${normal} - deploy the dekt4pets components"
+    echo "${bold}init${normal} - deploy the dekt4pets api-grid core components and dekt4petsdev instances"
     echo
     echo "${bold}describe${normal} - describe the dekt4pets api-grid configs"
     echo
-    echo "${bold}backend${normal} - deploy the dekt4pets backend service and APIs"
-    echo "          (use -u for update)"
+    echo "${bold}prod-deploy${normal} - run end-to-end dekt4pets deployment to production"
     echo
-    echo "${bold}frontend${normal} - deploy the dekt4pets frotend service and APIs"
-    echo
-    echo "${bold}dekt4pets${normal} - run end-to-end dekt4pets deployment to production"
+    echo "${bold}patch-backend${normal} - update the dekt4pets backend service and APIs"
     echo
     echo "${bold}adopter-check${normal} - deploy the adopter-check TAP workload using the default supply-chain"
+    echo
+    echo "${bold}cleanup${normal} - remove the dekt4pets api-grid core components, dekt4pets dev and prod instances"
     echo
     echo 
   	exit   
@@ -280,19 +285,11 @@ case $1 in
 init)
     init
     ;;
-backend)
-	if [ "$2" == "-u" ]
-    then
-        patch-backend
-    else
-        create-backend
-    fi
+prod-deploy)
+    prod-deploy
     ;;
-frontend)
-	create-frontend
-    ;;
-dekt4pets)
-    dekt4pets
+patch-backend)
+	patch-backend
     ;;
 adopter-check)
 	adopter-check
