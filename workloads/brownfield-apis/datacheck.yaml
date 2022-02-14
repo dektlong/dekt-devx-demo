@@ -2,6 +2,8 @@ apiVersion: "tanzu.vmware.com/v1"
 kind: SpringCloudGatewayRouteConfig
 metadata:
   name: datacheck-routes-config
+  #labels: 
+    #tsm-scg: datacheck-global-ns
 spec:
   service: 
     name: datacheck-brownfield-proxy
