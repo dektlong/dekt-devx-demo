@@ -29,7 +29,7 @@
 
         scripts/ingress-handler.sh tap
 
-        update-tap
+        tanzu package installed update tap --package-name tap.tanzu.vmware.com --version $TAP_VERSION -n tap-install -f .config/tap-values.yaml
 
     }
 
@@ -123,19 +123,12 @@
     
     }
 
-    update-tap () {
-
-        kubectl delete pod -l app=backstage -n tap-gui
-        
-        tanzu package installed update tap --package-name tap.tanzu.vmware.com --version $TAP_VERSION -n tap-install -f .config/tap-values.yaml
-    }
-
     reset () {
 
         tanzu apps workload delete mood-portal -n $DEMO_APPS_NS -y
         tanzu apps workload delete mood-sensors -n $DEMO_APPS_NS -y
-        update-tap
-        rm ~/Downloads/workload.yaml
+        kubectl delete pod -l app=backstage -n tap-gui
+        kubectl -n app-live-view delete pods -l=name=application-live-view-connector
     } 
 
     #relocate-images
@@ -179,6 +172,9 @@ cleanup)
         ;;
     esac
     rm ~/Downloads/workload.yaml
+    ;;
+reset)
+    reset
     ;;
 runme)
     $2
