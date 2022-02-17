@@ -90,9 +90,6 @@
         #cluster wide disable scale2zero
         kubectl apply -f config-templates/disable-scale2zero.yaml 
 
-        #mood-sensors (no rabbitMQ)
-        tanzu apps workload apply -f workloads/devx-mood/mood-sensors.yaml -n $DEMO_APPS_NS -y
-        
         #brownfield API
         kubectl create ns $BROWNFIELD_NS
         kubectl create secret generic sso-credentials --from-env-file=.config/sso-creds.txt -n api-portal
