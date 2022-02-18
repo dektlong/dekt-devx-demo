@@ -25,7 +25,7 @@
 
            install-api-gateway #temp until GW is available as a TAP package 
         
-        add-demo-components
+        setup-demo-ns
 
         scripts/ingress-handler.sh tap
 
@@ -72,13 +72,9 @@
 
     }
 
-    #add-demo-components
-    add-demo-components () {
-
-        echo
-        echo "===> Add demo components..."
-        echo
-
+    #setup-demo-ns
+    setup-demo-ns () {
+ 
         #accelerators 
         kustomize build supplychain/accelerators | kubectl apply -f -
 
@@ -100,10 +96,23 @@
         kubectl apply -f supplychain/templates/rabbitmq-clusterrole.yaml
         kubectl apply -f workloads/devx-mood/rabbitmq-instance.yaml -n $DEMO_APPS_NS
     }
-      
-#################### misc ################
     
-     
+    #deploy demo workloads
+    deploy() {
+
+        tanzu apps workload create -f workloads/devx-mood/mood-sensors.yaml -y
+        tanzu apps workload create -f workloads/devx-mood/mood-portal.yaml -y
+    }
+
+    #reset demo apps
+    reset() {
+
+        tanzu apps workload delete mood-portal -n $DEMO_APPS_NS -y
+        tanzu apps workload delete mood-sensors -n $DEMO_APPS_NS -y
+        kubectl delete pod -l app=backstage -n tap-gui
+        kubectl -n app-live-view delete pods -l=name=application-live-view-connector
+    }
+
     #incorrect usage
     incorrect-usage() {
         
@@ -112,6 +121,10 @@
         echo
         echo "  init [aks / eks]"
         echo
+        echo "  deploy"
+        echo
+        echo "  reset"
+        echo
         echo "  cleanup [aks / eks]"
         echo
         echo "  runme [function-name]"
@@ -119,14 +132,6 @@
         exit
     
     }
-
-    reset () {
-
-        tanzu apps workload delete mood-portal -n $DEMO_APPS_NS -y
-        tanzu apps workload delete mood-sensors -n $DEMO_APPS_NS -y
-        kubectl delete pod -l app=backstage -n tap-gui
-        kubectl -n app-live-view delete pods -l=name=application-live-view-connector
-    } 
 
     #relocate-images
     relocate-gw-images() {
@@ -172,6 +177,9 @@ cleanup)
     ;;
 reset)
     reset
+    ;;
+deploy)
+    deploy
     ;;
 runme)
     $2
