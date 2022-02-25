@@ -59,6 +59,7 @@ This repo contains artifacts to run a demo illustrating the vision and capabilit
 - access tap gui accelerators dev-cloudnative tag
   - create DevX-sensors workload using the boot-backend accelerator 
   - create the DevX-portal workload using the web-function accelerator 
+  - use DevX-mood-app as the parent application in both cases
 
 - highlight the simplicity of the workload.yaml 
 
@@ -92,10 +93,10 @@ This repo contains artifacts to run a demo illustrating the vision and capabilit
 
 - access the live url of portal workload and show the call back to the sensors APIs 
 
-
-
-https://github.com/dektlong/_DevXDemo/blob/main/workloads/devx-mood/backstage/catalog-info.yaml
-
+- register a new entity in tap backstage gui
+  - https://github.com/dektlong/_DevXDemo/blob/main/workloads/devx-mood/backstage/catalog-info.yaml
+  - show system view via DevX-mood-app
+  - click down on DevX-sensors to show application live view
 
 ## Cleanup
 
