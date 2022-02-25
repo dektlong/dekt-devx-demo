@@ -24,14 +24,13 @@ This repo contains artifacts to run a demo illustrating the vision and capabilit
 ### Core
 
 - run ```./builder.sh init [aks / eks]```
-
-- install TAP with full profile 
-- install Spring Cloud Gateway (via HELM)
-- install the following Demo examples
-      - App Accelerators
-      - Source-to-api supply-chain
-      - brownfield APIs
-- setup dns and ingress rules 
+  - install TAP full profile
+  - install Spring Cloud Gateway (via HELM)
+  - install the following Demo components 
+    - App Accelerators
+    - Source-to-api supply-chain
+    - brownfield APIs (routes and gateways)
+  - setup dns and ingress rules 
 
 ### Add API-grid specific setup
 - ```./api-grid.sh```
