@@ -12,13 +12,10 @@ This repo contains artifacts to run a demo illustrating the vision and capabilit
 
   - ```tap-values```: assumes access to the image registry and domains defined
 
-- Update ```workload/dekt4pets``` folder to match ```tap-values```
-
-  - ```image:``` value in ```backend/dekt4pets-backend.yml```
-
-  - ```serverUrl:``` value in ```gateway/dekt4pets-gatway.yml``` and ```gateway/dekt4pets-gatway-dev.yml```
-
-- Update ```host:``` value in ```workload/brownfield-apis``` files to match ```tap-values```
+- if planning to demo api-grid components 
+  - Update ```workload/dekt4pets/dekt4pets-backend.yml```  to match ```tap-values```
+  - update ```serverUrl:``` value in ```gateway/dekt4pets-gatway.yml``` and ```gateway/dekt4pets-gatway-dev.yml``` to match tap-values
+  - Update ```host:``` value in ```workload/brownfield-apis``` files to match ```tap-values```
 
 - The ingress setup is based on GoDaddy DNS, if you are using a different one, please modify ```scripts/ingress-handler.sh```
 
