@@ -98,6 +98,12 @@ This repo contains artifacts to run a demo illustrating the vision and capabilit
   - show system view via DevX-mood-app
   - click down on DevX-sensors to show application live view
 
+- make a code change in DevX-portal app to bypass the backend api calls 
+  - https://github.com/dektlong/devx-mood/main.go , change ALWAYS_HAPPY flag to true 
+  - show how supply chain pickup the change and re run the path to prod
+    - tanzu apps workload get mood-portal -n dekt-apps
+  - show a happy dog with sensors ignored
+
 ## Cleanup
 
 - full cleanup to delete the cluster  ```./builder.sh cleanup [aks/eks]```
