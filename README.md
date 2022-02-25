@@ -123,3 +123,114 @@ This repo contains artifacts to run a demo illustrating the vision and capabilit
 - partial cleanup to remove just workloads ```./builder.sh reset```
 
 # Enjoy!
+
+
+
+Extras
+
+### Inner loop
+- Access app accelerator developer instance  on ```acc.<APPS_APPS_SUB_DOMAIN>.<DOMAIN>```
+- Development curated start 
+  - Select ```onlinestore-dev``` tag
+  - Select the ```Backend API for online-stores``` accelerator 
+  - Select different deployment options and show generated files
+  - Select different API-grid options and show generated files
+- ```./demo.sh backend```
+- Show how build service detects git-repo changes and auto re-build backend-image (if required)
+- Show how the ```dekt4pets-gateway``` micro-gateway starts quickly as just a component of your app
+- Access API Hub on ```api-portal.<APPS_APPS_SUB_DOMAIN>.<DOMAIN>```
+  - Show the dekt4Pets API group auto-populated with the API spec you defined
+  - now the frontend team can easily discover and test the backend APIs and reuse
+  - Show the other API groups ('brownfield APIs')
+- ```./demo.sh frontend```
+- Access Spring Boot Observer at ```http://alv.<APPS_APPS_SUB_DOMAIN>.<DOMAIN>/apps``` to show actuator information on the backend application 
+- Show the new frontend APIs that where auto-populated to the API portal
+
+### Outer loop
+- DevOps curated start 
+  - Select ```onlinestore-devops``` tag
+  - Select the ```API Driven Microservices workflow``` accelerator 
+  - Select different deployment options and show generated files
+  - Select different API-grid options and show generated files
+  - Show the supply chain created via ```./demo.sh describe```
+- ```./demo.sh dekt4pets```
+  - show how the full supplychain for taking the app to production is manifested
+- This phase will also add an ingress rule to the gateway, now you can show:
+  - External traffic can only routed via the micro-gateway
+  - Frontend and backend microservices still cannot be accessed directly) 
+  - Access the application on 
+  ```
+  https://dekt4pets.<APPS_SUB_DOMAIN>.<DOMAIN>
+  ```
+  - login and show SSO functionality 
+
+### Brownfield APIs
+- now the backend team will leverage the 'brownfield' APIs to add background check functionality on potential adopters
+- access the 'datacheck' API group and test adoption-history and background-check APIs
+- explain that now other development teams can know exactly how to use a verified working version of both APIs (no tickets to off platform teams)
+
+#### Demo brownfield API use via adding a route and patching the backend app
+  - In ```workloads/dekt4pets/backend/routes/dekt4pets-backend-routes.yaml``` add
+  ```
+     - predicates:
+        - Path=/api/check-adopter
+        - Method=GET
+      filters:
+        - RateLimit=3,60s
+      tags:
+        - "Pets"    
+  ```
+  - In ```workloads/dekt4pets/backend/src/main/.../AnimalController.java``` add
+  ```
+	  @GetMapping("/check-adopter")
+	public String checkAdopter(Principal adopter) {
+
+		if (adopter == null) {
+			return "Error: Invalid adopter ID";
+		}
+
+		String adopterID = adopter.getName();
+    
+		String adoptionHistoryCheckURI = "UPDATE_FROM_API_PORTAL" + adopterID;
+
+   		RestTemplate restTemplate = new RestTemplate();
+		
+		  try
+		  {
+   			String result = restTemplate.getForObject(adoptionHistoryCheckURI, String.class);
+		  }
+		  catch (Exception e) {}
+
+  		return "<h1>Congratulations,</h1>" + 
+				"<h2>Adopter " + adopterID + ", you are cleared to adopt your next best friend.</h2>";
+	}
+
+  ```
+  - ```./demo.sh backend -u ```
+  - show how build-service is invoking a new image build based on the git-commit-id
+  - run the new check-adopter api 
+  ```
+  dekt4pets.<APPS_SUB_DOMAIN>.<DOMAIN>/api/check-adopter
+  ```
+  - you should see the 'Congratulations...' message with the same token you received following login
+#### Demo brownfield API use via a Cloud Native Runtime function
+  - ```./demo.sh adopter-check ```
+  - call the function via curl
+  ```
+    curl -w'\n' -H 'Content-Type: text/plain' adopter-check.dekt-apps.SERVING_SUB_DOMAIN.dekt.io \
+    -d "datacheck.tanzu.dekt.io/adoption-history/109141744605375013560"
+  ```
+  - example output
+  ```
+    Running adoption history check..
+
+    API: datacheck.tanzu.dekt.io/adoption-history/109141744605375013560
+    Result: APPROVED
+
+    Source: revision 1 of adopter-check
+  ```
+  - show how the function scales to zero after no use for 60 seconds
+  ``` kubectl get pods -n dekt-apps ```
+  - create a new revision
+  ```./demo adopter-check -u ```
+  - show how a new revision recieving 20% of the traffic is created
