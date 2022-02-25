@@ -112,6 +112,8 @@ This repo contains artifacts to run a demo illustrating the vision and capabilit
 - deploy dekt4pets-frontend  ```./api-grid.sh frontend``` 
   - show in api portal how the frontend routes are added in real time 
 - deploy a production  gateway with ingress access ```./api-grid.sh dekt4pets```
+  - show in api-portal a new item dekt4pets
+  - highlight the separation between routes and gateway runtime 
 - Note! these apps are not using tap supply chain 
 
 ## Cleanup
