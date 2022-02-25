@@ -56,10 +56,11 @@ This repo contains artifacts to run a demo illustrating the vision and capabilit
 
 ### Core 
 
-- access tap gui accelerators
+- access tap gui accelerators dev-cloudnative tag
   - create DevX-sensors workload using the boot-backend accelerator 
   - create the DevX-portal workload using the web-function accelerator 
 
+- highlight the simplicity of the workload.yaml 
 
 - show the simple tap installed command (don't actually run)
   - tanzu package install tap -p tap.tanzu.vmware.com -v 1.0.1  --values-file tap-values.yaml -n tap-install
@@ -74,9 +75,16 @@ This repo contains artifacts to run a demo illustrating the vision and capabilit
 - follow workload creation 
   - tanzu apps workload list -n dekt-apps
 
-- show supply chains 
+- access tap gui accelerators devops-cloudnative tag
+  - create source-to-api supplychain using the microservices-supplychain accelerator with web-backend workload type 
+  - create source-to-api supplychain using the microservices-supplychain accelerator with web-frontend workload type
+
+- highlight the separation of concerns between supplychain (AppOps) and supplychain-templates (Platform Ops)
+
+- show applied supply chains 
   - tanzu apps cluster-supply-chain list
   - Note! The source-to-api supplychain is not active, the sensor is using the source-to-url as well 
+ 
 
 - show supply chain and build service behind the scenes 
   - tanzu apps workload get mood-sensors -n dekt-apps
