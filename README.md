@@ -1,35 +1,15 @@
 
 # Demo of DevX with Tanzu 
 
-This repo contains artifacts to run a demo illustrating the vision and capabilities of Tanzu for DevX on any k8s
+This repo contains artifacts to run a demo illustrating the vision and capabilities of Tanzu for Dev, AppOps and Platform Ops
 
-It is designed to run on any k8s.
-
-- [Demo slides](https://docs.google.com/presentation/d/105sp3K633nnTPWn_PGxrLRb2X0atNmNN4Wlu10FgQ00/edit#slide=id.gdbf1731422_0_3)
-- [Demo recording](https://bit.ly/api-grid)
-
-## Curated Start                                                   
-- Architects create patterns                                      
-- Devs start quickly via curated ‘starters’                           
-- API-first design boiler-plate code                                  
-
-## Consistent Builds                                                    
-- Local dev to pipeline-initiated builds                          
-- Follows standard Boot tools (no docker files required)               
-- Prod-optimized images, air-gapped artifacts, lifecycle support  
-- GitOps for APIs - e.g. pipeline driven configuration of routes per lifecycle stage       
-
-## Collaborative micro-APIs 
-- Deploy backend service and expose its internal APIs through a dev-friendly 'app' Gateway, including simple to use SSO
-- Frontend developers discover, test and reuse backend APIs via an auto-populated Hub
-- Backend team add functionality leveraging 'brownfield APIs' from off-platform services 
-- Publish app and configure live traffic via the gateway
-
-## COMPLETE BEFORE STARTING !!
+## Preperations 
 
 - Rename the folder ```config-template``` to  ```.config``` 
 
-- Update all values in the ```.config``` directory
+- Update values in the ```.config``` directory
+
+  - 
 
 - Update your runtime specific values in ```workload/dekt4pets``` folder
 
