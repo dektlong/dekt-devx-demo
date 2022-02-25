@@ -21,3 +21,35 @@ This repo contains artifacts to run a demo illustrating the vision and capabilit
 - Update ```host:``` value in ```workload/brownfield-apis``` files to match ```tap-values```
 
 - The ingress setup is based on GoDaddy DNS, if you are using a different one, please modify ```scripts/ingress-handler.sh```
+
+## Installation
+
+### TAP
+
+- run ```./builder.sh init [aks / eks]``` to install the following:
+  - TAP with the following packages
+    - Clound Native Runtime
+    - App Accelerator
+    - App Live View
+    - API Portal
+    - Build Service
+    - Supply Chain components
+    - Image metadata store
+    - Image policy webhook
+    - Scan controller
+    - Grype scanner
+    - Spring Cloud Gateway (via HELM)
+    - Demo examples
+      - App Accelerators
+      - Source-to-image supply-chain 
+      - DevXMood workload
+      - brownfield APIs
+
+
+## Cleanup
+
+- full cleanup to delete the cluster  ```./builder.sh cleanup [aks/eks]```
+
+- partial cleanup to remove just workloads ```./builder.sh reset```
+
+# Enjoy!
