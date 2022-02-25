@@ -61,6 +61,7 @@ This repo contains artifacts to run a demo illustrating the vision and capabilit
   - create the DevX-portal workload using the web-function accelerator 
   - use DevX-mood-app as the parent application in both cases
 
+- access the api-portal and highlight how discovery of existing APIs prior to creating new ones is done 
 - highlight the simplicity of the workload.yaml 
 
 - show the simple tap installed command (don't actually run)
@@ -103,6 +104,15 @@ This repo contains artifacts to run a demo illustrating the vision and capabilit
   - show how supply chain pickup the change and re run the path to prod
     - tanzu apps workload get mood-portal -n dekt-apps
   - show a happy dog with sensors ignored
+
+### API-grid specific example
+- deploy dekt4pets-backend ```./api-grid.sh backend```   
+  - show in api-portal dekt4pets-dev item added in real time  and how the front end team can discover and re-use backend APIs  
+
+- deploy dekt4pets-frontend  ```./api-grid.sh frontend``` 
+  - show in api portal how the frontend routes are added in real time 
+- deploy a production  gateway with ingress access ```./api-grid.sh dekt4pets```
+- Note! these apps are not using tap supply chain 
 
 ## Cleanup
 
