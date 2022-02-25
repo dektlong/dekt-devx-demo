@@ -24,10 +24,11 @@ This repo contains artifacts to run a demo illustrating the vision and capabilit
 
 ## Installation
 
-### TAP
+### Core
 
 - run ```./builder.sh init [aks / eks]``` to install the following:
-  - TAP with the following packages
+
+- install TAP with the following packages
     - Clound Native Runtime
     - App Accelerator
     - App Live View
@@ -39,11 +40,16 @@ This repo contains artifacts to run a demo illustrating the vision and capabilit
     - Scan controller
     - Grype scanner
     - Spring Cloud Gateway (via HELM)
-    - Demo examples
+- install the following Demo examples
       - App Accelerators
       - Source-to-image supply-chain 
       - DevXMood workload
       - brownfield APIs
+- setup dns and ingress rules 
+
+### Add API-grid specific setup
+- ```./api-grid.sh```
+- create the ```dekt4pets-backend``` and ```dekt4pets-frontend``` images
 
 
 ## Cleanup
