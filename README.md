@@ -50,6 +50,34 @@ This repo contains artifacts to run a demo illustrating the vision and capabilit
 ### Add API-grid specific setup
 - ```./api-grid.sh```
 - create the ```dekt4pets-backend``` and ```dekt4pets-frontend``` images
+- setup SSO and app configs 
+
+## Running the demo 
+
+### Core 
+
+- show the simple tap installed command (don't actually run)
+  - tanzu package install tap -p tap.tanzu.vmware.com -v 1.0.1  --values-file tap-values.yaml -n tap-install
+
+- show all the packages installed on 
+  - tanzu package installed list -n tap-install
+
+- create workloads 
+  - tanzu apps workload create -f workloads/devx-mood/mood-sensors.yaml -y
+  - tanzu apps workload create -f workloads/devx-mood/mood-portal.yaml -y
+
+- follow workload creation 
+  - tanzu apps workload list -n dekt-apps
+
+- show supply chains 
+  - tanzu apps cluster-supply-chain list
+  - Note! The source-to-api supplychain is not active, the sensor is using the source-to-url as well 
+
+tanzu apps workload get mood-sensors -n dekt-apps
+
+tanzu apps workload tail mood-sensors --since 100m --timestamp  -n dekt-apps
+
+https://github.com/dektlong/_DevXDemo/blob/main/workloads/devx-mood/backstage/catalog-info.yaml
 
 
 ## Cleanup
