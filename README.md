@@ -23,24 +23,13 @@ This repo contains artifacts to run a demo illustrating the vision and capabilit
 
 ### Core
 
-- run ```./builder.sh init [aks / eks]``` to install the following:
+- run ```./builder.sh init [aks / eks]```
 
-- install TAP with the following packages
-    - Clound Native Runtime
-    - App Accelerator
-    - App Live View
-    - API Portal
-    - Build Service
-    - Supply Chain components
-    - Image metadata store
-    - Image policy webhook
-    - Scan controller
-    - Grype scanner
-    - Spring Cloud Gateway (via HELM)
+- install TAP with full profile 
+- install Spring Cloud Gateway (via HELM)
 - install the following Demo examples
       - App Accelerators
-      - Source-to-image supply-chain 
-      - DevXMood workload
+      - Source-to-api supply-chain
       - brownfield APIs
 - setup dns and ingress rules 
 
