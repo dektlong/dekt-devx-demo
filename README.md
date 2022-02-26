@@ -5,12 +5,17 @@ This repo contains artifacts to run a demo illustrating the vision and capabilit
 
 ## Preperations 
 
-- AKS and/or EKS access configured, with cluster creation permissions to match the specs in ```scripts/eks-handler.sh``` and ```scripts/aks-handler.sh```
+- AKS and/or EKS access configured to support:
+  - Loadbalancer 
+  - Clustes creation permissions to match the specs in ```scripts/eks-handler.sh``` and ```scripts/aks-handler.sh```
+
 - Rename the folder ```config-template``` to  ```.config``` 
 
-- Update values in the ```.config``` directory
+- Fill blank crednetials in ```.config/tap-values.yaml```
 
-  - ```tap-values```: assumes access to the image registry and domains defined
+- Update capatilized values in ```.config/tap-values.yaml```
+
+  - ```$DOMAIN``` needs to be enabled to add wild-card DNS record to
 
 - if planning to demo api-grid components 
   - Update ```workload/dekt4pets/dekt4pets-backend.yml```  to match ```tap-values```
@@ -33,61 +38,60 @@ This repo contains artifacts to run a demo illustrating the vision and capabilit
   - setup dns and ingress rules 
 
 ### Add API-grid specific setup
-- ```./api-grid.sh```
+- ```./api-grid.sh init```
 - create the ```dekt4pets-backend``` and ```dekt4pets-frontend``` images
 - setup SSO and app configs 
+- deploy dekt4pets-dev-gateway
 
 ## Running the demo 
 
 ### Core 
 
-- access tap gui accelerators dev-cloudnative tag
-  - create DevX-sensors workload using the boot-backend accelerator 
-  - create the DevX-portal workload using the web-function accelerator 
-  - use DevX-mood-app as the parent application in both cases
+- access tap gui accelerators via the ```cloud-native-devs``` tag
+  - create ```devx-sensors``` workload using the boot-backend accelerator 
+  - create ```devx-portal```  workload using the web-function accelerator 
+  - use ```devx-mood-app```  as the parent application in both cases
 
-- access the api-portal and highlight how discovery of existing APIs prior to creating new ones is done 
-- highlight the simplicity of the workload.yaml 
+- access the api-portal and highlight how discovery of existing APIs prior to creating new ones is done
+
+- highlight the simplicity of the ```workload.yaml```
 
 - show the simple tap installed command (don't actually run)
   - tanzu package install tap -p tap.tanzu.vmware.com -v 1.0.1  --values-file tap-values.yaml -n tap-install
 
-- show all the packages installed on 
-  - tanzu package installed list -n tap-install
+- show all the packages installed using ```tanzu package installed list -n tap-install```
 
 - create workloads 
-  - tanzu apps workload create -f workloads/devx-mood/mood-sensors.yaml -y
-  - tanzu apps workload create -f workloads/devx-mood/mood-portal.yaml -y
+  - ```tanzu apps workload create -f workloads/devx-mood/mood-sensors.yaml -y```
+  - ```tanzu apps workload create -f workloads/devx-mood/mood-portal.yaml -y```
 
-- follow workload creation 
-  - tanzu apps workload list -n dekt-apps
+- follow workload creation using ```tanzu apps workload list -n dekt-apps```
 
-- access tap gui accelerators devops-cloudnative tag
-  - create source-to-api supplychain using the microservices-supplychain accelerator with web-backend workload type 
-  - create source-to-api supplychain using the microservices-supplychain accelerator with web-frontend workload type
+- access tap gui accelerators using the ```cloud-native-devsops``` tag
+  - create ```source-to-api``` supplychain using the microservices-supplychain accelerator with ```web-backend``` workload type 
+  - create ```source-to-api``` supplychain using the microservices-supplychain accelerator with ```web-frontend``` workload type
 
 - highlight the separation of concerns between supplychain (AppOps) and supplychain-templates (Platform Ops)
 
-- show applied supply chains 
-  - tanzu apps cluster-supply-chain list
-  - Note! The source-to-api supplychain is not active, the sensor is using the source-to-url as well 
+- show applied supply chains using ```tanzu apps cluster-supply-chain list```
+  - Note! The ```source-to-api``` supplychain is not active, the sensor is using the source-to-url as well 
  
 
 - show supply chain and build service behind the scenes 
-  - tanzu apps workload get mood-sensors -n dekt-apps
-  - tanzu apps workload tail mood-sensors --since 100m --timestamp  -n dekt-apps
+  - ```tanzu apps workload get mood-sensors -n dekt-apps```
+  - ```tanzu apps workload tail mood-sensors --since 100m --timestamp  -n dekt-apps```
 
 - access the live url of portal workload and show the call back to the sensors APIs 
 
 - register a new entity in tap backstage gui
   - https://github.com/dektlong/_DevXDemo/blob/main/workloads/devx-mood/backstage/catalog-info.yaml
-  - show system view via DevX-mood-app
-  - click down on DevX-sensors to show application live view
+  - show system view diagram via ```devx-mood-app```
+  - click down on ```mood-sensors``` to show application live view
 
-- make a code change in DevX-portal app to bypass the backend api calls 
-  - https://github.com/dektlong/devx-mood/main.go , change ALWAYS_HAPPY flag to true 
+- make a code change in ```mood-portal``` app to bypass the backend api calls 
+  - https://github.com/dektlong/mood-portal/blob/main/main.go , change ALWAYS_HAPPY flag to true 
   - show how supply chain pickup the change and re run the path to prod
-    - tanzu apps workload get mood-portal -n dekt-apps
+    - ```tanzu apps workload get mood-portal -n dekt-apps```
   - show a happy dog with sensors ignored
 
 ### API-grid specific example
