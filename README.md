@@ -35,6 +35,7 @@ This repo contains artifacts to run a demo illustrating the vision and capabilit
     - App Accelerators
     - Source-to-api supply-chain
     - brownfield APIs (routes and gateways)
+    - rabbitMQ operator and resource
   - setup dns and ingress rules 
 
 ### Add API-grid specific setup
