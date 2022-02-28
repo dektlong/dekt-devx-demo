@@ -112,11 +112,11 @@ This repo contains artifacts to run a demo illustrating the vision and capabilit
 
 - partial cleanup to remove just workloads ```./builder.sh reset```
 
-# Enjoy!
+### Enjoy!
 
 
 
-Extras
+# Extras
 
 ### Inner loop
 - Access app accelerator developer instance  on ```acc.<APPS_APPS_SUB_DOMAIN>.<DOMAIN>```
