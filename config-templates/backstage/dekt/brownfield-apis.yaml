@@ -16,15 +16,18 @@ spec:
     servers:
       - url: http://datacheck.gw.dekt.io/v1
     paths:
-      /good-credit/{personID}:
+      /good-credit/:
         post:
           summary: Verify a good credit score
-      /medical-history/{personID}:
+          paramaters: personID
+      /medical-history/:
         get:
           summary: Verify a clean medical history
-      /criminal-record/{personID}:
+          paramaters: personID
+      /criminal-record/:
         post:
           summary: Run criminal-record check
+          paramaters: personID
 ---
 apiVersion: backstage.io/v1alpha1
 kind: API
@@ -47,9 +50,10 @@ spec:
       /list-locations:
         get:
           summary: List available locations
-      /team-location/{teamID}:
+      /team-location:
         post:
           summary: Update a team location
+          paramaters: teamID, location
 ---
 apiVersion: backstage.io/v1alpha1
 kind: API
@@ -72,6 +76,7 @@ spec:
       /list-services:
         get:
           summary: List online sms services
-      /send-notification/{number}:
+      /send-notification:
         post:
           summary: send notification to a given number
+          paramaters: phone-number
