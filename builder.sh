@@ -12,8 +12,8 @@
     GATEWAY_NS="scgw-system"
     BROWNFIELD_NS="brownfield-apis"
     
-    TAP_VERSION="1.0.0"
-  
+    #TAP_VERSION="1.0.0"
+    TAP_VERSION="1.1.0-build.5"
 #################### installers ################
 
     #install
