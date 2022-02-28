@@ -7,6 +7,7 @@ metadata:
     'backstage.io/techdocs-ref': dir:.
 spec:
   targets:
+    - ./apis/mood-sensors-apis.yaml
     - ./components/mood-portal.yaml
     - ./components/mood-sensors.yaml
     - ./components/sensors-inventory.yaml

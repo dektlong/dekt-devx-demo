@@ -12,8 +12,8 @@
     GATEWAY_NS="scgw-system"
     BROWNFIELD_NS="brownfield-apis"
     
-    TAP_VERSION="1.0.0"
-    #TAP_VERSION="1.1.0-build.5"
+    #TAP_VERSION="1.0.0"
+    TAP_VERSION="1.1.0-build.5"
 #################### installers ################
 
     #install
@@ -25,7 +25,7 @@
 
            install-api-gateway #temp until GW is available as a TAP package 
         
-        setup-demo-ns
+        setup-demo-examples
 
         scripts/ingress-handler.sh tap
 
@@ -72,8 +72,8 @@
 
     }
 
-    #setup-demo-ns
-    setup-demo-ns () {
+    #setup-demo-examples
+    setup-demo-examples () {
  
         #accelerators 
         kustomize build supplychain/accelerators | kubectl apply -f -
