@@ -1,0 +1,77 @@
+apiVersion: backstage.io/v1alpha1
+kind: API
+metadata:
+  name: datacheck-apis
+  description: APIs to interact with the users data check systems
+spec:
+  type: openapi
+  lifecycle: integration
+  owner: dekt-app-ops
+  system: brownfield-apis
+  definition: |
+    openapi: "3.0.0"
+    info:
+      version: 1.0.0
+      title: APIs to interact with users datacheck systems
+    servers:
+      - url: http://datacheck.gw.dekt.io/v1
+    paths:
+      /good-credit/{personID}:
+        post:
+          summary: Verify a good credit score
+      /medical-history/{personID}:
+        get:
+          summary: Verify a clean medical history
+      /criminal-record/{personID}:
+        post:
+          summary: Run criminal-record check
+---
+apiVersion: backstage.io/v1alpha1
+kind: API
+metadata:
+  name: locations-apis
+  description: APIs to interact with geo-location systems
+spec:
+  type: openapi
+  lifecycle: integration
+  owner: dekt-app-ops
+  system: brownfield-apis
+  definition: |
+    openapi: "3.0.0"
+    info:
+      version: 1.0.0
+      title: APIs to interact with geo-location systems
+    servers:
+      - url: http://locations.gw.dekt.io/v1
+    paths:
+      /list-locations:
+        get:
+          summary: List available locations
+      /team-location/{teamID}:
+        post:
+          summary: Update a team location
+---
+apiVersion: backstage.io/v1alpha1
+kind: API
+metadata:
+  name: sms-apis
+  description: APIs to interact with mobile messaging systems
+spec:
+  type: openapi
+  lifecycle: integration
+  owner: dekt-app-ops
+  system: brownfield-apis
+  definition: |
+    openapi: "3.0.0"
+    info:
+      version: 1.0.0
+      title: APIs to interact with mobile messaging systems
+    servers:
+      - url: http://sms.gw.dekt.io/v1
+    paths:
+      /list-services:
+        get:
+          summary: List online sms services
+      /send-notification/{number}:
+        post:
+          summary: send notification to a given number

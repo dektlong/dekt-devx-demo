@@ -9,3 +9,4 @@ spec:
   targets:
     - dekt-teams.yaml
     - dekt-domain.yaml
+    - brownfield-apis.yaml
