@@ -3,7 +3,7 @@ kind: SpringCloudGatewayRouteConfig
 metadata:
   name: datacheck-routes-config
   #labels: 
-    #tsm-scg: datacheck-global-ns
+    #tsm-scg: datacheck-gns
 spec:
   service: 
     name: datacheck-brownfield-proxy

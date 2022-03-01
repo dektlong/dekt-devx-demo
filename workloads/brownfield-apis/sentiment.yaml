@@ -2,6 +2,8 @@ apiVersion: "tanzu.vmware.com/v1"
 kind: SpringCloudGatewayRouteConfig
 metadata:
   name: sentiment-routes-config
+  #labels: 
+    #tsm-scg: sentiment-gns
 spec:
   service: 
     name: sentiment-brownfield-proxy
