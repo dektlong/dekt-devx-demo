@@ -20,12 +20,9 @@ spec:
         post:
           summary: write random data to a sensor
         tags:
-            - data-manipulation
-        paramaters: 
-          - name: sensorID
-            required: true
+            - sensors-update
       /sensors-data:
         get:
           summary: retrieve all sensors information
         tags:
-            - data-retrieval
+            - sensors-reading
