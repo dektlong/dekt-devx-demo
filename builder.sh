@@ -111,6 +111,7 @@
         tanzu apps workload delete mood-sensors -n $DEMO_APPS_NS -y
         kubectl delete pod -l app=backstage -n tap-gui
         kubectl -n app-live-view delete pods -l=name=application-live-view-connector
+        tanzu package installed update tap --package-name tap.tanzu.vmware.com --version $TAP_VERSION -n tap-install -f .config/tap-values.yaml
     }
 
     #incorrect usage
