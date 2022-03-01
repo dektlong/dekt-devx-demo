@@ -63,8 +63,8 @@ This repo contains artifacts to run a demo illustrating the vision and capabilit
 - show all the packages installed using ```tanzu package installed list -n tap-install```
 
 - create workloads 
-  - ```tanzu apps workload create -f workloads/devx-mood/mood-sensors.yaml -y```
-  - ```tanzu apps workload create -f workloads/devx-mood/mood-portal.yaml -y```
+  - ```tanzu apps workload create -f workloads/devx-mood/mood-sensors.yaml -n DEMO_APPS_NS -y```
+  - ```tanzu apps workload create -f workloads/devx-mood/mood-portal.yaml -n DEMO_APPS_NS -y```
 
 - follow workload creation using ```tanzu apps workload list -n dekt-apps```
 
@@ -79,8 +79,8 @@ This repo contains artifacts to run a demo illustrating the vision and capabilit
  
 
 - show supply chain and build service behind the scenes 
-  - ```tanzu apps workload get mood-sensors -n dekt-apps```
-  - ```tanzu apps workload tail mood-sensors --since 100m --timestamp  -n dekt-apps```
+  - ```tanzu apps workload get mood-sensors -n DEMO_APPS_NS```
+  - ```tanzu apps workload tail mood-sensors --since 100m --timestamp  -n DEMO_APPS_NS```
 
 - access the live url of portal workload and show the call back to the sensors APIs 
 
@@ -231,9 +231,9 @@ tanzu package install tap -p tap.tanzu.vmware.com -v 1.0.1  --values-file tap-va
 
 tanzu package installed list -n tap-install
 
-tanzu apps workload create -f workloads/devx-mood/mood-sensors.yaml -y
+tanzu apps workload create -f workloads/devx-mood/mood-sensors.yaml -y -n dekt-apps
 
-tanzu apps workload create -f workloads/devx-mood/mood-portal.yaml -y
+tanzu apps workload create -f workloads/devx-mood/mood-portal.yaml -y -n dekt-apps
 
 tanzu apps workload list -n dekt-apps
 
