@@ -14,7 +14,7 @@ spec:
       version: 1.0.0
       title: APIs to interact with users datacheck systems
     servers:
-      - url: http://datacheck.gw.dekt.io/v1
+      - url: http://datacheck.tanzu-sm.io/v1
     paths:
       /good-credit:
         post:
@@ -57,7 +57,7 @@ spec:
       version: 1.0.0
       title: APIs to interact with geo-location systems
     servers:
-      - url: http://locations.gw.dekt.io/v1
+      - url: http://locations.tanzu-sm.io/v1
     paths:
       /list-locations:
         get:
@@ -91,7 +91,7 @@ spec:
       version: 1.0.0
       title: APIs to interact with mobile messaging systems
     servers:
-      - url: http://sms.gw.dekt.io/v1
+      - url: http://sms.tanzu-sm.io/v1
     paths:
       /list-services:
         get:
@@ -123,7 +123,7 @@ spec:
       version: 1.0.0
       title: APIs to interact with backend insurance claims systems
     servers:
-      - url: http://insurance.gw.dekt.io/v1
+      - url: http://insurance.tanzu-sm.io/v1
     paths:
       /list-providers:
         get:
@@ -152,7 +152,7 @@ spec:
       version: 1.0.0
       title: APIs to interact with backend payments systems
     servers:
-      - url: http://payments.gw.dekt.io/v1
+      - url: http://payments.tanzu-sm.io/v1
     paths:
       /list-providers:
         get:
@@ -184,7 +184,7 @@ spec:
       version: 1.0.0
       title: APIs to analyze sentiment of users across social media properties
     servers:
-      - url: http://sentiment.gw.dekt.io/v1
+      - url: http://sentiment.tanzu-sm.io/v1
     paths:
       /list-social-media-sources:
         get:
@@ -218,7 +218,7 @@ spec:
       version: 1.0.0
       title: APIs to process orders with suppliers 
     servers:
-      - url: http://suppliers.gw.dekt.io/v1
+      - url: http://suppliers.tanzu-sm.io/v1
     paths:
       /list-suppliers:
         get:
@@ -247,7 +247,7 @@ spec:
       version: 1.0.0
       title: APIs to process donations
     servers:
-      - url: http://donations.gw.dekt.io/v1
+      - url: http://donations.tanzu-sm.io/v1
     paths:
       /list-donations:
         get:
@@ -256,6 +256,6 @@ spec:
             - donations
       /process-donation:
         post:
-          summary: Process a new donation
+          summary: Process a new donation 
           tags:
             - donations

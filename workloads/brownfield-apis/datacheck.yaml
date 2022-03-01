@@ -2,18 +2,24 @@ apiVersion: "tanzu.vmware.com/v1"
 kind: SpringCloudGatewayRouteConfig
 metadata:
   name: datacheck-routes-config
+#======== supply-chain decorations ("design once API anywhere")
   labels: 
     tsm-scg: datacheck-brownfield
+#=========
 spec:
   service: 
     name: datacheck-api
+  #======== supply-chain decorations ("design once API anywhere")
+    predicates:
+      - Header=X-Request-Id
+    ssoEnabled: true
+    filters:
+      - RateLimit=2,60s
+  #=========
   routes:
     - predicates:
         - Path=/api/medical-history/{personID}
         - Method=GET
-      ssoEnabled: true
-      filters:
-        - RateLimit=3,60s
       title: "Verify a clean medical history"
       description: "Verify a medical history for a given social security / taxId number "
       tags:
@@ -21,7 +27,6 @@ spec:
     - predicates:
         - Path=/api/good-credit/{personID}
         - Method=GET
-      ssoEnabled: true
       title: "Verify a good credit score"
       description: "Verify a good credit score for a given adoper's social security / taxId number "
       tags:
