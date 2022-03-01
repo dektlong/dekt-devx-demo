@@ -26,7 +26,7 @@ metadata:
 spec:
   count: 1
   api:
-    serverUrl: http://sentiment.gw.dekt.io
+    serverUrl: http://brownfield.gw.dekt.io
     title: User Sentiments
     description: APIs to help with user sentiments 
     version: 0.5.0
