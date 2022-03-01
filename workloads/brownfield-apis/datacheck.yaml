@@ -2,11 +2,11 @@ apiVersion: "tanzu.vmware.com/v1"
 kind: SpringCloudGatewayRouteConfig
 metadata:
   name: datacheck-routes-config
-  #labels: 
-    #tsm-scg: datacheck-gns
+  labels: 
+    tsm-scg: datacheck-brownfield
 spec:
   service: 
-    name: datacheck-brownfield-proxy
+    name: datacheck-api
   routes:
     - predicates:
         - Path=/api/medical-history/{personID}
@@ -44,36 +44,11 @@ spec:
       tags:
         - Compatibility
 ---
-apiVersion: "tanzu.vmware.com/v1"
-kind: SpringCloudGateway
-metadata:
-  name: datacheck-gateway
-spec:
-  count: 1
-  api:
-    serverUrl: http://datacheck.gw.dekt.io
-    title: User Verification Services
-    description: External APIs to provide user verification services
-    version: 0.5.0
-    cors:
-      allowedOrigins:
-      - http://api-portal.sys.dekt.io
----
 apiVersion: v1
 kind: Service
 metadata:
-  name: datacheck-brownfield-proxy
+  name: datacheck-api
 spec:
   ports:
     - port: 80
       targetPort: 80
----
-apiVersion: "tanzu.vmware.com/v1"
-kind: SpringCloudGatewayMapping
-metadata:
-  name: datacheck-routes-mapping
-spec:
-  gatewayRef:
-    name: datacheck-gateway
-  routeConfigRef:
-    name: datacheck-routes-config

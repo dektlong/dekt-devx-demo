@@ -2,11 +2,11 @@ apiVersion: "tanzu.vmware.com/v1"
 kind: SpringCloudGatewayRouteConfig
 metadata:
   name: sentiment-routes-config
-  #labels: 
-    #tsm-scg: sentiment-gns
+  labels: 
+    tsm-scg: sentiment-brownfield
 spec:
   service: 
-    name: sentiment-brownfield-proxy
+    name: sentiment-api
   routes:
     - predicates:
         - Path=/list-sentiment
@@ -19,36 +19,11 @@ spec:
       filters:
       - CircuitBreaker="sentimentCircuitBreaker,forward:/alternate-donation-service"
 ---
-apiVersion: "tanzu.vmware.com/v1"
-kind: SpringCloudGateway
-metadata:
-  name: sentiment-gateway
-spec:
-  count: 1
-  api:
-    serverUrl: http://brownfield.gw.dekt.io
-    title: User Sentiments
-    description: APIs to help with user sentiments 
-    version: 0.5.0
-    cors:
-      allowedOrigins:
-      - http://api-portal.sys.dekt.io
----
 apiVersion: v1
 kind: Service
 metadata:
-  name: sentiment-brownfield-proxy
+  name: sentiment-api
 spec:
   ports:
     - port: 80
       targetPort: 80
----
-apiVersion: "tanzu.vmware.com/v1"
-kind: SpringCloudGatewayMapping
-metadata:
-  name: sentiment-routes-mapping
-spec:
-  gatewayRef:
-    name: sentiment-gateway
-  routeConfigRef:
-    name: sentiment-routes-config

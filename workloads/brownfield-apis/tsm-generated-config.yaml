@@ -1,0 +1,174 @@
+apiVersion: "tanzu.vmware.com/v1"
+kind: SpringCloudGateway
+metadata:
+  name: datacheck-gateway
+spec:
+  count: 2
+  api:
+    serverUrl: http://datacheck.tanzu-sm.io
+    title: User Verification Services
+    description: External APIs to provide user verification services
+    version: 0.5.0
+    cors:
+      allowedOrigins:
+      - http://api-portal.sys.dekt.io
+---
+apiVersion: "tanzu.vmware.com/v1"
+kind: SpringCloudGatewayMapping
+metadata:
+  name: datacheck-routes-mapping
+spec:
+  gatewayRef:
+    name: datacheck-gateway
+  routeConfigRef:
+    name: datacheck-routes-config
+---
+apiVersion: "tanzu.vmware.com/v1"
+kind: SpringCloudGateway
+metadata:
+  name: donations-gateway
+spec:
+  count: 2
+  api:
+    serverUrl: http://donations.tanzu-sm.io
+    title: Donation Services
+    description: External APIs to help with donations processing
+    version: 0.5.0
+    cors:
+      allowedOrigins:
+      - http://api-portal.sys.dekt.io
+---
+apiVersion: "tanzu.vmware.com/v1"
+kind: SpringCloudGatewayMapping
+metadata:
+  name: donations-routes-mapping
+spec:
+  gatewayRef:
+    name: donations-gateway
+  routeConfigRef:
+    name: donations-routes-config
+---
+apiVersion: "tanzu.vmware.com/v1"
+kind: SpringCloudGateway
+metadata:
+  name: insurance-gateway
+spec:
+  count: 1
+  api:
+    serverUrl: http://insurance.tanzu-sm.io
+    title: Insurance Services
+    description: External APIs to help with insurance processing
+    version: 0.5.0
+    cors:
+      allowedOrigins:
+      - http://api-portal.sys.dekt.io
+---
+apiVersion: "tanzu.vmware.com/v1"
+kind: SpringCloudGatewayMapping
+metadata:
+  name: insurance-routes-mapping
+spec:
+  gatewayRef:
+    name: insurance-gateway
+  routeConfigRef:
+    name: insurance-routes-config
+---
+apiVersion: "tanzu.vmware.com/v1"
+kind: SpringCloudGateway
+metadata:
+  name: location-gateway
+spec:
+  count: 1
+  api:
+    serverUrl: http://location.tanzu-sm.io
+    title: Location Services
+    description: External APIs to help with location processing
+    version: 0.5.0
+    cors:
+      allowedOrigins:
+      - http://api-portal.sys.dekt.io
+---
+apiVersion: "tanzu.vmware.com/v1"
+kind: SpringCloudGatewayMapping
+metadata:
+  name: location-routes-mapping
+spec:
+  gatewayRef:
+    name: location-gateway
+  routeConfigRef:
+    name: location-routes-config
+---
+apiVersion: "tanzu.vmware.com/v1"
+kind: SpringCloudGateway
+metadata:
+  name: payment-gateway
+spec:
+  count: 1
+  api:
+    serverUrl: http://payment.tanzu-sm.io
+    title: Payment Services
+    description: External APIs to help with payment processing
+    version: 0.5.0
+    cors:
+      allowedOrigins:
+      - http://api-portal.sys.dekt.io
+---
+apiVersion: "tanzu.vmware.com/v1"
+kind: SpringCloudGatewayMapping
+metadata:
+  name: payment-routes-mapping
+spec:
+  gatewayRef:
+    name: payment-gateway
+  routeConfigRef:
+    name: payment-routes-config
+---
+apiVersion: "tanzu.vmware.com/v1"
+kind: SpringCloudGateway
+metadata:
+  name: sentiment-gateway
+spec:
+  count: 2
+  api:
+    serverUrl: http://sentiment.tanzu-sm.io
+    title: Sentiment Services
+    description: External APIs to help with sentiment processing
+    version: 0.5.0
+    cors:
+      allowedOrigins:
+      - http://api-portal.sys.dekt.io
+---
+apiVersion: "tanzu.vmware.com/v1"
+kind: SpringCloudGatewayMapping
+metadata:
+  name: sentiment-routes-mapping
+spec:
+  gatewayRef:
+    name: sentiment-gateway
+  routeConfigRef:
+    name: sentiment-routes-config
+---
+apiVersion: "tanzu.vmware.com/v1"
+kind: SpringCloudGateway
+metadata:
+  name: sms-gateway
+spec:
+  count: 1
+  api:
+    serverUrl: http://sms.tanzu-sm.io
+    title: Messaging Services
+    description: External APIs to help with sms processing
+    version: 0.5.0
+    cors:
+      allowedOrigins:
+      - http://api-portal.sys.dekt.io
+---
+apiVersion: "tanzu.vmware.com/v1"
+kind: SpringCloudGatewayMapping
+metadata:
+  name: sms-routes-mapping
+spec:
+  gatewayRef:
+    name: sms-gateway
+  routeConfigRef:
+    name: sms-routes-config

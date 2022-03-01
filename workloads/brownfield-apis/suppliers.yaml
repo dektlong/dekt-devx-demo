@@ -4,7 +4,7 @@ metadata:
   name: suppliers-routes-config
 spec:
   service: 
-    name: suppliers-brownfield-proxy
+    name: suppliers-api
   routes:
     - predicates:
         - Path=/list-outgoing-payments/
@@ -16,36 +16,11 @@ spec:
         - Method=POST,PUT,DELETE
       ssoEnabled: true
 ---
-apiVersion: "tanzu.vmware.com/v1"
-kind: SpringCloudGateway
-metadata:
-  name: suppliers-gateway
-spec:
-  count: 1
-  api:
-    serverUrl: http://suppliers.brownfield.dekt.io
-    title: Suppliers Profile
-    description: APIs to provide source of truth for basice supplier information
-    version: 0.5.0
-    cors:
-      allowedOrigins:
-      - http://api-portal.sys.dekt.io
----
 apiVersion: v1
 kind: Service
 metadata:
-  name: suppliers-brownfield-proxy
+  name: suppliers-api
 spec:
   ports:
     - port: 80
       targetPort: 80
----
-apiVersion: "tanzu.vmware.com/v1"
-kind: SpringCloudGatewayMapping
-metadata:
-  name: suppliers-routes-mapping
-spec:
-  gatewayRef:
-    name: suppliers-gateway
-  routeConfigRef:
-    name: suppliers-routes-config
