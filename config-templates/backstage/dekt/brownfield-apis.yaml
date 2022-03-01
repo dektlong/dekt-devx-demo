@@ -190,17 +190,17 @@ spec:
         get:
           summary: List available social media sources that reports sentiment
           tags:
-            - user-sentiment
+            - providers
       /check-sentiment:
         post:
           summary: Check a sentiment by userId and social media properties
           tags:
-            - user-sentiment
+            - users
       /check-aggregated-sentiment:
         post:
           summary: Check an aggregated sentiment by userId and a list of social media properties
           tags:
-            - user-sentiment
+            - users
 ---
 apiVersion: backstage.io/v1alpha1
 kind: API
@@ -229,4 +229,33 @@ spec:
         post:
           summary: Process an order with a supllier 
           tags:
-            - oders
+            - orders
+---
+apiVersion: backstage.io/v1alpha1
+kind: API
+metadata:
+  name: donations-apis
+  description: APIs to process donations
+spec:
+  type: openapi
+  lifecycle: integration
+  owner: dekt-app-ops
+  system: brownfield-apis
+  definition: |
+    openapi: "3.0.0"
+    info:
+      version: 1.0.0
+      title: APIs to process donations
+    servers:
+      - url: http://donations.gw.dekt.io/v1
+    paths:
+      /list-donations:
+        get:
+          summary: List current donations
+          tags:
+            - donations
+      /process-donation:
+        post:
+          summary: Process a new donation
+          tags:
+            - donations
