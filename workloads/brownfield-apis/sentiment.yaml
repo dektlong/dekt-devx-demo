@@ -5,17 +5,13 @@ metadata:
 #======== supply-chain decorations ("design once API anywhere")
   labels: 
     tsm-scg: sentiment-brownfield
-#=========
-  labels: 
-    tsm-scg: sentiment-brownfield
 spec:
   service: 
     name: sentiment-api
-    #======== supply-chain decorations ("design once API anywhere")
     predicates:
       - Header=X-Request-Id
     ssoEnabled: true
-  #=========
+#=========
   routes:
     - predicates:
         - Path=/list-sentiment

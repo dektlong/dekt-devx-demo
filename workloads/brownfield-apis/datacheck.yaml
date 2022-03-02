@@ -5,17 +5,14 @@ metadata:
 #======== supply-chain decorations ("design once API anywhere")
   labels: 
     tsm-scg: datacheck-brownfield
-#=========
 spec:
   service: 
     name: datacheck-api
-  #======== supply-chain decorations ("design once API anywhere")
-    predicates:
       - Header=X-Request-Id
     ssoEnabled: true
     filters:
       - RateLimit=2,60s
-  #=========
+#=========
   routes:
     - predicates:
         - Path=/api/medical-history/{personID}
