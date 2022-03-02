@@ -11,8 +11,8 @@ init() {
         echo "!!! currently only working on AKS due to SCGW issue. Hit any key to continue..."
         read
         #dekt4pets images
-        frontend_image_location=$PRIVATE_REPO/$PRIVATE_REGISTRY_APP_REPO/$FRONTEND_TBS_IMAGE:$APP_VERSION
-        backend_image_location=$PRIVATE_REPO/$PRIVATE_REGISTRY_APP_REPO/$BACKEND_TBS_IMAGE:$APP_VERSION
+        frontend_image_location=$PRIVATE_REPO/$PRIVATE_REGISTRY_APP_REPO/$FRONTEND_TBS_IMAGE:0.0.1
+        backend_image_location=$PRIVATE_REPO/$PRIVATE_REGISTRY_APP_REPO/$BACKEND_TBS_IMAGE:0.0.1
 
         export REGISTRY_PASSWORD=$PRIVATE_REPO_PASSWORD
         kp secret create private-registry-creds \
