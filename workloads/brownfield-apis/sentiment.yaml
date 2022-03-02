@@ -4,7 +4,7 @@ metadata:
   name: sentiment-routes-config
 #======== supply-chain decorations ("design once API anywhere")
   labels: 
-    tsm-scg: sentiment-brownfield
+    tsm-scg: sentiment-gns
 spec:
   service: 
     name: sentiment-api

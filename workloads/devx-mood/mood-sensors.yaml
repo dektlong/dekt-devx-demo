@@ -5,7 +5,7 @@ metadata:
   labels:
     apps.tanzu.vmware.com/workload-type: web
     #apps.tanzu.vmware.com/workload-type: web-backend
-    app.kubernetes.io/part-of: devx-mood-app
+    app.kubernetes.io/part-of: mood-app
 spec:
   source:
     git:
@@ -17,4 +17,4 @@ spec:
       ref:
         apiVersion: rabbitmq.com/v1beta1
         kind: RabbitmqCluster
-        name: sensors-reading
+        name: reading

@@ -4,7 +4,7 @@ metadata:
   name: datacheck-routes-config
 #======== supply-chain decorations ("design once API anywhere")
   labels: 
-    tsm-scg: datacheck-brownfield
+    tsm-scg: datacheck-gns
 spec:
   service: 
     name: datacheck-api

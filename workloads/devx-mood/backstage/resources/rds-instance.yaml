@@ -11,4 +11,4 @@ metadata:
 spec:
   type: database
   owner: dekt-platform-ops
-  system: devx-mood-app
+  system: devx-mood

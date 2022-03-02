@@ -1,13 +1,13 @@
 apiVersion: backstage.io/v1alpha1
 kind: Component
 metadata:
-  name: sensors-inventory
+  name: inventory
   description: Store sensors inventory data
   tags:
     - sql
     - database
   annotations:
-    'backstage.io/kubernetes-label-selector': 'app.kubernetes.io/part-of=devx-mood-app'
+    'backstage.io/kubernetes-label-selector': 'app.kubernetes.io/part-of=devx-mood'
 spec:
   type: service
   lifecycle: production

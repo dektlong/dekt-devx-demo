@@ -1,17 +1,17 @@
 apiVersion: backstage.io/v1alpha1
 kind: Component
 metadata:
-  name: sensors-reading
+  name: reading
   description: process events stream from sensors' reading
   tags:
     - spring-cloud-stream
     - messaging
   annotations:
-    'backstage.io/kubernetes-label-selector': 'app.kubernetes.io/part-of=devx-mood-app'
+    'backstage.io/kubernetes-label-selector': 'app.kubernetes.io/part-of=devx-mood'
 spec:
   type: service
   lifecycle: integration
   owner: dekt-dev-team2
-  system: devx-mood-app
+  system: devx-mood
   dependsOn: 
     - resource:rabbitmq-instance

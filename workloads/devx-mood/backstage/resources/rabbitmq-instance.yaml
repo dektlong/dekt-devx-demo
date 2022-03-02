@@ -11,4 +11,4 @@ metadata:
 spec:
   type: messagebus
   owner: dekt-app-ops
-  system: devx-mood-app
+  system: devx-mood
