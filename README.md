@@ -239,9 +239,9 @@ tanzu apps workload list -n dekt-apps
 
 tanzu apps cluster-supply-chain list
 
-tanzu apps workload get mood-sensors -n dekt-apps
+tanzu apps workload get sensors -n dekt-apps
 
-tanzu apps workload tail mood-sensors --since 100m --timestamp  -n dekt-apps
+tanzu apps workload tail sensors --since 100m --timestamp  -n dekt-apps
 
 https://github.com/dektlong/_DevXDemo/blob/main/workloads/devx-mood/backstage/catalog-info.yaml
 
