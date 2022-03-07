@@ -140,7 +140,7 @@
         
         docker login $PRIVATE_REPO -u $PRIVATE_REPO_USER -p $PRIVATE_REPO_PASSWORD
         
-        $GW_INSTALL_DIR/scripts/relocate-images.sh $PRIVATE_REPO/$PRIVATE_REGISTRY_SYSTEM_REPO
+        $GW_INSTALL_DIR/scripts/relocate-images.sh $PRIVATE_REPO/dekt-system
     }
 
 #################### main ##########################
