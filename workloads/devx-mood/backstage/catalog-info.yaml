@@ -8,10 +8,8 @@ metadata:
 spec:
   targets:
     - ./apis/mood-sensors-apis.yaml
-    - ./components/mood-portal.yaml
-    - ./components/mood-sensors.yaml
-    - ./components/sensors-inventory.yaml
-    - ./components/sensors-reading.yaml
-    - ./resources/rds-instance.yaml
-    - ./resources/rabbitmq-instance.yaml
-    - ./systems/devx-mood-app.yaml
+    - ./components/portal.yaml
+    - ./components/sensors.yaml
+    - ./resources/reading.yaml
+    - ./resources/inventory.yaml
+    - ./systems/devx-mood.yaml
