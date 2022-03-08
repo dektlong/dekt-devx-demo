@@ -89,13 +89,15 @@ tap)
     update-dns-A-record "*.apps" "envoy" "tanzu-system-ingress"
     create-ingress-rule "api-portal-ingress" "contour" "api-portal.sys.$DOMAIN" "api-portal-server" "8080" "api-portal"
     create-ingress-rule "scg-openapi-ingress" "contour" "scg-openapi.sys.$DOMAIN"  "scg-operator" "80" "scgw-system"
-#    create-ingress-rule "tap-gui-ingress" "contour" "tap-gui.sys.$DOMAIN" "server" "7000" "tap-gui"
     ;;
 scgw)
     scripts/install-nginx.sh
     update-dns-A-record "*.gw" "dekt-ingress-nginx-controller" "nginx-system" 
     create-ingress-rule "dekt4pets-dev" "nginx" "dekt4pets-dev.gw.$DOMAIN"  "dekt4pets-gateway" "80" $DEMO_APPS_NS
     create-ingress-rule "dekt4pets" "nginx" "dekt4pets.gw.$DOMAIN"  "dekt4pets-gateway" "80" $DEMO_APPS_NS
+    ;;
+gui-dev)
+    create-ingress-rule "tap-gui-ingress" "contour" "tap-gui.sys.$DOMAIN" "server" "7000" "tap-gui"
     ;;
 *)
     echo "incorrect usage. Please use 'tap' or 'scgw'"

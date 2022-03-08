@@ -143,6 +143,23 @@
         $GW_INSTALL_DIR/scripts/relocate-images.sh $PRIVATE_REPO/dekt-system
     }
 
+    #install-gui-dev
+    install-gui-dev() {
+
+        kubectl apply -f .config/tap-gui-dev-package.yaml
+
+        export INSTALL_REGISTRY_HOSTNAME=dev.registry.tanzu.vmware.com
+        export INSTALL_REGISTRY_USERNAME=$TANZU_NETWORK_USER
+        export INSTALL_REGISTRY_PASSWORD=$TANZU_NETWORK_PASSWORD
+
+        tanzu secret registry add dev-registry --username ${INSTALL_REGISTRY_USERNAME} --password ${INSTALL_REGISTRY_PASSWORD} --server ${INSTALL_REGISTRY_HOSTNAME} --export-to-all-namespaces --yes --namespace tap-install
+
+        tanzu package install tap-gui -p tap-gui.tanzu.vmware.com -v 1.1.0-build.1 --values-file .config/tap-gui-values.yaml -n tap-install
+
+        kc port-forward service/server 7000 -n tap-gui #access gui on localhost:7000
+       
+    }
+
 #################### main ##########################
 
 case $1 in
