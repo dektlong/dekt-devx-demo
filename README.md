@@ -57,8 +57,9 @@ run ```./builder.sh init [aks / eks]``` this will do the following
 
 - follow workload creation using ```tanzu apps workload list -n dekt-apps```
 
-- access tap gui accelerators using the ```cloud-native-devsops``` tag
+- access tap gui accelerators using the ```cloud-native-devsecops``` tag
   - create ```source-to-api``` supplychain using the microservices-supplychain accelerator with ```web-backend``` workload type 
+    - include testing, binding and scanning phases
   - create ```source-to-url``` supplychain using the microservices-supplychain accelerator with ```web-frontend``` workload type
 
 - highlight the separation of concerns between supplychain (AppOps) and supplychain-templates (Platform Ops)
