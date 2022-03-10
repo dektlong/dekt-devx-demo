@@ -25,7 +25,7 @@
         
         setup-demo-examples
 
-        scripts/ingress-handler.sh tap
+        platform/scripts/ingress-handler.sh tap
 
         tanzu package installed update tap --package-name tap.tanzu.vmware.com --version $TAP_VERSION -n tap-install -f .config/tap-values.yaml
 
@@ -38,7 +38,7 @@
         export INSTALL_REGISTRY_HOSTNAME=registry.tanzu.vmware.com
         export INSTALL_REGISTRY_USERNAME=$TANZU_NETWORK_USER
         export INSTALL_REGISTRY_PASSWORD=$TANZU_NETWORK_PASSWORD
-        pushd config-templates/tanzu-cluster-essentials
+        pushd platform/tanzu-cluster-essentials
         ./install.sh
         pushd
 
@@ -73,26 +73,24 @@
     #setup-demo-examples
     setup-demo-examples () {
  
-        #accelerators 
-        kustomize build supplychain/accelerators | kubectl apply -f -
-
-        #supplychain (default + web-backend 'dummy')
+        #setup apps namespace
         tanzu secret registry add registry-credentials --server $PRIVATE_REPO --username $PRIVATE_REPO_USER --password $PRIVATE_REPO_PASSWORD -n $DEMO_APPS_NS
-        kubectl apply -f .config/supplychain-rbac.yaml -n $DEMO_APPS_NS
-        kubectl apply -f supplychain/supplychain-src-to-api.yaml
+        kapp -y deploy --app rmq-operator --file https://github.com/rabbitmq/cluster-operator/releases/download/v1.9.0/cluster-operator.yml
+        kubectl apply -f platform/dev-ns-setup -n $DEMO_APPS_NS
 
-        #cluster wide disable scale2zero
-        kubectl apply -f config-templates/disable-scale2zero.yaml 
+        #accelerators 
+        kustomize build platform/accelerators | kubectl apply -f -
+
+        #add source-to-api custom supply chain
+        kubectl apply -f platform/source-to-api-supplychain
 
         #brownfield API
         kubectl create ns $BROWNFIELD_NS
         kubectl create secret generic sso-credentials --from-env-file=.config/sso-creds.txt -n api-portal
         kustomize build workloads/brownfield-apis | kubectl apply -f -
 
-        #rabbitmq (operator and instance)
-        kapp -y deploy --app rmq-operator --file https://github.com/rabbitmq/cluster-operator/releases/download/v1.9.0/cluster-operator.yml
-        kubectl apply -f supplychain/templates/rabbitmq-clusterrole.yaml
-        kubectl apply -f workloads/devx-mood/rabbitmq-instance.yaml -n $DEMO_APPS_NS
+        #rabbitmq instance
+        kubectl apply -f workloads/devx-mood/reading-rabbitmq-instance.yaml -n $DEMO_APPS_NS
     }
     
     #deploy demo workloads
@@ -156,7 +154,9 @@
 
         tanzu package install tap-gui -p tap-gui.tanzu.vmware.com -v 1.1.0-build.1 --values-file .config/tap-gui-values.yaml -n tap-install
 
-        kubectl port-forward service/server 7000 -n tap-gui #access gui on localhost:7000
+        open -a Terminal platform/scripts/local-backstage.sh
+
+        
        
     }
 
@@ -166,10 +166,10 @@ case $1 in
 init)
     case $2 in
     aks)
-        scripts/aks-handler.sh create
+        platform/scripts/aks-handler.sh create
         ;;
     eks)
-        scripts/eks-handler.sh create
+        platform/scripts/eks-handler.sh create
         ;;
     *)
         incorrect-usage
@@ -180,22 +180,21 @@ init)
 cleanup)
     case $2 in
     aks)
-        scripts/aks-handler.sh delete
+        platform/scripts/aks-handler.sh delete
         ;;
     eks)
-        scripts/eks-handler.sh delete
+        platform/scripts/eks-handler.sh delete
         ;;
     *)
         incorrect-usage
         ;;
     esac
-    rm ~/Downloads/workload.yaml
     ;;
 reset)
     reset
     ;;
-deploy)
-    deploy
+dev)
+    install-gui-dev
     ;;
 runme)
     $2

@@ -7,22 +7,22 @@ This repo contains artifacts to run a demo illustrating the vision and capabilit
 
 - AKS and/or EKS access configured to support:
   - Loadbalancer 
-  - Clustes creation permissions to match the specs in ```scripts/eks-handler.sh``` and ```scripts/aks-handler.sh```
+  - Clustes creation permissions to match the specs in ```platform/scripts/eks-handler.sh``` and ```platform/scripts/aks-handler.sh```
 
-- Rename the folder ```config-template``` to  ```.config``` 
+- Rename the folder ```config-CHANGEME``` to  ```.config``` 
 
-- Fill blank crednetials in ```.config/tap-values.yaml```
-
-- Update capatilized values in ```.config/tap-values.yaml```
+- Update values ```.config/tap-values.yaml```
 
   - ```$DOMAIN``` needs to be enabled to add wild-card DNS record to
 
-- if planning to demo api-grid components 
+- Update values ```.config/config-values.yaml```
+
+- If planning to demo api-grid components 
   - Update ```workload/dekt4pets/dekt4pets-backend.yml```  to match ```tap-values```
   - update ```serverUrl:``` value in ```gateway/dekt4pets-gatway.yml``` and ```gateway/dekt4pets-gatway-dev.yml``` to match tap-values
   - Update ```host:``` value in ```workload/brownfield-apis``` files to match ```tap-values```
 
-- The ingress setup is based on GoDaddy DNS, if you are using a different one, please modify ```scripts/ingress-handler.sh```
+- The ingress setup is based on GoDaddy DNS, if you are using a different one, please modify ```platform/scripts/ingress-handler.sh```
 
 ## Installation
 
@@ -31,11 +31,13 @@ This repo contains artifacts to run a demo illustrating the vision and capabilit
 - run ```./builder.sh init [aks / eks]```
   - install TAP full profile
   - install Spring Cloud Gateway (via HELM)
-  - install the following Demo components 
+  - install the following Demo components (see ```/platform``` folder)
     - App Accelerators
-    - Source-to-api supply-chain
+    - Default supplychain configs for apps namespace
+    - Grype scanning policy
+    - Tekton pipline run 
     - brownfield APIs (routes and gateways)
-    - rabbitMQ operator and resource
+    - RabbitMQ operator, cluster resources and instance
   - setup dns and ingress rules 
 
 ### Add API-grid specific setup
@@ -49,9 +51,9 @@ This repo contains artifacts to run a demo illustrating the vision and capabilit
 ### Core 
 
 - access tap gui accelerators via the ```cloud-native-devs``` tag
-  - create ```devx-sensors``` workload using the boot-backend accelerator 
-  - create ```devx-portal```  workload using the web-function accelerator 
-  - use ```devx-mood-app```  as the parent application in both cases
+  - create ```sensors``` workload using the boot-backend accelerator 
+  - create ```portal```  workload using the web-function accelerator 
+  - use ```devx-mood```  as the parent application in both cases
 
 - access the api-portal and highlight how discovery of existing APIs prior to creating new ones is done
 
@@ -70,7 +72,7 @@ This repo contains artifacts to run a demo illustrating the vision and capabilit
 
 - access tap gui accelerators using the ```cloud-native-devsops``` tag
   - create ```source-to-api``` supplychain using the microservices-supplychain accelerator with ```web-backend``` workload type 
-  - create ```source-to-api``` supplychain using the microservices-supplychain accelerator with ```web-frontend``` workload type
+  - create ```source-to-url``` supplychain using the microservices-supplychain accelerator with ```web-frontend``` workload type
 
 - highlight the separation of concerns between supplychain (AppOps) and supplychain-templates (Platform Ops)
 
@@ -79,17 +81,17 @@ This repo contains artifacts to run a demo illustrating the vision and capabilit
  
 
 - show supply chain and build service behind the scenes 
-  - ```tanzu apps workload get mood-sensors -n DEMO_APPS_NS```
-  - ```tanzu apps workload tail mood-sensors --since 100m --timestamp  -n DEMO_APPS_NS```
+  - ```tanzu apps workload get sensors -n DEMO_APPS_NS```
+  - ```tanzu apps workload tail sensors --since 100m --timestamp  -n DEMO_APPS_NS```
 
 - access the live url of portal workload and show the call back to the sensors APIs 
 
 - register a new entity in tap backstage gui
   -```https://github.com/dektlong/_DevXDemo/blob/main/workloads/devx-mood/backstage/catalog-info.yaml```
   - show system view diagram via ```devx-mood-app```
-  - click down on ```mood-sensors``` to show application live view
+  - click down on ```sensors``` to show application live view
 
-- make a code change in ```mood-portal``` app to bypass the backend api calls 
+- make a code change in ```portal``` app to bypass the backend api calls 
   - https://github.com/dektlong/mood-portal/blob/main/main.go , change ALWAYS_HAPPY flag to true 
   - show how supply chain pickup the change and re run the path to prod
     - ```tanzu apps workload get mood-portal -n dekt-apps```
@@ -241,7 +243,19 @@ tanzu apps cluster-supply-chain list
 
 tanzu apps workload get sensors -n dekt-apps
 
+kc get ServiceBinding -n dekt-apps
+
+kubectl tree workload sensors -n dekt-apps
+kubectl describe imagescan.scanning.apps.tanzu.vmware.com/sensors -n dekt-apps
+
+#update policy to ignore critical
+delete and re-deploy workload
+
 tanzu apps workload tail sensors --since 100m --timestamp  -n dekt-apps
 
 https://github.com/dektlong/_DevXDemo/blob/main/workloads/devx-mood/backstage/catalog-info.yaml
+
+#show system diagram
+#show Rabbit binding as env var in ALV
+
 

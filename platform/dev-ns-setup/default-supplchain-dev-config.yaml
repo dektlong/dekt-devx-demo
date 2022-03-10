@@ -1,3 +1,4 @@
+#setup dev namespace to support supplychains, scanning and rabbitmq roles
 apiVersion: v1
 kind: Secret
 metadata:

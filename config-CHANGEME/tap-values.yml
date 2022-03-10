@@ -9,7 +9,8 @@ buildservice:
   tanzunet_password: ""
   descriptor_name: "tap-1.0.0-full"
   enable_automatic_dependency_updates: true
-supply_chain: basic
+
+supply_chain: testing_scanning
 
 ootb_supply_chain_basic:
   registry:
@@ -17,6 +18,14 @@ ootb_supply_chain_basic:
     repository: ""
   git_ops:
     ssh_secret: ""
+
+ootb_supply_chain_testing_scanning:
+  registry:
+    server: ""
+    repository: ""
+  gitops:
+    ssh_secret: ""
+
 
 learningcenter:
   ingressDomain: ""
