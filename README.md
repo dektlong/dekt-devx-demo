@@ -64,12 +64,15 @@ run ```./builder.sh init [aks / eks]``` this will do the following
 - highlight the separation of concerns between supplychain (AppOps) and supplychain-templates (Platform Ops)
 
 - show applied supply chains using ```tanzu apps cluster-supply-chain list```
-  - Note! The ```source-to-api``` supplychain is not active, the sensor is using the source-to-url as well 
- 
 
-- show supply chain and build service behind the scenes 
-  - ```tanzu apps workload get sensors -n DEMO_APPS_NS```
-  - ```tanzu apps workload tail sensors --since 100m --timestamp  -n DEMO_APPS_NS```
+- show supply chain milestones ```tanzu apps workload get sensors -n DEMO_APPS_NS```
+  - pipeline testing
+  - scanning
+  - build image
+  - apply conventions
+  - live url via CNR
+
+- show supplychain logs  ```tanzu apps workload tail sensors --since 100m --timestamp  -n DEMO_APPS_NS```
 
 - access the live url of portal workload and show the call back to the sensors APIs 
 
