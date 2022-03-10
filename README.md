@@ -31,13 +31,15 @@ This repo contains artifacts to run a demo illustrating the vision and capabilit
 - run ```./builder.sh init [aks / eks]```
   - install TAP full profile
   - install Spring Cloud Gateway (via HELM)
-  - install the following Demo components (see ```/platform``` folder)
-    - App Accelerators
-    - Default supplychain configs for apps namespace
-    - Grype scanning policy
-    - Tekton pipline run 
-    - brownfield APIs (routes and gateways)
-    - RabbitMQ operator, cluster resources and instance
+  - install the following Demo components 
+    - App Accelerators (see ```/platform/accelerators```)
+    - Default supplychain configs for apps namespace (see ```/platform/supplychain```)
+    - Grype scanning policy (see ```/platform/supplychain```)
+    - Tekton pipline run (see ```/platform/supplychain```)
+    - Custom ```source-to-api``` supplychain (see ```/platform/supplychain```)
+    - brownfield APIs (routes and gateways) (see ```/workloads/brownfield-apis```)
+    - RabbitMQ operator and cluster resources (see ```/platform/supplychain```)
+    - RabbitMQ instances (see ```/workloads/devx-mood```)
   - setup dns and ingress rules 
 
 ### Add API-grid specific setup
@@ -246,6 +248,7 @@ tanzu apps workload get sensors -n dekt-apps
 kc get ServiceBinding -n dekt-apps
 
 kubectl tree workload sensors -n dekt-apps
+
 kubectl describe imagescan.scanning.apps.tanzu.vmware.com/sensors -n dekt-apps
 
 #update policy to ignore critical
@@ -254,8 +257,5 @@ delete and re-deploy workload
 tanzu apps workload tail sensors --since 100m --timestamp  -n dekt-apps
 
 https://github.com/dektlong/_DevXDemo/blob/main/workloads/devx-mood/backstage/catalog-info.yaml
-
-#show system diagram
-#show Rabbit binding as env var in ALV
 
 

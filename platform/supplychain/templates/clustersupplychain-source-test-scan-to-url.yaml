@@ -1,11 +1,8 @@
 apiVersion: carto.run/v1alpha1
 kind: ClusterSupplyChain
 metadata:
-  name: source-to-api1
+  name: source-test-scan-to-url
 spec:
-  selector:
-    apps.tanzu.vmware.com/has-tests: 'true'
-    apps.tanzu.vmware.com/workload-type: web-backend
   params:
   - default: main
     name: gitops_branch
@@ -104,5 +101,7 @@ spec:
     templateRef:
       kind: ClusterTemplate
       name: config-writer-template
-  
+  selector:
+    apps.tanzu.vmware.com/has-tests: 'true'
+    apps.tanzu.vmware.com/workload-type: web
 

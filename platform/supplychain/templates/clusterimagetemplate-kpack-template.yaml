@@ -1,0 +1,67 @@
+apiVersion: carto.run/v1alpha1
+kind: ClusterImageTemplate
+metadata:
+  name: kpack-template
+spec:
+  imagePath: ".status.latestImage"
+  params:
+  - default: default
+    name: serviceAccount
+  - default: default
+    name: clusterBuilder
+  - default: {}
+    name: registry
+  ytt: |
+    #@ load("@ytt:data", "data")
+
+    #@ def param(key):
+    #@   if not key in data.values.params:
+    #@     return None
+    #@   end
+    #@   return data.values.params[key]
+    #@ end
+
+    #@ def image():
+    #@   return "/".join([
+    #@    data.values.params.registry.server,
+    #@    data.values.params.registry.repository,
+    #@    "-".join([
+    #@      data.values.workload.metadata.name,
+    #@      data.values.workload.metadata.namespace,
+    #@    ])
+    #@   ])
+    #@ end
+
+    apiVersion: kpack.io/v1alpha2
+    kind: Image
+    metadata:
+      name: #@ data.values.workload.metadata.name
+      labels:
+        app.kubernetes.io/component: build
+        #@ if/end hasattr(data.values.workload.metadata, "labels") and hasattr(data.values.workload.metadata.labels, "app.kubernetes.io/part-of"):
+        app.kubernetes.io/part-of: #@ data.values.workload.metadata.labels["app.kubernetes.io/part-of"]
+    spec:
+      tag: #@ image()
+      serviceAccountName: #@ data.values.params.serviceAccount
+      builder:
+        kind: ClusterBuilder
+        name: #@ data.values.params.clusterBuilder
+      source:
+        blob:
+          url: #@ data.values.source.url
+        #@ if/end hasattr(data.values.workload.spec.source, "subPath"):
+        subPath: #@ data.values.workload.spec.source.subPath
+      build:
+        env:
+        - name: BP_OCI_SOURCE
+          value: #@ data.values.source.revision
+        #@ if/end param("live-update"):
+        - name: BP_LIVE_RELOAD_ENABLED
+          value: 'true'
+        #@ if hasattr(data.values.workload.spec.build, "env"):
+        #@ for var in data.values.workload.spec.build.env:
+        - name: #@ var.name
+          value: #@ var.value
+        #@ end
+        #@ end
+

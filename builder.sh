@@ -27,7 +27,7 @@
 
         platform/scripts/ingress-handler.sh tap
 
-        tanzu package installed update tap --package-name tap.tanzu.vmware.com --version $TAP_VERSION -n tap-install -f .config/tap-values.yaml
+        update-tap
 
     }
 
@@ -76,7 +76,7 @@
         #setup apps namespace
         tanzu secret registry add registry-credentials --server $PRIVATE_REPO --username $PRIVATE_REPO_USER --password $PRIVATE_REPO_PASSWORD -n $DEMO_APPS_NS
         kapp -y deploy --app rmq-operator --file https://github.com/rabbitmq/cluster-operator/releases/download/v1.9.0/cluster-operator.yml
-        kubectl apply -f platform/dev-ns-setup -n $DEMO_APPS_NS
+        kubectl apply -f platform/supplychain -n $DEMO_APPS_NS
 
         #accelerators 
         kustomize build platform/accelerators | kubectl apply -f -
@@ -107,7 +107,7 @@
         tanzu apps workload delete sensors -n $DEMO_APPS_NS -y
         kubectl delete pod -l app=backstage -n tap-gui
         kubectl -n app-live-view delete pods -l=name=application-live-view-connector
-        tanzu package installed update tap --package-name tap.tanzu.vmware.com --version $TAP_VERSION -n tap-install -f .config/tap-values.yaml
+        update-tap
     }
 
     #incorrect usage
@@ -139,6 +139,12 @@
         docker login $PRIVATE_REPO -u $PRIVATE_REPO_USER -p $PRIVATE_REPO_PASSWORD
         
         $GW_INSTALL_DIR/scripts/relocate-images.sh $PRIVATE_REPO/dekt-system
+    }
+
+    #update-tap
+    update-tap() {
+
+        tanzu package installed update tap --package-name tap.tanzu.vmware.com --version $TAP_VERSION -n tap-install -f .config/tap-values.yaml
     }
 
     #install-gui-dev
