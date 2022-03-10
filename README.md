@@ -5,6 +5,7 @@ This repo contains artifacts to run a demo illustrating the vision and capabilit
 
 ## Preperations 
 
+### Core
 - AKS and/or EKS access configured to support:
   - Loadbalancer 
   - Clustes creation permissions to match the specs in ```platform/scripts/eks-handler.sh``` and ```platform/scripts/aks-handler.sh```
@@ -17,7 +18,7 @@ This repo contains artifacts to run a demo illustrating the vision and capabilit
 
 - Update values ```.config/config-values.yaml```
 
-- If planning to demo api-grid components 
+### API-grid only
   - Update ```workload/dekt4pets/dekt4pets-backend.yml```  to match ```tap-values```
   - update ```serverUrl:``` value in ```gateway/dekt4pets-gatway.yml``` and ```gateway/dekt4pets-gatway-dev.yml``` to match tap-values
   - Update ```host:``` value in ```workload/brownfield-apis``` files to match ```tap-values```
@@ -37,7 +38,7 @@ This repo contains artifacts to run a demo illustrating the vision and capabilit
     - Grype scanning policy (see ```/platform/supplychain```)
     - Tekton pipline run (see ```/platform/supplychain```)
     - Custom ```source-to-api``` supplychain (see ```/platform/supplychain```)
-    - brownfield APIs (routes and gateways) (see ```/workloads/brownfield-apis```)
+    - brownfield APIs routes and gateways (see ```/workloads/brownfield-apis```)
     - RabbitMQ operator and cluster resources (see ```/platform/supplychain```)
     - RabbitMQ instances (see ```/workloads/devx-mood```)
   - setup dns and ingress rules 
