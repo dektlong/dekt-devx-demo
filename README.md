@@ -5,7 +5,6 @@ This repo contains artifacts to run a demo illustrating the vision and capabilit
 
 ## Preperations 
 
-### Core
 - AKS and/or EKS access configured to support:
   - Loadbalancer 
   - Clustes creation permissions to match the specs in ```platform/scripts/eks-handler.sh``` and ```platform/scripts/aks-handler.sh```
@@ -18,18 +17,11 @@ This repo contains artifacts to run a demo illustrating the vision and capabilit
 
 - Update values ```.config/config-values.yaml```
 
-### API-grid only
-  - Update ```workload/dekt4pets/dekt4pets-backend.yml```  to match ```tap-values```
-  - update ```serverUrl:``` value in ```gateway/dekt4pets-gatway.yml``` and ```gateway/dekt4pets-gatway-dev.yml``` to match tap-values
-  - Update ```host:``` value in ```workload/brownfield-apis``` files to match ```tap-values```
-
 - The ingress setup is based on GoDaddy DNS, if you are using a different one, please modify ```platform/scripts/ingress-handler.sh```
 
 ## Installation
 
-### Core
-
-- run ```./builder.sh init [aks / eks]```
+run ```./builder.sh init [aks / eks]``` this will do the following
   - install TAP full profile
   - install Spring Cloud Gateway (via HELM)
   - install the following Demo components 
@@ -43,15 +35,7 @@ This repo contains artifacts to run a demo illustrating the vision and capabilit
     - RabbitMQ instances (see ```/workloads/devx-mood```)
   - setup dns and ingress rules 
 
-### Add API-grid specific setup
-- ```./api-grid.sh init```
-- create the ```dekt4pets-backend``` and ```dekt4pets-frontend``` images
-- setup SSO and app configs 
-- deploy dekt4pets-dev-gateway
-
 ## Running the demo 
-
-### Core 
 
 - access tap gui accelerators via the ```cloud-native-devs``` tag
   - create ```sensors``` workload using the boot-backend accelerator 
@@ -100,17 +84,6 @@ This repo contains artifacts to run a demo illustrating the vision and capabilit
     - ```tanzu apps workload get mood-portal -n dekt-apps```
   - show a happy dog with sensors ignored
 
-### API-grid specific example
-- deploy dekt4pets-backend ```./api-grid.sh backend```   
-  - show in api-portal dekt4pets-dev item added in real time  and how the front end team can discover and re-use backend APIs  
-
-- deploy dekt4pets-frontend  ```./api-grid.sh frontend``` 
-  - show in api portal how the frontend routes are added in real time 
-- deploy a production  gateway with ingress access ```./api-grid.sh dekt4pets```
-  - show in api-portal a new item dekt4pets
-  - highlight the separation between routes and gateway runtime 
-- Note! these apps are not using tap supply chain 
-
 ## Cleanup
 
 - full cleanup to delete the cluster  ```./builder.sh cleanup [aks/eks]```
@@ -120,8 +93,30 @@ This repo contains artifacts to run a demo illustrating the vision and capabilit
 ### Enjoy!
 
 
-
 # Extras
+
+## API-grid demo addition
+### Preperations
+  - Update ```workload/dekt4pets/dekt4pets-backend.yml```  to match ```tap-values```
+  - update ```serverUrl:``` value in ```gateway/dekt4pets-gatway.yml``` and ```gateway/dekt4pets-gatway-dev.yml``` to match tap-values
+  - Update ```host:``` value in ```workload/brownfield-apis``` files to match ```tap-values```
+
+### Installation
+- ```./api-grid.sh init```
+- create the ```dekt4pets-backend``` and ```dekt4pets-frontend``` images
+- setup SSO and app configs 
+- deploy dekt4pets-dev-gateway
+
+### Running the demo
+- deploy dekt4pets-backend ```./api-grid.sh backend```   
+  - show in api-portal dekt4pets-dev item added in real time  and how the front end team can discover and re-use backend APIs  
+
+- deploy dekt4pets-frontend  ```./api-grid.sh frontend``` 
+  - show in api portal how the frontend routes are added in real time 
+- deploy a production  gateway with ingress access ```./api-grid.sh dekt4pets```
+  - show in api-portal a new item dekt4pets
+  - highlight the separation between routes and gateway runtime 
+- Note! these apps are not using tap supply chain 
 
 ### Inner loop
 - Access app accelerator developer instance  on ```acc.<APPS_APPS_SUB_DOMAIN>.<DOMAIN>```
