@@ -75,21 +75,29 @@
  
         #setup apps namespace
         tanzu secret registry add registry-credentials --server $PRIVATE_REPO --username $PRIVATE_REPO_USER --password $PRIVATE_REPO_PASSWORD -n $DEMO_APPS_NS
-        kapp -y deploy --app rmq-operator --file https://github.com/rabbitmq/cluster-operator/releases/download/v1.9.0/cluster-operator.yml
-        kubectl apply -f platform/supplychain -n $DEMO_APPS_NS
+        kubectl apply -f platform/supplychain/supplychain-rbac.yaml -n $DEMO_APPS_NS
+        kubectl apply -f platform/supplychain/disable-scale2zero.yaml
 
         #accelerators 
         kustomize build platform/accelerators | kubectl apply -f -
 
-        #add source-to-api custom supply chain
-        kubectl apply -f platform/source-to-api-supplychain
+        #source-to-api custom supply chain
+        kubectl apply -f .config/source-to-api-supplychain.yaml
+
+        #scan policy
+        kubectl apply -f platform/supplychain/scan-policy.yaml -n $DEMO_APPS_NS
+
+        #testing pipeline
+        kubectl apply -f platform/supplychain/tekton-pipeline.yaml -n $DEMO_APPS_NS
 
         #brownfield API
         kubectl create ns $BROWNFIELD_NS
         kubectl create secret generic sso-credentials --from-env-file=.config/sso-creds.txt -n api-portal
         kustomize build workloads/brownfield-apis | kubectl apply -f -
 
-        #rabbitmq instance
+        #rabbitmq service
+        kapp -y deploy --app rmq-operator --file https://github.com/rabbitmq/cluster-operator/releases/download/v1.9.0/cluster-operator.yml
+        kubectl apply -f platform/supplychain/rabbitmq-cluster-config.yaml -n $DEMO_APPS_NS
         kubectl apply -f workloads/devx-mood/reading-rabbitmq-instance.yaml -n $DEMO_APPS_NS
     }
     

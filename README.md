@@ -17,7 +17,7 @@ This repo contains artifacts to run a demo illustrating the vision and capabilit
 
 - Update your registry details in ```source-to-api-supplychain```
   - Note: since this is a custom supply chain, the registry values defined in ```tap-values``` are NOT applied automatically
-  
+
 - Update values ```.config/config-values.yaml```
 
 - The ingress setup is based on GoDaddy DNS, if you are using a different one, please modify ```platform/scripts/ingress-handler.sh```
@@ -253,9 +253,6 @@ kc get ServiceBinding -n dekt-apps
 kubectl tree workload sensors -n dekt-apps
 
 kubectl describe imagescan.scanning.apps.tanzu.vmware.com/sensors -n dekt-apps
-
-#update policy to ignore critical
-delete and re-deploy workload
 
 tanzu apps workload tail sensors --since 100m --timestamp  -n dekt-apps
 
