@@ -1,7 +1,7 @@
 apiVersion: carto.run/v1alpha1
 kind: ClusterSupplyChain
 metadata:
-  name: source-to-api
+  name: dekt-path2prod
 spec:
   selector:
     apps.tanzu.vmware.com/has-tests: 'true'

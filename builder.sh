@@ -81,8 +81,8 @@
         #accelerators 
         kustomize build platform/accelerators | kubectl apply -f -
 
-        #source-to-api custom supply chain
-        kubectl apply -f .config/source-to-api-supplychain.yaml
+        #dekt-path2prod custom supply chain
+        kubectl apply -f .config/dekt-path2prod.yaml
 
         #scan policy
         kubectl apply -f platform/supplychain/scan-policy.yaml -n $DEMO_APPS_NS
@@ -168,7 +168,8 @@
 
         tanzu package install tap-gui -p tap-gui.tanzu.vmware.com -v 1.1.0-build.1 --values-file .config/tap-gui-values.yaml -n tap-install
 
-        open -a Terminal platform/scripts/local-backstage.sh
+        #open -a Terminal platform/scripts/local-backstage.sh
+        kubectl port-forward service/server 7000 -n tap-gui
 
         
        

@@ -15,7 +15,7 @@ This repo contains artifacts to run a demo illustrating the vision and capabilit
 
   - ```$DOMAIN``` needs to be enabled to add wild-card DNS record to
 
-- Update your registry details in ```source-to-api-supplychain```
+- Update your registry details in ```dekt-path2prod``` custome supplychain 
   - Note: since this is a custom supply chain, the registry values defined in ```tap-values``` are NOT applied automatically
 
 - Update values ```.config/config-values.yaml```
@@ -32,7 +32,7 @@ run ```./builder.sh init [aks / eks]``` this will do the following
     - Default supplychain configs for apps namespace (see ```/platform/supplychain```)
     - Grype scanning policy (see ```/platform/supplychain```)
     - Tekton pipline run (see ```/platform/supplychain```)
-    - Custom ```source-to-api``` supplychain (see ```/platform/supplychain```)
+    - Custom ```dekt-path2prod``` supplychain (see ```/platform/supplychain```)
     - brownfield APIs routes and gateways (see ```/workloads/brownfield-apis```)
     - RabbitMQ operator and cluster resources (see ```/platform/supplychain```)
     - RabbitMQ instances (see ```/workloads/devx-mood```)
@@ -61,9 +61,9 @@ run ```./builder.sh init [aks / eks]``` this will do the following
 - follow workload creation using ```tanzu apps workload list -n dekt-apps```
 
 - access tap gui accelerators using the ```cloud-native-devsecops``` tag
-  - create ```source-to-api``` supplychain using the microservices-supplychain accelerator with ```web-backend``` workload type 
-    - include testing, binding and scanning phases
-  - create ```source-to-url``` supplychain using the microservices-supplychain accelerator with ```web-frontend``` workload type
+  - create ```dekt-path2prod``` supplychain using the microservices-supplychain accelerator with ```web-backend``` workload type 
+    - include testing, binding and scanning phases, leveraging the out of the box supply-chain templates
+  - Explain that the ```portal``` workload is using the out-of-the-box ```source-to-url``` supply chain as configured in ```tap-values``
 
 - highlight the separation of concerns between supplychain (AppOps) and supplychain-templates (Platform Ops)
 
