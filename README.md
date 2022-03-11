@@ -15,6 +15,9 @@ This repo contains artifacts to run a demo illustrating the vision and capabilit
 
   - ```$DOMAIN``` needs to be enabled to add wild-card DNS record to
 
+- Update your registry details in ```source-to-api-supplychain```
+  - Note: since this is a custom supply chain, the registry values defined in ```tap-values``` are NOT applied automatically
+  
 - Update values ```.config/config-values.yaml```
 
 - The ingress setup is based on GoDaddy DNS, if you are using a different one, please modify ```platform/scripts/ingress-handler.sh```
