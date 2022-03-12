@@ -65,11 +65,11 @@ tap_gui:
         baseUrl: http://tap-gui.sys.$DOMAIN
     catalog:
       - type: url
-          target: https://github.com/dektlong/_DevXDemo/blob/main/platform/backstage/default/catalog-info.yaml
-        - type: url
-          target: https://github.com/dektlong/_DevXDemo/blob/main/platform/backstage/dekt/catalog-info.yaml
-        - type: url
-          target: https://github.com/dektlong/_DevXDemo/blob/main/platform/backstage/yelb/catalog-info.yaml
+        target: https://github.com/dektlong/_DevXDemo/blob/main/platform/backstage/default/catalog-info.yaml
+      - type: url
+        target: https://github.com/dektlong/_DevXDemo/blob/main/platform/backstage/dekt/catalog-info.yaml
+      - type: url
+        target: https://github.com/dektlong/_DevXDemo/blob/main/platform/backstage/yelb/catalog-info.yaml
     backend:
         baseUrl: http://tap-gui.cnr.$DOMAIN
         cors:
