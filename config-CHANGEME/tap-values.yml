@@ -59,22 +59,23 @@ accelerator:
 tap_gui:
   service_type: ClusterIP
   ingressEnabled: "true"
-  ingressDomain: "cnr.$DOMAIN"
+  ingressDomain: "sys.$DOMAIN"
   app_config:
     app:
-        baseUrl: http://tap-gui.cnr.$DOMAIN
+        baseUrl: http://tap-gui.sys.$DOMAIN
     catalog:
-      locations:
+      - type: url
+          target: https://github.com/dektlong/_DevXDemo/blob/main/platform/backstage/default/catalog-info.yaml
         - type: url
-          target: https://github.com/dektlong/_DevXDemo/blob/main/config-templates/backstage/default/catalog-info.yaml
+          target: https://github.com/dektlong/_DevXDemo/blob/main/platform/backstage/dekt/catalog-info.yaml
         - type: url
-          target: https://github.com/dektlong/_DevXDemo/blob/main/config-templates/backstage/yelb/catalog-info.yaml
-        - type: url
-          target: https://github.com/dektlong/_DevXDemo/blob/main/config-templates/backstage/dekt/catalog-info.yaml
+          target: https://github.com/dektlong/_DevXDemo/blob/main/platform/backstage/yelb/catalog-info.yaml
     backend:
         baseUrl: http://tap-gui.cnr.$DOMAIN
         cors:
             origin: http://tap-gui.cnr.$DOMAIN
+    auth:
+      allowGuestAccess: true
 
 metadata_store:
   app_service_type: LoadBalancer # (optional) Defaults to LoadBalancer. Change to NodePort for distributions that don't support LoadBalancer
