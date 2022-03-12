@@ -64,6 +64,7 @@ tap_gui:
     app:
         baseUrl: http://tap-gui.sys.$DOMAIN
     catalog:
+      locations:
       - type: url
         target: https://github.com/dektlong/_DevXDemo/blob/main/platform/backstage/default/catalog-info.yaml
       - type: url
