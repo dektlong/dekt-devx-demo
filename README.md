@@ -234,21 +234,25 @@ run ```./builder.sh init [aks / eks]``` this will do the following
 
 ### Demo helper commands
 
+## TAP install
+
 tanzu package install tap -p tap.tanzu.vmware.com -v 1.0.1  --values-file tap-values.yaml -n tap-install
 
 tanzu package installed list -n tap-install
 
+
+## create workloads
 tanzu apps workload create -f workloads/devx-mood/mood-sensors.yaml -y -n dekt-apps
 
 tanzu apps workload create -f workloads/devx-mood/mood-portal.yaml -y -n dekt-apps
 
 tanzu apps workload list -n dekt-apps
 
+## supply chains
 tanzu apps cluster-supply-chain list
 
+## track workload progress
 tanzu apps workload get sensors -n dekt-apps
-
-kc get ServiceBinding -n dekt-apps
 
 kubectl tree workload sensors -n dekt-apps
 
@@ -256,6 +260,12 @@ kubectl describe imagescan.scanning.apps.tanzu.vmware.com/sensors -n dekt-apps
 
 tanzu apps workload tail sensors --since 100m --timestamp  -n dekt-apps
 
+kc get ServiceBinding -n dekt-apps
+
+## backstage
 https://github.com/dektlong/_DevXDemo/blob/main/workloads/devx-mood/backstage/catalog-info.yaml
 
+## portal code change
+tanzu apps workload get portal -n dekt-apps
 
+kc get pods -n dekt-apps

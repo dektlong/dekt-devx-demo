@@ -168,7 +168,7 @@
 
         tanzu package install tap-gui -p tap-gui.tanzu.vmware.com -v 1.1.0-build.1 --values-file .config/tap-gui-values.yaml -n tap-install
 
-        #open -a Terminal platform/scripts/local-backstage.sh
+        #platform/scripts/ingress-handler.sh gui-dev
         kubectl port-forward service/server 7000 -n tap-gui
 
         
