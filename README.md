@@ -275,8 +275,12 @@ tanzu apps workload get portal -n dekt-apps
 kc get pods -n dekt-apps
 
 ### multi k8s
-kc config use-context dekt-eks
+kc config get-contexts
+kc config use-context dekel@dekt-eks.us-west-1.eksctl.io
+kc config use-context dekt-aks
+
 tanzu apps workload create -f workloads/devx-mood/mood-portal.yaml -y -n dekt-apps
+tanzu apps workload get portal -n dekt-apps
 
 kc config use-context dekt-aks
 tanzu apps workload create -f workloads/devx-mood/mood-portal.yaml -y -n dekt-apps
