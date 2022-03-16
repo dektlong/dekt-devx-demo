@@ -2,7 +2,10 @@
 
 source .config/config-values.env
 
+cluster_name=$CLUSTER_NAME-"aks"
+
 resourceGroup="tap-aks"
+
 
 #create-aks-cluster
 create-aks-cluster() {
@@ -12,29 +15,29 @@ create-aks-cluster() {
 	nodeSize="Standard_DS3_v2" # 4 vCPU, 14GB memory, 28GB temp disk
 
 	echo
-	echo "==========> Creating AKS cluster named $CLUSTER_NAME with $numberOfNodes nodes of size $nodeSize ..."
+	echo "==========> Creating AKS cluster named $cluster_name with $numberOfNodes nodes of size $nodeSize ..."
 	echo
 	
 	#make sure your run 'az login' and use WorkspaceOn SSO prior to running this
 	
 	az group create --name $resourceGroup --location westus
 
-	az aks create --name $CLUSTER_NAME \
+	az aks create --name $cluster_name \
 		--resource-group $resourceGroup \
 		--node-count $numberOfNodes \
 		--node-vm-size $nodeSize \
 		--generate-ssh-keys 
 	#	--enable-addons http_application_routing 
 
-	az aks get-credentials --overwrite-existing --resource-group $resourceGroup --name $CLUSTER_NAME
+	az aks get-credentials --overwrite-existing --resource-group $resourceGroup --name $cluster_name
 }
 
 delete-aks-cluster() {
 	
 	echo
-	echo "Starting deleting resources of AKS cluster $CLUSTER_NAME ..."
+	echo "Starting deleting resources of AKS cluster $cluster_name ..."
 	echo
-	az aks delete --name $CLUSTER_NAME --resource-group $resourceGroup --yes
+	az aks delete --name $cluster_name --resource-group $resourceGroup --yes
 
 }
 #################### main #######################

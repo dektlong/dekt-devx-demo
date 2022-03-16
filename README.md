@@ -37,9 +37,10 @@ run ```./builder.sh init [aks / eks]``` this will do the following
     - RabbitMQ instances (see ```/workloads/devx-mood```)
   - setup dns and ingress rules 
 
-run ```./builder.sh add-api``` to add following
+run ```./builder.sh add-api``` to add the following
   - install Spring Cloud Gateway operator (via helm)
   - add brownfield APIs routes and gateways (see ```/workloads/brownfield-apis```)
+  - note - this is also needed for a Global Namespaces TSM demo
 
 ## Running the demo 
 
@@ -272,3 +273,10 @@ https://github.com/dektlong/_DevXDemo/blob/main/workloads/devx-mood/backstage/ca
 tanzu apps workload get portal -n dekt-apps
 
 kc get pods -n dekt-apps
+
+### multi k8s
+kc config use-context dekt-eks
+tanzu apps workload create -f workloads/devx-mood/mood-portal.yaml -y -n dekt-apps
+
+kc config use-context dekt-aks
+tanzu apps workload create -f workloads/devx-mood/mood-portal.yaml -y -n dekt-apps

@@ -2,13 +2,15 @@
 
 source .config/config-values.env
 
+cluster_name=$CLUSTER_NAME-"eks"
+
 #create-cluster
 create-eks-cluster () {
 
     #must run after setting access via 'aws configure'
 
     eksctl create cluster \
-    --name $CLUSTER_NAME \
+    --name $cluster_name \
     --nodegroup-name standard-workers \
     --node-type t3.medium \
     --nodes 8 \
@@ -20,9 +22,9 @@ create-eks-cluster () {
 delete-eks-cluster () {
 
    	echo
-	echo "Starting deleting resources of EKS cluster $CLUSTER_NAME ..."
+	echo "Starting deleting resources of EKS cluster $cluster_name ..."
 	echo
-    eksctl delete cluster --name $CLUSTER_NAME --force
+    eksctl delete cluster --name $cluster_name --force
 }
 
 case $1 in
