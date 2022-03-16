@@ -33,10 +33,13 @@ run ```./builder.sh init [aks / eks]``` this will do the following
     - Grype scanning policy (see ```/platform/supplychain```)
     - Tekton pipline run (see ```/platform/supplychain```)
     - Custom ```dekt-path2prod``` supplychain (see ```/platform/supplychain```)
-    - brownfield APIs routes and gateways (see ```/workloads/brownfield-apis```)
     - RabbitMQ operator and cluster resources (see ```/platform/supplychain```)
     - RabbitMQ instances (see ```/workloads/devx-mood```)
   - setup dns and ingress rules 
+
+run ```./builder.sh add-api``` to add following
+  - install Spring Cloud Gateway operator (via helm)
+  - add brownfield APIs routes and gateways (see ```/workloads/brownfield-apis```)
 
 ## Running the demo 
 

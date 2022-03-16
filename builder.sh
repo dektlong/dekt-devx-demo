@@ -21,9 +21,7 @@
 
         tanzu package install tap -p tap.tanzu.vmware.com -v $TAP_VERSION  --values-file .config/tap-values.yaml -n tap-install
 
-           install-api-gateway #temp until GW is available as a TAP package 
-        
-        setup-demo-examples
+        setup-supplychain
 
         platform/scripts/ingress-handler.sh tap
 
@@ -55,8 +53,8 @@
             --namespace tap-install
     }
 
-    #install-api-gateway
-    install-api-gateway () {
+    #install-api-gateway and brownfield APIs
+    install-brownfield () {
 
         kubectl create ns $GATEWAY_NS
 
@@ -68,10 +66,15 @@
  
         $GW_INSTALL_DIR/scripts/install-spring-cloud-gateway.sh --namespace $GATEWAY_NS
 
+        #brownfield API
+        kubectl create ns $BROWNFIELD_NS
+        kubectl create secret generic sso-credentials --from-env-file=.config/sso-creds.txt -n api-portal
+        kustomize build workloads/brownfield-apis | kubectl apply -f -
+
     }
 
-    #setup-demo-examples
-    setup-demo-examples () {
+    #setup-supplychain
+    setup-supplychain () {
  
         #setup apps namespace
         tanzu secret registry add registry-credentials --server $PRIVATE_REPO --username $PRIVATE_REPO_USER --password $PRIVATE_REPO_PASSWORD -n $DEMO_APPS_NS
@@ -89,11 +92,6 @@
 
         #testing pipeline
         kubectl apply -f platform/supplychain/tekton-pipeline.yaml -n $DEMO_APPS_NS
-
-        #brownfield API
-        kubectl create ns $BROWNFIELD_NS
-        kubectl create secret generic sso-credentials --from-env-file=.config/sso-creds.txt -n api-portal
-        kustomize build workloads/brownfield-apis | kubectl apply -f -
 
         #rabbitmq service
         kapp -y deploy --app rmq-operator --file https://github.com/rabbitmq/cluster-operator/releases/download/v1.9.0/cluster-operator.yml
@@ -116,26 +114,6 @@
         kubectl delete pod -l app=backstage -n tap-gui
         kubectl -n app-live-view delete pods -l=name=application-live-view-connector
         update-tap
-    }
-
-    #incorrect usage
-    incorrect-usage() {
-        
-        echo
-        echo "Incorrect usage. Please specify one of the following: "
-        echo
-        echo "  init [aks / eks]"
-        echo
-        echo "  deploy"
-        echo
-        echo "  reset"
-        echo
-        echo "  cleanup [aks / eks]"
-        echo
-        echo "  runme [function-name]"
-        echo
-        exit
-    
     }
 
     #relocate-images
@@ -175,6 +153,25 @@
        
     }
 
+    #incorrect usage
+    incorrect-usage() {
+        
+        echo
+        echo "Incorrect usage. Please specify one of the following: "
+        echo
+        echo "  init [aks / eks]"
+        echo
+        echo "  add-apis"
+        echo
+        echo "  reset"
+        echo
+        echo "  cleanup [aks / eks]"
+        echo
+        echo "  runme [function-name]"
+        echo
+        exit
+    }
+
 #################### main ##########################
 
 case $1 in
@@ -207,6 +204,9 @@ cleanup)
     ;;
 reset)
     reset
+    ;;
+add-apis)
+    install-brownfield
     ;;
 dev)
     install-gui-dev
