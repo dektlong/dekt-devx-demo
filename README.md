@@ -37,7 +37,7 @@ run ```./builder.sh init [aks / eks]``` this will do the following
     - RabbitMQ instances (see ```/workloads/devx-mood```)
   - setup dns and ingress rules 
 
-run ```./builder.sh add-api``` to add the following
+run ```./builder.sh apis``` to add the following
   - install Spring Cloud Gateway operator (via helm)
   - add brownfield APIs routes and gateways (see ```/workloads/brownfield-apis```)
   - note - this is also needed for a Global Namespaces TSM demo

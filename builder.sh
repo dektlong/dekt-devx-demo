@@ -53,8 +53,8 @@
             --namespace tap-install
     }
 
-    #install-api-gateway and brownfield APIs
-    install-brownfield () {
+    #add-apis
+    add-apis () {
 
         kubectl create ns $GATEWAY_NS
 
@@ -70,6 +70,10 @@
         kubectl create ns $BROWNFIELD_NS
         kubectl create secret generic sso-credentials --from-env-file=.config/sso-creds.txt -n api-portal
         kustomize build workloads/brownfield-apis | kubectl apply -f -
+
+        platform/scripts/ingress-handler.sh apis
+
+        update-tap
 
     }
 
@@ -205,8 +209,8 @@ cleanup)
 reset)
     reset
     ;;
-add-apis)
-    install-brownfield
+apis)
+    add-apis
     ;;
 dev)
     install-gui-dev

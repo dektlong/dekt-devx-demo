@@ -87,6 +87,8 @@ case $1 in
 tap)
     update-dns-A-record "*.sys" "envoy" "tanzu-system-ingress"
     update-dns-A-record "*.apps" "envoy" "tanzu-system-ingress"
+    ;;
+apis)
     create-ingress-rule "api-portal-ingress" "contour" "api-portal.sys.$DOMAIN" "api-portal-server" "8080" "api-portal"
     create-ingress-rule "scg-openapi-ingress" "contour" "scg-openapi.sys.$DOMAIN"  "scg-operator" "80" "scgw-system"
     ;;
