@@ -45,7 +45,7 @@ run ```./builder.sh apis``` to add the following
 ## Running the demo 
 
 - access tap gui accelerators via the ```cloud-native-devs``` tag
-  - create ```sensors``` workload using the boot-backend accelerator 
+  - create ```sensors``` workload using the web-backend accelerator 
   - create ```portal```  workload using the web-function accelerator 
   - use ```devx-mood```  as the parent application in both cases
 
