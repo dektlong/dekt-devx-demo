@@ -267,6 +267,10 @@ tanzu apps workload tail sensors --since 100m --timestamp  -n dekt-apps
 
 kc get ServiceBinding -n dekt-apps
 
+
+### backstage
+https://github.com/dektlong/_DevXDemo/blob/main/workloads/devx-mood/backstage/catalog-info.yaml
+
 ### portal code change
 tanzu apps workload get portal -n dekt-apps
 
