@@ -16,13 +16,13 @@ spec:
     servers:
       - url: mood-sensors.apps.dekt.io/v1
     paths:
-      /write:
+      /measure-mood:
         post:
-          summary: write random data to a sensor
+          summary: measure mood via a sensor
         tags:
             - sensors-update
-      /sensors-data:
+      /read-mood:
         get:
-          summary: retrieve all sensors information
+          summary: retrieve all mood information
         tags:
             - sensors-reading
