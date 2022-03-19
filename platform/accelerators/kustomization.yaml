@@ -3,7 +3,7 @@ kind: Kustomization
 namespace: accelerator-system
 
 resources:
-  - backend-api.yaml
+  - web-backend.yaml
   - frontend-ux.yaml
   - web-function.yaml
   - event-driven.yaml

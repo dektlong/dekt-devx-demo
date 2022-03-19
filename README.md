@@ -245,7 +245,8 @@ tanzu package install tap -p tap.tanzu.vmware.com -v 1.0.1  --values-file tap-va
 
 tanzu package installed list -n tap-install
 
-### create workloads
+### workloads
+
 tanzu apps workload create -f workloads/devx-mood/mood-sensors.yaml -y -n dekt-apps
 
 tanzu apps workload create -f workloads/devx-mood/mood-portal.yaml -y -n dekt-apps
@@ -265,9 +266,6 @@ kubectl describe imagescan.scanning.apps.tanzu.vmware.com/sensors -n dekt-apps
 tanzu apps workload tail sensors --since 100m --timestamp  -n dekt-apps
 
 kc get ServiceBinding -n dekt-apps
-
-### backstage
-https://github.com/dektlong/_DevXDemo/blob/main/workloads/devx-mood/backstage/catalog-info.yaml
 
 ### portal code change
 tanzu apps workload get portal -n dekt-apps
