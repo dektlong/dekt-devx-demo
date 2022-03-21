@@ -165,9 +165,11 @@
         echo
         echo "  init [aks / eks]"
         echo
-        echo "  add-apis"
+        echo "  apis"
         echo
         echo "  reset"
+        echo
+        echo "  dev"
         echo
         echo "  cleanup [aks / eks]"
         echo
