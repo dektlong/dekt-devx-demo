@@ -16,12 +16,12 @@ spec:
     servers:
       - url: mood-sensors.apps.dekt.io/v1
     paths:
-      /measure-mood:
+      /activate:
         post:
           summary: measure mood via a sensor
         tags:
             - sensors-update
-      /read-mood:
+      /measure:
         get:
           summary: retrieve all mood information
         tags:
