@@ -1,7 +1,7 @@
 apiVersion: carto.run/v1alpha1
 kind: Workload
 metadata:
-  name: sensors
+  name: mood-sensors
   labels:
     apps.tanzu.vmware.com/workload-type: web-backend
     apps.tanzu.vmware.com/has-tests: "true"

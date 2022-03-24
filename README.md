@@ -45,8 +45,8 @@ run ```./builder.sh apis``` to add the following
 ## Running the demo 
 
 - access tap gui accelerators via the ```cloud-native-devs``` tag
-  - create ```sensors``` workload using the web-backend accelerator 
-  - create ```portal```  workload using the web-function accelerator 
+  - create ```mood-sensors``` workload using the web-backend accelerator 
+  - create ```mood-portal```  workload using the web-function accelerator 
   - use ```devx-mood```  as the parent application in both cases
 
 - access the api-portal and highlight how discovery of existing APIs prior to creating new ones is done
@@ -67,29 +67,29 @@ run ```./builder.sh apis``` to add the following
 - access tap gui accelerators using the ```cloud-native-devsecops``` tag
   - create ```dekt-path2prod``` supplychain using the microservices-supplychain accelerator with ```web-backend``` workload type 
     - include testing, binding and scanning phases, leveraging the out of the box supply-chain templates
-  - Explain that the ```portal``` workload is using the out-of-the-box ```source-to-url``` supply chain as configured in ```tap-values``
+  - Explain that the ```mood-portal``` workload is using the out-of-the-box ```source-to-url``` supply chain as configured in ```tap-values``
 
 - highlight the separation of concerns between supplychain (AppOps) and supplychain-templates (Platform Ops)
 
 - show applied supply chains using ```tanzu apps cluster-supply-chain list```
 
-- show supply chain milestones ```tanzu apps workload get sensors -n DEMO_APPS_NS```
+- show supply chain milestones ```tanzu apps workload get mood-sensors -n DEMO_APPS_NS```
   - pipeline testing
   - scanning
   - build image
   - apply conventions
   - live url via CNR
 
-- show supplychain logs  ```tanzu apps workload tail sensors --since 100m --timestamp  -n DEMO_APPS_NS```
+- show supplychain logs  ```tanzu apps workload tail mood-sensors --since 100m --timestamp  -n DEMO_APPS_NS```
 
-- access the live url of portal workload and show the call back to the sensors APIs 
+- access the live url of mood-portal workload and show the call back to the mood-sensors APIs 
 
 - register a new entity in tap backstage gui
   -```https://github.com/dektlong/_DevXDemo/blob/main/workloads/devx-mood/backstage/catalog-info.yaml```
   - show system view diagram via ```devx-mood-app```
-  - click down on ```sensors``` to show application live view
+  - click down on ```mood-sensors``` to show application live view
 
-- make a code change in ```portal``` app to bypass the backend api calls 
+- make a code change in ```mood-portal``` app to bypass the backend api calls 
   - https://github.com/dektlong/mood-portal/blob/main/main.go , change ALWAYS_HAPPY flag to true 
   - show how supply chain pickup the change and re run the path to prod
     - ```tanzu apps workload get mood-portal -n dekt-apps```
@@ -257,13 +257,13 @@ tanzu apps workload list -n dekt-apps
 tanzu apps cluster-supply-chain list
 
 ### track workload progress
-tanzu apps workload get sensors -n dekt-apps
+tanzu apps workload get mood-sensors -n dekt-apps
 
-kubectl tree workload sensors -n dekt-apps
+kubectl tree workload mood-sensors -n dekt-apps
 
-kubectl describe imagescan.scanning.apps.tanzu.vmware.com/sensors -n dekt-apps
+kubectl describe imagescan.scanning.apps.tanzu.vmware.com/mood-sensors -n dekt-apps
 
-tanzu apps workload tail sensors --since 100m --timestamp  -n dekt-apps
+tanzu apps workload tail mood-sensors --since 100m --timestamp  -n dekt-apps
 
 kc get ServiceBinding -n dekt-apps
 
@@ -271,8 +271,8 @@ kc get ServiceBinding -n dekt-apps
 ### backstage
 https://github.com/dektlong/_DevXDemo/blob/main/workloads/devx-mood/backstage/catalog-info.yaml
 
-### portal code change
-tanzu apps workload get portal -n dekt-apps
+### mood-portal code change
+tanzu apps workload get mood-portal -n dekt-apps
 
 kc get pods -n dekt-apps
 
@@ -282,7 +282,7 @@ kc config use-context dekel@dekt-eks.us-west-1.eksctl.io
 kc config use-context dekt-aks
 
 tanzu apps workload create -f workloads/devx-mood/mood-portal.yaml -y -n dekt-apps
-tanzu apps workload get portal -n dekt-apps
+tanzu apps workload get mood-portal -n dekt-apps
 
 kc config use-context dekt-aks
-tanzu apps workload create -f workloads/devx-mood/mood-portal.yaml -y -n dekt-apps
+tanzu apps workload create -f workloads/devx-mood/mood-mood-portal.yaml -y -n dekt-apps
