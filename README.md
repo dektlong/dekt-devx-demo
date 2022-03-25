@@ -17,7 +17,7 @@ This repo contains artifacts to run a demo illustrating the vision and capabilit
   - Loadbalancer 
   - Clustes creation permissions to match the specs in ```scripts/eks-handler.sh``` and ```scripts/aks-handler.sh```
 
-- Rename the folder ```config-CHANGEME``` to  ```.config``` 
+- Create a folder ```.config``` in and copy the contents of```config-tempales```
 
 - Update values ```.config/tap-values.yaml```
 
