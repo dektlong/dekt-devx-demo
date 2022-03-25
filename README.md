@@ -17,7 +17,7 @@ This repo contains artifacts to run a demo illustrating the vision and capabilit
 
   - ```$DOMAIN``` needs to be enabled to add wild-card DNS record to
 
-- Update your registry details in ```dekt-path2prod``` custome supplychain 
+- Update your registry details in ```.config/dekt-path2prod.yaml``` custom supplychain 
   - Note: since this is a custom supply chain, the registry values defined in ```tap-values``` are NOT applied automatically
 
 - Review ```.config/scan-policy.yaml``` and customized if need 
