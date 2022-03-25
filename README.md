@@ -16,6 +16,7 @@ This repo contains artifacts to run a demo illustrating the vision and capabilit
 - Update values ```.config/tap-values.yaml```
 
   - ```$DOMAIN``` needs to be enabled to add wild-card DNS record to
+  - ```$IMAGE_REGISTRY_HOST``` and ```$SYSTEM_REPO``` needs to be accessible from the TAP cluster 
 
 - Update your registry details in ```.config/dekt-path2prod.yaml``` custom supplychain 
   - Note: since this is a custom supply chain, the registry values defined in ```tap-values``` are NOT applied automatically
@@ -26,6 +27,8 @@ This repo contains artifacts to run a demo illustrating the vision and capabilit
 
 - Update values ```.config/config-values.yaml```
 
+    - Note: ```$SYSTEM_REPO```, ```$APP_REPO``` and ```$APP_NS``` values must much the information in ```.config/tap-values.yaml```
+
 - The ingress setup is based on GoDaddy DNS, if you are using a different one, please modify ```scripts/ingress-handler.sh```
 
 - Clone the workloads repos
@@ -34,9 +37,17 @@ git clone https://github.com/dektlong/mood-sensors
 git clone https://github.com/dektlong/mood-portal
 ```
 
+- Relocate TAP images (optional to avoid dependecies on Tanzu Network uptime)
+```
+./builder relocate-tap-images
+```
+
 ## Installation
 
-run ```./builder.sh init [aks / eks]``` this will do the following
+- Install the demo components
+```
+./builder.sh init [aks / eks]
+```
   - install TAP full profile
   - install Spring Cloud Gateway (via HELM)
   - install the following Demo components 

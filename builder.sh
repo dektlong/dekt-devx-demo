@@ -121,9 +121,29 @@
         
         docker login $PRIVATE_REPO -u $PRIVATE_REPO_USER -p $PRIVATE_REPO_PASSWORD
         
-        $GW_INSTALL_DIR/scripts/relocate-images.sh $PRIVATE_REPO/dekt-system
+        $GW_INSTALL_DIR/scripts/relocate-images.sh $PRIVATE_REPO/$SYSTEM_REPO
     }
 
+    #relocate-tap-images
+    relocate-tap-images() {
+
+        echo "Make sure docker deamon is running..."
+        read
+        
+        docker login $PRIVATE_REPO -u $PRIVATE_REPO_USER -p $PRIVATE_REPO_PASSWORD
+
+        docker login registry.tanzu.vmware.com -u $TANZU_NETWORK_USER -p $TANZU_NETWORK_PASSWORD
+        
+        export INSTALL_REGISTRY_USERNAME=$PRIVATE_REPO_USER
+        export INSTALL_REGISTRY_PASSWORD=$PRIVATE_REPO_PASSWORD
+        export INSTALL_REGISTRY_HOSTNAME=$PRIVATE_REPO
+        export TAP_VERSION=$TAP_VERSION
+
+        imgpkg copy -b registry.tanzu.vmware.com/tanzu-application-platform/tap-packages:$TAP_VERSION \
+            --to-repo ${INSTALL_REGISTRY_HOSTNAME}/$SYSTEM_REPO/tap-packages
+
+    }
+    
     #update-tap
     update-tap() {
 
@@ -156,6 +176,8 @@
         echo
         echo "Incorrect usage. Please specify one of the following: "
         echo
+        echo "  relocate-tap-images"
+        echo
         echo "  init [aks / eks]"
         echo
         echo "  apis"
@@ -174,6 +196,9 @@
 #################### main ##########################
 
 case $1 in
+relocate-tap-images)
+    relocate-tap-images
+    ;;
 init)
     case $2 in
     aks)

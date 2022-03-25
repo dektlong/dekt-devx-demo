@@ -1,51 +1,75 @@
-#accepted values: light , full
+#==================================================================
+# TAP Profiles
+#   accepted values: full, dev-light, shared-tools, operator-light
+#==================================================================
 profile: full
 
+#==================================================================
+# Build Service
+#==================================================================
 buildservice:
-  kp_default_repository: ""
+  kp_default_repository: "$IMAGE_REGISTRY_HOST/$SYSTEM_REPO/build-service"
   kp_default_repository_username: ""
   kp_default_repository_password: ""
   tanzunet_username: ""
   tanzunet_password: ""
   descriptor_name: "tap-1.0.0-full"
   enable_automatic_dependency_updates: true
-
-#accepted values: basic , testing , testing_scanning
-supply_chain: testing_scanning
+  
+#==================================================================
+# Supply Chains
+#   accepted values: basic , testing , testing_scanning
+#==================================================================
+supply_chain: basic
 
 ootb_supply_chain_basic:
   registry:
-    server: ""
-    repository: ""
-  git_ops:
+    server: "$IMAGE_REGISTRY_HOST"
+    repository: "$APP_REPO"
+  gitops:
     ssh_secret: ""
 
-ootb-supply-chain-testing:
+ootb_supply_chain_testing:
   registry:
-    server: ""
-    repository: ""
+    server: "$IMAGE_REGISTRY_HOST"
+    repository: "$APP_REPO"
   gitops:
     ssh_secret: ""
 
 ootb_supply_chain_testing_scanning:
   registry:
-    server: ""
-    repository: ""
+    server: "$IMAGE_REGISTRY_HOST"
+    repository: "$APP_REPO"
   gitops:
     ssh_secret: ""
 
+#==================================================================
+# TAP GUI (Backstage)
+#==================================================================
+tap_gui:
+  service_type: ClusterIP
+  ingressEnabled: "true"
+  ingressDomain: "sys.$DOMAIN"
+  app_config:
+    app:
+      baseUrl: http://tap-gui.sys.$DOMAIN
+    catalog:
+      locations:
+        - type: url
+          target: https://github.com/tanzu-demo/tap-gui-catalogs/blob/main/blank/catalog-info.yaml
+        - type: url
+          target: https://github.com/dektlong/dekt-supplychain/blob/main/backstage/catalog-info.yaml
+    backend:
+        baseUrl: http://tap-gui.sys.$DOMAIN
+        cors:
+            origin: http://tap-gui.sys.$DOMAIN
 
-learningcenter:
-  ingressDomain: ""
-  
+metadata_store:
+  app_service_type: LoadBalancer
+
 cnrs:
   domain_template: "{{.Name}}.{{.Domain}}"
-  domain_name: "cnr.$DOMAIN"
-
-api_portal:
-  apiPortalServer:
-    sourceUrls: "http://scg-openapi.sys.$DOMAIN/openapi,https://petstore.swagger.io/v2/swagger.json,https://petstore3.swagger.io/api/v3/openapi.json"
-    sourceUrlsCacheTtlSec: "10"
+  domain_name: "apps.$DOMAIN"
 
 contour:
   envoy:
@@ -56,29 +80,12 @@ accelerator:
   server:
     service_type: "ClusterIP"
 
-tap_gui:
-  service_type: ClusterIP
-  ingressEnabled: "true"
-  ingressDomain: "sys.$DOMAIN"
-  app_config:
-    app:
-        baseUrl: http://tap-gui.sys.$DOMAIN
-    catalog:
-      locations:
-      - type: url
-        target: https://github.com/dektlong/dekt-supplychain/blob/main/backstage/catalog-info.yaml
-    backend:
-        baseUrl: http://tap-gui.cnr.$DOMAIN
-        cors:
-            origin: http://tap-gui.cnr.$DOMAIN
-    auth:
-      allowGuestAccess: true
-
-metadata_store:
-  app_service_type: LoadBalancer # (optional) Defaults to LoadBalancer. Change to NodePort for distributions that don't support LoadBalancer
-
 grype:
-  namespace: "" # (optional) Defaults to default namespace.
+  namespace: "$APP_NS"
   targetImagePullSecret: "registry-credentials"
 
-ceip_policy_disclosed: true 
+ceip_policy_disclosed: true
+
+learningcenter:
+  ingressDomain: learningcenter.sys.$DOMAIN
+
