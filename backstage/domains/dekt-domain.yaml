@@ -1,0 +1,13 @@
+apiVersion: backstage.io/v1alpha1
+kind: Domain
+metadata:
+  name: dekt-domain
+  description: Domain for all appps in the dekt line of business
+  links:
+    - url: http://apps.dekt.io/dashboard
+      title: Dekt LoB app dashboard
+      icon: dashboard
+  annotations:
+    'backstage.io/techdocs-ref': dir:.
+spec:
+  owner: dekt-platform-ops

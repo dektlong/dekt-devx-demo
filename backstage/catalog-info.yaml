@@ -1,0 +1,14 @@
+apiVersion: backstage.io/v1alpha1
+kind: Location
+metadata:
+  name: dekt-devx-catalog
+  description: A catalog for dekt DevX demo
+  annotations:
+    'backstage.io/techdocs-ref': dir:.
+spec:
+  targets:
+    - ./apis/brownfield-apis.yaml
+    - ./domains/dekt-domain.yaml
+    - ./components/mood-sensors.yaml
+    - ./groups/dekt-teams.yaml
+    - ./systems/devx-mood.yaml

@@ -1,0 +1,55 @@
+apiVersion: backstage.io/v1alpha1
+kind: Group
+metadata:
+  name: dekt-dev-team1
+  description: Developement team1
+spec:
+  type: team
+  profile:
+    displayName: dekt-dev-team1
+    email: dekel@vmware.com
+    picture: https://avatars.dicebear.com/api/identicon/team-a@example.com.svg?background=%23fff&margin=25
+  parent: default-org
+  children: []
+---
+apiVersion: backstage.io/v1alpha1
+kind: Group
+metadata:
+  name: dekt-dev-team2
+  description: Developement team2
+spec:
+  type: team
+  profile:
+    displayName: dekt-dev-team2
+    email: dekel@vmware.com
+    picture: https://avatars.dicebear.com/api/identicon/team-a@example.com.svg?background=%23fff&margin=25
+  parent: default-org
+  children: []
+---
+apiVersion: backstage.io/v1alpha1
+kind: Group
+metadata:
+  name: dekt-app-ops
+  description: Applications operation team
+spec:
+  type: team
+  profile:
+    displayName: Applications operation team
+    email: dekel@vmware.com
+    picture: https://avatars.dicebear.com/api/identicon/team-a@example.com.svg?background=%23fff&margin=25
+  parent: default-org
+  children: []
+---
+apiVersion: backstage.io/v1alpha1
+kind: Group
+metadata:
+  name: dekt-platform-ops
+  description: Platform operation team
+spec:
+  type: team
+  profile:
+    displayName: Platform operation team
+    email: dekel@vmware.com
+    picture: https://avatars.dicebear.com/api/identicon/team-a@example.com.svg?background=%23fff&margin=25
+  parent: default-org
+  children: []
