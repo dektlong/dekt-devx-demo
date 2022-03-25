@@ -5,9 +5,17 @@ This repo contains artifacts to run a demo illustrating the vision and capabilit
 
 ## Preperations 
 
+- clone the supplychain and workloads repos
+
+  ```
+  git clone https://github.com/dektlong/dekt-supplychain
+  git clone https://github.com/dektlong/mood-sensors
+  git clone https://github.com/dektlong/mood-portal
+  ```
+
 - AKS and/or EKS access configured to support:
   - Loadbalancer 
-  - Clustes creation permissions to match the specs in ```platform/scripts/eks-handler.sh``` and ```platform/scripts/aks-handler.sh```
+  - Clustes creation permissions to match the specs in ```scripts/eks-handler.sh``` and ```scripts/aks-handler.sh```
 
 - Rename the folder ```config-CHANGEME``` to  ```.config``` 
 
@@ -18,9 +26,13 @@ This repo contains artifacts to run a demo illustrating the vision and capabilit
 - Update your registry details in ```dekt-path2prod``` custome supplychain 
   - Note: since this is a custom supply chain, the registry values defined in ```tap-values``` are NOT applied automatically
 
+- Review ```.config/scan-policy.yaml``` and customized if need 
+
+- Review ```.config/tekton-pipeline.yaml``` and customized if need 
+
 - Update values ```.config/config-values.yaml```
 
-- The ingress setup is based on GoDaddy DNS, if you are using a different one, please modify ```platform/scripts/ingress-handler.sh```
+- The ingress setup is based on GoDaddy DNS, if you are using a different one, please modify ```scripts/ingress-handler.sh```
 
 ## Installation
 
@@ -28,18 +40,18 @@ run ```./builder.sh init [aks / eks]``` this will do the following
   - install TAP full profile
   - install Spring Cloud Gateway (via HELM)
   - install the following Demo components 
-    - App Accelerators (see ```/platform/accelerators```)
-    - Default supplychain configs for apps namespace (see ```/platform/supplychain```)
-    - Grype scanning policy (see ```/platform/supplychain```)
-    - Tekton pipline run (see ```/platform/supplychain```)
-    - Custom ```dekt-path2prod``` supplychain (see ```/platform/supplychain```)
-    - RabbitMQ operator and cluster resources (see ```/platform/supplychain```)
-    - RabbitMQ instances (see ```/workloads/devx-mood```)
+    - Custom app accelerators 
+    - Default supplychain configs for apps namespace 
+    - Grype scanning policy 
+    - Tekton pipline run 
+    - Custom ```dekt-path2prod``` supplychain 
+    - RabbitMQ operator and cluster resources
+    - RabbitMQ instance
   - setup dns and ingress rules 
 
 run ```./builder.sh apis``` to add the following
   - install Spring Cloud Gateway operator (via helm)
-  - add brownfield APIs routes and gateways (see ```/workloads/brownfield-apis```)
+  - add brownfield APIs routes and gateways (see ```brownfield-apis```)
   - note - this is also needed for a Global Namespaces TSM demo
 
 ## Running the demo 
@@ -59,8 +71,8 @@ run ```./builder.sh apis``` to add the following
 - show all the packages installed using ```tanzu package installed list -n tap-install```
 
 - create workloads 
-  - ```tanzu apps workload create -f workloads/devx-mood/mood-sensors.yaml -n DEMO_APPS_NS -y```
-  - ```tanzu apps workload create -f workloads/devx-mood/mood-portal.yaml -n DEMO_APPS_NS -y```
+  - ```tanzu apps workload create -f mood-sensor/workload.yaml -n DEMO_APPS_NS -y```
+  - ```tanzu apps workload create -f mood-portal/workload.yaml -n DEMO_APPS_NS -y```
 
 - follow workload creation using ```tanzu apps workload list -n dekt-apps```
 
@@ -84,9 +96,10 @@ run ```./builder.sh apis``` to add the following
 
 - access the live url of mood-portal workload and show the call back to the mood-sensors APIs 
 
-- register a new entity in tap backstage gui
-  -```https://github.com/dektlong/_DevXDemo/blob/main/workloads/devx-mood/backstage/catalog-info.yaml```
-  - show system view diagram via ```devx-mood-app```
+- register a entities in tap backstage gui
+  - https://github.com/dektlong/mood-sensors/config/backstage/catalog-info.yaml
+  - https://github.com/dektlong/mood-poratl/config/backstage/catalog-info.yaml
+  - show system view diagram via ```devx-mood```
   - click down on ```mood-sensors``` to show application live view
 
 - make a code change in ```mood-portal``` app to bypass the backend api calls 
@@ -108,9 +121,9 @@ run ```./builder.sh apis``` to add the following
 
 ## API-grid demo addition
 ### Preperations
-  - Update ```workload/dekt4pets/dekt4pets-backend.yml```  to match ```tap-values```
-  - update ```serverUrl:``` value in ```gateway/dekt4pets-gatway.yml``` and ```gateway/dekt4pets-gatway-dev.yml``` to match tap-values
-  - Update ```host:``` value in ```workload/brownfield-apis``` files to match ```tap-values```
+  - Update ```dekt4pets/dekt4pets-backend.yml```  to match ```tap-values```
+  - update ```serverUrl:``` value in ```dekt4pets/gateway/dekt4pets-gatway.yml``` and ```dekt4pets/gateway/dekt4pets-gatway-dev.yml``` to match tap-values
+  - Update ```host:``` value in ```brownfield-apis``` files to match ```tap-values```
 
 ### Installation
 - ```./api-grid.sh init```
@@ -246,10 +259,9 @@ tanzu package install tap -p tap.tanzu.vmware.com -v 1.0.1  --values-file tap-va
 tanzu package installed list -n tap-install
 
 ### workloads
+tanzu apps workload create -f ../mood-portal/workload.yaml -y -n dekt-apps
 
-tanzu apps workload create -f workloads/devx-mood/mood-sensors.yaml -y -n dekt-apps
-
-tanzu apps workload create -f workloads/devx-mood/mood-portal.yaml -y -n dekt-apps
+tanzu apps workload create -f ../mood-sensors/workload.yaml -y -n dekt-apps
 
 tanzu apps workload list -n dekt-apps
 
@@ -269,20 +281,18 @@ kc get ServiceBinding -n dekt-apps
 
 
 ### backstage
-https://github.com/dektlong/_DevXDemo/blob/main/workloads/devx-mood/backstage/catalog-info.yaml
+https://github.com/dektlong/mood-portal/blob/main/config/backstage/catalog-info.yaml
+
+https://github.com/dektlong/mood-sensors/blob/main/config/backstage/catalog-info.yaml
 
 ### mood-portal code change
 tanzu apps workload get mood-portal -n dekt-apps
 
-kc get pods -n dekt-apps
+kubectl get pods -n dekt-apps
 
 ### multi k8s
-kc config get-contexts
-kc config use-context dekel@dekt-eks.us-west-1.eksctl.io
-kc config use-context dekt-aks
+kubectl config get-contexts
+kubectl config use-context dekel@dekt-eks.us-west-1.eksctl.io
+kubectl config use-context dekt-aks
 
-tanzu apps workload create -f workloads/devx-mood/mood-portal.yaml -y -n dekt-apps
-tanzu apps workload get mood-portal -n dekt-apps
-
-kc config use-context dekt-aks
-tanzu apps workload create -f workloads/devx-mood/mood-mood-portal.yaml -y -n dekt-apps
+create workloads

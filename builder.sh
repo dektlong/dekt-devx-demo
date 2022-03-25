@@ -23,7 +23,7 @@
 
         setup-supplychain
 
-        platform/scripts/ingress-handler.sh tap
+        scripts/ingress-handler.sh tap
 
         update-tap
 
@@ -36,7 +36,7 @@
         export INSTALL_REGISTRY_HOSTNAME=registry.tanzu.vmware.com
         export INSTALL_REGISTRY_USERNAME=$TANZU_NETWORK_USER
         export INSTALL_REGISTRY_PASSWORD=$TANZU_NETWORK_PASSWORD
-        pushd platform/tanzu-cluster-essentials
+        pushd tanzu-cluster-essentials
         ./install.sh
         pushd
 
@@ -71,7 +71,7 @@
         kubectl create secret generic sso-credentials --from-env-file=.config/sso-creds.txt -n api-portal
         kustomize build workloads/brownfield-apis | kubectl apply -f -
 
-        platform/scripts/ingress-handler.sh apis
+        scripts/ingress-handler.sh apis
 
         update-tap
 
@@ -82,39 +82,32 @@
  
         #setup apps namespace
         tanzu secret registry add registry-credentials --server $PRIVATE_REPO --username $PRIVATE_REPO_USER --password $PRIVATE_REPO_PASSWORD -n $DEMO_APPS_NS
-        kubectl apply -f platform/supplychain/supplychain-rbac.yaml -n $DEMO_APPS_NS
-        kubectl apply -f platform/supplychain/disable-scale2zero.yaml
+        kubectl apply -f supplychain/supplychain-rbac.yaml -n $DEMO_APPS_NS
+        kubectl apply -f supplychain/disable-scale2zero.yaml
 
         #accelerators 
-        kustomize build platform/accelerators | kubectl apply -f -
+        kustomize build accelerators | kubectl apply -f -
 
         #dekt-path2prod custom supply chain
         kubectl apply -f .config/dekt-path2prod.yaml
 
         #scan policy
-        kubectl apply -f platform/supplychain/scan-policy.yaml -n $DEMO_APPS_NS
+        kubectl apply -f supplychain/scan-policy.yaml -n $DEMO_APPS_NS
 
         #testing pipeline
-        kubectl apply -f platform/supplychain/tekton-pipeline.yaml -n $DEMO_APPS_NS
+        kubectl apply -f supplychain/tekton-pipeline.yaml -n $DEMO_APPS_NS
 
         #rabbitmq service
         kapp -y deploy --app rmq-operator --file https://github.com/rabbitmq/cluster-operator/releases/download/v1.9.0/cluster-operator.yml
-        kubectl apply -f platform/supplychain/rabbitmq-cluster-config.yaml -n $DEMO_APPS_NS
+        kubectl apply -f supplychain/rabbitmq-cluster-config.yaml -n $DEMO_APPS_NS
         kubectl apply -f workloads/devx-mood/reading-rabbitmq-instance.yaml -n $DEMO_APPS_NS
     }
     
-    #deploy demo workloads
-    deploy() {
-
-        tanzu apps workload create -f workloads/devx-mood/mood-sensors.yaml -y
-        tanzu apps workload create -f workloads/devx-mood/mood-portal.yaml -y
-    }
-
     #reset demo apps
     reset() {
 
-        tanzu apps workload delete portal -n $DEMO_APPS_NS -y
-        tanzu apps workload delete sensors -n $DEMO_APPS_NS -y
+        tanzu apps workload delete mood-portal -n $DEMO_APPS_NS -y
+        tanzu apps workload delete mood-sensors -n $DEMO_APPS_NS -y
         kubectl delete pod -l app=backstage -n tap-gui
         kubectl -n app-live-view delete pods -l=name=application-live-view-connector
         update-tap
@@ -150,7 +143,7 @@
 
         tanzu package install tap-gui -p tap-gui.tanzu.vmware.com -v 1.1.0-build.1 --values-file .config/tap-gui-values.yaml -n tap-install
 
-        #platform/scripts/ingress-handler.sh gui-dev
+        #scripts/ingress-handler.sh gui-dev
         kubectl port-forward service/server 7000 -n tap-gui
 
         
@@ -184,10 +177,10 @@ case $1 in
 init)
     case $2 in
     aks)
-        platform/scripts/aks-handler.sh create
+        scripts/aks-handler.sh create
         ;;
     eks)
-        platform/scripts/eks-handler.sh create
+        scripts/eks-handler.sh create
         ;;
     *)
         incorrect-usage
@@ -198,10 +191,10 @@ init)
 cleanup)
     case $2 in
     aks)
-        platform/scripts/aks-handler.sh delete
+        scripts/aks-handler.sh delete
         ;;
     eks)
-        platform/scripts/eks-handler.sh delete
+        scripts/eks-handler.sh delete
         ;;
     *)
         incorrect-usage

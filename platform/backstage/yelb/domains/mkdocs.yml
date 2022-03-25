@@ -1,7 +1,0 @@
-site_name: 'Cloud Applications Domain'
-
-nav:
-  - Home: index.md
-
-plugins:
-  - techdocs-core

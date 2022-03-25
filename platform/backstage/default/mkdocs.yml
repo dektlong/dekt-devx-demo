@@ -1,8 +1,0 @@
-site_name: 'Backstage demo catalog'
-
-nav:
-  - The Catalog: index.md
-  - Adding Documentation: add-docs.md
-
-plugins:
-  - techdocs-core

@@ -1,8 +1,0 @@
-site_name: 'Yelb demo catalog'
-
-nav:
-  - Home: index.md
-  - Adding Documentation: add-docs.md
-
-plugins:
-  - techdocs-core
