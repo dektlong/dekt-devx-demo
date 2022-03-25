@@ -295,4 +295,4 @@ kubectl config get-contexts
 kubectl config use-context dekel@dekt-eks.us-west-1.eksctl.io
 kubectl config use-context dekt-aks
 
-create workloads
+create workloads 

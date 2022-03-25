@@ -82,8 +82,8 @@
  
         #setup apps namespace
         tanzu secret registry add registry-credentials --server $PRIVATE_REPO --username $PRIVATE_REPO_USER --password $PRIVATE_REPO_PASSWORD -n $DEMO_APPS_NS
-        kubectl apply -f supplychain/supplychain-rbac.yaml -n $DEMO_APPS_NS
-        kubectl apply -f supplychain/disable-scale2zero.yaml
+        kubectl apply -f .config/supplychain-rbac.yaml -n $DEMO_APPS_NS
+        kubectl apply -f .config/disable-scale2zero.yaml
 
         #accelerators 
         kustomize build accelerators | kubectl apply -f -
@@ -92,15 +92,15 @@
         kubectl apply -f .config/dekt-path2prod.yaml
 
         #scan policy
-        kubectl apply -f supplychain/scan-policy.yaml -n $DEMO_APPS_NS
+        kubectl apply -f .config/scan-policy.yaml -n $DEMO_APPS_NS
 
         #testing pipeline
-        kubectl apply -f supplychain/tekton-pipeline.yaml -n $DEMO_APPS_NS
+        kubectl apply -f .config/tekton-pipeline.yaml -n $DEMO_APPS_NS
 
         #rabbitmq service
         kapp -y deploy --app rmq-operator --file https://github.com/rabbitmq/cluster-operator/releases/download/v1.9.0/cluster-operator.yml
-        kubectl apply -f supplychain/rabbitmq-cluster-config.yaml -n $DEMO_APPS_NS
-        kubectl apply -f workloads/devx-mood/reading-rabbitmq-instance.yaml -n $DEMO_APPS_NS
+        kubectl apply -f .config/rabbitmq-cluster-config.yaml -n $DEMO_APPS_NS
+        kubectl apply -f .config/reading-rabbitmq-instance.yaml -n $DEMO_APPS_NS
     }
     
     #reset demo apps
