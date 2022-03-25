@@ -5,15 +5,9 @@ This repo contains artifacts to run a demo illustrating the vision and capabilit
 
 ## Preperations 
 
-- clone the supplychain and workloads repos
+- Clone the supplychain repo ```git clone https://github.com/dektlong/dekt-supplychain```
 
-  ```
-  git clone https://github.com/dektlong/dekt-supplychain
-  git clone https://github.com/dektlong/mood-sensors
-  git clone https://github.com/dektlong/mood-portal
-  ```
-
-- AKS and/or EKS access configured to support:
+- Verify that your AKS and/or EKS is configured to support:
   - Loadbalancer 
   - Clustes creation permissions to match the specs in ```scripts/eks-handler.sh``` and ```scripts/aks-handler.sh```
 
@@ -33,6 +27,12 @@ This repo contains artifacts to run a demo illustrating the vision and capabilit
 - Update values ```.config/config-values.yaml```
 
 - The ingress setup is based on GoDaddy DNS, if you are using a different one, please modify ```scripts/ingress-handler.sh```
+
+- Clone the workloads repos
+```
+git clone https://github.com/dektlong/mood-sensors
+git clone https://github.com/dektlong/mood-portal
+```
 
 ## Installation
 
