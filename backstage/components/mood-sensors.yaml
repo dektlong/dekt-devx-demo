@@ -1,7 +1,7 @@
 apiVersion: backstage.io/v1alpha1
 kind: Component
 metadata:
-  name: sensors
+  name: mood-sensors
   description: Sensors backend api for the DevX Mood app
   tags:
     - spring-boot

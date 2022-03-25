@@ -8,8 +8,8 @@ metadata:
 spec:
   targets:
     - ./apis/mood-sensors-apis.yaml
-    - ./components/portal.yaml
-    - ./components/sensors.yaml
+    - ./components/mood-portal.yaml
+    - ./components/mood-sensors.yaml
     - ./resources/reading.yaml
     - ./resources/inventory.yaml
     - ./systems/devx-mood.yaml
