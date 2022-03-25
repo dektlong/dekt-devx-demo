@@ -271,8 +271,6 @@ tanzu apps cluster-supply-chain list
 ### track workload progress
 tanzu apps workload get mood-sensors -n dekt-apps
 
-kubectl tree workload mood-sensors -n dekt-apps
-
 kubectl describe imagescan.scanning.apps.tanzu.vmware.com/mood-sensors -n dekt-apps
 
 tanzu apps workload tail mood-sensors --since 100m --timestamp  -n dekt-apps
