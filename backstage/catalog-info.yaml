@@ -9,6 +9,5 @@ spec:
   targets:
     - ./apis/brownfield-apis.yaml
     - ./domains/dekt-domain.yaml
-    - ./components/mood-sensors.yaml
     - ./groups/dekt-teams.yaml
     - ./systems/devx-mood.yaml
