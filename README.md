@@ -283,7 +283,7 @@ kc get ServiceBinding -n dekt-apps
 ### backstage
 https://github.com/dektlong/dekt-supplychain/blob/main/backstage/apis/brownfield-api-shim.yaml
 
-https://github.com/dektlong/dekt-supplychain/blob/main/backstage/catalog-info.yaml
+https://github.com/dektlong/dekt-supplychain/blob/main/backstage/devx-mood-catalog-info.yaml
 
 ### mood-portal code change
 tanzu apps workload get mood-portal -n dekt-apps
