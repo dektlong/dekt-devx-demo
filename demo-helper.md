@@ -24,12 +24,6 @@ tanzu apps workload tail mood-sensors --since 100m --timestamp  -n dekt-apps
 
 kc get ServiceBinding -n dekt-apps
 
-
-## backstage
-https://github.com/dektlong/mood-sensors/blob/main/config/backstage/catalog-info.yaml
-
-https://github.com/dektlong/mood-portal/blob/main/config/backstage/catalog-info.yaml
-
 ## mood-portal code change
 tanzu apps workload get mood-portal -n dekt-apps
 
