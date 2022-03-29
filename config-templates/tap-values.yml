@@ -1,6 +1,6 @@
 #==================================================================
 # TAP Profiles
-#   accepted values: full, dev-light, shared-tools, operator-light
+#   accepted values: full, iterate, build, run, view
 #==================================================================
 profile: full
 
