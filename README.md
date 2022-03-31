@@ -7,9 +7,10 @@ This repo contains artifacts to run a demo illustrating the vision and capabilit
 
 - Clone the supplychain repo ```git clone https://github.com/dektlong/dekt-supplychain```
 
-- Verify that your AKS and/or EKS is configured to support:
-  - Loadbalancer 
-  - Clustes creation permissions to match the specs in ```scripts/eks-handler.sh``` and ```scripts/aks-handler.sh```
+- Verify your target cluster supports the resource and  permissions outlined in 
+  - ```scripts/eks-handler.sh``` 
+  - ```scripts/aks-handler.sh```
+  - ```scripts/minikube-handler.sh```
 
 - Create a folder ```.config``` in and copy the contents of```config-tempales```
 
@@ -42,14 +43,15 @@ git clone https://github.com/dektlong/mood-portal
 ./builder relocate-tap-images
 ```
 
+- If running local, the script assumes the TAP VSCode plugin and Tilt are installed
+
 ## Installation
 
 - Install the demo components
 ```
-./builder.sh init [aks / eks]
+./builder.sh init [aks / eks / local]
 ```
   - install TAP full profile
-  - install Spring Cloud Gateway (via HELM)
   - install the following Demo components 
     - Custom app accelerators 
     - Default supplychain configs for apps namespace 

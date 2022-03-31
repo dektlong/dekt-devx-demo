@@ -25,6 +25,8 @@ tanzu apps workload tail mood-sensors --since 100m --timestamp  -n dekt-apps
 kc get ServiceBinding -n dekt-apps
 
 ## mood-portal code change
+./builder.sh always-happy
+
 tanzu apps workload get mood-portal -n dekt-apps
 
 kubectl get pods -n dekt-apps

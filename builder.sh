@@ -14,8 +14,8 @@
     
 #################### installers ################
 
-    #install
-    install() {
+    #install-remote
+    install-remote() {
 
         install-tap-prereq
 
@@ -26,6 +26,19 @@
         scripts/ingress-handler.sh tap
 
         update-tap
+
+    }
+
+     #install-local
+    install-local() {
+
+        install-tap-prereq
+
+        tanzu package install tap -p tap.tanzu.vmware.com -v $TAP_VERSION  --values-file .config/tap-values-local.yaml -n tap-install
+
+        tanzu secret registry add registry-credentials --server $PRIVATE_REPO --username $PRIVATE_REPO_USER --password $PRIVATE_REPO_PASSWORD -n $DEMO_APPS_NS
+        
+        kubectl apply -f .config/supplychain-rbac.yaml -n $DEMO_APPS_NS
 
     }
 
@@ -111,6 +124,30 @@
         kubectl delete pod -l app=backstage -n tap-gui
         kubectl -n app-live-view delete pods -l=name=application-live-view-connector
         update-tap
+        toggle-dog sad
+    }
+
+    #toggle the ALWAYS_HAPPY flag in mood-portal
+    toggle-dog () {
+
+        pushd ../mood-portal
+
+        case $1 in
+        happy)
+            sed -i '' 's/false/true/g' main.go
+            git commit -a -m "always happy"      
+            ;;
+        sad)
+            sed -i '' 's/true/false/g' main.go
+            git commit -a -m "usually sad"
+            ;;
+        *)      
+            echo "!!!incorrect-usage. please specify happy / sad"
+            ;;
+        esac
+        
+        git push
+        pushd
     }
 
     #relocate-images
@@ -176,9 +213,8 @@
         echo
         echo "Incorrect usage. Please specify one of the following: "
         echo
-        echo "  relocate-tap-images"
         echo
-        echo "  init [aks / eks]"
+        echo "  init [ aks / eks / local ]"
         echo
         echo "  apis"
         echo
@@ -186,9 +222,11 @@
         echo
         echo "  dev"
         echo
-        echo "  cleanup [aks / eks]"
+        echo "  cleanup [ aks / eks / local ]"
         echo
-        echo "  runme [function-name]"
+        echo "  relocate-tap-images"
+        echo
+        echo "  runme [ function-name ]"
         echo
         exit
     }
@@ -203,23 +241,32 @@ init)
     case $2 in
     aks)
         scripts/aks-handler.sh create
+        install-remote
         ;;
     eks)
         scripts/eks-handler.sh create
+        install-remote
+        ;;
+    local)
+        scripts/minikube-handler.sh create
+        install-local
         ;;
     *)
         incorrect-usage
         ;;
-    esac
-    install
+    esac   
     ;;
 cleanup)
+    toggle-dog sad
     case $2 in
     aks)
         scripts/aks-handler.sh delete
         ;;
     eks)
         scripts/eks-handler.sh delete
+        ;;
+    local)
+        scripts/minikube-handler.sh delete
         ;;
     *)
         incorrect-usage
@@ -231,6 +278,9 @@ reset)
     ;;
 apis)
     add-apis
+    ;;
+always-happy)
+    toggle-dog happy
     ;;
 dev)
     install-gui-dev
