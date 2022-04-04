@@ -13,7 +13,7 @@ buildservice:
   kp_default_repository_password: ""
   tanzunet_username: ""
   tanzunet_password: ""
-  descriptor_name: "tap-1.0.0-full"
+  descriptor_name: "full"
   enable_automatic_dependency_updates: true
   
 #==================================================================
