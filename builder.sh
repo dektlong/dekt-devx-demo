@@ -279,7 +279,7 @@ reset)
 apis)
     add-apis
     ;;
-always-happy)
+be-happy)
     toggle-dog happy
     ;;
 dev)
