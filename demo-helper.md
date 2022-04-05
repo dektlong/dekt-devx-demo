@@ -24,6 +24,16 @@ tanzu apps workload tail mood-sensors --since 100m --timestamp  -n dekt-apps
 
 kc get ServiceBinding -n dekt-apps
 
+## multi-cluster
+
+### on the build cluster
+kubectl get deliverable -n dekt-apps
+kubectl get deliverable mood-portal -n dekt-apps -oyaml > mood-portal-deliverable.yaml
+
+### on the run cluster    
+kubeclt apply -f mood-portal-deliverable.yaml -n dekt-prod-apps
+
+
 ## mood-portal code change
 ./builder.sh be-happy
 
