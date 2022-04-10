@@ -138,8 +138,9 @@ kubectl get deliverable mood-portal -n dekt-apps -oyaml > mood-portal-deliverabl
 ```
 kubeclt config use-context $CLUSTER_BASE_NAME-run 
 kubeclt apply -f mood-portal-deliverable.yaml -n dekt-apps
+kubectl get httpproxy -n dekt-apps
 ```
-- 
+  - show that the new Deliverable is deployed on the production domain - run.dekt.io
 ## Cleanup
 
 - full cleanup to delete the cluster  ```./builder.sh cleanup [aks/eks]```

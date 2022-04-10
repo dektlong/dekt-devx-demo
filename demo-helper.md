@@ -38,6 +38,8 @@ kubectl config use-context dekt-run
     'full git ops'
     kubectl apply -f mood-portal-deliverable.yaml -n dekt-apps
     kubectl get deliverables -n dekt-apps
+    kubectl get httpproxy -n dekt-apps
+        show that the new Deliverable is deployed on the production domain - run.dekt.io
 
     'manually create a new workload'
     tanzu apps workload create -f ../mood-portal/workload-prod.yaml -y -n dekt-apps
