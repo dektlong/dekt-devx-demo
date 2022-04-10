@@ -51,7 +51,7 @@ git clone https://github.com/dektlong/mood-portal
 ```
 ./builder.sh init [aks / eks / local]
 ```
-  - create a 5 nodes cluster and install TAP full profile
+  - create a 5 nodes cluster and install TAP Full profile
     - Custom app accelerators 
     - Default supplychain configs for apps namespace 
     - Grype scanning policy 
@@ -59,7 +59,7 @@ git clone https://github.com/dektlong/mood-portal
     - Custom ```dekt-path2prod``` supplychain 
     - RabbitMQ operator and cluster resources
     - RabbitMQ instance
-  - create a 5 nodes cluster and install TAP full profile
+  - create a 2 nodes cluster and install TAP Run profile
   - create dns and ingress rules for both clusters 
 
 run ```./builder.sh apis``` to add the following
