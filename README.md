@@ -7,17 +7,17 @@ This repo contains artifacts to run a demo illustrating the vision and capabilit
 
 - Clone the supplychain repo ```git clone https://github.com/dektlong/dekt-supplychain```
 
-- Verify your target cluster supports up to 7 nodes creation with the resource and permissions outlined in 
+- Verify your target cluster supports up to 7 nodes creation acroos 2 clusters with the resource and permissions outlined in 
   - ```scripts/eks-handler.sh``` 
   - ```scripts/aks-handler.sh```
   - ```scripts/minikube-handler.sh```
 
 - Create a folder ```.config``` in and copy the contents of```config-tempales```
 
-- Update values ```.config/tap-values-full.yaml```
+- Update values in ```.config/tap-values-full.yaml``` and ```.config/tap-values-run.yaml```
 
-  - ```$DOMAIN``` needs to be enabled to add wild-card DNS record to
-  - ```$IMAGE_REGISTRY_HOST``` and ```$SYSTEM_REPO``` needs to be accessible from the TAP cluster 
+  - ```MY_DOMAIN``` needs to be enabled to add wild-card DNS record to
+  - ```MY_IMAGE_REGISTRY_HOST``` and ```MY_SYSTEM_REPO``` needs to be accessible from the TAP cluster 
 
 - Update your registry details in ```.config/dekt-path2prod.yaml``` custom supplychain 
   - Note: since this is a custom supply chain, the registry values defined in ```tap-values-full``` are NOT applied automatically
@@ -28,7 +28,7 @@ This repo contains artifacts to run a demo illustrating the vision and capabilit
 
 - Update values ```.config/config-values.yaml```
 
-    - Note: ```$SYSTEM_REPO```, ```$APP_REPO``` and ```$APP_NS``` values must much the information in ```.config/tap-values-full.yaml```
+    - Note: ```MY_DOMAIN``` and ```MY_APP_NS``` values must much the information in ```.config/tap-values-full.yaml```
 
 - The ingress setup is based on GoDaddy DNS, if you are using a different one, please modify ```scripts/ingress-handler.sh```
 
@@ -60,7 +60,7 @@ git clone https://github.com/dektlong/mood-portal
     - RabbitMQ operator and cluster resources
     - RabbitMQ instance
   - create a 2 nodes cluster and install TAP Run profile
-  - create dns and ingress rules for both clusters 
+  - create dns and ingress rules for all clusters 
 
 run ```./builder.sh apis``` to add the following
   - install Spring Cloud Gateway operator (via helm)
@@ -86,10 +86,10 @@ run ```./builder.sh apis``` to add the following
 - show all the packages installed using ```tanzu package installed list -n tap-install```
 
 - create workloads 
-  - ```tanzu apps workload create -f mood-sensor/workload.yaml -n DEMO_APPS_NS -y```
-  - ```tanzu apps workload create -f mood-portal/workload.yaml -n DEMO_APPS_NS -y```
+  - ```tanzu apps workload create -f mood-sensor/workload.yaml -n MY_APP_NS -y```
+  - ```tanzu apps workload create -f mood-portal/workload.yaml -n MY_APP_NS -y```
 
-- follow workload creation using ```tanzu apps workload list -n dekt-apps```
+- follow workload creation using ```tanzu apps workload list -n MY_APP_NS```
 
 ### Supply chain
 
@@ -102,14 +102,14 @@ run ```./builder.sh apis``` to add the following
 
 - show applied supply chains using ```tanzu apps cluster-supply-chain list```
 
-- show supply chain milestones ```tanzu apps workload get mood-sensors -n DEMO_APPS_NS```
+- show supply chain milestones ```tanzu apps workload get mood-sensors -n MY_APP_NS```
   - pipeline testing
   - scanning
   - build image
   - apply conventions
   - live url via CNR
 
-- show supplychain logs  ```tanzu apps workload tail mood-sensors --since 100m --timestamp  -n DEMO_APPS_NS```
+- show supplychain logs  ```tanzu apps workload tail mood-sensors --since 100m --timestamp  -n MY_APP_NS```
 
 ### Backstage and runtime views
 - access the live url of mood-portal workload and show the call back to the mood-sensors APIs 
@@ -145,7 +145,7 @@ kubectl get httpproxy -n dekt-apps
 
 - full cleanup to delete the cluster  ```./builder.sh cleanup [aks/eks]```
 
-- partial cleanup to remove just workloads ```./builder.sh reset```
+- partial cleanup to remove just workloads on all tap clusters ```./builder.sh reset```
 
 ### Enjoy!
 

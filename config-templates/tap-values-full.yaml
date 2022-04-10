@@ -8,7 +8,7 @@ profile: full
 # Build Service
 #==================================================================
 buildservice:
-  kp_default_repository: "$IMAGE_REGISTRY_HOST/$SYSTEM_REPO/build-service"
+  kp_default_repository: "MY_IMAGE_REGISTRY_HOST/MY_SYSTEM_REPO/build-service"
   kp_default_repository_username: ""
   kp_default_repository_password: ""
   tanzunet_username: ""
@@ -24,22 +24,22 @@ supply_chain: basic
 
 ootb_supply_chain_basic:
   registry:
-    server: "$IMAGE_REGISTRY_HOST"
-    repository: "$APP_REPO"
+    server: "MY_IMAGE_REGISTRY_HOST"
+    repository: "MY_APP_REPO"
   gitops:
     ssh_secret: ""
 
 ootb_supply_chain_testing:
   registry:
-    server: "$IMAGE_REGISTRY_HOST"
-    repository: "$APP_REPO"
+    server: "MY_IMAGE_REGISTRY_HOST"
+    repository: "MY_APP_REPO"
   gitops:
     ssh_secret: ""
 
 ootb_supply_chain_testing_scanning:
   registry:
-    server: "$IMAGE_REGISTRY_HOST"
-    repository: "$APP_REPO"
+    server: "MY_IMAGE_REGISTRY_HOST"
+    repository: "MY_APP_REPO"
   gitops:
     ssh_secret: ""
 
@@ -49,10 +49,10 @@ ootb_supply_chain_testing_scanning:
 tap_gui:
   service_type: ClusterIP
   ingressEnabled: "true"
-  ingressDomain: "sys.$DOMAIN"
+  ingressDomain: "MY_SYSTEM_SUBDOMAIN.MY_DOMAIN"
   app_config:
     app:
-      baseUrl: http://tap-gui.sys.$DOMAIN
+      baseUrl: http://tap-gui.MY_SYSTEM_SUBDOMAIN.MY_DOMAIN
     catalog:
       locations:
         - type: url
@@ -60,9 +60,9 @@ tap_gui:
         - type: url
           target: https://github.com/dektlong/dekt-supplychain/blob/main/backstage/catalog-info.yaml
     backend:
-        baseUrl: http://tap-gui.sys.$DOMAIN
+        baseUrl: http://tap-gui.MY_SYSTEM_SUBDOMAIN.MY_DOMAIN
         cors:
-            origin: http://tap-gui.sys.$DOMAIN
+            origin: http://tap-gui.MY_SYSTEM_SUBDOMAIN.MY_DOMAIN
     #============================
     # Multi cluster workload viewer
     #============================
@@ -88,7 +88,7 @@ metadata_store:
 
 cnrs:
   domain_template: "{{.Name}}.{{.Domain}}"
-  domain_name: "apps.$DOMAIN"
+  domain_name: "MY_BUILD_SUBDOMAIN.MY_DOMAIN"
 
 contour:
   envoy:
@@ -97,18 +97,18 @@ contour:
 
 appliveview:
   ingressEnabled: true
-  ingressDomain: sys.dekt.io
-  
+  ingressDomain: MY_SYSTEM_SUBDOMAIN.MY_DOMAIN
+
 accelerator:
   server:
     service_type: "ClusterIP"
 
 grype:
-  namespace: "$APP_NS"
+  namespace: "MY_APP_NS"
   targetImagePullSecret: "registry-credentials"
 
 ceip_policy_disclosed: true
 
 learningcenter:
-  ingressDomain: learningcenter.sys.$DOMAIN
+  ingressDomain: learningcenter.MY_SYSTEM_SUBDOMAIN.MY_DOMAIN
 

@@ -3,7 +3,8 @@ ceip_policy_disclosed: true
 supply_chain: basic
 
 cnrs:
-  domain_name: run.dekt.io
+  domain_template: "{{.Name}}.{{.Domain}}"
+  domain_name: "MY_RUN_SUBDOMAIN.MY_DOMAIN"
 
 contour:
   envoy:
@@ -13,4 +14,4 @@ contour:
 appliveview_connector:
   backend:
     sslDisabled: true
-    host: appliveview.sys.dekt.io
+    host: appliveview.MY_SYSTEM_SUBDOMAIN.MY_DOMAIN

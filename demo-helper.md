@@ -27,24 +27,18 @@ kubeclt get ServiceBinding -n dekt-apps
 ## multi-cluster
 
 ### on the Full cluster
-kubectl get deliverable -n dekt-apps
 kubectl get deliverable mood-portal -n dekt-apps -oyaml > mood-portal-deliverable.yaml
 
     Delete the ownerReferences and status sections from the deliverable.yaml
 
 ### on the Run cluster  
 kubectl config use-context dekt-run  
+tanzu package installed list -n tap-install 
 
-    'full git ops'
-    kubectl apply -f mood-portal-deliverable.yaml -n dekt-apps
-    kubectl get deliverables -n dekt-apps
-    kubectl get httpproxy -n dekt-apps
-        show that the new Deliverable is deployed on the production domain - run.dekt.io
-
-    'manually create a new workload'
-    tanzu apps workload create -f ../mood-portal/workload-prod.yaml -y -n dekt-apps
-
-
+kubectl apply -f mood-portal-deliverable.yaml -n dekt-apps
+kubectl get deliverables -n dekt-apps
+kubectl get httpproxy -n dekt-apps
+    show that the new Deliverable is deployed on the production domain - run.dekt.io
 
 
 ## mood-portal code change

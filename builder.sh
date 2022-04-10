@@ -8,72 +8,68 @@
     PRIVATE_REPO_PASSWORD=$(yq e .buildservice.kp_default_repository_password .config/tap-values-full.yaml)
     TANZU_NETWORK_USER=$(yq e .buildservice.tanzunet_username .config/tap-values-full.yaml)
     TANZU_NETWORK_PASSWORD=$(yq e .buildservice.tanzunet_password .config/tap-values-full.yaml)
+    SYSTEM_SUB_DOMAIN=$(yq e .tap_gui.ingressDomain .config/tap-values-full.yaml | cut -d'.' -f 1)
+    BUILD_SUB_DOMAIN=$(yq e .cnrs.domain_name .config/tap-values-full.yaml | cut -d'.' -f 1)
+    RUN_SUB_DOMAIN=$(yq e .cnrs.domain_name .config/tap-values-run.yaml | cut -d'.' -f 1)
+    
     
     GATEWAY_NS="scgw-system"
     BROWNFIELD_NS="brownfield-apis"
     
 #################### installers ################
 
-    #install with full profile
+    #install-full
     install-full() {
-
-        tap_values_file_name=$1
 
         install-tap-prereq
 
-        tanzu package install tap -p tap.tanzu.vmware.com -v $TAP_VERSION  --values-file .config/tap-values-full.yaml -n tap-install
+        tanzu package install tap -p tap.tanzu.vmware.com -v $TAP_VERSION  --values-file .config/tap-values-full.yaml-n tap-install
 
-        setup-supplychain
+        setup-app-ns
 
-        scripts/ingress-handler.sh tap-full
+        add-custom-sc
+
+        scripts/ingress-handler.sh update-tap-dns $SYSTEM_SUB_DOMAIN
+        scripts/ingress-handler.sh update-tap-dns $BUILD_SUB_DOMAIN
 
         update-for-multi-cluster
 
     }
 
-    #install with run profile
+    #install-run
     install-run() {
 
         install-tap-prereq
 
-        tanzu package install tap -p tap.tanzu.vmware.com -v $TAP_VERSION  --values-file .config/tap-values-run.yaml -n tap-install
+        tanzu package install tap -p tap.tanzu.vmware.com -v $TAP_VERSION  --values-file .config/tap-values-run.yaml-n tap-install
 
-        tanzu secret registry add registry-credentials --server $PRIVATE_REPO --username $PRIVATE_REPO_USER --password $PRIVATE_REPO_PASSWORD -n $DEMO_APPS_NS
-        kubectl apply -f .config/supplychain-rbac.yaml -n $DEMO_APPS_NS
-        
+        setup-app-ns
 
-        scripts/ingress-handler.sh tap-run
+        scripts/ingress-handler.sh update-tap-dns $RUN_SUB_DOMAIN
 
         update-for-multi-cluster
-    }
-
-     #install-laptop
-    install-laptop() {
-
-        install-tap-prereq
-
-        tanzu package install tap -p tap.tanzu.vmware.com -v $TAP_VERSION  --values-file .config/tap-values-laptop.yaml -n tap-install
-
-        tanzu secret registry add registry-credentials --server $PRIVATE_REPO --username $PRIVATE_REPO_USER --password $PRIVATE_REPO_PASSWORD -n $DEMO_APPS_NS
-        
-        kubectl apply -f .config/supplychain-rbac.yaml -n $DEMO_APPS_NS
 
     }
 
-     #install-localhost
+    #install-localhost
     install-localhost() {
+
         install-tap-prereq
 
-        tanzu package install tap -p tap.tanzu.vmware.com -v $TAP_VERSION  --values-file .config/tap-values-local.yaml -n tap-install
+        tanzu package install tap -p tap.tanzu.vmware.com -v $TAP_VERSION  --values-file .config/tap-values-localhost.yaml-n tap-install
 
-        setup-supplychain
+        setup-app-ns
+
+        add-custom-sc
 
         echo
         echo "update gui LB IP values in tap-values-run. hit any key.."
         read
 
-        tanzu package installed update tap --package-name tap.tanzu.vmware.com --version $TAP_VERSION -n tap-install -f .config/tap-values-local.yaml
+        tanzu package installed update tap --package-name tap.tanzu.vmware.com --version $TAP_VERSION -n tap-install -f .config/tap-values-localhost.yaml
     }
+
+
 
     #install-tap-prereq
     install-tap-prereq () {
@@ -144,12 +140,16 @@
         scripts/ingress-handler.sh apis
     }
 
-    #setup-supplychain
-    setup-supplychain () {
+    #setup-defaults for apps ns
+    setup-apps-ns () {
  
         #setup apps namespace
         tanzu secret registry add registry-credentials --server $PRIVATE_REPO --username $PRIVATE_REPO_USER --password $PRIVATE_REPO_PASSWORD -n $DEMO_APPS_NS
         kubectl apply -f .config/supplychain-rbac.yaml -n $DEMO_APPS_NS
+    }
+
+    add-custom-sc() {
+        
         kubectl apply -f .config/disable-scale2zero.yaml
 
         #accelerators 
@@ -164,7 +164,7 @@
         #testing pipeline
         kubectl apply -f .config/tekton-pipeline.yaml -n $DEMO_APPS_NS
 
-        #rabbitmq service
+        #rabbitmq 
         kapp -y deploy --app rmq-operator --file https://github.com/rabbitmq/cluster-operator/releases/download/v1.9.0/cluster-operator.yml
         kubectl apply -f .config/rabbitmq-cluster-config.yaml -n $DEMO_APPS_NS
         kubectl apply -f .config/reading-rabbitmq-instance.yaml -n $DEMO_APPS_NS
@@ -182,8 +182,16 @@
         kubectl -n app-live-view delete pods -l=name=application-live-view-connector
         
         tanzu package installed update tap --package-name tap.tanzu.vmware.com --version $TAP_VERSION -n tap-install -f .config/tap-values-full.yaml
+    }
 
-        toggle-dog sad
+    #reset tap-run cluster
+    reset-run() {
+
+        kubectl config use-context $CLUSTER_BASE_NAME-run
+        
+        tanzu apps workload delete devx-mood -n $DEMO_APPS_NS -y
+
+        kubectl delete -f mood-portal-deliverable.yaml        
     }
 
     #toggle the ALWAYS_HAPPY flag in mood-portal
@@ -306,7 +314,7 @@ init)
         ;;
     laptop)
         scripts/minikube-handler.sh create
-        install-laptop
+        install-localhost
         ;;
     localhost)
         scripts/aks-handler.sh create $CLUSTER_BASE_NAME-full 5
@@ -320,6 +328,7 @@ init)
     ;;
 cleanup)
     toggle-dog sad
+    rm -f mood-portal-deliverable.yaml
     case $2 in
     aks)
         scripts/aks-handler.sh delete $CLUSTER_BASE_NAME-full
@@ -338,6 +347,9 @@ cleanup)
     esac
     ;;
 reset)
+    toggle-dog sad
+    rm -f mood-portal-deliverable.yaml
+    reset-run
     reset-full
     ;;
 apis)

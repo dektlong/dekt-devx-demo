@@ -11,7 +11,7 @@ create-ingress-rule() {
   serviceName=$4
   servicePort=$5
   namespace=$6
-
+  
   cat > output.yaml <<EOF
   apiVersion: networking.k8s.io/v1
   kind: Ingress 
@@ -73,7 +73,7 @@ update-dns-A-record()
     fi
         
     echo
-    echo "updating this A record in GoDaddy:  $record_name.$DOMAIN --> $ingress_public_ip..."
+    echo "updating this A record in GoDaddy:  $record_name.$DOMAIN--> $ingress_public_ip..."
 
     # Update/Create DNS A Record
 
@@ -83,26 +83,24 @@ update-dns-A-record()
         -d "[{\"data\": \"${ingress_public_ip}\"}]"
 }
 
+subDomain=$2
+
 case $1 in
-tap-full)
-    update-dns-A-record "*.sys" "envoy" "tanzu-system-ingress"
-    update-dns-A-record "*.apps" "envoy" "tanzu-system-ingress"
-    ;;
-tap-run)
-    update-dns-A-record "*.run" "envoy" "tanzu-system-ingress"
+update-tap-dns)
+    update-dns-A-record "*.$subDomain" "envoy" "tanzu-system-ingress"
     ;;
 apis)
-    create-ingress-rule "api-portal-ingress" "contour" "api-portal.sys.$DOMAIN" "api-portal-server" "8080" "api-portal"
-    create-ingress-rule "scg-openapi-ingress" "contour" "scg-openapi.sys.$DOMAIN"  "scg-operator" "80" "scgw-system"
+    create-ingress-rule "api-portal-ingress" "contour" "api-portal.$subDomain.$DOMAIN" "api-portal-server" "8080" "api-portal"
+    create-ingress-rule "scg-openapi-ingress" "contour" "scg-openapi.$subDomain.$DOMAIN"  "scg-operator" "80" "scgw-system"
     ;;
 scgw)
     scripts/install-nginx.sh
-    update-dns-A-record "*.gw" "dekt-ingress-nginx-controller" "nginx-system" 
-    create-ingress-rule "dekt4pets-dev" "nginx" "dekt4pets-dev.gw.$DOMAIN"  "dekt4pets-gateway" "80" $DEMO_APPS_NS
-    create-ingress-rule "dekt4pets" "nginx" "dekt4pets.gw.$DOMAIN"  "dekt4pets-gateway" "80" $DEMO_APPS_NS
+    update-dns-A-record "*.$subDomain" "dekt-ingress-nginx-controller" "nginx-system" 
+    create-ingress-rule "dekt4pets-dev" "nginx" "dekt4pets-dev.$subDomain.$DOMAIN"  "dekt4pets-gateway" "80" $DEMO_APPS_NS
+    create-ingress-rule "dekt4pets" "nginx" "dekt4pets.$subDomain.$DOMAIN"  "dekt4pets-gateway" "80" $DEMO_APPS_NS
     ;;
 gui-dev)
-    create-ingress-rule "tap-gui-ingress" "contour" "tap-gui.sys.$DOMAIN" "server" "7000" "tap-gui"
+    create-ingress-rule "tap-gui-ingress" "contour" "tap-gui.$subDomain.$DOMAIN" "server" "7000" "tap-gui"
     ;;
 *)
     echo "incorrect usage. Please use 'tap-full', 'tap-run', 'apis', 'gui-dev' or 'scgw'"
