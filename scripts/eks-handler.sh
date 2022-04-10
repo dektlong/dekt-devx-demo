@@ -2,7 +2,8 @@
 
 source .config/config-values.env
 
-cluster_name=$CLUSTER_NAME-"eks"
+cluster_name=$2
+number_of_nodes="$3"
 
 #create-cluster
 create-eks-cluster () {
@@ -13,9 +14,9 @@ create-eks-cluster () {
     --name $cluster_name \
     --nodegroup-name standard-workers \
     --node-type t3.medium \
-    --nodes 8 \
-    --nodes-min 4 \
-    --nodes-max 8
+    --nodes $number_of_nodes \
+    --nodes-min 2 \
+    --nodes-max $number_of_nodes
 }
 
 #delete-cluster

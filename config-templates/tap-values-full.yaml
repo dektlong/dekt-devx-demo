@@ -63,6 +63,25 @@ tap_gui:
         baseUrl: http://tap-gui.sys.$DOMAIN
         cors:
             origin: http://tap-gui.sys.$DOMAIN
+    #============================
+    # Multi cluster workload viewer
+    #============================
+    kubernetes:
+      serviceLocatorMethod:
+        type: 'multiTenant'
+      clusterLocatorMethods:
+        - type: 'config'
+          clusters:
+            - url: CLUSTER-URL #kubectl config view --minify -o jsonpath='{.clusters[0].cluster.server}'
+              name: CLUSTER-NAME #unique name of your choice
+              authProvider: serviceAccount
+              serviceAccountToken: "CLUSTER-TOKEN" #kubectl -n tap-gui get secret $(kubectl -n tap-gui get sa tap-gui-viewer -o=json jq -r '.secrets[0].name') -o=json jq -r '.data["token"]' base64 --decode
+              skipTLSVerify: true
+            - url: CLUSTER-URL #kubectl config view --minify -o jsonpath='{.clusters[0].cluster.server}'
+              name: CLUSTER-NAME #unique name of your choice
+              authProvider: serviceAccount
+              serviceAccountToken: "CLUSTER-TOKEN" #kubectl -n tap-gui get secret $(kubectl -n tap-gui get sa tap-gui-viewer -o=json jq -r '.secrets[0].name') -o=json jq -r '.data["token"]' base64 --decode
+              skipTLSVerify: true
 
 metadata_store:
   app_service_type: LoadBalancer
@@ -76,6 +95,10 @@ contour:
     service:
       type: LoadBalancer
 
+appliveview:
+  ingressEnabled: true
+  ingressDomain: sys.dekt.io
+  
 accelerator:
   server:
     service_type: "ClusterIP"

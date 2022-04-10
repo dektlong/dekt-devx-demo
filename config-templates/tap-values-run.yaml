@@ -1,0 +1,16 @@
+profile: run
+ceip_policy_disclosed: true
+supply_chain: basic
+
+cnrs:
+  domain_name: run.dekt.io
+
+contour:
+  envoy:
+    service:
+      type: LoadBalancer
+
+appliveview_connector:
+  backend:
+    sslDisabled: true
+    host: appliveview.sys.dekt.io

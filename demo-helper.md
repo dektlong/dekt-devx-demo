@@ -1,7 +1,7 @@
 # Demo helper commands
 
 ## TAP install
-tanzu package install tap -p tap.tanzu.vmware.com -v 1.0.1  --values-file tap-values.yaml -n tap-install
+tanzu package install tap -p tap.tanzu.vmware.com -v 1.0.1  --values-file tap-values-full.yaml -n tap-install
 
 tanzu package installed list -n tap-install
 
@@ -22,16 +22,27 @@ kubectl describe imagescan.scanning.apps.tanzu.vmware.com/mood-sensors -n dekt-a
 
 tanzu apps workload tail mood-sensors --since 100m --timestamp  -n dekt-apps
 
-kc get ServiceBinding -n dekt-apps
+kubeclt get ServiceBinding -n dekt-apps
 
 ## multi-cluster
 
-### on the build cluster
+### on the Full cluster
 kubectl get deliverable -n dekt-apps
 kubectl get deliverable mood-portal -n dekt-apps -oyaml > mood-portal-deliverable.yaml
 
-### on the run cluster    
-kubeclt apply -f mood-portal-deliverable.yaml -n dekt-prod-apps
+    Delete the ownerReferences and status sections from the deliverable.yaml
+
+### on the Run cluster  
+kubectl config use-context dekt-run  
+
+    'full git ops'
+    kubectl apply -f mood-portal-deliverable.yaml -n dekt-apps
+    kubectl get deliverables -n dekt-apps
+
+    'manually create a new workload'
+    tanzu apps workload create -f ../mood-portal/workload-prod.yaml -y -n dekt-apps
+
+
 
 
 ## mood-portal code change

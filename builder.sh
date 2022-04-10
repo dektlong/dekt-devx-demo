@@ -3,43 +3,76 @@
 #################### configs #######################
 
     source .config/config-values.env
-    PRIVATE_REPO=$(yq e .ootb_supply_chain_basic.registry.server .config/tap-values.yaml)
-    PRIVATE_REPO_USER=$(yq e .buildservice.kp_default_repository_username .config/tap-values.yaml)
-    PRIVATE_REPO_PASSWORD=$(yq e .buildservice.kp_default_repository_password .config/tap-values.yaml)
-    TANZU_NETWORK_USER=$(yq e .buildservice.tanzunet_username .config/tap-values.yaml)
-    TANZU_NETWORK_PASSWORD=$(yq e .buildservice.tanzunet_password .config/tap-values.yaml)
+    PRIVATE_REPO=$(yq e .ootb_supply_chain_basic.registry.server .config/tap-values-full.yaml)
+    PRIVATE_REPO_USER=$(yq e .buildservice.kp_default_repository_username .config/tap-values-full.yaml)
+    PRIVATE_REPO_PASSWORD=$(yq e .buildservice.kp_default_repository_password .config/tap-values-full.yaml)
+    TANZU_NETWORK_USER=$(yq e .buildservice.tanzunet_username .config/tap-values-full.yaml)
+    TANZU_NETWORK_PASSWORD=$(yq e .buildservice.tanzunet_password .config/tap-values-full.yaml)
     
     GATEWAY_NS="scgw-system"
     BROWNFIELD_NS="brownfield-apis"
     
 #################### installers ################
 
-    #install-remote
-    install-remote() {
+    #install with full profile
+    install-full() {
+
+        tap_values_file_name=$1
 
         install-tap-prereq
 
-        tanzu package install tap -p tap.tanzu.vmware.com -v $TAP_VERSION  --values-file .config/tap-values.yaml -n tap-install
+        tanzu package install tap -p tap.tanzu.vmware.com -v $TAP_VERSION  --values-file .config/tap-values-full.yaml -n tap-install
 
         setup-supplychain
 
-        scripts/ingress-handler.sh tap
+        scripts/ingress-handler.sh tap-full
 
-        update-tap
+        update-for-multi-cluster
 
     }
 
-     #install-local
-    install-local() {
+    #install with run profile
+    install-run() {
 
         install-tap-prereq
 
-        tanzu package install tap -p tap.tanzu.vmware.com -v $TAP_VERSION  --values-file .config/tap-values-local.yaml -n tap-install
+        tanzu package install tap -p tap.tanzu.vmware.com -v $TAP_VERSION  --values-file .config/tap-values-run.yaml -n tap-install
+
+        tanzu secret registry add registry-credentials --server $PRIVATE_REPO --username $PRIVATE_REPO_USER --password $PRIVATE_REPO_PASSWORD -n $DEMO_APPS_NS
+        kubectl apply -f .config/supplychain-rbac.yaml -n $DEMO_APPS_NS
+        
+
+        scripts/ingress-handler.sh tap-run
+
+        update-for-multi-cluster
+    }
+
+     #install-laptop
+    install-laptop() {
+
+        install-tap-prereq
+
+        tanzu package install tap -p tap.tanzu.vmware.com -v $TAP_VERSION  --values-file .config/tap-values-laptop.yaml -n tap-install
 
         tanzu secret registry add registry-credentials --server $PRIVATE_REPO --username $PRIVATE_REPO_USER --password $PRIVATE_REPO_PASSWORD -n $DEMO_APPS_NS
         
         kubectl apply -f .config/supplychain-rbac.yaml -n $DEMO_APPS_NS
 
+    }
+
+     #install-localhost
+    install-localhost() {
+        install-tap-prereq
+
+        tanzu package install tap -p tap.tanzu.vmware.com -v $TAP_VERSION  --values-file .config/tap-values-local.yaml -n tap-install
+
+        setup-supplychain
+
+        echo
+        echo "update gui LB IP values in tap-values-run. hit any key.."
+        read
+
+        tanzu package installed update tap --package-name tap.tanzu.vmware.com --version $TAP_VERSION -n tap-install -f .config/tap-values-local.yaml
     }
 
     #install-tap-prereq
@@ -66,6 +99,30 @@
             --namespace tap-install
     }
 
+    #update-for-multi-cluster
+    update-for-multi-cluster() {
+
+        #enable GUI to be viewer for other clusters
+        kubectl apply -f .config/tap-gui-viewer-sa-rbac.yaml
+
+        CLUSTER_URL=$(kubectl config view --minify -o jsonpath='{.clusters[0].cluster.server}')
+
+        CLUSTER_TOKEN=$(kubectl -n tap-gui get secret $(kubectl -n tap-gui get sa tap-gui-viewer -o=json \
+        | jq -r '.secrets[0].name') -o=json \
+        | jq -r '.data["token"]' \
+        | base64 --decode)
+
+        echo
+        echo CLUSTER_URL: $CLUSTER_URL
+        echo
+        echo CLUSTER_TOKEN: $CLUSTER_TOKEN
+
+        echo
+        echo "update CLUSTER_URL and CLUSTER_TOKEN values printed below in tap-values-full.yaml"
+        echo "hit any key when complete..."
+        read
+    }
+
     #add-apis
     add-apis () {
 
@@ -85,9 +142,6 @@
         kustomize build workloads/brownfield-apis | kubectl apply -f -
 
         scripts/ingress-handler.sh apis
-
-        update-tap
-
     }
 
     #setup-supplychain
@@ -116,14 +170,19 @@
         kubectl apply -f .config/reading-rabbitmq-instance.yaml -n $DEMO_APPS_NS
     }
     
-    #reset demo apps
-    reset() {
+    #reset tap-full cluster
+    reset-full() {
 
+        kubectl config use-context $CLUSTER_BASE_NAME-full
+        
         tanzu apps workload delete mood-portal -n $DEMO_APPS_NS -y
         tanzu apps workload delete mood-sensors -n $DEMO_APPS_NS -y
+        
         kubectl delete pod -l app=backstage -n tap-gui
         kubectl -n app-live-view delete pods -l=name=application-live-view-connector
-        update-tap
+        
+        tanzu package installed update tap --package-name tap.tanzu.vmware.com --version $TAP_VERSION -n tap-install -f .config/tap-values-full.yaml
+
         toggle-dog sad
     }
 
@@ -181,12 +240,6 @@
 
     }
     
-    #update-tap
-    update-tap() {
-
-        tanzu package installed update tap --package-name tap.tanzu.vmware.com --version $TAP_VERSION -n tap-install -f .config/tap-values.yaml
-    }
-
     #install-gui-dev
     install-gui-dev() {
 
@@ -214,7 +267,7 @@
         echo "Incorrect usage. Please specify one of the following: "
         echo
         echo
-        echo "  init [ aks / eks / local ]"
+        echo "  init [ aks / eks / laptop / localhost ]"
         echo
         echo "  apis"
         echo
@@ -222,7 +275,7 @@
         echo
         echo "  dev"
         echo
-        echo "  cleanup [ aks / eks / local ]"
+        echo "  cleanup [ aks / eks / laptop / localhost ]"
         echo
         echo "  relocate-tap-images"
         echo
@@ -240,32 +293,43 @@ relocate-tap-images)
 init)
     case $2 in
     aks)
-        scripts/aks-handler.sh create
-        install-remote
+        scripts/aks-handler.sh create $CLUSTER_BASE_NAME-full 5
+        install-full
+        scripts/aks-handler.sh create $CLUSTER_BASE_NAME-run 2
+        install-run
         ;;
     eks)
-        scripts/eks-handler.sh create
-        install-remote
+        scripts/eks-handler.sh create $CLUSTER_BASE_NAME-full 5
+        install-full
+        scripts/eks-handler.sh create $CLUSTER_BASE_NAME-run 2
+        install-run
         ;;
-    local)
+    laptop)
         scripts/minikube-handler.sh create
-        install-local
+        install-laptop
+        ;;
+    localhost)
+        scripts/aks-handler.sh create $CLUSTER_BASE_NAME-full 5
+        install-localhost
         ;;
     *)
         incorrect-usage
         ;;
-    esac   
+    esac
+    reset-full
     ;;
 cleanup)
     toggle-dog sad
     case $2 in
     aks)
-        scripts/aks-handler.sh delete
+        scripts/aks-handler.sh delete $CLUSTER_BASE_NAME-full
+        scripts/aks-handler.sh delete $CLUSTER_BASE_NAME-run
         ;;
     eks)
-        scripts/eks-handler.sh delete
+        scripts/eks-handler.sh delete $CLUSTER_BASE_NAME-full
+        scripts/eks-handler.sh delete $CLUSTER_BASE_NAME-run
         ;;
-    local)
+    laptop)
         scripts/minikube-handler.sh delete
         ;;
     *)
@@ -274,7 +338,7 @@ cleanup)
     esac
     ;;
 reset)
-    reset
+    reset-full
     ;;
 apis)
     add-apis

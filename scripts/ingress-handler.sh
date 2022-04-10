@@ -84,9 +84,12 @@ update-dns-A-record()
 }
 
 case $1 in
-tap)
+tap-full)
     update-dns-A-record "*.sys" "envoy" "tanzu-system-ingress"
     update-dns-A-record "*.apps" "envoy" "tanzu-system-ingress"
+    ;;
+tap-run)
+    update-dns-A-record "*.run" "envoy" "tanzu-system-ingress"
     ;;
 apis)
     create-ingress-rule "api-portal-ingress" "contour" "api-portal.sys.$DOMAIN" "api-portal-server" "8080" "api-portal"
@@ -102,7 +105,7 @@ gui-dev)
     create-ingress-rule "tap-gui-ingress" "contour" "tap-gui.sys.$DOMAIN" "server" "7000" "tap-gui"
     ;;
 *)
-    echo "incorrect usage. Please use 'tap' or 'scgw'"
+    echo "incorrect usage. Please use 'tap-full', 'tap-run', 'apis', 'gui-dev' or 'scgw'"
     ;;
 esac
 

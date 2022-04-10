@@ -7,20 +7,20 @@ This repo contains artifacts to run a demo illustrating the vision and capabilit
 
 - Clone the supplychain repo ```git clone https://github.com/dektlong/dekt-supplychain```
 
-- Verify your target cluster supports the resource and  permissions outlined in 
+- Verify your target cluster supports up to 7 nodes creation with the resource and permissions outlined in 
   - ```scripts/eks-handler.sh``` 
   - ```scripts/aks-handler.sh```
   - ```scripts/minikube-handler.sh```
 
 - Create a folder ```.config``` in and copy the contents of```config-tempales```
 
-- Update values ```.config/tap-values.yaml```
+- Update values ```.config/tap-values-full.yaml```
 
   - ```$DOMAIN``` needs to be enabled to add wild-card DNS record to
   - ```$IMAGE_REGISTRY_HOST``` and ```$SYSTEM_REPO``` needs to be accessible from the TAP cluster 
 
 - Update your registry details in ```.config/dekt-path2prod.yaml``` custom supplychain 
-  - Note: since this is a custom supply chain, the registry values defined in ```tap-values``` are NOT applied automatically
+  - Note: since this is a custom supply chain, the registry values defined in ```tap-values-full``` are NOT applied automatically
 
 - Review ```.config/scan-policy.yaml``` and customized if need 
 
@@ -28,7 +28,7 @@ This repo contains artifacts to run a demo illustrating the vision and capabilit
 
 - Update values ```.config/config-values.yaml```
 
-    - Note: ```$SYSTEM_REPO```, ```$APP_REPO``` and ```$APP_NS``` values must much the information in ```.config/tap-values.yaml```
+    - Note: ```$SYSTEM_REPO```, ```$APP_REPO``` and ```$APP_NS``` values must much the information in ```.config/tap-values-full.yaml```
 
 - The ingress setup is based on GoDaddy DNS, if you are using a different one, please modify ```scripts/ingress-handler.sh```
 
@@ -47,12 +47,11 @@ git clone https://github.com/dektlong/mood-portal
 
 ## Installation
 
-- Install the demo components
+- Install the demo components and follow the prompts
 ```
 ./builder.sh init [aks / eks / local]
 ```
-  - install TAP full profile
-  - install the following Demo components 
+  - create a 5 nodes cluster and install TAP full profile
     - Custom app accelerators 
     - Default supplychain configs for apps namespace 
     - Grype scanning policy 
@@ -60,7 +59,8 @@ git clone https://github.com/dektlong/mood-portal
     - Custom ```dekt-path2prod``` supplychain 
     - RabbitMQ operator and cluster resources
     - RabbitMQ instance
-  - setup dns and ingress rules 
+  - create a 5 nodes cluster and install TAP full profile
+  - create dns and ingress rules for both clusters 
 
 run ```./builder.sh apis``` to add the following
   - install Spring Cloud Gateway operator (via helm)
@@ -68,6 +68,8 @@ run ```./builder.sh apis``` to add the following
   - note - this is also needed for a Global Namespaces TSM demo
 
 ## Running the demo 
+
+### Workloads
 
 - access tap gui accelerators via the ```cloud-native-devs``` tag
   - create ```mood-sensors``` workload using the web-backend accelerator 
@@ -79,7 +81,7 @@ run ```./builder.sh apis``` to add the following
 - highlight the simplicity of the ```workload.yaml```
 
 - show the simple tap installed command (don't actually run)
-  - ```tanzu package install tap -p tap.tanzu.vmware.com -v 1.0.1  --values-file tap-values.yaml -n tap-install```
+  - ```tanzu package install tap -p tap.tanzu.vmware.com -v 1.0.1  --values-file tap-values-full.yaml -n tap-install```
 
 - show all the packages installed using ```tanzu package installed list -n tap-install```
 
@@ -89,10 +91,12 @@ run ```./builder.sh apis``` to add the following
 
 - follow workload creation using ```tanzu apps workload list -n dekt-apps```
 
+### Supply chain
+
 - access tap gui accelerators using the ```cloud-native-devsecops``` tag
   - create ```dekt-path2prod``` supplychain using the microservices-supplychain accelerator with ```web-backend``` workload type 
     - include testing, binding and scanning phases, leveraging the out of the box supply-chain templates
-  - Explain that the ```mood-portal``` workload is using the out-of-the-box ```source-to-url``` supply chain as configured in ```tap-values``
+  - Explain that the ```mood-portal``` workload is using the out-of-the-box ```source-to-url``` supply chain as configured in ```tap-values-full``
 
 - highlight the separation of concerns between supplychain (AppOps) and supplychain-templates (Platform Ops)
 
@@ -107,6 +111,7 @@ run ```./builder.sh apis``` to add the following
 
 - show supplychain logs  ```tanzu apps workload tail mood-sensors --since 100m --timestamp  -n DEMO_APPS_NS```
 
+### Backstage and runtime views
 - access the live url of mood-portal workload and show the call back to the mood-sensors APIs 
 
 - register a entities in tap backstage gui
@@ -116,11 +121,25 @@ run ```./builder.sh apis``` to add the following
   - click down on ```mood-sensors``` to show application live view
 
 - make a code change in ```mood-portal``` app to bypass the backend api calls 
-  - https://github.com/dektlong/mood-portal/blob/main/main.go , change ALWAYS_HAPPY flag to true 
-  - show how supply chain pickup the change and re run the path to prod
-    - ```tanzu apps workload get mood-portal -n dekt-apps```
-  - show a happy dog with sensors ignored
+```
+./builder.sh be-happy
+```
+  - show how the supplychain re-builds and deploy a new revision with a happy dog
 
+### Multi cluster
+- Retrieve the mood-portal supplychain deliverable output on the Full cluster
+```
+kubectl get deliverable -n dekt-apps
+kubectl get deliverable mood-portal -n dekt-apps -oyaml > mood-portal-deliverable.yaml
+```
+  - Delete the ownerReferences and status sections from the deliverable.yaml
+
+- Apply the mood-portal deliverable as an input for the supplychain on the Run cluster
+```
+kubeclt config use-context $CLUSTER_BASE_NAME-run 
+kubeclt apply -f mood-portal-deliverable.yaml -n dekt-apps
+```
+- 
 ## Cleanup
 
 - full cleanup to delete the cluster  ```./builder.sh cleanup [aks/eks]```
@@ -134,9 +153,9 @@ run ```./builder.sh apis``` to add the following
 
 ## API-grid demo addition
 ### Preperations
-  - Update ```dekt4pets/dekt4pets-backend.yml```  to match ```tap-values```
+  - Update ```dekt4pets/dekt4pets-backend.yml```  to match ```tap-values-full```
   - update ```serverUrl:``` value in ```dekt4pets/gateway/dekt4pets-gatway.yml``` and ```dekt4pets/gateway/dekt4pets-gatway-dev.yml``` to match tap-values
-  - Update ```host:``` value in ```brownfield-apis``` files to match ```tap-values```
+  - Update ```host:``` value in ```brownfield-apis``` files to match ```tap-values-full```
 
 ### Installation
 - ```./api-grid.sh init```
