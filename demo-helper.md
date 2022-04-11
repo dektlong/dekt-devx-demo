@@ -25,10 +25,12 @@ tanzu apps workload tail mood-sensors --since 100m --timestamp  -n dekt-apps
 kubeclt get ServiceBinding -n dekt-apps
 
 ## mood-portal code change 
-(can skip if no time and show the intergrate branch already has the change)
 
 ./builder.sh be-happy
 tanzu apps workload get mood-portal -n dekt-apps
+
+(can skip waiting for sc to complete if short on  time and show the intergrate branch already has the change)
+
 kubectl get pods -n dekt-apps
 
 ## Promote to production
