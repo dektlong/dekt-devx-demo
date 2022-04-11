@@ -1,0 +1,36 @@
+profile: build
+ceip_policy_disclosed: true # Installation fails if this is not set to true. Not a string.
+buildservice:
+  kp_default_repository: "MY_IMAGE_REGISTRY_HOST/MY_SYSTEM_REPO/build-service"
+  kp_default_repository_username: ""
+  kp_default_repository_password: ""
+  tanzunet_username: ""
+  tanzunet_password: ""
+  descriptor_name: "full"
+  enable_automatic_dependency_updates: true
+supply_chain: basic
+
+ootb_supply_chain_basic:
+  registry:
+    server: "MY_IMAGE_REGISTRY_HOST"
+    repository: "MY_APP_REPO"
+  gitops:
+    ssh_secret: ""
+
+ootb_supply_chain_testing:
+  registry:
+    server: "MY_IMAGE_REGISTRY_HOST"
+    repository: "MY_APP_REPO"
+  gitops:
+    ssh_secret: ""
+
+ootb_supply_chain_testing_scanning:
+  registry:
+    server: "MY_IMAGE_REGISTRY_HOST"
+    repository: "MY_APP_REPO"
+  gitops:
+    ssh_secret: ""
+
+grype:
+  namespace: "dekt-apps" # (optional) Defaults to default namespace.
+  targetImagePullSecret: "registry-credentials"

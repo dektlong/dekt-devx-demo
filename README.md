@@ -14,7 +14,7 @@ This repo contains artifacts to run a demo illustrating the vision and capabilit
 
 - Create a folder ```.config``` in and copy the contents of```config-tempales```
 
-- Update values in ```.config/tap-values-full.yaml``` and ```.config/tap-values-run.yaml```
+- Update values in ```.config/tap-values-full.yaml```, ```.config/tap-values-build.yaml``` and ```.config/tap-values-run.yaml```
 
   - ```MY_DOMAIN``` needs to be enabled to add wild-card DNS record to
   - ```MY_IMAGE_REGISTRY_HOST``` and ```MY_SYSTEM_REPO``` needs to be accessible from the TAP cluster 
@@ -51,16 +51,29 @@ git clone https://github.com/dektlong/mood-portal
 ```
 ./builder.sh init [aks / eks / local]
 ```
-  - create a 5 nodes cluster and install TAP Full profile
+  - create 3 clusters
+    - full cluster
+    - build cluster
+    - run clusters
+  - install full cluster
+    - TAP full profile
     - Custom app accelerators 
     - Default supplychain configs for apps namespace 
     - Grype scanning policy 
     - Tekton pipline run 
     - Custom ```dekt-path2prod``` supplychain 
-    - RabbitMQ operator and cluster resources
-    - RabbitMQ instance
-  - create a 2 nodes cluster and install TAP Run profile
-  - create dns and ingress rules for all clusters 
+    - RabbitMQ operator and instance
+    - system ingress rule
+    - cnr dev ingress rule
+  - install build cluster
+    - TAP build profile
+    - Default supplychain configs for apps namespace 
+    - Grype scanning policy 
+    - Tekton pipline run 
+  - install run cluster
+    - TAP run profile
+    - Default supplychain configs for apps namespace 
+    - cnr run ingress rule
 
 run ```./builder.sh apis``` to add the following
   - install Spring Cloud Gateway operator (via helm)
@@ -69,7 +82,7 @@ run ```./builder.sh apis``` to add the following
 
 ## Running the demo 
 
-### Workloads
+### Inner loop
 
 - access tap gui accelerators via the ```cloud-native-devs``` tag
   - create ```mood-sensors``` workload using the web-backend accelerator 
@@ -91,8 +104,6 @@ run ```./builder.sh apis``` to add the following
 
 - follow workload creation using ```tanzu apps workload list -n MY_APP_NS```
 
-### Supply chain
-
 - access tap gui accelerators using the ```cloud-native-devsecops``` tag
   - create ```dekt-path2prod``` supplychain using the microservices-supplychain accelerator with ```web-backend``` workload type 
     - include testing, binding and scanning phases, leveraging the out of the box supply-chain templates
@@ -111,7 +122,6 @@ run ```./builder.sh apis``` to add the following
 
 - show supplychain logs  ```tanzu apps workload tail mood-sensors --since 100m --timestamp  -n MY_APP_NS```
 
-### Backstage and runtime views
 - access the live url of mood-portal workload and show the call back to the mood-sensors APIs 
 
 - register a entities in tap backstage gui
@@ -126,21 +136,29 @@ run ```./builder.sh apis``` to add the following
 ```
   - show how the supplychain re-builds and deploy a new revision with a happy dog
 
-### Multi cluster
-- Retrieve the mood-portal supplychain deliverable output on the Full cluster
-```
-kubectl get deliverable -n dekt-apps
-kubectl get deliverable mood-portal -n dekt-apps -oyaml > mood-portal-deliverable.yaml
-```
+### Outer loop
+- 'promote' to Build cluster (source code)
+  ```
+  kubectl config use-context BUILD_CLUSTER_NAME
+  tanzu apps workload create mood-portal-build --git-repo https://github.com/dektlong/mood-portal ----git-branch main --type web -y -n dekt-apps 
+  ```
+  - show supply chain progress on multi-cluster Backstage
+  - Retrieve the mood-portal supplychain deliverable output on the Build cluster
+  ```
+  kubectl get deliverable -n dekt-apps
+  kubectl get deliverable mood-portal -n dekt-apps -oyaml > mood-portal-deliverable.yaml
+  ```
   - Delete the ownerReferences and status sections from the deliverable.yaml
 
-- Apply the mood-portal deliverable as an input for the supplychain on the Run cluster
-```
-kubeclt config use-context $CLUSTER_BASE_NAME-run 
-kubeclt apply -f mood-portal-deliverable.yaml -n dekt-apps
-kubectl get httpproxy -n dekt-apps
-```
+- 'promote' to Run cluster (Deliverable) 
+  - Apply the mood-portal deliverable as an input for the supplychain on the Run cluster
+  ```
+  kubeclt config use-context RUN_CLUSTER_NAME
+  kubeclt apply -f mood-portal-deliverable.yaml -n dekt-apps
+  kubectl get httpproxy -n dekt-apps
+  ```
   - show that the new Deliverable is deployed on the production domain - run.dekt.io
+
 ## Cleanup
 
 - full cleanup to delete the cluster  ```./builder.sh cleanup [aks/eks]```

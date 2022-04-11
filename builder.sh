@@ -9,7 +9,7 @@
     TANZU_NETWORK_USER=$(yq e .buildservice.tanzunet_username .config/tap-values-full.yaml)
     TANZU_NETWORK_PASSWORD=$(yq e .buildservice.tanzunet_password .config/tap-values-full.yaml)
     SYSTEM_SUB_DOMAIN=$(yq e .tap_gui.ingressDomain .config/tap-values-full.yaml | cut -d'.' -f 1)
-    BUILD_SUB_DOMAIN=$(yq e .cnrs.domain_name .config/tap-values-full.yaml | cut -d'.' -f 1)
+    DEV_SUB_DOMAIN=$(yq e .cnrs.domain_name .config/tap-values-full.yaml | cut -d'.' -f 1)
     RUN_SUB_DOMAIN=$(yq e .cnrs.domain_name .config/tap-values-run.yaml | cut -d'.' -f 1)
     
     
@@ -18,38 +18,69 @@
     
 #################### installers ################
 
+    #install-all-clusters
+    install-all() {
+
+        install-full
+
+        install-build
+
+        install-run
+
+        reset
+
+    }
+
     #install-full
     install-full() {
 
+        kubectl config use-context $FULL_CLUSTER_NAME
+        
         install-tap-prereq
 
-        tanzu package install tap -p tap.tanzu.vmware.com -v $TAP_VERSION  --values-file .config/tap-values-full.yaml-n tap-install
+        tanzu package install tap -p tap.tanzu.vmware.com -v $TAP_VERSION  --values-file .config/tap-values-full.yaml -n tap-install
 
         setup-app-ns
 
         add-custom-sc
 
         scripts/ingress-handler.sh update-tap-dns $SYSTEM_SUB_DOMAIN
-        scripts/ingress-handler.sh update-tap-dns $BUILD_SUB_DOMAIN
+        scripts/ingress-handler.sh update-tap-dns $DEV_SUB_DOMAIN
 
-        update-for-multi-cluster
+        update-multi-cluster-viewer
+
+    }
+
+    #install-build
+    install-build() {
+
+        kubectl config use-context $BUILD_CLUSTER_NAME
+
+        install-tap-prereq
+
+        tanzu package install tap -p tap.tanzu.vmware.com -v $TAP_VERSION  --values-file .config/tap-values-build.yaml -n tap-install
+
+        setup-app-ns
+
+        update-multi-cluster-viewer
 
     }
 
     #install-run
     install-run() {
 
+        kubectl config use-context $RUN_CLUSTER_NAME
+
         install-tap-prereq
 
-        tanzu package install tap -p tap.tanzu.vmware.com -v $TAP_VERSION  --values-file .config/tap-values-run.yaml-n tap-install
+        tanzu package install tap -p tap.tanzu.vmware.com -v $TAP_VERSION  --values-file .config/tap-values-run.yaml -n tap-install
 
         setup-app-ns
 
         scripts/ingress-handler.sh update-tap-dns $RUN_SUB_DOMAIN
 
-        update-for-multi-cluster
-
     }
+
 
     #install-localhost
     install-localhost() {
@@ -95,8 +126,8 @@
             --namespace tap-install
     }
 
-    #update-for-multi-cluster
-    update-for-multi-cluster() {
+    #update-multi-cluster-viewer
+    update-multi-cluster-viewer() {
 
         #enable GUI to be viewer for other clusters
         kubectl apply -f .config/tap-gui-viewer-sa-rbac.yaml
@@ -141,7 +172,7 @@
     }
 
     #setup-defaults for apps ns
-    setup-apps-ns () {
+    setup-app-ns () {
  
         #setup apps namespace
         tanzu secret registry add registry-credentials --server $PRIVATE_REPO --username $PRIVATE_REPO_USER --password $PRIVATE_REPO_PASSWORD -n $DEMO_APPS_NS
@@ -170,28 +201,26 @@
         kubectl apply -f .config/reading-rabbitmq-instance.yaml -n $DEMO_APPS_NS
     }
     
-    #reset tap-full cluster
-    reset-full() {
+    #soft of all clusters configurations
+    reset() {
 
-        kubectl config use-context $CLUSTER_BASE_NAME-full
-        
+        kubectl config use-context $BUILD_CLUSTER_NAME
+        tanzu apps workload delete mood-portal-build -n $DEMO_APPS_NS -y
+
+        kubectl config use-context $RUN_CLUSTER_NAME
+        kubectl delete -f mood-portal-deliverable.yaml
+
+        kubectl config use-context $FULL_CLUSTER_NAME
         tanzu apps workload delete mood-portal -n $DEMO_APPS_NS -y
         tanzu apps workload delete mood-sensors -n $DEMO_APPS_NS -y
-        
         kubectl delete pod -l app=backstage -n tap-gui
         kubectl -n app-live-view delete pods -l=name=application-live-view-connector
-        
         tanzu package installed update tap --package-name tap.tanzu.vmware.com --version $TAP_VERSION -n tap-install -f .config/tap-values-full.yaml
-    }
 
-    #reset tap-run cluster
-    reset-run() {
+        toggle-dog sad
+        rm -f mood-portal-deliverable.yaml   
 
-        kubectl config use-context $CLUSTER_BASE_NAME-run
         
-        tanzu apps workload delete devx-mood -n $DEMO_APPS_NS -y
-
-        kubectl delete -f mood-portal-deliverable.yaml        
     }
 
     #toggle the ALWAYS_HAPPY flag in mood-portal
@@ -301,42 +330,35 @@ relocate-tap-images)
 init)
     case $2 in
     aks)
-        scripts/aks-handler.sh create $CLUSTER_BASE_NAME-full 5
-        install-full
-        scripts/aks-handler.sh create $CLUSTER_BASE_NAME-run 2
-        install-run
+        scripts/aks-handler.sh create-clusters
+        install-all
         ;;
     eks)
-        scripts/eks-handler.sh create $CLUSTER_BASE_NAME-full 5
-        install-full
-        scripts/eks-handler.sh create $CLUSTER_BASE_NAME-run 2
-        install-run
+        scripts/eks-handler.sh create-clusters
+        install-all
         ;;
     laptop)
         scripts/minikube-handler.sh create
-        install-localhost
+        install-full
         ;;
     localhost)
-        scripts/aks-handler.sh create $CLUSTER_BASE_NAME-full 5
+        scripts/aks-handler.sh create-clusters
         install-localhost
         ;;
     *)
         incorrect-usage
         ;;
     esac
-    reset-full
     ;;
 cleanup)
     toggle-dog sad
     rm -f mood-portal-deliverable.yaml
     case $2 in
     aks)
-        scripts/aks-handler.sh delete $CLUSTER_BASE_NAME-full
-        scripts/aks-handler.sh delete $CLUSTER_BASE_NAME-run
+        scripts/aks-handler.sh delete-clusters
         ;;
     eks)
-        scripts/eks-handler.sh delete $CLUSTER_BASE_NAME-full
-        scripts/eks-handler.sh delete $CLUSTER_BASE_NAME-run
+        scripts/eks-handler.sh delete-clusters
         ;;
     laptop)
         scripts/minikube-handler.sh delete
@@ -347,10 +369,7 @@ cleanup)
     esac
     ;;
 reset)
-    toggle-dog sad
-    rm -f mood-portal-deliverable.yaml
-    reset-run
-    reset-full
+    reset    
     ;;
 apis)
     add-apis

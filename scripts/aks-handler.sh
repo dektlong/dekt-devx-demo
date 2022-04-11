@@ -2,15 +2,14 @@
 
 source .config/config-values.env
 
-cluster_name=$2
-number_of_nodes="$3"
-
 resourceGroup="tap-aks"
 
 
 #create-aks-cluster
 create-aks-cluster() {
 
+	cluster_name=$1
+	number_of_nodes="$2"
 	nodeSize="Standard_DS3_v2" # 4 vCPU, 14GB memory, 28GB temp disk
 
 	echo
@@ -33,6 +32,8 @@ create-aks-cluster() {
 
 delete-aks-cluster() {
 	
+	cluster_name=$1
+
 	echo
 	echo "Starting deleting resources of AKS cluster $cluster_name ..."
 	echo
@@ -42,13 +43,17 @@ delete-aks-cluster() {
 #################### main #######################
 
 case $1 in
-create)
-  	create-aks-cluster 
+create-clusters)
+  	#create-aks-cluster $FULL_CLUSTER_NAME 3
+	#create-aks-cluster $BUILD_CLUSTER_NAME 2
+	create-aks-cluster $RUN_CLUSTER_NAME 1
     ;;
-delete)
-    delete-aks-cluster
+delete-clusters)
+    delete-aks-cluster $FULL_CLUSTER_NAME
+	delete-aks-cluster $BUILD_CLUSTER_NAME
+	delete-aks-cluster $RUN_CLUSTER_NAME
     ;;
 *)
-	echo "Incorrect usage. Please specific 'create' or 'delete'"
+	echo "Incorrect usage. Please specific 'create-clusters' or 'delete-clusters'"
 	;;
 esac
