@@ -24,22 +24,31 @@ tanzu apps workload tail mood-sensors --since 100m --timestamp  -n dekt-apps
 
 kubeclt get ServiceBinding -n dekt-apps
 
-## mood-portal code change
+## mood-portal code change 
+(can skip if no time and show the intergrate branch already has the change)
+
 ./builder.sh be-happy
-
 tanzu apps workload get mood-portal -n dekt-apps
-
 kubectl get pods -n dekt-apps
 
 ## Promote to production
 
 ### 'promote' to Build cluster (source code)
 
-kubectl config use-context dekt-build
+kubectl config use-context dekt-integrate
+tanzu package installed list -n tap-install
 
-tanzu apps workload create -f ../mood-portal/workload.yaml -y -n dekt-apps
+tanzu apps workload create mood-portal \
+--git-repo https://github.com/dektlong/mood-portal \
+--git-branch integrate \
+--type web \
+--label app.kubernetes.io/part-of=devx-mood \
+--yes \
+--namespace dekt-apps
 
     show supply chain progress on multi-cluster Backstage
+
+tanzu apps workload get mood-portal -n dekt-apps
 
 kubectl get deliverable mood-portal -n dekt-apps -oyaml > mood-portal-deliverable.yaml
 
@@ -47,7 +56,7 @@ kubectl get deliverable mood-portal -n dekt-apps -oyaml > mood-portal-deliverabl
 
 ### 'promote' to Run cluster (Deliverable) 
 
-kubectl config use-context dekt-run  
+kubectl config use-context dekt-prod  
 
 tanzu package installed list -n tap-install 
 

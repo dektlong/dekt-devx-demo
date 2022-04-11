@@ -27,7 +27,7 @@
 
         install-run
 
-        reset
+        add-multi-cluster-views
 
     }
 
@@ -46,9 +46,6 @@
 
         scripts/ingress-handler.sh update-tap-dns $SYSTEM_SUB_DOMAIN
         scripts/ingress-handler.sh update-tap-dns $DEV_SUB_DOMAIN
-
-        update-multi-cluster-viewer
-
     }
 
     #install-build
@@ -62,9 +59,9 @@
 
         setup-app-ns
 
-        update-multi-cluster-viewer
+        add-custom-sc
 
-    }
+     }
 
     #install-run
     install-run() {
@@ -126,8 +123,21 @@
             --namespace tap-install
     }
 
-    #update-multi-cluster-viewer
-    update-multi-cluster-viewer() {
+    #add-multi-cluster-views
+    add-multi-cluster-views() {
+
+       kubectl config use-context $BUILD_CLUSTER_NAME
+       config-gui-rbac
+
+       kubectl config use-context $FULL_CLUSTER_NAME
+       config-gui-rbac
+
+       tanzu package installed update tap --package-name tap.tanzu.vmware.com --version $TAP_VERSION -n tap-install -f .config/tap-values-full.yaml
+
+   } 
+   
+   #config-gui-rbac
+   config-gui-rbac() {
 
         #enable GUI to be viewer for other clusters
         kubectl apply -f .config/tap-gui-viewer-sa-rbac.yaml
@@ -148,27 +158,6 @@
         echo "update CLUSTER_URL and CLUSTER_TOKEN values printed below in tap-values-full.yaml"
         echo "hit any key when complete..."
         read
-    }
-
-    #add-apis
-    add-apis () {
-
-        kubectl create ns $GATEWAY_NS
-
-        kubectl create secret docker-registry spring-cloud-gateway-image-pull-secret \
-            --docker-server=$PRIVATE_REPO \
-            --docker-username=$PRIVATE_REPO_USER \
-            --docker-password=$PRIVATE_REPO_PASSWORD \
-            --namespace $GATEWAY_NS
- 
-        $GW_INSTALL_DIR/scripts/install-spring-cloud-gateway.sh --namespace $GATEWAY_NS
-
-        #brownfield API
-        kubectl create ns $BROWNFIELD_NS
-        kubectl create secret generic sso-credentials --from-env-file=.config/sso-creds.txt -n api-portal
-        kustomize build workloads/brownfield-apis | kubectl apply -f -
-
-        scripts/ingress-handler.sh apis
     }
 
     #setup-defaults for apps ns
@@ -221,6 +210,27 @@
         rm -f mood-portal-deliverable.yaml   
 
         
+    }
+
+    #add-apis
+    add-apis () {
+
+        kubectl create ns $GATEWAY_NS
+
+        kubectl create secret docker-registry spring-cloud-gateway-image-pull-secret \
+            --docker-server=$PRIVATE_REPO \
+            --docker-username=$PRIVATE_REPO_USER \
+            --docker-password=$PRIVATE_REPO_PASSWORD \
+            --namespace $GATEWAY_NS
+ 
+        $GW_INSTALL_DIR/scripts/install-spring-cloud-gateway.sh --namespace $GATEWAY_NS
+
+        #brownfield API
+        kubectl create ns $BROWNFIELD_NS
+        kubectl create secret generic sso-credentials --from-env-file=.config/sso-creds.txt -n api-portal
+        kustomize build workloads/brownfield-apis | kubectl apply -f -
+
+        scripts/ingress-handler.sh apis
     }
 
     #toggle the ALWAYS_HAPPY flag in mood-portal
