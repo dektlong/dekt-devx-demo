@@ -44,9 +44,9 @@ delete-aks-cluster() {
 
 case $1 in
 create-clusters)
-  	#create-aks-cluster $FULL_CLUSTER_NAME 3
-	#create-aks-cluster $BUILD_CLUSTER_NAME 2
-	create-aks-cluster $RUN_CLUSTER_NAME 1
+  	create-aks-cluster $FULL_CLUSTER_NAME 3
+	create-aks-cluster $BUILD_CLUSTER_NAME 2
+	create-aks-cluster $RUN_CLUSTER_NAME 2
     ;;
 delete-clusters)
     delete-aks-cluster $FULL_CLUSTER_NAME
