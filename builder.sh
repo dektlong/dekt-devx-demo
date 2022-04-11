@@ -194,7 +194,7 @@
     reset() {
 
         kubectl config use-context $BUILD_CLUSTER_NAME
-        tanzu apps workload delete mood-portal-build -n $DEMO_APPS_NS -y
+        tanzu apps workload delete mood-portal -n $DEMO_APPS_NS -y
 
         kubectl config use-context $RUN_CLUSTER_NAME
         kubectl delete -f mood-portal-deliverable.yaml
