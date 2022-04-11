@@ -35,9 +35,9 @@ kubectl get pods -n dekt-apps
 
 ## Promote to production
 
-### 'promote' to Build cluster (source code)
+### 'promote' to Staging cluster (source code)
 
-kubectl config use-context dekt-integrate
+kubectl config use-context dekt-stage
 tanzu package installed list -n tap-install
 
 tanzu apps workload create mood-portal \
@@ -56,7 +56,7 @@ kubectl get deliverable mood-portal -n dekt-apps -oyaml > mood-portal-deliverabl
 
     Delete the ownerReferences and status sections from the deliverable.yaml
 
-### 'promote' to Run cluster (Deliverable) 
+### 'promote' to Production cluster (Deliverable) 
 
 kubectl config use-context dekt-prod  
 
