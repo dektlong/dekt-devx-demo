@@ -132,6 +132,7 @@
        kubectl config use-context $FULL_CLUSTER_NAME
        config-gui-rbac
 
+       kubectl delete pod -l app=backstage -n tap-gui
        tanzu package installed update tap --package-name tap.tanzu.vmware.com --version $TAP_VERSION -n tap-install -f .config/tap-values-full.yaml
 
    } 
