@@ -249,6 +249,24 @@
         scripts/ingress-handler.sh apis
     }
 
+    #push-all-workloads
+    push-all-workloads() {
+
+        kubectl config use-context $BUILD_CLUSTER_NAME
+        tanzu apps workload create mood-portal \
+            --git-repo https://github.com/dektlong/mood-portal \
+            --git-branch integrate \
+            --type web \
+            --label app.kubernetes.io/part-of=devx-mood \
+            --yes \
+            --namespace $DEMO_APPS_NS
+
+        kubectl config use-context $FULL_CLUSTER_NAME
+        tanzu apps workload create -f ../mood-portal/workload.yaml -y -n dekt-apps
+        tanzu apps workload create -f ../mood-sensors/workload.yaml -y -n dekt-apps
+
+    }
+    
     #toggle the ALWAYS_HAPPY flag in mood-portal
     toggle-dog () {
 
