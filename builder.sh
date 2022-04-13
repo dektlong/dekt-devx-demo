@@ -35,7 +35,7 @@
     install-full() {
 
         echo
-        echo "Installing TAP full profile on $FULL_CLUSTER_NAME cluster..."
+        echo "Installing TAP full profile on $FULL_CLUSTER_NAME cluster ..."
         echo
 
         kubectl config use-context $FULL_CLUSTER_NAME
@@ -56,7 +56,7 @@
     install-build() {
 
         echo
-        echo "Installing TAP build profile on $BUILD_CLUSTER_NAME cluster..."
+        echo "Installing TAP build profile on $BUILD_CLUSTER_NAME cluster ..."
         echo
         
         kubectl config use-context $BUILD_CLUSTER_NAME
@@ -75,7 +75,7 @@
     install-run() {
 
         echo
-        echo "Installing TAP run profile on $RUN_CLUSTER_NAME cluster..."
+        echo "Installing TAP run profile on $RUN_CLUSTER_NAME cluster ..."
         echo
         kubectl config use-context $RUN_CLUSTER_NAME
 
@@ -137,6 +137,10 @@
     #add-multi-cluster-views
     add-multi-cluster-views() {
 
+       echo
+       echo "Configure TAP Workloads GUI plugin to support multi-clusters ..."
+       echo
+       
        kubectl config use-context $BUILD_CLUSTER_NAME
        config-gui-rbac
 
