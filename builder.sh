@@ -117,7 +117,7 @@
         export INSTALL_REGISTRY_HOSTNAME=registry.tanzu.vmware.com
         export INSTALL_REGISTRY_USERNAME=$TANZU_NETWORK_USER
         export INSTALL_REGISTRY_PASSWORD=$TANZU_NETWORK_PASSWORD
-        pushd tanzu-cluster-essentials
+        pushd scripts/tanzu-cluster-essentials
         ./install.sh
         pushd
 
