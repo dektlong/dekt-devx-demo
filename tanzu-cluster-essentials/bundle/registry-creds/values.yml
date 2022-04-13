@@ -1,7 +1,0 @@
-#@data/values
----
-#@overlay/match expects=0
-registry:
-  server: ""
-  username: ""
-  password: ""
