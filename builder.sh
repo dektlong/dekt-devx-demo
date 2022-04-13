@@ -118,7 +118,7 @@
         export INSTALL_REGISTRY_USERNAME=$TANZU_NETWORK_USER
         export INSTALL_REGISTRY_PASSWORD=$TANZU_NETWORK_PASSWORD
         pushd scripts/tanzu-cluster-essentials
-        ./install.sh
+        ./install.sh --yes
         pushd
 
         kubectl create ns tap-install
