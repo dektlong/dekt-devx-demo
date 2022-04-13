@@ -34,6 +34,10 @@
     #install-full
     install-full() {
 
+        echo
+        echo "Installing TAP full profile on $FULL_CLUSTER_NAME cluster..."
+        echo
+
         kubectl config use-context $FULL_CLUSTER_NAME
         
         install-tap-prereq
@@ -51,6 +55,10 @@
     #install-build
     install-build() {
 
+        echo
+        echo "Installing TAP build profile on $BUILD_CLUSTER_NAME cluster..."
+        echo
+        
         kubectl config use-context $BUILD_CLUSTER_NAME
 
         install-tap-prereq
@@ -66,6 +74,9 @@
     #install-run
     install-run() {
 
+        echo
+        echo "Installing TAP run profile on $RUN_CLUSTER_NAME cluster..."
+        echo
         kubectl config use-context $RUN_CLUSTER_NAME
 
         install-tap-prereq
