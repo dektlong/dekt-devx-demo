@@ -202,6 +202,11 @@
         pushd
     }
 
+    #cleanup-helper
+    cleanup-helper() {
+        toggle-dog sad
+        rm -f $DELIVERABLE_FILE_NAME
+    }
     #incorrect usage
     incorrect-usage() {
         
@@ -270,6 +275,9 @@ behappy)
     ;;
 reset)
     reset
+    ;;
+cleanup-helper)
+    cleanup-helper
     ;;
 *)
     incorrect-usage

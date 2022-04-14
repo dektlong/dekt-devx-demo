@@ -336,7 +336,7 @@ init)
     esac
     ;;
 cleanup)
-    ./demo-helper.sh reset
+    ./demo-helper.sh cleanup-helper
     case $2 in
     aks)
         scripts/aks-handler.sh delete-clusters
