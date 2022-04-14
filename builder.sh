@@ -71,7 +71,7 @@
 
         setup-app-ns
 
-        add-custom-sc
+        #add-custom-sc
 
      }
 
