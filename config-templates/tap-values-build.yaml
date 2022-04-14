@@ -1,5 +1,12 @@
+#==================================================================
+# TAP Profiles
+#   accepted values: full, iterate, build, run, view
+#==================================================================
 profile: build
-ceip_policy_disclosed: true # Installation fails if this is not set to true. Not a string.
+
+#==================================================================
+# Build Service
+#==================================================================
 buildservice:
   kp_default_repository: "MY_IMAGE_REGISTRY_HOST/MY_SYSTEM_REPO/build-service"
   kp_default_repository_username: ""
@@ -8,6 +15,11 @@ buildservice:
   tanzunet_password: ""
   descriptor_name: "full"
   enable_automatic_dependency_updates: true
+
+#==================================================================
+# Supply Chains
+#   accepted values: basic , testing , testing_scanning
+#==================================================================
 supply_chain: basic
 
 ootb_supply_chain_basic:
@@ -32,5 +44,11 @@ ootb_supply_chain_testing_scanning:
     ssh_secret: ""
 
 grype:
-  namespace: "dekt-apps" # (optional) Defaults to default namespace.
+  namespace: "MY_APPS_NS" # (optional) Defaults to default namespace.
   targetImagePullSecret: "registry-credentials"
+
+ceip_policy_disclosed: true
+
+excluded_packages:
+  - learningcenter.tanzu.vmware.com 
+  - workshops.learningcenter.tanzu.vmware.com

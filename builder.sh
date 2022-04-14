@@ -3,14 +3,14 @@
 #################### configs #######################
 
     source .config/config-values.env
-    PRIVATE_REPO=$(yq e .ootb_supply_chain_basic.registry.server .config/tap-values-full.yaml)
-    PRIVATE_REPO_USER=$(yq e .buildservice.kp_default_repository_username .config/tap-values-full.yaml)
-    PRIVATE_REPO_PASSWORD=$(yq e .buildservice.kp_default_repository_password .config/tap-values-full.yaml)
-    TANZU_NETWORK_USER=$(yq e .buildservice.tanzunet_username .config/tap-values-full.yaml)
-    TANZU_NETWORK_PASSWORD=$(yq e .buildservice.tanzunet_password .config/tap-values-full.yaml)
-    SYSTEM_SUB_DOMAIN=$(yq e .tap_gui.ingressDomain .config/tap-values-full.yaml | cut -d'.' -f 1)
-    DEV_SUB_DOMAIN=$(yq e .cnrs.domain_name .config/tap-values-full.yaml | cut -d'.' -f 1)
-    RUN_SUB_DOMAIN=$(yq e .cnrs.domain_name .config/tap-values-run.yaml | cut -d'.' -f 1)
+    PRIVATE_REPO=$(yq .ootb_supply_chain_basic.registry.server .config/tap-values-full.yaml)
+    PRIVATE_REPO_USER=$(yq .buildservice.kp_default_repository_username .config/tap-values-full.yaml)
+    PRIVATE_REPO_PASSWORD=$(yq .buildservice.kp_default_repository_password .config/tap-values-full.yaml)
+    TANZU_NETWORK_USER=$(yq .buildservice.tanzunet_username .config/tap-values-full.yaml)
+    TANZU_NETWORK_PASSWORD=$(yq .buildservice.tanzunet_password .config/tap-values-full.yaml)
+    SYSTEM_SUB_DOMAIN=$(yq .tap_gui.ingressDomain .config/tap-values-full.yaml | cut -d'.' -f 1)
+    DEV_SUB_DOMAIN=$(yq .cnrs.domain_name .config/tap-values-full.yaml | cut -d'.' -f 1)
+    RUN_SUB_DOMAIN=$(yq .cnrs.domain_name .config/tap-values-run.yaml | cut -d'.' -f 1)
     
     
     GATEWAY_NS="scgw-system"
@@ -148,10 +148,34 @@
        echo
        
        kubectl config use-context $BUILD_CLUSTER_NAME
-       config-gui-rbac
+       kubectl apply -f .config/tap-gui-viewer-sa-rbac.yaml
+       export buildClusterUrl=$(kubectl config view --minify -o jsonpath='{.clusters[0].cluster.server}')
+       export buildClusterToken=$(kubectl -n tap-gui get secret $(kubectl -n tap-gui get sa tap-gui-viewer -o=json \
+        | jq -r '.secrets[0].name') -o=json \
+        | jq -r '.data["token"]' \
+        | base64 --decode)
+
+       echo "buildClusterUrl=$buildClusterUrl"  
+       echo "buildClusterToken=$buildClusterToken"  
+
+       yq '.tap_gui.app_config.kubernetes.clusterLocatorMethods.[0].clusters.[0].url = env(buildClusterUrl)' .config/tap-values-full.yaml -i
+       yq '.tap_gui.app_config.kubernetes.clusterLocatorMethods.[0].clusters.[0].serviceAccountToken = env(buildClusterToken)' .config/tap-values-full.yaml -i
+
 
        kubectl config use-context $FULL_CLUSTER_NAME
-       config-gui-rbac
+       kubectl apply -f .config/tap-gui-viewer-sa-rbac.yaml
+       export devClusterUrl=$(kubectl config view --minify -o jsonpath='{.clusters[0].cluster.server}')
+       export devClusterToken=$(kubectl -n tap-gui get secret $(kubectl -n tap-gui get sa tap-gui-viewer -o=json \
+        | jq -r '.secrets[0].name') -o=json \
+        | jq -r '.data["token"]' \
+        | base64 --decode)
+
+       echo "devClusterUrl=$devClusterUrl"  
+       echo "devClusterToken=$devClusterToken"  
+
+       yq '.tap_gui.app_config.kubernetes.clusterLocatorMethods.[0].clusters.[1].url = env(devClusterUrl)' .config/tap-values-full.yaml -i
+       yq '.tap_gui.app_config.kubernetes.clusterLocatorMethods.[0].clusters.[1].serviceAccountToken = env(devClusterToken)' .config/tap-values-full.yaml -i
+
 
        kubectl delete pod -l app=backstage -n tap-gui
        tanzu package installed update tap --package-name tap.tanzu.vmware.com --version $TAP_VERSION -n tap-install -f .config/tap-values-full.yaml
@@ -164,22 +188,24 @@
         #enable GUI to be viewer for other clusters
         kubectl apply -f .config/tap-gui-viewer-sa-rbac.yaml
 
-        CLUSTER_URL=$(kubectl config view --minify -o jsonpath='{.clusters[0].cluster.server}')
+        clusterEntryIndex=$1
+        clusterUrl=$(kubectl config view --minify -o jsonpath='{.clusters[0].cluster.server}')
 
-        CLUSTER_TOKEN=$(kubectl -n tap-gui get secret $(kubectl -n tap-gui get sa tap-gui-viewer -o=json \
+        clusterToken=$(kubectl -n tap-gui get secret $(kubectl -n tap-gui get sa tap-gui-viewer -o=json \
         | jq -r '.secrets[0].name') -o=json \
         | jq -r '.data["token"]' \
         | base64 --decode)
 
         echo
-        echo CLUSTER_URL: $CLUSTER_URL
+        echo clusterUrl: $clusterUrl
         echo
-        echo CLUSTER_TOKEN: $CLUSTER_TOKEN
+        echo clusterToken: $clusterToken
 
         echo
         echo "update CLUSTER_URL and CLUSTER_TOKEN values printed below in tap-values-full.yaml"
         echo "hit any key when complete..."
         read
+
     }
 
     #setup-defaults for apps ns
