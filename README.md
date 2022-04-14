@@ -28,7 +28,7 @@ This repo contains artifacts to run a demo illustrating the vision and capabilit
 
 - Update values ```.config/config-values.yaml```
 
-    - Note: ```MY_DOMAIN``` and ```MY_APP_NS``` values must much the information in ```.config/tap-values-full.yaml```
+    - Note: ```DOMAIN``` and ```DEMO_APPS_NS``` values must much the information in ```.config/tap-values-full.yaml```
 
 - The ingress setup is based on GoDaddy DNS, if you are using a different one, please modify ```scripts/ingress-handler.sh```
 
