@@ -212,28 +212,6 @@
         kubectl apply -f .config/reading-rabbitmq-instance.yaml -n $DEMO_APPS_NS
     }
     
-    #soft of all clusters configurations
-    reset() {
-
-        kubectl config use-context $BUILD_CLUSTER_NAME
-        tanzu apps workload delete mood-portal -n $DEMO_APPS_NS -y
-
-        kubectl config use-context $RUN_CLUSTER_NAME
-        kubectl delete -f mood-portal-deliverable.yaml
-
-        kubectl config use-context $FULL_CLUSTER_NAME
-        tanzu apps workload delete mood-portal -n $DEMO_APPS_NS -y
-        tanzu apps workload delete mood-sensors -n $DEMO_APPS_NS -y
-        kubectl delete pod -l app=backstage -n tap-gui
-        kubectl -n app-live-view delete pods -l=name=application-live-view-connector
-        tanzu package installed update tap --package-name tap.tanzu.vmware.com --version $TAP_VERSION -n tap-install -f .config/tap-values-full.yaml
-
-        toggle-dog sad
-        rm -f mood-portal-deliverable.yaml   
-
-        
-    }
-
     #add-apis
     add-apis () {
 
@@ -253,47 +231,6 @@
         kustomize build workloads/brownfield-apis | kubectl apply -f -
 
         scripts/ingress-handler.sh apis
-    }
-
-    #push-all-workloads
-    push-all-workloads() {
-
-        kubectl config use-context $BUILD_CLUSTER_NAME
-        tanzu apps workload create mood-portal \
-            --git-repo https://github.com/dektlong/mood-portal \
-            --git-branch integrate \
-            --type web \
-            --label app.kubernetes.io/part-of=devx-mood \
-            --yes \
-            --namespace $DEMO_APPS_NS
-
-        kubectl config use-context $FULL_CLUSTER_NAME
-        tanzu apps workload create -f ../mood-portal/workload.yaml -y -n dekt-apps
-        tanzu apps workload create -f ../mood-sensors/workload.yaml -y -n dekt-apps
-
-    }
-    
-    #toggle the ALWAYS_HAPPY flag in mood-portal
-    toggle-dog () {
-
-        pushd ../mood-portal
-
-        case $1 in
-        happy)
-            sed -i '' 's/false/true/g' main.go
-            git commit -a -m "always happy"      
-            ;;
-        sad)
-            sed -i '' 's/true/false/g' main.go
-            git commit -a -m "usually sad"
-            ;;
-        *)      
-            echo "!!!incorrect-usage. please specify happy / sad"
-            ;;
-        esac
-        
-        git push
-        pushd
     }
 
     #relocate-images
@@ -358,8 +295,6 @@
         echo
         echo "  apis"
         echo
-        echo "  reset"
-        echo
         echo "  dev"
         echo
         echo "  cleanup [ aks / eks / laptop / localhost ]"
@@ -401,8 +336,7 @@ init)
     esac
     ;;
 cleanup)
-    toggle-dog sad
-    rm -f mood-portal-deliverable.yaml
+    ./demo-helper.sh reset
     case $2 in
     aks)
         scripts/aks-handler.sh delete-clusters
@@ -418,14 +352,8 @@ cleanup)
         ;;
     esac
     ;;
-reset)
-    reset    
-    ;;
 apis)
     add-apis
-    ;;
-be-happy)
-    toggle-dog happy
     ;;
 dev)
     install-gui-dev

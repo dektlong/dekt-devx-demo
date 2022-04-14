@@ -96,13 +96,22 @@ run ```./builder.sh apis``` to add the following
 - show the simple tap installed command (don't actually run)
   - ```tanzu package install tap -p tap.tanzu.vmware.com -v 1.0.1  --values-file tap-values-full.yaml -n tap-install```
 
-- show all the packages installed using ```tanzu package installed list -n tap-install```
+- show all the packages installed using 
+```
+./demo-helper.sh dev-cluster
+```
 
 - create workloads 
-  - ```tanzu apps workload create -f mood-sensor/workload.yaml -n MY_APP_NS -y```
-  - ```tanzu apps workload create -f mood-portal/workload.yaml -n MY_APP_NS -y```
-
-- follow workload creation using ```tanzu apps workload list -n MY_APP_NS```
+```
+./demo-helper.sh deploy-workloads
+```
+- follow workloads and supply chain progress via Backstage and/or
+```
+./demo-helper.sh track-sensors
+./demo-helper.sh track-portal
+./demo-helper.sh tail-sensors-logs
+./demo-helper.sh scanning-results
+```
 
 - access tap gui accelerators using the ```cloud-native-devsecops``` tag
   - create ```dekt-path2prod``` supplychain using the microservices-supplychain accelerator with ```web-backend``` workload type 
@@ -111,16 +120,10 @@ run ```./builder.sh apis``` to add the following
 
 - highlight the separation of concerns between supplychain (AppOps) and supplychain-templates (Platform Ops)
 
-- show applied supply chains using ```tanzu apps cluster-supply-chain list```
-
-- show supply chain milestones ```tanzu apps workload get mood-sensors -n MY_APP_NS```
-  - pipeline testing
-  - scanning
-  - build image
-  - apply conventions
-  - live url via CNR
-
-- show supplychain logs  ```tanzu apps workload tail mood-sensors --since 100m --timestamp  -n MY_APP_NS```
+- show applied supply chains using 
+```
+./demo-helper.sh supplychains
+```
 
 - access the live url of mood-portal workload and show the call back to the mood-sensors APIs 
 
@@ -132,30 +135,23 @@ run ```./builder.sh apis``` to add the following
 
 - make a code change in ```mood-portal``` app to bypass the backend api calls 
 ```
-./builder.sh be-happy
+./demo-helper behappy
 ```
   - show how the supplychain re-builds and deploy a new revision with a happy dog
 
 ### Outer loop
 - 'promote' to Build cluster (source code)
   ```
-  kubectl config use-context BUILD_CLUSTER_NAME
-  tanzu apps workload create mood-portal-build --git-repo https://github.com/dektlong/mood-portal ----git-branch main --type web -y -n dekt-apps 
+  ./demo-helper.sh stage-cluster
+  ./demo-helper.sh promote-staging
   ```
   - show supply chain progress on multi-cluster Backstage
   - Retrieve the mood-portal supplychain deliverable output on the Build cluster
-  ```
-  kubectl get deliverable -n dekt-apps
-  kubectl get deliverable mood-portal -n dekt-apps -oyaml > mood-portal-deliverable.yaml
-  ```
-  - Delete the ownerReferences and status sections from the deliverable.yaml
-
+  
 - 'promote' to Run cluster (Deliverable) 
-  - Apply the mood-portal deliverable as an input for the supplychain on the Run cluster
   ```
-  kubeclt config use-context RUN_CLUSTER_NAME
-  kubeclt apply -f mood-portal-deliverable.yaml -n dekt-apps
-  kubectl get httpproxy -n dekt-apps
+  ./demo-helper.sh prod-cluster
+  ./demo-helper.sh promote-production
   ```
   - show that the new Deliverable is deployed on the production domain - run.dekt.io
 
@@ -163,7 +159,7 @@ run ```./builder.sh apis``` to add the following
 
 - full cleanup to delete the cluster  ```./builder.sh cleanup [aks/eks]```
 
-- partial cleanup to remove just workloads on all tap clusters ```./builder.sh reset```
+- partial cleanup to remove just workloads on all tap clusters ```./demo-helper.sh reset```
 
 ### Enjoy!
 
