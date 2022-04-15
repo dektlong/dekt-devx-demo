@@ -142,9 +142,13 @@
     #tail-sensors-logs
     tail-sensors-logs () {
 
-        kubectl config use-context $FULL_CLUSTER_NAME
+          tanzu apps workload tail $SENSORS_WORKLOAD_NAME --since 100m --timestamp  -n $DEMO_APPS_NS
+    }
 
-        tanzu apps workload tail $SENSORS_WORKLOAD_NAME --since 100m --timestamp  -n $DEMO_APPS_NS
+    #tail-portal-logs
+    tail-portal-logs () {
+
+        tanzu apps workload tail $PORTAL_WORKLOAD_NAME --since 100m --timestamp  -n $DEMO_APPS_NS
 
     }
 
@@ -216,11 +220,6 @@
         echo
         echo "  dev-cluster"
         echo "  deploy-workloads"
-        echo "  supplychains"
-        echo "  track-sensors"
-        echo "  track-portal"
-        echo "  tail-sensors-logs"
-        echo "  scanning-results"
         echo "  behappy"
         echo
         echo "  stage-cluster"
@@ -228,6 +227,13 @@
         echo
         echo "  prod-cluster"
         echo "  promote-production"
+        echo
+        echo "  supplychains"
+        echo "  track-sensors"
+        echo "  track-portal"
+        echo "  tail-sensors-logs"
+        echo "  tail-portal-logs"
+        echo "  scanning-results"
         echo
         echo "  reset"
         echo
@@ -266,6 +272,9 @@ track-portal)
     ;;
 tail-sensors-logs)
     tail-sensors-logs
+    ;;
+tail-portal-logs)
+    tail-portal-logs
     ;;
 scanning-results)
     scanning-results
