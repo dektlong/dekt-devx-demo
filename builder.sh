@@ -42,9 +42,7 @@
 
         kubectl config use-context $FULL_CLUSTER_NAME
         
-        install-tap-prereq
-
-        tanzu package install tap -p tap.tanzu.vmware.com -v $TAP_VERSION  --values-file .config/tap-values-full.yaml -n tap-install
+        install-tap "tap-values-full.yaml"
 
         setup-app-ns
 
@@ -65,9 +63,7 @@
         
         kubectl config use-context $BUILD_CLUSTER_NAME
 
-        install-tap-prereq
-
-        tanzu package install tap -p tap.tanzu.vmware.com -v $TAP_VERSION  --values-file .config/tap-values-build.yaml -n tap-install
+        install-tap "tap-values-build.yaml"
 
         setup-app-ns
 
@@ -85,9 +81,7 @@
         echo
         kubectl config use-context $RUN_CLUSTER_NAME
 
-        install-tap-prereq
-
-        tanzu package install tap -p tap.tanzu.vmware.com -v $TAP_VERSION  --values-file .config/tap-values-run.yaml -n tap-install
+        install-tap "tap-values-run.yaml"
 
         setup-app-ns
 
@@ -99,7 +93,7 @@
     #install-localhost
     install-localhost() {
 
-        install-tap-prereq
+        install-tap-registry
 
         tanzu package install tap -p tap.tanzu.vmware.com -v $TAP_VERSION  --values-file .config/tap-values-localhost.yaml-n tap-install
 
@@ -116,27 +110,24 @@
 
 
 
-    #install-tap-prereq
-    install-tap-prereq () {
+    #install-tap
+    install-tap () {
 
-        export INSTALL_BUNDLE=registry.tanzu.vmware.com/tanzu-cluster-essentials/cluster-essentials-bundle@sha256:ab0a3539da241a6ea59c75c0743e9058511d7c56312ea3906178ec0f3491f51d
-        export INSTALL_REGISTRY_HOSTNAME=registry.tanzu.vmware.com
-        export INSTALL_REGISTRY_USERNAME=$TANZU_NETWORK_USER
-        export INSTALL_REGISTRY_PASSWORD=$TANZU_NETWORK_PASSWORD
-        pushd scripts/tanzu-cluster-essentials
-        ./install.sh --yes
-        pushd
+        tap_values_file_name=$1
 
         kubectl create ns tap-install
-        kubectl create ns $DEMO_APPS_NS
-        
+       
         tanzu secret registry add tap-registry \
-            --username ${INSTALL_REGISTRY_USERNAME} --password ${INSTALL_REGISTRY_PASSWORD} \
-            --server ${INSTALL_REGISTRY_HOSTNAME} \
+            --username ${TANZU_NETWORK_USER} --password ${TANZU_NETWORK_PASSWORD} \
+            --server "registry.tanzu.vmware.com" \
             --export-to-all-namespaces --yes --namespace tap-install
 
         tanzu package repository add tanzu-tap-repository \
             --url registry.tanzu.vmware.com/tanzu-application-platform/tap-packages:$TAP_VERSION \
+            --namespace tap-install
+
+        tanzu package install tap -p tap.tanzu.vmware.com -v $TAP_VERSION \
+            --values-file .config/$tap_values_file_name \
             --namespace tap-install
     }
 
@@ -155,9 +146,6 @@
         | jq -r '.data["token"]' \
         | base64 --decode)
 
-       echo "buildClusterUrl=$buildClusterUrl"  
-       echo "buildClusterToken=$buildClusterToken"  
-
        yq '.tap_gui.app_config.kubernetes.clusterLocatorMethods.[0].clusters.[0].url = env(buildClusterUrl)' .config/tap-values-full.yaml -i
        yq '.tap_gui.app_config.kubernetes.clusterLocatorMethods.[0].clusters.[0].serviceAccountToken = env(buildClusterToken)' .config/tap-values-full.yaml -i
 
@@ -170,48 +158,20 @@
         | jq -r '.data["token"]' \
         | base64 --decode)
 
-       echo "devClusterUrl=$devClusterUrl"  
-       echo "devClusterToken=$devClusterToken"  
-
        yq '.tap_gui.app_config.kubernetes.clusterLocatorMethods.[0].clusters.[1].url = env(devClusterUrl)' .config/tap-values-full.yaml -i
        yq '.tap_gui.app_config.kubernetes.clusterLocatorMethods.[0].clusters.[1].serviceAccountToken = env(devClusterToken)' .config/tap-values-full.yaml -i
 
-
-       kubectl delete pod -l app=backstage -n tap-gui
        tanzu package installed update tap --package-name tap.tanzu.vmware.com --version $TAP_VERSION -n tap-install -f .config/tap-values-full.yaml
 
    } 
    
-   #config-gui-rbac
-   config-gui-rbac() {
-
-        #enable GUI to be viewer for other clusters
-        kubectl apply -f .config/tap-gui-viewer-sa-rbac.yaml
-
-        clusterEntryIndex=$1
-        clusterUrl=$(kubectl config view --minify -o jsonpath='{.clusters[0].cluster.server}')
-
-        clusterToken=$(kubectl -n tap-gui get secret $(kubectl -n tap-gui get sa tap-gui-viewer -o=json \
-        | jq -r '.secrets[0].name') -o=json \
-        | jq -r '.data["token"]' \
-        | base64 --decode)
-
-        echo
-        echo clusterUrl: $clusterUrl
-        echo
-        echo clusterToken: $clusterToken
-
-        echo
-        echo "update CLUSTER_URL and CLUSTER_TOKEN values printed below in tap-values-full.yaml"
-        echo "hit any key when complete..."
-        read
-
-    }
-
+   
     #setup-defaults for apps ns
     setup-app-ns () {
  
         #setup apps namespace
+        kubectl create ns $DEMO_APPS_NS
+        
         tanzu secret registry add registry-credentials --server $PRIVATE_REPO --username $PRIVATE_REPO_USER --password $PRIVATE_REPO_PASSWORD -n $DEMO_APPS_NS
         kubectl apply -f .config/supplychain-rbac.yaml -n $DEMO_APPS_NS
     }
@@ -335,17 +295,18 @@
 #################### main ##########################
 
 case $1 in
-relocate-tap-images)
-    relocate-tap-images
-    ;;
 init)
     case $2 in
     aks)
-        scripts/aks-handler.sh create-clusters
+        scripts/aks-handler.sh create $FULL_CLUSTER_NAME 3
+        scripts/aks-handler.sh create $BUILD_CLUSTER_NAME 2
+        scripts/aks-handler.sh create $RUN_CLUSTER_NAME 2
         install-all
         ;;
     eks)
-        scripts/eks-handler.sh create-clusters
+        scripts/eks-handler.sh create $FULL_CLUSTER_NAME 3
+        scripts/eks-handler.sh create $BUILD_CLUSTER_NAME 2
+        scripts/eks-handler.sh create $RUN_CLUSTER_NAME 2
         install-all
         ;;
     laptop)
@@ -353,7 +314,9 @@ init)
         install-full
         ;;
     localhost)
-        scripts/aks-handler.sh create-clusters
+        scripts/aks-handler.sh create $FULL_CLUSTER_NAME 3
+        scripts/aks-handler.sh create $BUILD_CLUSTER_NAME 2
+        scripts/aks-handler.sh create $RUN_CLUSTER_NAME 2
         install-localhost
         ;;
     *)
@@ -365,10 +328,14 @@ cleanup)
     ./demo-helper.sh cleanup-helper
     case $2 in
     aks)
-        scripts/aks-handler.sh delete-clusters
+        scripts/aks-handler.sh delete $FULL_CLUSTER_NAME
+        scripts/aks-handler.sh delete $BUILD_CLUSTER_NAME
+        scripts/aks-handler.sh delete $RUN_CLUSTER_NAME
         ;;
     eks)
-        scripts/eks-handler.sh delete-clusters
+        scripts/eks-handler.sh delete $FULL_CLUSTER_NAME
+        scripts/eks-handler.sh delete $BUILD_CLUSTER_NAME
+        scripts/eks-handler.sh delete $RUN_CLUSTER_NAME
         ;;
     laptop)
         scripts/minikube-handler.sh delete
@@ -383,6 +350,9 @@ apis)
     ;;
 dev)
     install-gui-dev
+    ;;
+relocate-tap-images)
+    relocate-tap-images
     ;;
 runme)
     $2

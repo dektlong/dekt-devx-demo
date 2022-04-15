@@ -2,47 +2,72 @@
 
 source .config/config-values.env
 
+CLUSTER_NAME=$2
+NUMBER_OF_NODES="$3"
 
+TANZU_NETWORK_USER=$(yq .buildservice.tanzunet_username .config/tap-values-full.yaml)
+TANZU_NETWORK_PASSWORD=$(yq .buildservice.tanzunet_password .config/tap-values-full.yaml)
 
 #create-cluster
 create-eks-cluster () {
 
-    cluster_name=$1
-    number_of_nodes="$2"
-    #must run after setting access via 'aws configure'
+     #must run after setting access via 'aws configure'
+
+    echo
+	echo "Creating EKS cluster $CLUSTER_NAME with $NUMBER_OF_NODES nodes ..."
+	echo
 
     eksctl create cluster \
-    --name $cluster_name \
+    --name $CLUSTER_NAME \
     --nodegroup-name standard-workers \
     --node-type t3.medium \
-    --nodes $number_of_nodes \
+    --nodes $NUMBER_OF_NODES \
     --nodes-min 2 \
-    --nodes-max $number_of_nodes
+    --nodes-max $NUMBER_OF_NODES
 }
 
+
+#add-carvel-tools
+add-carvel-tools () {
+
+	export INSTALL_BUNDLE=registry.tanzu.vmware.com/tanzu-cluster-essentials/cluster-essentials-bundle@sha256:ab0a3539da241a6ea59c75c0743e9058511d7c56312ea3906178ec0f3491f51d
+    export INSTALL_REGISTRY_HOSTNAME=registry.tanzu.vmware.com
+    export INSTALL_REGISTRY_USERNAME=$TANZU_NETWORK_USER
+    export INSTALL_REGISTRY_PASSWORD=$TANZU_NETWORK_PASSWORD
+    pushd scripts/carvel
+        ./install.sh --yes
+	pushd
+}
 #delete-cluster
 delete-eks-cluster () {
 
-    cluster_name=$1
-
    	echo
-	echo "Starting deleting resources of EKS cluster $cluster_name ..."
+	echo "Starting deleting resources of EKS cluster $CLUSTER_NAME ..."
 	echo
-    eksctl delete cluster --name $cluster_name --force
+    eksctl delete cluster --name $CLUSTER_NAME --force
 }
 
+#incorrect-usage
+incorrect-usage() {
+    echo "Incorrect usage. Please specify:"
+    echo "  create [cluster-name number-of-nodes]"
+    echo "  delete [cluster-name]"
+    exit
+}
+
+if [ -z "$CLUSTER_NAME" ] | [ -z "$NUMBER_OF_NODES" ]; then
+    incorrect-usage
+fi
+
 case $1 in
-create-clusters)
-  	create-eks-cluster $FULL_CLUSTER_NAME 4
-    create-eks-cluster $BUILD_CLUSTER_NAME 2
-    create-eks-cluster $RUN_CLUSTER_NAME 2
+create)
+  	create-eks-cluster
+    add-carvel-tools
     ;;
-delete-clusters)
-    delete-eks-cluster $FULL_CLUSTER_NAME
-    delete-eks-cluster $BUILD_CLUSTER_NAME
-    delete-eks-cluster $RUN_CLUSTER_NAME
+delete)
+    delete-eks-cluster
     ;;
 *)
-	echo "Incorrect usage. Please specific 'create' or 'delete'"
+	incorrect-usage
 	;;
 esac

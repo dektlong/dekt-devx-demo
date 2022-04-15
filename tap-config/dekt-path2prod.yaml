@@ -6,6 +6,7 @@ spec:
   selector:
     apps.tanzu.vmware.com/has-tests: 'true'
     apps.tanzu.vmware.com/workload-type: web-backend
+  #supplychain inputs
   params:
   - default: main
     name: gitops_branch
@@ -18,7 +19,8 @@ spec:
   - default: ''
     name: gitops_ssh_secret
   resources:
-  - name: source-provider
+  #get source
+  - name: get-source
     params:
     - name: serviceAccount
       value: default
@@ -27,30 +29,24 @@ spec:
     templateRef:
       kind: ClusterSourceTemplate
       name: source-template
-  - name: deliverable
-    params:
-    - name: registry
-      value:
-        repository: UPDATE_ME
-        server: UPDATE_ME
-    templateRef:
-      kind: ClusterTemplate
-      name: deliverable-template
-  - name: source-tester
+  #test-source
+  - name: test-source
     sources:
     - name: source
-      resource: source-provider
+      resource: get-source
     templateRef:
       kind: ClusterSourceTemplate
       name: testing-pipeline
-  - name: source-scanner
+  #scan-source
+  - name: scan-source
     sources:
     - name: source
-      resource: source-tester
+      resource: test-source
     templateRef:
       kind: ClusterSourceTemplate
       name: source-scanner-template
-  - name: image-builder
+  #build-image
+  - name: build-image
     params:
     - name: serviceAccount
       value: default
@@ -58,51 +54,65 @@ spec:
       value: default
     - name: registry
       value:
-        repository:  UPDATE_ME
-        server:  UPDATE_ME
+        repository:  {UPDATE_ME}
+        server:  {UPDATE_ME}
     sources:
     - name: source
-      resource: source-scanner
+      resource: scan-source
     templateRef:
       kind: ClusterImageTemplate
       name: kpack-template
-  - images:
+  #scan-image
+  - name: scan-image
+    images:
     - name: image
-      resource: image-builder
-    name: image-scanner
+      resource: build-image
     templateRef:
       kind: ClusterImageTemplate
       name: image-scanner-template
-  - images:
+  #get pod conventions
+  - name: get-convenstions
+    images:
     - name: image
-      resource: image-scanner
-    name: config-provider
+      resource: scan-image
     params:
     - name: serviceAccount
       value: default
     templateRef:
       kind: ClusterConfigTemplate
       name: convention-template
-  - configs:
+  #bind to app services
+  - name: bind-services
+    configs:
     - name: config
-      resource: config-provider
-    name: app-config
+      resource: get-convenstions
     templateRef:
       kind: ClusterConfigTemplate
       name: config-template
-  - configs:
+  #write configs
+  - name: write-configs
+    configs:
     - name: config
-      resource: app-config
-    name: config-writer
+      resource: bind-services
     params:
     - name: serviceAccount
       value: default
     - name: registry
       value:
-        repository: UPDATE_ME
-        server: UPDATE_ME
+        repository: #must match tap-values-full.yaml ootb_supply_chain_testing_scanning.registry.repository
+        server: #must match tap-values-full.yaml ootb_supply_chain_testing_scanning.registry.server
     templateRef:
       kind: ClusterTemplate
       name: config-writer-template
+    #supply-chain output
+  - name: deliverable
+    params:
+    - name: registry
+      value:
+        repository: #must match tap-values-full.yaml ootb_supply_chain_testing_scanning.registry.repository
+        server: #must match tap-values-full.yaml ootb_supply_chain_testing_scanning.registry.server
+    templateRef:
+      kind: ClusterTemplate
+      name: deliverable-template
   
 
