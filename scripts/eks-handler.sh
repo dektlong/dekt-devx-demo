@@ -44,7 +44,7 @@ add-carvel-tools () {
 #delete-cluster
 delete-eks-cluster () {
 
-   	if [ -z "$CLUSTER_NAME" ] 
+   	if [ -z "$CLUSTER_NAME" ] ; then
         incorrect-usage
     fi
        
