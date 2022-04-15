@@ -22,11 +22,13 @@ create-eks-cluster () {
 
     eksctl create cluster \
     --name $CLUSTER_NAME \
-    --nodegroup-name standard-workers \
+    --nodegroup-name workers-$CLUSTER_NAME \
     --node-type t3.medium \
     --nodes $NUMBER_OF_NODES \
     --nodes-min 2 \
     --nodes-max $NUMBER_OF_NODES
+
+    kubectl config rename-context $(kubectl config current-context) $CLUSTER_NAME
 }
 
 
@@ -52,6 +54,8 @@ delete-eks-cluster () {
 	echo "Starting deleting resources of EKS cluster $CLUSTER_NAME ..."
 	echo
     eksctl delete cluster --name $CLUSTER_NAME --force
+
+    kubectl config delete-context $CLUSTER_NAME
 }
 
 #incorrect-usage

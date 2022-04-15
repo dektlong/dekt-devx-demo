@@ -33,8 +33,6 @@ create-aks-cluster() {
 
 	az aks get-credentials --overwrite-existing --resource-group $RESOURCE_GROUP --name $CLUSTER_NAME
 
-	add-carvel-tools
-
 }
 
 #add-carvel-tools
@@ -59,6 +57,8 @@ delete-aks-cluster() {
 	echo "Starting deleting resources of AKS cluster $CLUSTER_NAME ..."
 	echo
 	az aks delete --name $CLUSTER_NAME --resource-group $RESOURCE_GROUP --yes
+
+	kubectl config delete-context $CLUSTER_NAME
 
 }
 #################### main #######################
