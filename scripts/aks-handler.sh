@@ -12,6 +12,10 @@ TANZU_NETWORK_PASSWORD=$(yq .buildservice.tanzunet_password .config/tap-values-f
 #create-aks-cluster
 create-aks-cluster() {
 
+	if [ -z "$CLUSTER_NAME" ] | [ -z "$NUMBER_OF_NODES" ]; then
+    	incorrect-usage
+	fi
+	
 	echo
 	echo "==========> Creating AKS cluster named $CLUSTER_NAME with $NUMBER_OF_NODES nodes ..."
 	echo
@@ -48,6 +52,9 @@ add-carvel-tools () {
 #delete-aks-cluster
 delete-aks-cluster() {
 	
+	if [ -z "$CLUSTER_NAME" ] ; then
+    	incorrect-usage
+	fi
 	echo
 	echo "Starting deleting resources of AKS cluster $CLUSTER_NAME ..."
 	echo
@@ -63,10 +70,6 @@ incorrect-usage() {
     echo "  delete [cluster-name]"
     exit
 }
-
-if [ -z "$CLUSTER_NAME" ] | [ -z "$NUMBER_OF_NODES" ]; then
-    incorrect-usage
-fi
 
 case $1 in
 create)

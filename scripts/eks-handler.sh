@@ -11,7 +11,10 @@ TANZU_NETWORK_PASSWORD=$(yq .buildservice.tanzunet_password .config/tap-values-f
 #create-cluster
 create-eks-cluster () {
 
-     #must run after setting access via 'aws configure'
+    if [ -z "$CLUSTER_NAME" ] | [ -z "$NUMBER_OF_NODES" ]; then
+        incorrect-usage
+    fi
+    #must run after setting access via 'aws configure'
 
     echo
 	echo "Creating EKS cluster $CLUSTER_NAME with $NUMBER_OF_NODES nodes ..."
@@ -41,7 +44,11 @@ add-carvel-tools () {
 #delete-cluster
 delete-eks-cluster () {
 
-   	echo
+   	if [ -z "$CLUSTER_NAME" ] 
+        incorrect-usage
+    fi
+       
+    echo
 	echo "Starting deleting resources of EKS cluster $CLUSTER_NAME ..."
 	echo
     eksctl delete cluster --name $CLUSTER_NAME --force
@@ -55,9 +62,6 @@ incorrect-usage() {
     exit
 }
 
-if [ -z "$CLUSTER_NAME" ] | [ -z "$NUMBER_OF_NODES" ]; then
-    incorrect-usage
-fi
 
 case $1 in
 create)
