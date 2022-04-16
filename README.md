@@ -53,7 +53,9 @@ git clone https://github.com/dektlong/mood-portal
     aks - dev,stage,prod clusters created via AKS
     eks - dev,stage,prod clusters created via EKS
     tkg - dev,stage,prod clusters created via TKG
-    hybrid - dev cluster created via AKS, stage cluster created via EKS, prod cluster created via TKG
+    hybrid - dev cluster created via AKS, 
+             stage cluster created via EKS, 
+             prod cluster created via TKG
     laptop - dev cluster on MiniKube
 
 ```
