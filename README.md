@@ -50,17 +50,13 @@ git clone https://github.com/dektlong/mood-portal
 - Install the demo components and follow the prompts
 ```
 ./builder.sh init 
-    aks - dev,stage,prod clusters on AKS
-    eks - dev,stage,prod clusters on EKS
-    tkg - dev,stage,prod clusters on TKG
-    hybrid - dev on AKS, stage on EKS, prod on TKG
+    aks - dev,stage,prod clusters created via AKS
+    eks - dev,stage,prod clusters created via EKS
+    tkg - dev,stage,prod clusters created via TKG
+    hybrid - dev cluster created via AKS, stage cluster created via EKS, prod cluster created via TKG
     laptop - dev cluster on MiniKube
 
 ```
-  - create 3 clusters
-    - full cluster
-    - build cluster
-    - run clusters
   - install full cluster
     - TAP full profile
     - Custom app accelerators 
