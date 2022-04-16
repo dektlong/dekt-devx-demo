@@ -59,7 +59,7 @@ git clone https://github.com/dektlong/mood-portal
     laptop - dev cluster on MiniKube
 
 ```
-  - install full cluster
+  - install dev cluster
     - TAP full profile
     - Custom app accelerators 
     - Default supplychain configs for apps namespace 
@@ -69,12 +69,12 @@ git clone https://github.com/dektlong/mood-portal
     - RabbitMQ operator and instance
     - system ingress rule
     - cnr dev ingress rule
-  - install build cluster
+  - install stage cluster
     - TAP build profile
     - Default supplychain configs for apps namespace 
     - Grype scanning policy 
     - Tekton pipline run 
-  - install run cluster
+  - install prod cluster
     - TAP run profile
     - Default supplychain configs for apps namespace 
     - cnr run ingress rule
