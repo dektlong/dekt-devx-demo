@@ -71,7 +71,7 @@ spec:
       kind: ClusterImageTemplate
       name: image-scanner-template
   #get pod conventions
-  - name: get-convenstions
+  - name: get-conventions
     images:
     - name: image
       resource: scan-image
@@ -85,7 +85,7 @@ spec:
   - name: bind-services
     configs:
     - name: config
-      resource: get-convenstions
+      resource: get-conventions
     templateRef:
       kind: ClusterConfigTemplate
       name: config-template
