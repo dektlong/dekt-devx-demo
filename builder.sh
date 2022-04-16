@@ -277,13 +277,18 @@
         echo "Incorrect usage. Please specify one of the following: "
         echo
         echo
-        echo "  init [ aks / eks / laptop / localhost ]"
+        echo "  init"
+        echo "    aks - dev,stage,prod clusters on AKS"
+        echo "    eks - dev,stage,prod clusters on EKS"
+        echo "    tkg - dev,stage,prod clusters on TKG"
+        echo "    hybrid - dev on AKS, stage on EKS, prod on TKG"
+        echo "    laptop - dev cluster on MiniKube"
         echo
         echo "  apis"
         echo
         echo "  dev"
         echo
-        echo "  cleanup [ aks / eks / laptop / localhost ]"
+        echo "  cleanup [ aks / eks / tkg / hybrid / laptop / localhost ]"
         echo
         echo "  relocate-tap-images"
         echo
@@ -307,6 +312,18 @@ init)
         scripts/eks-handler.sh create $FULL_CLUSTER_NAME 3
         scripts/eks-handler.sh create $BUILD_CLUSTER_NAME 2
         scripts/eks-handler.sh create $RUN_CLUSTER_NAME 2
+        install-all
+        ;;
+    tkg)
+        scripts/tkg-handler.sh create $FULL_CLUSTER_NAME 3
+        scripts/tkg-handler.sh create $BUILD_CLUSTER_NAME 2
+        scripts/tkg-handler.sh create $RUN_CLUSTER_NAME 2
+        install-all
+        ;;
+    hybrid)
+        scripts/aks-handler.sh create $FULL_CLUSTER_NAME 3
+        scripts/eks-handler.sh create $BUILD_CLUSTER_NAME 2
+        scripts/tkg-handler.sh create $RUN_CLUSTER_NAME 2
         install-all
         ;;
     laptop)
@@ -336,6 +353,17 @@ cleanup)
         scripts/eks-handler.sh delete $FULL_CLUSTER_NAME
         scripts/eks-handler.sh delete $BUILD_CLUSTER_NAME
         scripts/eks-handler.sh delete $RUN_CLUSTER_NAME
+        ;;
+    tkg)
+        scripts/tkg-handler.sh delete $FULL_CLUSTER_NAME 3
+        scripts/tkg-handler.sh delete $BUILD_CLUSTER_NAME 2
+        scripts/tkg-handler.sh delete $RUN_CLUSTER_NAME 2
+        install-all
+        ;;
+    hybrid)
+        scripts/aks-handler.sh delete $FULL_CLUSTER_NAME 3
+        scripts/eks-handler.sh delete $BUILD_CLUSTER_NAME 2
+        scripts/tkg-handler.sh delete $RUN_CLUSTER_NAME 2
         ;;
     laptop)
         scripts/minikube-handler.sh delete
