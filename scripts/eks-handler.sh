@@ -23,10 +23,9 @@ create-eks-cluster () {
     eksctl create cluster \
     --name $CLUSTER_NAME \
     --nodegroup-name workers-$CLUSTER_NAME \
-    --node-type t3.medium \
+    --version "1.21" \
     --nodes $NUMBER_OF_NODES \
-    --nodes-min 2 \
-    --nodes-max $NUMBER_OF_NODES
+    --node-type t3.xlarge # 4 vCPU , 16GB memory, 80GB temp disk 
 
     kubectl config rename-context $(kubectl config current-context) $CLUSTER_NAME
 }

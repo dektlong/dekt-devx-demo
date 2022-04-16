@@ -26,10 +26,9 @@ create-aks-cluster() {
 
 	az aks create --name $CLUSTER_NAME \
 		--resource-group $RESOURCE_GROUP \
+		--kubernetes-version "1.22.6" \
 		--node-count $NUMBER_OF_NODES \
 		--node-vm-size "Standard_DS3_v2" # 4 vCPU, 14GB memory, 28GB temp disk 
-	#	--generate-ssh-keys 
-	#	--enable-addons http_application_routing 
 
 	az aks get-credentials --overwrite-existing --resource-group $RESOURCE_GROUP --name $CLUSTER_NAME
 

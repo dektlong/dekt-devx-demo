@@ -1,7 +1,37 @@
 #!/usr/bin/env bash
 
 
-#################### functions #######################
+source .config/config-values.env
+
+CLUSTER_NAME=$2
+NUMBER_OF_NODES="$3"
+
+#create-tkgm
+create-tkgm () {
+
+    if [ -z "$CLUSTER_NAME" ] | [ -z "$NUMBER_OF_NODES" ]; then
+        incorrect-usage
+    fi
+
+    echo
+	echo "Creating TKG-M cluster $CLUSTER_NAME with $NUMBER_OF_NODES nodes ..."
+	echo
+
+    kubectl create clusterrolebinding default-tkg-admin-privileged-binding --clusterrole=psp:vmware-system-privileged --group=system:authenticated
+}
+
+#delete-tkgm
+delete-tkgm() {
+
+    if [ -z "$CLUSTER_NAME" ] ; then
+        incorrect-usage
+    fi
+       
+    echo
+	echo "Starting deleting resources of TKG-M cluster $CLUSTER_NAME ..."
+	echo
+
+}
 
 # create-pacific
 #   $1 cluster name
@@ -121,13 +151,12 @@ print-intro() {
     echo
 }
 
-#incorrect usage
+#incorrect-usage
 incorrect-usage() {
-	echo
-    echo "Incorrect usage. Required: TKG-version [tkg-m/tkg-s/tkg-i], cluster-name, cluster-plan, num-master-nodes, num-workers-nodes"
-    echo "  e.g. build-tkg-cluster.sh tkg-i mycluster small 1 3"
-    echo
-  	exit   
+    echo "Incorrect usage. Please specify:"
+    echo "  create [cluster-name number-of-nodes]"
+    echo "  delete [cluster-name]"
+    exit
 }
 
 #################### main #######################
@@ -135,15 +164,13 @@ incorrect-usage() {
 source .config/config-values.env
 
 case $1 in
-tkg-m)
-    create-tkg $2 $3 $4 $5
-	;;
-tkg-s)
-    create-pacific $2 $3 $4 $5
-	;;
-tkg-i)
-    create-pks $2 $3 $4 $5
-	;;
+
+create)
+    create-tkgm
+    ;;
+delete)
+    delete-tkgm
+    ;;
 *)
   	incorrect-usage
   	;;
