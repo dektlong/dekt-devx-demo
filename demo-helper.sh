@@ -215,9 +215,6 @@
     cleanup-helper() {
         toggle-dog sad
         rm -f $DELIVERABLE_FILE_NAME
-        kubectl config delete-context $FULL_CLUSTER_NAME
-        kubectl config delete-context $BUILD_CLUSTER_NAME
-        kubectl config delete-context $RUN_CLUSTER_NAME
     }
     #incorrect usage
     incorrect-usage() {

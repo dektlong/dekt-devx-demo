@@ -325,6 +325,9 @@ cleanup)
         incorrect-usage
         ;;
     esac
+    kubectl config delete-context $FULL_CLUSTER_NAME
+    kubectl config delete-context $BUILD_CLUSTER_NAME
+    kubectl config delete-context $RUN_CLUSTER_NAME
     ;;
 apis)
     add-apis
