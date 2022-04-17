@@ -71,7 +71,7 @@ git clone https://github.com/dektlong/mood-portal
     - Default supplychain configs for apps namespace 
     - cnr run ingress rule
 
-  Note: following installation the k8s context is renamed to to enable demos on installed clusters
+  Note: following installation the k8s context is renamed to to enable demos on pre-installed clusters (see set-context)
 
 run ```./builder.sh apis``` to add the following
   - install Spring Cloud Gateway operator (via helm)
