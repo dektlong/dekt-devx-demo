@@ -71,8 +71,6 @@ git clone https://github.com/dektlong/mood-portal
     - Default supplychain configs for apps namespace 
     - cnr run ingress rule
 
-  Following installation the k8s contexts are renamed to ```###-idle``` (see Clusters context)
-
 run ```./builder.sh apis``` to add the following
   - install Spring Cloud Gateway operator (via helm)
   - add brownfield APIs routes and gateways (see ```brownfield-apis```)
@@ -80,16 +78,6 @@ run ```./builder.sh apis``` to add the following
 
 ## Running the demo 
 
-### Clusters context 
- - Set the kubectl context to the *pre-installed* clusters
-```
-./builder.sh set-context [aks on, eks on, tkg on, hybrid on]
-
-    aks: dev, stage and prod clusters on AKS
-    eks: dev, stage and prod clusters on EKS
-    tkg: dev, stage and prod clusters on TKG
-    hybrid: dev cluster AKS, stage cluster EKS, prod cluster TKG
-```
 ### Inner loop
 
 - access tap gui accelerators via the ```cloud-native-devs``` tag

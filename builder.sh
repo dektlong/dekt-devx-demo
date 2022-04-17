@@ -18,61 +18,27 @@
     
 #################### installers ################
 
-    #install-all-clusters
+    #install-all
     install-all() {
-
-        install-full
-
-        install-build
-
-        install-run
-
-        add-multi-cluster-views
-
-    }
-
-    #install-full
-    install-full() {
 
         echo
         echo "==========================================================="
         echo "Installing TAP full profile on $FULL_CLUSTER_NAME cluster ..."
         echo "==========================================================="
         echo
-
         kubectl config use-context $FULL_CLUSTER_NAME
-        
         install-tap "tap-values-full.yaml"
-
-        setup-app-ns
-
-        add-custom-sc
-
+        add-dekt-supplychain
         scripts/ingress-handler.sh update-tap-dns $SYSTEM_SUB_DOMAIN
         scripts/ingress-handler.sh update-tap-dns $DEV_SUB_DOMAIN
-    }
-
-    #install-build
-    install-build() {
 
         echo
         echo "==========================================================="
         echo "Installing TAP build profile on $BUILD_CLUSTER_NAME cluster ..."
         echo "==========================================================="
         echo
-        
         kubectl config use-context $BUILD_CLUSTER_NAME
-
         install-tap "tap-values-build.yaml"
-
-        setup-app-ns
-
-        #add-custom-sc
-
-     }
-
-    #install-run
-    install-run() {
 
         echo
         echo "==========================================================="
@@ -80,34 +46,42 @@
         echo "==========================================================="
         echo
         kubectl config use-context $RUN_CLUSTER_NAME
-
         install-tap "tap-values-run.yaml"
-
-        setup-app-ns
-
         scripts/ingress-handler.sh update-tap-dns $RUN_SUB_DOMAIN
 
+        update-multi-cluster-views
     }
-
 
     #install-localhost
     install-localhost() {
 
-        install-tap-registry
-
-        tanzu package install tap -p tap.tanzu.vmware.com -v $TAP_VERSION  --values-file .config/tap-values-localhost.yaml-n tap-install
-
-        setup-app-ns
-
-        add-custom-sc
+        echo
+        echo "==========================================================="
+        echo "Installing TAP full profile on $FULL_CLUSTER_NAME cluster with localhost access ..."
+        echo "==========================================================="
+        echo
+        kubectl config use-context $FULL_CLUSTER_NAME
+        install-tap "tap-values-localhost.yaml"
+        add-dekt-supplychain
 
         echo
-        echo "update gui LB IP values in tap-values-run. hit any key.."
+        echo "update gui LB IP values in tap-values-localhost.yaml. hit any key.."
         read
 
         tanzu package installed update tap --package-name tap.tanzu.vmware.com --version $TAP_VERSION -n tap-install -f .config/tap-values-localhost.yaml
     }
 
+    #install-mac
+    install-mac() {
+
+        echo
+        echo "==========================================================="
+        echo "Installing TAP interate profile on a local minikube cluster..."
+        echo "==========================================================="
+        echo
+        kubectl config use-context $FULL_CLUSTER_NAME
+        install-tap "tap-values-laptop.yaml"
+    }
 
 
     #install-tap
@@ -129,10 +103,15 @@
         tanzu package install tap -p tap.tanzu.vmware.com -v $TAP_VERSION \
             --values-file .config/$tap_values_file_name \
             --namespace tap-install
+
+         #setup apps namespace
+        kubectl create ns $DEMO_APPS_NS
+        tanzu secret registry add registry-credentials --server $PRIVATE_REPO --username $PRIVATE_REPO_USER --password $PRIVATE_REPO_PASSWORD -n $DEMO_APPS_NS
+        kubectl apply -f .config/supplychain-rbac.yaml -n $DEMO_APPS_NS
     }
 
-    #add-multi-cluster-views
-    add-multi-cluster-views() {
+    #update-multi-cluster-views
+    update-multi-cluster-views() {
 
        echo
        echo "Configure TAP Workloads GUI plugin to support multi-clusters ..."
@@ -163,20 +142,10 @@
 
        tanzu package installed update tap --package-name tap.tanzu.vmware.com --version $TAP_VERSION -n tap-install -f .config/tap-values-full.yaml
 
-   } 
+    } 
    
-   
-    #setup-defaults for apps ns
-    setup-app-ns () {
- 
-        #setup apps namespace
-        kubectl create ns $DEMO_APPS_NS
-        
-        tanzu secret registry add registry-credentials --server $PRIVATE_REPO --username $PRIVATE_REPO_USER --password $PRIVATE_REPO_PASSWORD -n $DEMO_APPS_NS
-        kubectl apply -f .config/supplychain-rbac.yaml -n $DEMO_APPS_NS
-    }
-
-    add-custom-sc() {
+    #add the dekt-path2prod custom supply chain and related components
+    add-dekt-supplychain() {
         
         kubectl apply -f .config/disable-scale2zero.yaml
 
@@ -270,120 +239,8 @@
        
     }
 
-    #config cluster context between EKS and AKS deployed clusters
-    set-context()
-    {
-        case $1 in
-        aks)
-            case $2 in
-            on)
-                kubectl config rename-context $FULL_CLUSTER_NAME-aks-idle  $FULL_CLUSTER_NAME
-                scripts/ingress-handler.sh update-tap-dns $SYSTEM_SUB_DOMAIN
-                scripts/ingress-handler.sh update-tap-dns $DEV_SUB_DOMAIN 
-
-                kubectl config rename-context $BUILD_CLUSTER_NAME-aks-idle  $BUILD_CLUSTER_NAME  
-
-                kubectl config rename-context $RUN_CLUSTER_NAME-aks-idle $RUN_CLUSTER_NAME
-                scripts/ingress-handler.sh update-tap-dns $RUN_SUB_DOMAIN
-                ;;
-            off)
-                kubectl config rename-context $FULL_CLUSTER_NAME $FULL_CLUSTER_NAME-aks-idle   
-                kubectl config rename-context $BUILD_CLUSTER_NAME $BUILD_CLUSTER_NAME-aks-idle 
-                kubectl config rename-context $RUN_CLUSTER_NAME $RUN_CLUSTER_NAME-aks-idle 
-                ;;
-            delete)
-                kubectl config delete-context $FULL_CLUSTER_NAME-aks-idle   
-                kubectl config delete-context $BUILD_CLUSTER_NAME-aks-idle    
-                kubectl config delete-context $RUN_CLUSTER_NAME-aks-idle
-                ;; 
-            *)      
-                incorrect-usage
-                ;;
-            esac
-            ;;
-        eks)
-            case $2 in
-            on)
-                kubectl config rename-context $FULL_CLUSTER_NAME-eks-idle  $FULL_CLUSTER_NAME
-                scripts/ingress-handler.sh update-tap-dns $SYSTEM_SUB_DOMAIN
-                scripts/ingress-handler.sh update-tap-dns $DEV_SUB_DOMAIN   
-
-                kubectl config rename-context $BUILD_CLUSTER_NAME-eks-idle  $BUILD_CLUSTER_NAME  
-
-                kubectl config rename-context $RUN_CLUSTER_NAME-eks-idle $RUN_CLUSTER_NAME
-                scripts/ingress-handler.sh update-tap-dns $RUN_SUB_DOMAIN   
-                ;;
-            off)
-                kubectl config rename-context $FULL_CLUSTER_NAME $FULL_CLUSTER_NAME-eks-idle   
-                kubectl config rename-context $BUILD_CLUSTER_NAME $BUILD_CLUSTER_NAME-eks-idle 
-                kubectl config rename-context $RUN_CLUSTER_NAME $RUN_CLUSTER_NAME-eks-idle 
-                ;;
-            delete)
-                kubectl config delete-context $FULL_CLUSTER_NAME-eks-idle   
-                kubectl config delete-context $BUILD_CLUSTER_NAME-eks-idle   
-                kubectl config delete-context $RUN_CLUSTER_NAME-eks-idle
-                ;;
-            *)      
-                incorrect-usage
-                ;;
-            esac
-            ;;
-        tkg)
-            case $2 in
-            on)
-                kubectl config rename-context $FULL_CLUSTER_NAME-tkg-idle  $FULL_CLUSTER_NAME
-                scripts/ingress-handler.sh update-tap-dns $SYSTEM_SUB_DOMAIN
-                scripts/ingress-handler.sh update-tap-dns $DEV_SUB_DOMAIN   
-
-                kubectl config rename-context $BUILD_CLUSTER_NAME-tkg-idle  $BUILD_CLUSTER_NAME  
-
-                kubectl config rename-context $RUN_CLUSTER_NAME-tkg-idle $RUN_CLUSTER_NAME
-                scripts/ingress-handler.sh update-tap-dns $RUN_SUB_DOMAIN   
-                ;;
-            off)
-                kubectl config rename-context $FULL_CLUSTER_NAME $FULL_CLUSTER_NAME-tkg-idle   
-                kubectl config rename-context $BUILD_CLUSTER_NAME $BUILD_CLUSTER_NAME-tkg-idle 
-                kubectl config rename-context $RUN_CLUSTER_NAME $RUN_CLUSTER_NAME-tkg-idle 
-                ;;
-            delete)
-                kubectl config delete-context $FULL_CLUSTER_NAME-tkg-idle   
-                kubectl config delete-context $BUILD_CLUSTER_NAME-tkg-idle   
-                kubectl config delete-context $RUN_CLUSTER_NAME-tkg-idle
-                ;;
-            *)      
-                incorrect-usage
-                ;;
-            esac
-            ;;
-        hybrid)
-            case $2 in
-            on)
-                kubectl config rename-context $FULL_CLUSTER_NAME-aks-idle  $FULL_CLUSTER_NAME
-                scripts/ingress-handler.sh update-tap-dns $SYSTEM_SUB_DOMAIN
-                scripts/ingress-handler.sh update-tap-dns $DEV_SUB_DOMAIN   
-
-                kubectl config rename-context $BUILD_CLUSTER_NAME-eks-idle  $BUILD_CLUSTER_NAME  
-
-                kubectl config rename-context $RUN_CLUSTER_NAME-tkg-idle $RUN_CLUSTER_NAME
-                scripts/ingress-handler.sh update-tap-dns $RUN_SUB_DOMAIN   
-                ;;
-            off)
-                kubectl config rename-context $FULL_CLUSTER_NAME $FULL_CLUSTER_NAME-aks-idle   
-                kubectl config rename-context $BUILD_CLUSTER_NAME $BUILD_CLUSTER_NAME-eks-idle 
-                kubectl config rename-context $RUN_CLUSTER_NAME $RUN_CLUSTER_NAME-tkg-idle 
-                ;;
-            *)      
-                incorrect-usage
-                ;;
-            esac
-            ;;
-        *)      
-            incorrect-usage
-            ;;
-        esac
-    }
-
-      #incorrect usage
+    
+    #incorrect usage
     incorrect-usage() {
         
         echo
@@ -392,7 +249,6 @@
         echo
         echo "  init [ aks , eks , tkg , minikube , localhost ]"
         echo
-        echo "  set-context [ aks on/off/delete ,  eks on/off/delete , tkg on/off/delete ,  hybrid on/off ]"
         echo
         echo "  apis"
         echo
@@ -417,14 +273,12 @@ init)
         scripts/aks-handler.sh create $BUILD_CLUSTER_NAME 2
         scripts/aks-handler.sh create $RUN_CLUSTER_NAME 2
         install-all
-        set-context aks off
         ;;
     eks)
         scripts/eks-handler.sh create $FULL_CLUSTER_NAME 3
         scripts/eks-handler.sh create $BUILD_CLUSTER_NAME 2
         scripts/eks-handler.sh create $RUN_CLUSTER_NAME 2
         install-all
-        set-context eks off
         ;;
     tkg)
         scripts/tkg-handler.sh create $FULL_CLUSTER_NAME 3
@@ -432,23 +286,18 @@ init)
         scripts/tkg-handler.sh create $RUN_CLUSTER_NAME 2
         install-all
         ;;
-    minikube)
-        scripts/minikube-handler.sh create
-        install-full
-        ;;
     localhost)
         scripts/aks-handler.sh create $FULL_CLUSTER_NAME 3
-        scripts/aks-handler.sh create $BUILD_CLUSTER_NAME 2
-        scripts/aks-handler.sh create $RUN_CLUSTER_NAME 2
         install-localhost
+        ;;
+    minikube)
+        scripts/minikube-handler.sh create
+        install-mac
         ;;
     *)
         incorrect-usage
         ;;
     esac
-    ;;
-set-context)
-    set-context $2 $3
     ;;
 cleanup)
     ./demo-helper.sh cleanup-helper
@@ -457,13 +306,11 @@ cleanup)
         scripts/aks-handler.sh delete $FULL_CLUSTER_NAME
         scripts/aks-handler.sh delete $BUILD_CLUSTER_NAME
         scripts/aks-handler.sh delete $RUN_CLUSTER_NAME
-        set-context aks delete
         ;;
     eks)
         scripts/eks-handler.sh delete $FULL_CLUSTER_NAME
         scripts/eks-handler.sh delete $BUILD_CLUSTER_NAME
         scripts/eks-handler.sh delete $RUN_CLUSTER_NAME
-        set-context eks delete
         ;;
     tkg)
         scripts/tkg-handler.sh delete $FULL_CLUSTER_NAME 3
@@ -471,7 +318,7 @@ cleanup)
         scripts/tkg-handler.sh delete $RUN_CLUSTER_NAME 2
         install-all
         ;;
-     minikube)
+    minikube)
         scripts/minikube-handler.sh delete
         ;;
     *)
