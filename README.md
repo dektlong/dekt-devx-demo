@@ -3,7 +3,7 @@
 
 This repo contains artifacts to run a demo illustrating the vision and capabilities of Tanzu for Dev, AppOps and Platform Ops
 
-## Preperations 
+## Preparations 
 
 - Clone the supplychain repo ```git clone https://github.com/dektlong/dekt-supplychain```
 
@@ -38,7 +38,7 @@ git clone https://github.com/dektlong/mood-sensors
 git clone https://github.com/dektlong/mood-portal
 ```
 
-- Relocate TAP images (optional to avoid dependecies on Tanzu Network uptime)
+- Relocate TAP images (optional to avoid dependencies on Tanzu Network uptime)
 ```
 ./builder relocate-tap-images
 ```
@@ -56,7 +56,7 @@ git clone https://github.com/dektlong/mood-portal
     - Custom app accelerators 
     - Default supplychain configs for apps namespace 
     - Grype scanning policy 
-    - Tekton pipline run 
+    - Tekton pipeline run 
     - Custom ```dekt-path2prod``` supplychain 
     - RabbitMQ operator and instance
     - system ingress rule
@@ -65,7 +65,7 @@ git clone https://github.com/dektlong/mood-portal
     - TAP build profile
     - Default supplychain configs for apps namespace 
     - Grype scanning policy 
-    - Tekton pipline run 
+    - Tekton pipeline run 
   - install prod cluster (not available in minikube)
     - TAP run profile
     - Default supplychain configs for apps namespace 
@@ -81,9 +81,9 @@ run ```./builder.sh apis``` to add the following
 ## Running the demo 
 
 ### Clusters context 
- - Set the kubectl context to the pre-instaled clusters
+ - Set the kubectl context to the *pre-installed* clusters
 ```
-./builder.sh set-context [aks on, eks on, tkg on, hyrid on]
+./builder.sh set-context [aks on, eks on, tkg on, hybrid on]
 
     aks: dev, stage and prod clusters on AKS
     eks: dev, stage and prod clusters on EKS
@@ -175,7 +175,7 @@ run ```./builder.sh apis``` to add the following
 # Extras
 
 ## API-grid demo addition
-### Preperations
+### Preparations
   - Update ```dekt4pets/dekt4pets-backend.yml```  to match ```tap-values-full```
   - update ```serverUrl:``` value in ```dekt4pets/gateway/dekt4pets-gatway.yml``` and ```dekt4pets/gateway/dekt4pets-gatway-dev.yml``` to match tap-values
   - Update ```host:``` value in ```brownfield-apis``` files to match ```tap-values-full```
