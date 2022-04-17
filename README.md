@@ -83,11 +83,11 @@ run ```./builder.sh apis``` to add the following
 ### Clusters context 
  - Set the kubectl context to the pre-instaled clusters
 ```
-./builder.sh set-context
-    aks on: dev, stage and prod clusters on AKS
-    eks on: dev, stage and prod clusters on EKS
-    tkg on: dev, stage and prod clusters on TKS
-    hybrid on: dev cluster: AKS, stage cluster: EKS, prod cluster: TKG
+./builder.sh set-context [aks on, eks on, tkg on, hyrid on]
+    aks: dev, stage and prod clusters on AKS
+    eks: dev, stage and prod clusters on EKS
+    tkg: dev, stage and prod clusters on TKG
+    hybrid: dev cluster AKS, stage cluster EKS, prod cluster TKG
 ```
 ### Inner loop
 
