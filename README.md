@@ -49,15 +49,7 @@ git clone https://github.com/dektlong/mood-portal
 
 - Install the demo components and follow the prompts
 ```
-./builder.sh init 
-    aks - dev,stage,prod clusters created via AKS
-    eks - dev,stage,prod clusters created via EKS
-    tkg - dev,stage,prod clusters created via TKG
-    hybrid - dev cluster created via AKS, 
-             stage cluster created via EKS, 
-             prod cluster created via TKG
-    laptop - dev cluster on MiniKube
-
+./builder.sh init [ aks , eks , tkg, minikube]
 ```
   - install dev cluster
     - TAP full profile
@@ -69,15 +61,17 @@ git clone https://github.com/dektlong/mood-portal
     - RabbitMQ operator and instance
     - system ingress rule
     - cnr dev ingress rule
-  - install stage cluster
+  - install stage cluster (not available in minikube)
     - TAP build profile
     - Default supplychain configs for apps namespace 
     - Grype scanning policy 
     - Tekton pipline run 
-  - install prod cluster
+  - install prod cluster (not available in minikube)
     - TAP run profile
     - Default supplychain configs for apps namespace 
     - cnr run ingress rule
+
+  Note: following installation the k8s context is renamed to to enable demos on installed clusters
 
 run ```./builder.sh apis``` to add the following
   - install Spring Cloud Gateway operator (via helm)
@@ -87,6 +81,12 @@ run ```./builder.sh apis``` to add the following
 ## Running the demo 
 
 ### Inner loop
+
+- set k8s context to the installed aks or eks clusters
+```
+./builder.sh set-context [aks on / eks on / tkg on / hybrid on]
+```
+  - In ```hybrid``` the contexts are set for dev: aks, build: eks, prod: tkg
 
 - access tap gui accelerators via the ```cloud-native-devs``` tag
   - create ```mood-sensors``` workload using the web-backend accelerator 

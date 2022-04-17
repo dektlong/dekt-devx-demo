@@ -277,24 +277,24 @@
         aks)
             case $2 in
             on)
-                kubectl config rename-context dev-aks-idle $FULL_CLUSTER_NAME
+                kubectl config rename-context $FULL_CLUSTER_NAME-aks-idle  $FULL_CLUSTER_NAME
                 scripts/ingress-handler.sh update-tap-dns $SYSTEM_SUB_DOMAIN
                 scripts/ingress-handler.sh update-tap-dns $DEV_SUB_DOMAIN 
 
-                kubectl config rename-context stage-aks-idle $BUILD_CLUSTER_NAME  
+                kubectl config rename-context $BUILD_CLUSTER_NAME-aks-idle  $BUILD_CLUSTER_NAME  
 
-                kubectl config rename-context prod-aks-idle $RUN_CLUSTER_NAME
+                kubectl config rename-context $RUN_CLUSTER_NAME-aks-idle $RUN_CLUSTER_NAME
                 scripts/ingress-handler.sh update-tap-dns $RUN_SUB_DOMAIN
                 ;;
             off)
-                kubectl config rename-context $FULL_CLUSTER_NAME dev-aks-idle
-                kubectl config rename-context $BUILD_CLUSTER_NAME stage-aks-idle  
-                kubectl config rename-context $RUN_CLUSTER_NAME prod-aks-idle 
+                kubectl config rename-context $FULL_CLUSTER_NAME $FULL_CLUSTER_NAME-aks-idle   
+                kubectl config rename-context $BUILD_CLUSTER_NAME $BUILD_CLUSTER_NAME-aks-idle 
+                kubectl config rename-context $RUN_CLUSTER_NAME $RUN_CLUSTER_NAME-aks-idle 
                 ;;
             delete)
-                kubectl config delete-context dev-aks-idle   
-                kubectl config delete-context stage-aks-idle   
-                kubectl config delete-context prod-aks-idle
+                kubectl config delete-context $FULL_CLUSTER_NAME-aks-idle   
+                kubectl config delete-context $BUILD_CLUSTER_NAME-aks-idle    
+                kubectl config delete-context $RUN_CLUSTER_NAME-aks-idle
                 ;; 
             *)      
                 incorrect-usage
@@ -304,24 +304,73 @@
         eks)
             case $2 in
             on)
-                kubectl config rename-context dev-eks-idle $FULL_CLUSTER_NAME
+                kubectl config rename-context $FULL_CLUSTER_NAME-eks-idle  $FULL_CLUSTER_NAME
                 scripts/ingress-handler.sh update-tap-dns $SYSTEM_SUB_DOMAIN
                 scripts/ingress-handler.sh update-tap-dns $DEV_SUB_DOMAIN   
 
-                kubectl config rename-context stage-eks-idle $BUILD_CLUSTER_NAME  
+                kubectl config rename-context $BUILD_CLUSTER_NAME-eks-idle  $BUILD_CLUSTER_NAME  
 
-                kubectl config rename-context prod-eks-idle $RUN_CLUSTER_NAME
+                kubectl config rename-context $RUN_CLUSTER_NAME-eks-idle $RUN_CLUSTER_NAME
                 scripts/ingress-handler.sh update-tap-dns $RUN_SUB_DOMAIN   
                 ;;
             off)
-                kubectl config rename-context $FULL_CLUSTER_NAME dev-eks-idle   
-                kubectl config rename-context $BUILD_CLUSTER_NAME stage-eks-idle   
-                kubectl config rename-context $RUN_CLUSTER_NAME prod-eks-idle  
+                kubectl config rename-context $FULL_CLUSTER_NAME $FULL_CLUSTER_NAME-eks-idle   
+                kubectl config rename-context $BUILD_CLUSTER_NAME $BUILD_CLUSTER_NAME-eks-idle 
+                kubectl config rename-context $RUN_CLUSTER_NAME $RUN_CLUSTER_NAME-eks-idle 
                 ;;
             delete)
-                kubectl config delete-context dev-eks-idle   
-                kubectl config delete-context stage-eks-idle   
-                kubectl config delete-context prod-eks-idle 
+                kubectl config delete-context $FULL_CLUSTER_NAME-eks-idle   
+                kubectl config delete-context $BUILD_CLUSTER_NAME-eks-idle   
+                kubectl config delete-context $RUN_CLUSTER_NAME-eks-idle
+                ;;
+            *)      
+                incorrect-usage
+                ;;
+            esac
+            ;;
+        tkg)
+            case $2 in
+            on)
+                kubectl config rename-context $FULL_CLUSTER_NAME-tkg-idle  $FULL_CLUSTER_NAME
+                scripts/ingress-handler.sh update-tap-dns $SYSTEM_SUB_DOMAIN
+                scripts/ingress-handler.sh update-tap-dns $DEV_SUB_DOMAIN   
+
+                kubectl config rename-context $BUILD_CLUSTER_NAME-tkg-idle  $BUILD_CLUSTER_NAME  
+
+                kubectl config rename-context $RUN_CLUSTER_NAME-tkg-idle $RUN_CLUSTER_NAME
+                scripts/ingress-handler.sh update-tap-dns $RUN_SUB_DOMAIN   
+                ;;
+            off)
+                kubectl config rename-context $FULL_CLUSTER_NAME $FULL_CLUSTER_NAME-tkg-idle   
+                kubectl config rename-context $BUILD_CLUSTER_NAME $BUILD_CLUSTER_NAME-tkg-idle 
+                kubectl config rename-context $RUN_CLUSTER_NAME $RUN_CLUSTER_NAME-tkg-idle 
+                ;;
+            delete)
+                kubectl config delete-context $FULL_CLUSTER_NAME-tkg-idle   
+                kubectl config delete-context $BUILD_CLUSTER_NAME-tkg-idle   
+                kubectl config delete-context $RUN_CLUSTER_NAME-tkg-idle
+                ;;
+            *)      
+                incorrect-usage
+                ;;
+            esac
+            ;;
+        hybrid)
+            case $2 in
+            on)
+                kubectl config rename-context $FULL_CLUSTER_NAME-aks-idle  $FULL_CLUSTER_NAME
+                scripts/ingress-handler.sh update-tap-dns $SYSTEM_SUB_DOMAIN
+                scripts/ingress-handler.sh update-tap-dns $DEV_SUB_DOMAIN   
+
+                kubectl config rename-context $BUILD_CLUSTER_NAME-eks-idle  $BUILD_CLUSTER_NAME  
+
+                kubectl config rename-context $RUN_CLUSTER_NAME-tkg-idle $RUN_CLUSTER_NAME
+                scripts/ingress-handler.sh update-tap-dns $RUN_SUB_DOMAIN   
+                ;;
+            off)
+                kubectl config rename-context $FULL_CLUSTER_NAME $FULL_CLUSTER_NAME-aks-idle   
+                kubectl config rename-context $BUILD_CLUSTER_NAME $BUILD_CLUSTER_NAME-eks-idle 
+                kubectl config rename-context $RUN_CLUSTER_NAME $RUN_CLUSTER_NAME-tkg-idle 
                 ;;
             *)      
                 incorrect-usage
@@ -341,20 +390,15 @@
         echo "Incorrect usage. Please specify one of the following: "
         echo
         echo
-        echo "  init [ aks , eks , tkg , hybrid , laptop , localhost ]"
-        echo "    aks - dev,stage,prod clusters on AKS"
-        echo "    eks - dev,stage,prod clusters on EKS"
-        echo "    tkg - dev,stage,prod clusters on TKG"
-        echo "    hybrid - dev on AKS, stage on EKS, prod on TKG"
-        echo "    laptop - dev cluster on MiniKube"
+        echo "  init [ aks , eks , tkg , minikube , localhost ]"
         echo
-        echo "  set-context [ aks on/off/delete ,  eks on/off/delete ]"
+        echo "  set-context [ aks on/off/delete ,  eks on/off/delete , tkg on/off/delete ,  hybrid on/off ]"
         echo
         echo "  apis"
         echo
         echo "  dev"
         echo
-        echo "  cleanup [ aks , eks , tkg , hybrid , laptop , localhost ]"
+        echo "  cleanup [ aks , eks , tkg , minikube , localhost ]"
         echo
         echo "  relocate-tap-images"
         echo
@@ -373,12 +417,14 @@ init)
         scripts/aks-handler.sh create $BUILD_CLUSTER_NAME 2
         scripts/aks-handler.sh create $RUN_CLUSTER_NAME 2
         install-all
+        set-context aks off
         ;;
     eks)
         scripts/eks-handler.sh create $FULL_CLUSTER_NAME 3
         scripts/eks-handler.sh create $BUILD_CLUSTER_NAME 2
         scripts/eks-handler.sh create $RUN_CLUSTER_NAME 2
         install-all
+        set-context eks off
         ;;
     tkg)
         scripts/tkg-handler.sh create $FULL_CLUSTER_NAME 3
@@ -386,13 +432,7 @@ init)
         scripts/tkg-handler.sh create $RUN_CLUSTER_NAME 2
         install-all
         ;;
-    hybrid)
-        scripts/aks-handler.sh create $FULL_CLUSTER_NAME 3
-        scripts/eks-handler.sh create $BUILD_CLUSTER_NAME 2
-        scripts/tkg-handler.sh create $RUN_CLUSTER_NAME 2
-        install-all
-        ;;
-    laptop)
+    minikube)
         scripts/minikube-handler.sh create
         install-full
         ;;
@@ -431,12 +471,7 @@ cleanup)
         scripts/tkg-handler.sh delete $RUN_CLUSTER_NAME 2
         install-all
         ;;
-    hybrid)
-        scripts/aks-handler.sh delete $FULL_CLUSTER_NAME 3
-        scripts/eks-handler.sh delete $BUILD_CLUSTER_NAME 2
-        scripts/tkg-handler.sh delete $RUN_CLUSTER_NAME 2
-        ;;
-    laptop)
+     minikube)
         scripts/minikube-handler.sh delete
         ;;
     *)
