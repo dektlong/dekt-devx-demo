@@ -12,44 +12,36 @@
     #dev-cluster
     dev-cluster() {
 
-        kubectl config use-context $FULL_CLUSTER_NAME
-        kubectl get nodes
-
         echo
         echo "==========================================================="
         echo "TAP packages installed on $FULL_CLUSTER_NAME cluster ..."
         echo "==========================================================="
         echo
+        kubectl config use-context $FULL_CLUSTER_NAME
         tanzu package installed list -n tap-install
     }
 
     #stage-cluster
     stage-cluster() {
 
-        kubectl config use-context $BUILD_CLUSTER_NAME
-        kubectl get nodes
-
         echo
         echo "==========================================================="
         echo "TAP packages installed on $BUILD_CLUSTER_NAME cluster ..."
         echo "==========================================================="
         echo
-
+        kubectl config use-context $BUILD_CLUSTER_NAME
         tanzu package installed list -n tap-install
     }
 
     #prod-cluster
     prod-cluster() {
         
-        kubectl config use-context $RUN_CLUSTER_NAME
-        kubectl get nodes
-        
         echo
         echo "==========================================================="
         echo "TAP packages installed on $RUN_CLUSTER_NAME cluster ..."
         echo "==========================================================="
         echo
-
+        kubectl config use-context $RUN_CLUSTER_NAME
         tanzu package installed list -n tap-install
     }
 
