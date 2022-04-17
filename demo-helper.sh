@@ -236,7 +236,6 @@
         echo "  scanning-results"
         echo
         echo "  reset"
-        echo
         exit
     }
 

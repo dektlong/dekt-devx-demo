@@ -270,6 +270,46 @@
        
     }
 
+    #config cluster context between EKS and AKS deployed clusters
+    set-context()
+    {
+        case $1 in
+        aks-on)
+            kubectl config rename-context dev-aks-idle $FULL_CLUSTER_NAME
+            scripts/ingress-handler.sh update-tap-dns $SYSTEM_SUB_DOMAIN
+            scripts/ingress-handler.sh update-tap-dns $DEV_SUB_DOMAIN 
+
+            kubectl config rename-context stage-aks-idle $BUILD_CLUSTER_NAME  
+
+            kubectl config rename-context prod-aks-idle $RUN_CLUSTER_NAME
+            scripts/ingress-handler.sh update-tap-dns $RUN_SUB_DOMAIN
+            ;;
+        aks-off)
+            kubectl config rename-context $FULL_CLUSTER_NAME dev-aks-idle
+            kubectl config rename-context $BUILD_CLUSTER_NAME stage-aks-idle  
+            kubectl config rename-context $RUN_CLUSTER_NAME prod-aks-idle 
+            ;; 
+        eks-on)
+            kubectl config rename-context dev-eks-idle $FULL_CLUSTER_NAME
+            scripts/ingress-handler.sh update-tap-dns $SYSTEM_SUB_DOMAIN
+            scripts/ingress-handler.sh update-tap-dns $DEV_SUB_DOMAIN   
+
+            kubectl config rename-context stage-eks-idle $BUILD_CLUSTER_NAME  
+
+            kubectl config rename-context prod-eks-idle $RUN_CLUSTER_NAME
+            scripts/ingress-handler.sh update-tap-dns $RUN_SUB_DOMAIN   
+            ;;
+        eks-off)
+            kubectl config rename-context $FULL_CLUSTER_NAME dev-eks-idle   
+            kubectl config rename-context $BUILD_CLUSTER_NAME stage-eks-idle   
+            kubectl config rename-context $RUN_CLUSTER_NAME prod-eks-idle  
+            ;;
+        *)      
+            incorrect-usage
+            ;;
+        esac
+    }
+    
     #incorrect usage
     incorrect-usage() {
         
@@ -341,11 +381,14 @@ init)
         ;;
     esac
     ;;
+set-context)
+    set-context $2
+    ;;
 cleanup)
     ./demo-helper.sh cleanup-helper
     case $2 in
     aks)
-        scripts/aks-handler.sh delete $FULL_CLUSTER_NAME
+         scripts/aks-handler.sh delete $FULL_CLUSTER_NAME
         scripts/aks-handler.sh delete $BUILD_CLUSTER_NAME
         scripts/aks-handler.sh delete $RUN_CLUSTER_NAME
         ;;
