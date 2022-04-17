@@ -53,8 +53,6 @@ delete-eks-cluster () {
 	echo "Starting deleting resources of EKS cluster $CLUSTER_NAME ..."
 	echo
     eksctl delete cluster --name $CLUSTER_NAME --force
-
-    kubectl config delete-context $CLUSTER_NAME
 }
 
 #incorrect-usage

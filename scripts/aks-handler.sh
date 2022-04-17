@@ -56,9 +56,6 @@ delete-aks-cluster() {
 	echo "Starting deleting resources of AKS cluster $CLUSTER_NAME ..."
 	echo
 	az aks delete --name $CLUSTER_NAME --resource-group $RESOURCE_GROUP --yes
-
-	kubectl config delete-context $CLUSTER_NAME
-
 }
 #################### main #######################
 

@@ -274,61 +274,87 @@
     set-context()
     {
         case $1 in
-        aks-on)
-            kubectl config rename-context dev-aks-idle $FULL_CLUSTER_NAME
-            scripts/ingress-handler.sh update-tap-dns $SYSTEM_SUB_DOMAIN
-            scripts/ingress-handler.sh update-tap-dns $DEV_SUB_DOMAIN 
+        aks)
+            case $2 in
+            on)
+                kubectl config rename-context dev-aks-idle $FULL_CLUSTER_NAME
+                scripts/ingress-handler.sh update-tap-dns $SYSTEM_SUB_DOMAIN
+                scripts/ingress-handler.sh update-tap-dns $DEV_SUB_DOMAIN 
 
-            kubectl config rename-context stage-aks-idle $BUILD_CLUSTER_NAME  
+                kubectl config rename-context stage-aks-idle $BUILD_CLUSTER_NAME  
 
-            kubectl config rename-context prod-aks-idle $RUN_CLUSTER_NAME
-            scripts/ingress-handler.sh update-tap-dns $RUN_SUB_DOMAIN
+                kubectl config rename-context prod-aks-idle $RUN_CLUSTER_NAME
+                scripts/ingress-handler.sh update-tap-dns $RUN_SUB_DOMAIN
+                ;;
+            off)
+                kubectl config rename-context $FULL_CLUSTER_NAME dev-aks-idle
+                kubectl config rename-context $BUILD_CLUSTER_NAME stage-aks-idle  
+                kubectl config rename-context $RUN_CLUSTER_NAME prod-aks-idle 
+                ;;
+            delete)
+                kubectl config delete-context dev-aks-idle   
+                kubectl config delete-context stage-aks-idle   
+                kubectl config delete-context prod-aks-idle
+                ;; 
+            *)      
+                incorrect-usage
+                ;;
+            esac
             ;;
-        aks-off)
-            kubectl config rename-context $FULL_CLUSTER_NAME dev-aks-idle
-            kubectl config rename-context $BUILD_CLUSTER_NAME stage-aks-idle  
-            kubectl config rename-context $RUN_CLUSTER_NAME prod-aks-idle 
-            ;; 
-        eks-on)
-            kubectl config rename-context dev-eks-idle $FULL_CLUSTER_NAME
-            scripts/ingress-handler.sh update-tap-dns $SYSTEM_SUB_DOMAIN
-            scripts/ingress-handler.sh update-tap-dns $DEV_SUB_DOMAIN   
+        eks)
+            case $2 in
+            on)
+                kubectl config rename-context dev-eks-idle $FULL_CLUSTER_NAME
+                scripts/ingress-handler.sh update-tap-dns $SYSTEM_SUB_DOMAIN
+                scripts/ingress-handler.sh update-tap-dns $DEV_SUB_DOMAIN   
 
-            kubectl config rename-context stage-eks-idle $BUILD_CLUSTER_NAME  
+                kubectl config rename-context stage-eks-idle $BUILD_CLUSTER_NAME  
 
-            kubectl config rename-context prod-eks-idle $RUN_CLUSTER_NAME
-            scripts/ingress-handler.sh update-tap-dns $RUN_SUB_DOMAIN   
-            ;;
-        eks-off)
-            kubectl config rename-context $FULL_CLUSTER_NAME dev-eks-idle   
-            kubectl config rename-context $BUILD_CLUSTER_NAME stage-eks-idle   
-            kubectl config rename-context $RUN_CLUSTER_NAME prod-eks-idle  
+                kubectl config rename-context prod-eks-idle $RUN_CLUSTER_NAME
+                scripts/ingress-handler.sh update-tap-dns $RUN_SUB_DOMAIN   
+                ;;
+            off)
+                kubectl config rename-context $FULL_CLUSTER_NAME dev-eks-idle   
+                kubectl config rename-context $BUILD_CLUSTER_NAME stage-eks-idle   
+                kubectl config rename-context $RUN_CLUSTER_NAME prod-eks-idle  
+                ;;
+            delete)
+                kubectl config delete-context dev-eks-idle   
+                kubectl config delete-context stage-eks-idle   
+                kubectl config delete-context prod-eks-idle 
+                ;;
+            *)      
+                incorrect-usage
+                ;;
+            esac
             ;;
         *)      
             incorrect-usage
             ;;
         esac
     }
-    
-    #incorrect usage
+
+      #incorrect usage
     incorrect-usage() {
         
         echo
         echo "Incorrect usage. Please specify one of the following: "
         echo
         echo
-        echo "  init"
+        echo "  init [ aks , eks , tkg , hybrid , laptop , localhost ]"
         echo "    aks - dev,stage,prod clusters on AKS"
         echo "    eks - dev,stage,prod clusters on EKS"
         echo "    tkg - dev,stage,prod clusters on TKG"
         echo "    hybrid - dev on AKS, stage on EKS, prod on TKG"
         echo "    laptop - dev cluster on MiniKube"
         echo
+        echo "  set-context [ aks on/off/delete ,  eks on/off/delete ]"
+        echo
         echo "  apis"
         echo
         echo "  dev"
         echo
-        echo "  cleanup [ aks / eks / tkg / hybrid / laptop / localhost ]"
+        echo "  cleanup [ aks , eks , tkg , hybrid , laptop , localhost ]"
         echo
         echo "  relocate-tap-images"
         echo
@@ -382,20 +408,22 @@ init)
     esac
     ;;
 set-context)
-    set-context $2
+    set-context $2 $3
     ;;
 cleanup)
     ./demo-helper.sh cleanup-helper
     case $2 in
     aks)
-         scripts/aks-handler.sh delete $FULL_CLUSTER_NAME
+        scripts/aks-handler.sh delete $FULL_CLUSTER_NAME
         scripts/aks-handler.sh delete $BUILD_CLUSTER_NAME
         scripts/aks-handler.sh delete $RUN_CLUSTER_NAME
+        set-context aks delete
         ;;
     eks)
         scripts/eks-handler.sh delete $FULL_CLUSTER_NAME
         scripts/eks-handler.sh delete $BUILD_CLUSTER_NAME
         scripts/eks-handler.sh delete $RUN_CLUSTER_NAME
+        set-context eks delete
         ;;
     tkg)
         scripts/tkg-handler.sh delete $FULL_CLUSTER_NAME 3
