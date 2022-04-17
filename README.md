@@ -80,13 +80,14 @@ run ```./builder.sh apis``` to add the following
 
 ## Running the demo 
 
-### Inner loop
-
-- set k8s context to the installed aks or eks clusters
+###set k8s context 
+ - Set the context to the pre-instaled k8s clusters
 ```
 ./builder.sh set-context [aks on / eks on / tkg on / hybrid on]
 ```
-  - In ```hybrid``` the contexts are set for dev: aks, build: eks, prod: tkg
+- ```hybrid``` the contexts are set for dev: aks, build: eks, prod: tkg
+
+### Inner loop
 
 - access tap gui accelerators via the ```cloud-native-devs``` tag
   - create ```mood-sensors``` workload using the web-backend accelerator 
