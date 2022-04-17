@@ -80,13 +80,15 @@ run ```./builder.sh apis``` to add the following
 
 ## Running the demo 
 
-###set k8s context 
- - Set the context to the pre-instaled k8s clusters
+### Clusters context 
+ - Set the kubectl context to the pre-instaled clusters
 ```
-./builder.sh set-context [aks on / eks on / tkg on / hybrid on]
+./builder.sh set-context
+    aks on: dev, stage and prod clusters on AKS
+    eks on: dev, stage and prod clusters on EKS
+    tkg on: dev, stage and prod clusters on TKS
+    hybrid on: dev cluster: AKS, stage cluster: EKS, prod cluster: TKG
 ```
-- ```hybrid``` the contexts are set for dev: aks, build: eks, prod: tkg
-
 ### Inner loop
 
 - access tap gui accelerators via the ```cloud-native-devs``` tag
