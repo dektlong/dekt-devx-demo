@@ -239,6 +239,51 @@
        
     }
 
+    #config cluster context between EKS and AKS deployed clusters
+    set-context()
+    {
+        case $1 in
+        aks)
+            case $2 in
+            on)
+                kubectl config rename-context $FULL_CLUSTER_NAME-aks-idle  $FULL_CLUSTER_NAME
+                kubectl config rename-context $BUILD_CLUSTER_NAME-aks-idle  $BUILD_CLUSTER_NAME  
+                kubectl config rename-context $RUN_CLUSTER_NAME-aks-idle $RUN_CLUSTER_NAME
+                install-all
+                ;;
+            off)
+                kubectl config rename-context $FULL_CLUSTER_NAME $FULL_CLUSTER_NAME-aks-idle   
+                kubectl config rename-context $BUILD_CLUSTER_NAME $BUILD_CLUSTER_NAME-aks-idle 
+                kubectl config rename-context $RUN_CLUSTER_NAME $RUN_CLUSTER_NAME-aks-idle 
+                ;;
+            *)      
+                incorrect-usage
+                ;;
+            esac
+            ;;
+        eks)
+            case $2 in
+            on)
+                kubectl config rename-context $FULL_CLUSTER_NAME-eks-idle  $FULL_CLUSTER_NAME
+                kubectl config rename-context $BUILD_CLUSTER_NAME-eks-idle  $BUILD_CLUSTER_NAME  
+                kubectl config rename-context $RUN_CLUSTER_NAME-eks-idle $RUN_CLUSTER_NAME
+                install-all
+                ;;
+            off)
+                kubectl config rename-context $FULL_CLUSTER_NAME $FULL_CLUSTER_NAME-eks-idle   
+                kubectl config rename-context $BUILD_CLUSTER_NAME $BUILD_CLUSTER_NAME-eks-idle 
+                kubectl config rename-context $RUN_CLUSTER_NAME $RUN_CLUSTER_NAME-eks-idle 
+                ;;
+            *)      
+                incorrect-usage
+                ;;
+            esac
+            ;;
+        *)
+            incorrect-usage
+            ;;
+        esac
+    }
     
     #incorrect usage
     incorrect-usage() {
@@ -249,6 +294,7 @@
         echo
         echo "  init [ aks , eks , tkg , minikube , localhost ]"
         echo
+        echo "  set-context [ aks on/off ,  eks on/off ]"
         echo
         echo "  apis"
         echo
@@ -298,6 +344,9 @@ init)
         incorrect-usage
         ;;
     esac
+    ;;
+set-context)
+    set-context $2 $3
     ;;
 cleanup)
     ./demo-helper.sh cleanup-helper
