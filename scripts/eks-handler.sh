@@ -2,9 +2,10 @@
 
 source .config/config-values.env
 
+REGION="eu-west-2" #aws ec2 describe-regions --output table
+
 CLUSTER_NAME=$2
 NUMBER_OF_NODES="$3"
-
 TANZU_NETWORK_USER=$(yq .buildservice.tanzunet_username .config/tap-values-full.yaml)
 TANZU_NETWORK_PASSWORD=$(yq .buildservice.tanzunet_password .config/tap-values-full.yaml)
 
@@ -24,6 +25,7 @@ create-eks-cluster () {
     --name $CLUSTER_NAME \
     --nodegroup-name workers-$CLUSTER_NAME \
     --version "1.21" \
+    --region $REGION \
     --nodes $NUMBER_OF_NODES \
     --node-type t3.xlarge # 4 vCPU , 16GB memory, 80GB temp disk 
 
