@@ -300,7 +300,7 @@
         echo
         echo "  dev"
         echo
-        echo "  cleanup [ aks , eks , tkg , minikube , localhost ]"
+        echo "  cleanup [ aks , eks , tkg , minikube  ]"
         echo
         echo "  relocate-tap-images"
         echo
