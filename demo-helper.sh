@@ -13,6 +13,14 @@
     dev-cluster() {
 
         echo
+        echo "One API to install TAP on any kubectl:"
+        echo
+        echo "  tanzu package install tap"
+        echo "      --package tap.tanzu.vmware.com"
+        echo "      --version $TAP_VERSION"
+        echo "      --values-file .config/tap_values.yaml"
+        echo "      --namespace tap-install"
+        echo
         echo "==========================================================="
         echo "TAP packages installed on $FULL_CLUSTER_NAME cluster ..."
         echo "==========================================================="
