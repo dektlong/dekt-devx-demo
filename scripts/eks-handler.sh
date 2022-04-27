@@ -2,7 +2,7 @@
 
 source .config/config-values.env
 
-REGION="eu-west-2" #aws ec2 describe-regions --output table
+REGION="us-west-1" #aws ec2 describe-regions --output table
 
 CLUSTER_NAME=$2
 NUMBER_OF_NODES="$3"

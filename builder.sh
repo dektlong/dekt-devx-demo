@@ -294,7 +294,7 @@
         echo
         echo "  init [ aks , eks , tkg , minikube , localhost ]"
         echo
-        echo "  set-context [ aks on/off ,  eks on/off ]"
+        echo "  context [ aks on/off ,  eks on/off ]"
         echo
         echo "  apis"
         echo
@@ -345,7 +345,7 @@ init)
         ;;
     esac
     ;;
-set-context)
+context)
     set-context $2 $3
     ;;
 cleanup)

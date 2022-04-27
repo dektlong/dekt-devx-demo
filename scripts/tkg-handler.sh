@@ -17,8 +17,18 @@ create-tkgm () {
 	echo "Creating TKG-M cluster $CLUSTER_NAME with $NUMBER_OF_NODES nodes ..."
 	echo
 
+    #download the TKGM control cluster info from the ubuntu-jumpbox 
+    #1. download the private key
+    #2. ssh -i ~/Downloads/SC2__haas-414__private_environment.txt ubuntu@10.213.93.4
+    #3. exit the ssh
+    #4. scp ubuntu@10.213.93.4:/home/ubuntu/cluster-config.yaml .config/tkgm-cluster-config.yaml   
+    tanzu cluster create $CLUSTER_NAME --file .config/tkgm-cluster-config.yaml --plan=dev
+
+    tanzu cluster kubeconfig get $CLUSTER_NAME --admin 
+    
+    kubectl config use-context $CLUSTER_NAME-admin@$CLUSTER_NAME
+
     kubectl create clusterrolebinding default-tkg-admin-privileged-binding --clusterrole=psp:vmware-system-privileged --group=system:authenticated
-}
 
 #delete-tkgm
 delete-tkgm() {

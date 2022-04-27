@@ -64,7 +64,7 @@
         tanzu apps workload create -f ../mood-portal/workload.yaml -y -n $DEMO_APPS_NS
         
         echo
-        echo "tanzu apps workload create -f ../mood-portal/workload.yaml -y -n $DEMO_APPS_NS"
+        echo "tanzu apps workload create -f ../mood-sensors/workload.yaml -y -n $DEMO_APPS_NS"
         echo
         tanzu apps workload create -f ../mood-sensors/workload.yaml -y -n $DEMO_APPS_NS
 
