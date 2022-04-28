@@ -6,6 +6,9 @@
     DELIVERABLE_FILE_NAME="portal-prod-golden-config.yaml"
     PORTAL_WORKLOAD_NAME="mood-portal"
     SENSORS_WORKLOAD_NAME="mood-sensors"
+    DEV_CLUSTER=$DEV_CLUSTER_NAME-$K8S_DIALTONE
+    STAGE_CLUSTER=$STAGE_CLUSTER_NAME-$K8S_DIALTONE
+    PROD_CLUSTER=$PROD_CLUSTER_NAME-$K8S_DIALTONE
 
 #################### functions ################
 
@@ -22,10 +25,10 @@
         echo "      --namespace tap-install"
         echo
         echo "==========================================================="
-        echo "TAP packages installed on $FULL_CLUSTER_NAME cluster ..."
+        echo "TAP packages installed on $DEV_CLUSTER cluster ..."
         echo "==========================================================="
         echo
-        kubectl config use-context $FULL_CLUSTER_NAME
+        kubectl config use-context $DEV_CLUSTER
         tanzu package installed list -n tap-install
     }
 
@@ -34,10 +37,10 @@
 
         echo
         echo "==========================================================="
-        echo "TAP packages installed on $BUILD_CLUSTER_NAME cluster ..."
+        echo "TAP packages installed on $STAGE_CLUSTER cluster ..."
         echo "==========================================================="
         echo
-        kubectl config use-context $BUILD_CLUSTER_NAME
+        kubectl config use-context $STAGE_CLUSTER
         tanzu package installed list -n tap-install
     }
 
@@ -46,17 +49,17 @@
         
         echo
         echo "==========================================================="
-        echo "TAP packages installed on $RUN_CLUSTER_NAME cluster ..."
+        echo "TAP packages installed on $PROD_CLUSTER cluster ..."
         echo "==========================================================="
         echo
-        kubectl config use-context $RUN_CLUSTER_NAME
+        kubectl config use-context $PROD_CLUSTER
         tanzu package installed list -n tap-install
     }
 
     #deploy-workloads
     deploy-workloads() {
 
-        kubectl config use-context $FULL_CLUSTER_NAME
+        kubectl config use-context $DEV_CLUSTER
 
         echo
         echo "tanzu apps workload create -f ../mood-portal/workload.yaml -y -n $DEMO_APPS_NS"
@@ -73,7 +76,7 @@
     #promote-staging
     promote-staging() {
 
-        kubectl config use-context $BUILD_CLUSTER_NAME
+        kubectl config use-context $STAGE_CLUSTER
         tanzu apps workload create $PORTAL_WORKLOAD_NAME \
             --git-repo https://github.com/dektlong/mood-portal \
             --git-branch integrate \
@@ -86,7 +89,7 @@
     #promote-production
     promote-production () {
 
-        kubectl config use-context $BUILD_CLUSTER_NAME
+        kubectl config use-context $STAGE_CLUSTER
 
         echo
         echo "kubectl get deliverable $PORTAL_WORKLOAD_NAME -n $DEMO_APPS_NS -oyaml > $DELIVERABLE_FILE_NAME"
@@ -102,7 +105,7 @@
         echo "Hit any key to go production! ..."
         read
 
-        kubectl config use-context $RUN_CLUSTER_NAME
+        kubectl config use-context $PROD_CLUSTER
         echo
         echo "kubectl apply -f $DELIVERABLE_FILE_NAME -n $DEMO_APPS_NS"
         echo 
@@ -116,8 +119,6 @@
     #supplychains
     supplychains () {
 
-        kubectl config use-context $FULL_CLUSTER_NAME
-        
         echo
         echo "tanzu apps cluster-supply-chain list"
         echo
@@ -160,8 +161,6 @@
     #scanning-results
     scanning-results () {
 
-        kubectl config use-context $FULL_CLUSTER_NAME
-
         kubectl describe imagescan.scanning.apps.tanzu.vmware.com/$SENSORS_WORKLOAD_NAME -n $DEMO_APPS_NS
 
     }
@@ -170,13 +169,13 @@
     #soft reset of all clusters configurations
     reset() {
 
-        kubectl config use-context $BUILD_CLUSTER_NAME
+        kubectl config use-context $STAGE_CLUSTER
         tanzu apps workload delete $PORTAL_WORKLOAD_NAME -n $DEMO_APPS_NS -y
 
-        kubectl config use-context $RUN_CLUSTER_NAME
+        kubectl config use-context $PROD_CLUSTER
         kubectl delete -f $DELIVERABLE_FILE_NAME
 
-        kubectl config use-context $FULL_CLUSTER_NAME
+        kubectl config use-context $DEV_CLUSTER
         tanzu apps workload delete $PORTAL_WORKLOAD_NAME -n $DEMO_APPS_NS -y
         tanzu apps workload delete $SENSORS_WORKLOAD_NAME -n $DEMO_APPS_NS -y
         kubectl delete pod -l app=backstage -n tap-gui

@@ -11,6 +11,9 @@
     SYSTEM_SUB_DOMAIN=$(yq .tap_gui.ingressDomain .config/tap-values-full.yaml | cut -d'.' -f 1)
     DEV_SUB_DOMAIN=$(yq .cnrs.domain_name .config/tap-values-full.yaml | cut -d'.' -f 1)
     RUN_SUB_DOMAIN=$(yq .cnrs.domain_name .config/tap-values-run.yaml | cut -d'.' -f 1)
+    DEV_CLUSTER=$DEV_CLUSTER_NAME-$K8S_DIALTONE
+    STAGE_CLUSTER=$STAGE_CLUSTER_NAME-$K8S_DIALTONE
+    PROD_CLUSTER=$PROD_CLUSTER_NAME-$K8S_DIALTONE
     
     
     GATEWAY_NS="scgw-system"
@@ -21,33 +24,17 @@
     #install-all
     install-all() {
 
-        echo
-        echo "==========================================================="
-        echo "Installing TAP full profile on $FULL_CLUSTER_NAME cluster ..."
-        echo "==========================================================="
-        echo
-        kubectl config use-context $FULL_CLUSTER_NAME
-        install-tap "tap-values-full.yaml"
-        add-dekt-supplychain
+        
+        install-tap $DEV_CLUSTER "tap-values-full.yaml"
         scripts/ingress-handler.sh update-tap-dns $SYSTEM_SUB_DOMAIN
         scripts/ingress-handler.sh update-tap-dns $DEV_SUB_DOMAIN
 
-        echo
-        echo "==========================================================="
-        echo "Installing TAP build profile on $BUILD_CLUSTER_NAME cluster ..."
-        echo "==========================================================="
-        echo
-        kubectl config use-context $BUILD_CLUSTER_NAME
-        install-tap "tap-values-build.yaml"
+        install-tap $STAGE_CLUSTER "tap-values-build.yaml"
 
-        echo
-        echo "==========================================================="
-        echo "Installing TAP run profile on $RUN_CLUSTER_NAME cluster ..."
-        echo "==========================================================="
-        echo
-        kubectl config use-context $RUN_CLUSTER_NAME
-        install-tap "tap-values-run.yaml"
+        install-tap $PROD_CLUSTER "tap-values-run.yaml"
         scripts/ingress-handler.sh update-tap-dns $RUN_SUB_DOMAIN
+
+        add-dekt-supplychain $DEV_CLUSTER
 
         update-multi-cluster-views
     }
@@ -55,14 +42,8 @@
     #install-localhost
     install-localhost() {
 
-        echo
-        echo "==========================================================="
-        echo "Installing TAP full profile on $FULL_CLUSTER_NAME cluster with localhost access ..."
-        echo "==========================================================="
-        echo
-        kubectl config use-context $FULL_CLUSTER_NAME
-        install-tap "tap-values-localhost.yaml"
-        add-dekt-supplychain
+        install-tap $DEV_CLUSTER "tap-values-localhost.yaml"
+        add-dekt-supplychain $DEV_CLUSTER
 
         echo
         echo "update gui LB IP values in tap-values-localhost.yaml. hit any key.."
@@ -74,21 +55,23 @@
     #install-mac
     install-mac() {
 
-        echo
-        echo "==========================================================="
-        echo "Installing TAP interate profile on a local minikube cluster..."
-        echo "==========================================================="
-        echo
-        kubectl config use-context $FULL_CLUSTER_NAME
-        install-tap "tap-values-laptop.yaml"
+        install-tap $DEV_CLUSTER "tap-values-laptop.yaml"
     }
 
 
     #install-tap
     install-tap () {
 
-        tap_values_file_name=$1
+        tap_cluster_name=$1
+        tap_values_file_name=$2
 
+        echo
+        echo "========================================================================"
+        echo "Installing TAP on $tap_cluster_name cluster with $tap_values_file_name configs..."
+        echo "========================================================================"
+        echo
+
+         kubectl config use-context $tap_cluster_name
         kubectl create ns tap-install
        
         tanzu secret registry add tap-registry \
@@ -117,7 +100,7 @@
        echo "Configure TAP Workloads GUI plugin to support multi-clusters ..."
        echo
        
-       kubectl config use-context $BUILD_CLUSTER_NAME
+       kubectl config use-context $STAGE_CLUSTER
        kubectl apply -f .config/tap-gui-viewer-sa-rbac.yaml
        export buildClusterUrl=$(kubectl config view --minify -o jsonpath='{.clusters[0].cluster.server}')
        export buildClusterToken=$(kubectl -n tap-gui get secret $(kubectl -n tap-gui get sa tap-gui-viewer -o=json \
@@ -129,7 +112,7 @@
        yq '.tap_gui.app_config.kubernetes.clusterLocatorMethods.[0].clusters.[0].serviceAccountToken = env(buildClusterToken)' .config/tap-values-full.yaml -i
 
 
-       kubectl config use-context $FULL_CLUSTER_NAME
+       kubectl config use-context $DEV_CLUSTER
        kubectl apply -f .config/tap-gui-viewer-sa-rbac.yaml
        export devClusterUrl=$(kubectl config view --minify -o jsonpath='{.clusters[0].cluster.server}')
        export devClusterToken=$(kubectl -n tap-gui get secret $(kubectl -n tap-gui get sa tap-gui-viewer -o=json \
@@ -144,9 +127,19 @@
 
     } 
    
-    #add the dekt-path2prod custom supply chain and related components
+    #add the dekt-path2prod custom supply chain and related components to the context of choice
     add-dekt-supplychain() {
         
+        tap_cluster_name=$1
+        
+        echo
+        echo "==============================================================================="
+        echo "Add the dekt-path2prod custom supplychain on TAP cluster $tap_cluster_name ..."
+        echo "==============================================================================="
+        echo
+        
+        kubectl config use-context $tap_cluster_name
+
         kubectl apply -f .config/disable-scale2zero.yaml
 
         #accelerators 
@@ -178,12 +171,14 @@
             --docker-password=$PRIVATE_REPO_PASSWORD \
             --namespace $GATEWAY_NS
  
+        relocate-gw-images
+
         $GW_INSTALL_DIR/scripts/install-spring-cloud-gateway.sh --namespace $GATEWAY_NS
 
         #brownfield API
         kubectl create ns $BROWNFIELD_NS
         kubectl create secret generic sso-credentials --from-env-file=.config/sso-creds.txt -n api-portal
-        kustomize build workloads/brownfield-apis | kubectl apply -f -
+        kustomize build brownfield-apis | kubectl apply -f -
 
         scripts/ingress-handler.sh apis
     }
@@ -239,51 +234,6 @@
        
     }
 
-    #config cluster context between EKS and AKS deployed clusters
-    set-context()
-    {
-        case $1 in
-        aks)
-            case $2 in
-            on)
-                kubectl config rename-context $FULL_CLUSTER_NAME-aks-idle  $FULL_CLUSTER_NAME
-                kubectl config rename-context $BUILD_CLUSTER_NAME-aks-idle  $BUILD_CLUSTER_NAME  
-                kubectl config rename-context $RUN_CLUSTER_NAME-aks-idle $RUN_CLUSTER_NAME
-                install-all
-                ;;
-            off)
-                kubectl config rename-context $FULL_CLUSTER_NAME $FULL_CLUSTER_NAME-aks-idle   
-                kubectl config rename-context $BUILD_CLUSTER_NAME $BUILD_CLUSTER_NAME-aks-idle 
-                kubectl config rename-context $RUN_CLUSTER_NAME $RUN_CLUSTER_NAME-aks-idle 
-                ;;
-            *)      
-                incorrect-usage
-                ;;
-            esac
-            ;;
-        eks)
-            case $2 in
-            on)
-                kubectl config rename-context $FULL_CLUSTER_NAME-eks-idle  $FULL_CLUSTER_NAME
-                kubectl config rename-context $BUILD_CLUSTER_NAME-eks-idle  $BUILD_CLUSTER_NAME  
-                kubectl config rename-context $RUN_CLUSTER_NAME-eks-idle $RUN_CLUSTER_NAME
-                install-all
-                ;;
-            off)
-                kubectl config rename-context $FULL_CLUSTER_NAME $FULL_CLUSTER_NAME-eks-idle   
-                kubectl config rename-context $BUILD_CLUSTER_NAME $BUILD_CLUSTER_NAME-eks-idle 
-                kubectl config rename-context $RUN_CLUSTER_NAME $RUN_CLUSTER_NAME-eks-idle 
-                ;;
-            *)      
-                incorrect-usage
-                ;;
-            esac
-            ;;
-        *)
-            incorrect-usage
-            ;;
-        esac
-    }
     
     #incorrect usage
     incorrect-usage() {
@@ -292,15 +242,13 @@
         echo "Incorrect usage. Please specify one of the following: "
         echo
         echo
-        echo "  init [ aks , eks , tkg , minikube , localhost ]"
-        echo
-        echo "  context [ aks on/off ,  eks on/off ]"
-        echo
+        echo "  init (install all clusters according to $K8S_DIALTONE)"
+        echo       
         echo "  apis"
         echo
         echo "  dev"
         echo
-        echo "  cleanup [ aks , eks , tkg , minikube  ]"
+        echo "  cleanup (delete all clusters according to $K8S_DIALTONE)"
         echo
         echo "  relocate-tap-images"
         echo
@@ -313,27 +261,27 @@
 
 case $1 in
 init)
-    case $2 in
+    case $K8S_DIALTONE in
     aks)
-        scripts/aks-handler.sh create $FULL_CLUSTER_NAME 3
-        scripts/aks-handler.sh create $BUILD_CLUSTER_NAME 2
-        scripts/aks-handler.sh create $RUN_CLUSTER_NAME 2
+        scripts/aks-handler.sh create $DEV_CLUSTER 3
+        scripts/aks-handler.sh create $STAGE_CLUSTER 2
+        scripts/aks-handler.sh create $PROD_CLUSTER 2
         install-all
         ;;
     eks)
-        scripts/eks-handler.sh create $FULL_CLUSTER_NAME 3
-        scripts/eks-handler.sh create $BUILD_CLUSTER_NAME 2
-        scripts/eks-handler.sh create $RUN_CLUSTER_NAME 2
+        scripts/eks-handler.sh create $DEV_CLUSTER 3
+        scripts/eks-handler.sh create $STAGE_CLUSTER 2
+        scripts/eks-handler.sh create $PROD_CLUSTER 2
         install-all
         ;;
     tkg)
-        scripts/tkg-handler.sh create $FULL_CLUSTER_NAME 3
-        scripts/tkg-handler.sh create $BUILD_CLUSTER_NAME 2
-        scripts/tkg-handler.sh create $RUN_CLUSTER_NAME 2
+        scripts/tkg-handler.sh create $DEV_CLUSTER 3
+        scripts/tkg-handler.sh create $STAGE_CLUSTER 2
+        scripts/tkg-handler.sh create $PROD_CLUSTER  2
         install-all
         ;;
     localhost)
-        scripts/aks-handler.sh create $FULL_CLUSTER_NAME 3
+        scripts/aks-handler.sh create $DEV_CLUSTER 3
         install-localhost
         ;;
     minikube)
@@ -345,27 +293,23 @@ init)
         ;;
     esac
     ;;
-context)
-    set-context $2 $3
-    ;;
 cleanup)
     ./demo-helper.sh cleanup-helper
-    case $2 in
+    case $K8S_DIALTONE in
     aks)
-        scripts/aks-handler.sh delete $FULL_CLUSTER_NAME
-        scripts/aks-handler.sh delete $BUILD_CLUSTER_NAME
-        scripts/aks-handler.sh delete $RUN_CLUSTER_NAME
+        scripts/aks-handler.sh delete $DEV_CLUSTER
+        scripts/aks-handler.sh delete $STAGE_CLUSTER
+        scripts/aks-handler.sh delete $PROD_CLUSTER
         ;;
     eks)
-        scripts/eks-handler.sh delete $FULL_CLUSTER_NAME
-        scripts/eks-handler.sh delete $BUILD_CLUSTER_NAME
-        scripts/eks-handler.sh delete $RUN_CLUSTER_NAME
+        scripts/eks-handler.sh delete $DEV_CLUSTER
+        scripts/eks-handler.sh delete $STAGE_CLUSTER
+        scripts/eks-handler.sh delete $PROD_CLUSTER
         ;;
     tkg)
-        scripts/tkg-handler.sh delete $FULL_CLUSTER_NAME 3
-        scripts/tkg-handler.sh delete $BUILD_CLUSTER_NAME 2
-        scripts/tkg-handler.sh delete $RUN_CLUSTER_NAME 2
-        install-all
+        scripts/tkg-handler.sh delete $DEV_CLUSTER
+        scripts/tkg-handler.sh delete $STAGE_CLUSTER
+        scripts/tkg-handler.sh delete $PROD_CLUSTER
         ;;
     minikube)
         scripts/minikube-handler.sh delete
@@ -374,9 +318,17 @@ cleanup)
         incorrect-usage
         ;;
     esac
-    kubectl config delete-context $FULL_CLUSTER_NAME
-    kubectl config delete-context $BUILD_CLUSTER_NAME
-    kubectl config delete-context $RUN_CLUSTER_NAME
+    ;;
+setk8s)
+    
+    case $2 in
+    aks)
+        scripts/minikube-handler.sh delete
+        ;;
+    *)
+        incorrect-usage
+        ;;
+    esac
     ;;
 apis)
     add-apis

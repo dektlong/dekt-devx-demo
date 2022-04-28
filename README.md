@@ -47,9 +47,10 @@ git clone https://github.com/dektlong/mood-portal
 
 ## Installation
 
+- Set the target K8S_DIALTONE in ```.config/config-values.yaml```
 - Install the demo components and follow the prompts
 ```
-./builder.sh init [ aks , eks , tkg, minikube]
+./builder.sh init
 ```
   - install dev cluster
     - TAP full profile
@@ -78,6 +79,7 @@ run ```./builder.sh apis``` to add the following
 
 ## Running the demo 
 
+- Set the active K8S_DIALTONE in ```.config/config-values.yaml``` (assumes clusters installed with TAP)
 ### Inner loop
 
 - access tap gui accelerators via the ```cloud-native-devs``` tag
