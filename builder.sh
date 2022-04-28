@@ -11,9 +11,9 @@
     SYSTEM_SUB_DOMAIN=$(yq .tap_gui.ingressDomain .config/tap-values-full.yaml | cut -d'.' -f 1)
     DEV_SUB_DOMAIN=$(yq .cnrs.domain_name .config/tap-values-full.yaml | cut -d'.' -f 1)
     RUN_SUB_DOMAIN=$(yq .cnrs.domain_name .config/tap-values-run.yaml | cut -d'.' -f 1)
-    DEV_CLUSTER=$DEV_CLUSTER_NAME-$K8S_DIALTONE
-    STAGE_CLUSTER=$STAGE_CLUSTER_NAME-$K8S_DIALTONE
-    PROD_CLUSTER=$PROD_CLUSTER_NAME-$K8S_DIALTONE
+    DEV_CLUSTER=$DEV_CLUSTER_NAME-$K8S_PROVIDER
+    STAGE_CLUSTER=$STAGE_CLUSTER_NAME-$K8S_PROVIDER
+    PROD_CLUSTER=$PROD_CLUSTER_NAME-$K8S_PROVIDER
     
     
     GATEWAY_NS="scgw-system"
@@ -242,13 +242,15 @@
         echo "Incorrect usage. Please specify one of the following: "
         echo
         echo
-        echo "  init (install all clusters according to $K8S_DIALTONE)"
+        echo "  init - install all clusters and demo components on $K8S_PROVIDER"
+        echo
+        echo "      (supported k8s providers: aks, eks, tkg, minikube)" 
         echo       
         echo "  apis"
         echo
         echo "  dev"
         echo
-        echo "  cleanup (delete all clusters according to $K8S_DIALTONE)"
+        echo "  cleanup - delete all clusters and demo components on $K8S_PROVIDER"
         echo
         echo "  relocate-tap-images"
         echo
@@ -261,7 +263,7 @@
 
 case $1 in
 init)
-    case $K8S_DIALTONE in
+    case $K8S_PROVIDER in
     aks)
         scripts/aks-handler.sh create $DEV_CLUSTER 3
         scripts/aks-handler.sh create $STAGE_CLUSTER 2
@@ -295,7 +297,7 @@ init)
     ;;
 cleanup)
     ./demo-helper.sh cleanup-helper
-    case $K8S_DIALTONE in
+    case $K8S_PROVIDER in
     aks)
         scripts/aks-handler.sh delete $DEV_CLUSTER
         scripts/aks-handler.sh delete $STAGE_CLUSTER
