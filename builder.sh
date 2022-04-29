@@ -296,6 +296,9 @@ init)
     esac
     ;;
 cleanup)
+    echo
+    echo "!!!! About to delete all $K8S_PROVIDER clusters. Are you sure?"
+    read
     ./demo-helper.sh cleanup-helper
     case $K8S_PROVIDER in
     aks)
@@ -314,17 +317,6 @@ cleanup)
         scripts/tkg-handler.sh delete $PROD_CLUSTER
         ;;
     minikube)
-        scripts/minikube-handler.sh delete
-        ;;
-    *)
-        incorrect-usage
-        ;;
-    esac
-    ;;
-setk8s)
-    
-    case $2 in
-    aks)
         scripts/minikube-handler.sh delete
         ;;
     *)
