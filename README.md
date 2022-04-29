@@ -159,7 +159,7 @@ run ```./builder.sh apis``` to add the following
 
 - full cleanup to delete all clusters  ```./builder.sh cleanup```
 
-- partial cleanup to remove just workloads on all tap clusters ```./demo-helper.sh reset```
+- partial cleanup to remove workloads and reset configs ```./demo-helper.sh reset```
 
 ### Enjoy!
 
