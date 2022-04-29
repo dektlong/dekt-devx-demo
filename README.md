@@ -7,7 +7,7 @@ This repo contains artifacts to run a demo illustrating the vision and capabilit
 
 - Clone the supplychain repo ```git clone https://github.com/dektlong/dekt-supplychain```
 
-- Verify your target cluster supports up to 7 nodes creation acroos 2 clusters with the resource and permissions outlined in 
+- Verify your target cluster supports up to 7 nodes creation acroos 3 clusters with the resource and permissions outlined in 
   - ```scripts/eks-handler.sh``` 
   - ```scripts/aks-handler.sh```
   - ```scripts/minikube-handler.sh```
