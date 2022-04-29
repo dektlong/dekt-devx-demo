@@ -155,7 +155,7 @@ run ```./builder.sh apis``` to add the following
 
 ## Cleanup
 
-- Set the active ```provider``` attribute in ```.config/demo-values.yaml``
+- Set the active ```provider``` attribute in ```.config/demo-values.yaml```
 
 - full cleanup to delete all clusters  ```./builder.sh cleanup```
 
