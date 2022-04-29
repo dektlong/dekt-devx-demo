@@ -1,8 +1,6 @@
 #!/usr/bin/env bash
 
 
-source .config/config-values.env
-
 CLUSTER_NAME=$2
 NUMBER_OF_NODES="$3"
 
@@ -170,8 +168,6 @@ incorrect-usage() {
 }
 
 #################### main #######################
-
-source .config/config-values.env
 
 case $1 in
 

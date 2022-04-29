@@ -1,7 +1,5 @@
 #!/usr/bin/env bash
 
-source .config/config-values.env
-
 echo
 echo "=========> Install nginx ingress controller ..."
 echo

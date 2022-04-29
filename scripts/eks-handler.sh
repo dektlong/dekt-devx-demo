@@ -1,7 +1,5 @@
 #!/usr/bin/env bash
 
-source .config/config-values.env
-
 
 REGION="us-west-1" #aws ec2 describe-regions --output table
 CLUSTER_FULL_NAME=$2-eks

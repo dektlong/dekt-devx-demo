@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 
-#################### configs #######################
+#################### load configs from values yaml #######################
 
-    source .config/config-values.env
+    K8S_PROVIDER=$(yq .provider .config/demo-values.yaml)
     PRIVATE_REPO=$(yq .ootb_supply_chain_basic.registry.server .config/tap-values-full.yaml)
     PRIVATE_REPO_USER=$(yq .buildservice.kp_default_repository_username .config/tap-values-full.yaml)
     PRIVATE_REPO_PASSWORD=$(yq .buildservice.kp_default_repository_password .config/tap-values-full.yaml)
@@ -11,13 +11,13 @@
     SYSTEM_SUB_DOMAIN=$(yq .tap_gui.ingressDomain .config/tap-values-full.yaml | cut -d'.' -f 1)
     DEV_SUB_DOMAIN=$(yq .cnrs.domain_name .config/tap-values-full.yaml | cut -d'.' -f 1)
     RUN_SUB_DOMAIN=$(yq .cnrs.domain_name .config/tap-values-run.yaml | cut -d'.' -f 1)
-    DEV_CLUSTER=$DEV_CLUSTER_NAME-$K8S_PROVIDER
-    STAGE_CLUSTER=$STAGE_CLUSTER_NAME-$K8S_PROVIDER
-    PROD_CLUSTER=$PROD_CLUSTER_NAME-$K8S_PROVIDER
-    
-    
-    GATEWAY_NS="scgw-system"
-    BROWNFIELD_NS="brownfield-apis"
+    DEV_CLUSTER=$(yq .clusters.devClusterName .config/demo-values.yaml)-$K8S_PROVIDER
+    STAGE_CLUSTER=$(yq .clusters.stageClusterName .config/demo-values.yaml)-$K8S_PROVIDER
+    PROD_CLUSTER=$(yq .clusters.prodClusterName .config/demo-values.yaml)-$K8S_PROVIDER
+    TAP_VERSION=$(yq .tap.version .config/demo-values.yaml)
+    SYSTEM_REPO=$(yq .tap.systemRepo .config/demo-values.yaml)
+    APPS_NAMESPACE=$(yq .tap.appNamespace .config/demo-values.yaml)
+    GW_INSTALL_DIR=$(yq .apis.scgwInstallDirectory .config/demo-values.yaml)
     
 #################### installers ################
 
@@ -88,9 +88,9 @@
             --namespace tap-install
 
          #setup apps namespace
-        kubectl create ns $DEMO_APPS_NS
-        tanzu secret registry add registry-credentials --server $PRIVATE_REPO --username $PRIVATE_REPO_USER --password $PRIVATE_REPO_PASSWORD -n $DEMO_APPS_NS
-        kubectl apply -f .config/supplychain-rbac.yaml -n $DEMO_APPS_NS
+        kubectl create ns $APPS_NAMESPACE
+        tanzu secret registry add registry-credentials --server $PRIVATE_REPO --username $PRIVATE_REPO_USER --password $PRIVATE_REPO_PASSWORD -n $APPS_NAMESPACE
+        kubectl apply -f .config/supplychain-rbac.yaml -n $APPS_NAMESPACE
     }
 
     #update-multi-cluster-views
@@ -149,34 +149,34 @@
         kubectl apply -f .config/dekt-path2prod.yaml
 
         #scan policy
-        kubectl apply -f .config/scan-policy.yaml -n $DEMO_APPS_NS
+        kubectl apply -f .config/scan-policy.yaml -n $APPS_NAMESPACE
 
         #testing pipeline
-        kubectl apply -f .config/tekton-pipeline.yaml -n $DEMO_APPS_NS
+        kubectl apply -f .config/tekton-pipeline.yaml -n $APPS_NAMESPACE
 
         #rabbitmq 
         kapp -y deploy --app rmq-operator --file https://github.com/rabbitmq/cluster-operator/releases/download/v1.9.0/cluster-operator.yml
-        kubectl apply -f .config/rabbitmq-cluster-config.yaml -n $DEMO_APPS_NS
-        kubectl apply -f .config/reading-rabbitmq-instance.yaml -n $DEMO_APPS_NS
+        kubectl apply -f .config/rabbitmq-cluster-config.yaml -n $APPS_NAMESPACE
+        kubectl apply -f .config/reading-rabbitmq-instance.yaml -n $APPS_NAMESPACE
     }
     
     #add-apis
     add-apis () {
 
-        kubectl create ns $GATEWAY_NS
+        kubectl create ns scgw-system
 
         kubectl create secret docker-registry spring-cloud-gateway-image-pull-secret \
             --docker-server=$PRIVATE_REPO \
             --docker-username=$PRIVATE_REPO_USER \
             --docker-password=$PRIVATE_REPO_PASSWORD \
-            --namespace $GATEWAY_NS
+            --namespace scgw-system
  
         relocate-gw-images
 
-        $GW_INSTALL_DIR/scripts/install-spring-cloud-gateway.sh --namespace $GATEWAY_NS
+        $GW_INSTALL_DIR/scripts/install-spring-cloud-gateway.sh --namespace scgw-system
 
         #brownfield API
-        kubectl create ns $BROWNFIELD_NS
+        kubectl create ns brownfield-apis
         kubectl create secret generic sso-credentials --from-env-file=.config/sso-creds.txt -n api-portal
         kustomize build brownfield-apis | kubectl apply -f -
 

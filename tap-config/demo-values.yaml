@@ -1,0 +1,22 @@
+
+# accepted values: aks, eks, tkg, minikube
+provider: eks
+
+clusters:
+  devClusterName: ""
+  stageClusterName: ""
+  prodClusterName: ""
+
+tap:
+  version: "1.1.0"
+  systemRepo: ""
+  appRepo: ""
+  appNamespace: ""
+
+dns:
+  domain: ""
+  godaddyApiKey: ""
+  godaddyApiSecret: ""
+
+apis:
+  scgwInstallDirectory: ""

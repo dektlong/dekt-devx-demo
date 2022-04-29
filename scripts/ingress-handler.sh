@@ -1,6 +1,8 @@
 #!/usr/bin/env bash
 
-source .config/config-values.env
+DOMAIN=$(yq .dns.domain .config/demo-values.yaml)
+GODADDY_API_KEY=$(yq .dns.godaddyApiKey .config/demo-values.yaml)
+GODADDY_API_SECRET=$(yq .dns.godaddyApiSecret .config/demo-values.yaml)
 
 #create-ingress-rule
 create-ingress-rule() {

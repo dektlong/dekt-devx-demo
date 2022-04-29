@@ -1,9 +1,13 @@
 #!/usr/bin/env bash
 
-source .config/config-values.env
 PRIVATE_REPO=$(yq e .ootb_supply_chain_basic.registry.server .config/tap-values-full.yaml)
 PRIVATE_REPO_USER=$(yq e .buildservice.kp_default_repository_username .config/tap-values-full.yaml)
 PRIVATE_REPO_PASSWORD=$(yq e .buildservice.kp_default_repository_password .config/tap-values-full.yaml)
+DEMO_APP_GIT_REPO="https://github.com/dektlong/APIGridDemo"
+BUILDER_NAME="online-stores-builder"
+BACKEND_TBS_IMAGE="dekt4pets-backend"
+FRONTEND_TBS_IMAGE="dekt4pets-frontend"
+APPS_NAMESPACE=$(yq .tap.appNamespace .config/demo-values.yaml)
 
 #init (assumes api-portal and api-gw are installed)
 init() {
@@ -18,10 +22,10 @@ init() {
         kp secret create private-registry-creds \
             --registry $PRIVATE_REPO \
             --registry-user $PRIVATE_REPO_USER \
-            --namespace $DEMO_APPS_NS 
+            --namespace $APPS_NAMESPACE 
 
     
-        kp image create $BACKEND_TBS_IMAGE -n $DEMO_APPS_NS \
+        kp image create $BACKEND_TBS_IMAGE -n $APPS_NAMESPACE \
         --tag $backend_image_location \
         --git $DEMO_APP_GIT_REPO  \
         --sub-path ./workloads/dekt4pets/backend \
@@ -29,7 +33,7 @@ init() {
         --wait
        
 
-        kp image save $FRONTEND_TBS_IMAGE -n $DEMO_APPS_NS \
+        kp image save $FRONTEND_TBS_IMAGE -n $APPS_NAMESPACE \
         --tag $frontend_image_location \
         --git $DEMO_APP_GIT_REPO  \
         --sub-path ./workloads/dekt4pets/frontend \
@@ -37,12 +41,12 @@ init() {
         --wait
 
         #dekt4pets secrets
-        kubectl create secret generic sso-secret --from-env-file=.config/sso-creds.txt -n $DEMO_APPS_NS
-        kubectl create secret generic jwk-secret --from-env-file=.config/jwk-creds.txt -n $DEMO_APPS_NS
-        kubectl create secret generic wavefront-secret --from-env-file=.config/wavefront-creds.txt -n $DEMO_APPS_NS
+        kubectl create secret generic sso-secret --from-env-file=.config/sso-creds.txt -n $APPS_NAMESPACE
+        kubectl create secret generic jwk-secret --from-env-file=.config/jwk-creds.txt -n $APPS_NAMESPACE
+        kubectl create secret generic wavefront-secret --from-env-file=.config/wavefront-creds.txt -n $APPS_NAMESPACE
 
         #dev gateway and apps
-        kubectl apply -f workloads/dekt4pets/gateway/dekt4pets-gateway-dev.yaml -n $DEMO_APPS_NS
+        kubectl apply -f workloads/dekt4pets/gateway/dekt4pets-gateway-dev.yaml -n $APPS_NAMESPACE
         create-backend
         create-frontend
 
@@ -73,25 +77,25 @@ create-backend() {
     echo "=========> 2. Apply development routes, mapping and micro-gateway"
     echo
 
-    kubectl apply -f workloads/dekt4pets/backend/routes/dekt4pets-backend-mapping-dev.yaml -n $DEMO_APPS_NS
-    kubectl apply -f workloads/dekt4pets/backend/routes/dekt4pets-backend-route-config.yaml -n $DEMO_APPS_NS
+    kubectl apply -f workloads/dekt4pets/backend/routes/dekt4pets-backend-mapping-dev.yaml -n $APPS_NAMESPACE
+    kubectl apply -f workloads/dekt4pets/backend/routes/dekt4pets-backend-route-config.yaml -n $APPS_NAMESPACE
     #dekt4pets-dev gateway instances created as part of demo build to save time
 
     echo
     echo "=========> 3. Create backend app via src-to-img supply-chain"
     echo
 
-    #kp image patch $BACKEND_TBS_IMAGE -n $DEMO_APPS_NS
+    #kp image patch $BACKEND_TBS_IMAGE -n $APPS_NAMESPACE
 
-    #wait-for-tbs $BACKEND_TBS_IMAGE $DEMO_APPS_NS
+    #wait-for-tbs $BACKEND_TBS_IMAGE $APPS_NAMESPACE
 
     echo
     echo "Starting to tail build logs ..."
     echo
     
-    kp build logs $BACKEND_TBS_IMAGE -n $DEMO_APPS_NS
+    kp build logs $BACKEND_TBS_IMAGE -n $APPS_NAMESPACE
     
-    kubectl apply -f workloads/dekt4pets/backend/dekt4pets-backend.yaml -n $DEMO_APPS_NS
+    kubectl apply -f workloads/dekt4pets/backend/dekt4pets-backend.yaml -n $APPS_NAMESPACE
 }
 
 #create-frontend 
@@ -103,7 +107,7 @@ create-frontend() {
     echo "           2. Apply development routes, mapping and micro-gateway"
     echo
 
-    kp image patch $FRONTEND_TBS_IMAGE -n $DEMO_APPS_NS
+    kp image patch $FRONTEND_TBS_IMAGE -n $APPS_NAMESPACE
     
 	kustomize build workloads/dekt4pets/frontend | kubectl apply -f -
 
@@ -118,21 +122,21 @@ patch-backend() {
     
     commit-adopter-check-api
 
-    wait-for-tbs $BACKEND_TBS_IMAGE $DEMO_APPS_NS
+    wait-for-tbs $BACKEND_TBS_IMAGE $APPS_NAMESPACE
 
     echo
     echo "Starting to tail build logs ..."
     echo
     
-    kp build logs $BACKEND_TBS_IMAGE -n $DEMO_APPS_NS
+    kp build logs $BACKEND_TBS_IMAGE -n $APPS_NAMESPACE
     
     echo
     echo "=========> Apply changes to backend app, service and routes ..."
     echo
     
-    kubectl delete -f workloads/dekt4pets/backend/dekt4pets-backend.yaml -n $DEMO_APPS_NS
-    kubectl apply -f workloads/dekt4pets/backend/dekt4pets-backend.yaml -n $DEMO_APPS_NS
-    kubectl apply -f workloads/dekt4pets/backend/routes/dekt4pets-backend-route-config.yaml -n $DEMO_APPS_NS
+    kubectl delete -f workloads/dekt4pets/backend/dekt4pets-backend.yaml -n $APPS_NAMESPACE
+    kubectl apply -f workloads/dekt4pets/backend/dekt4pets-backend.yaml -n $APPS_NAMESPACE
+    kubectl apply -f workloads/dekt4pets/backend/routes/dekt4pets-backend-route-config.yaml -n $APPS_NAMESPACE
 
 }
 
@@ -144,19 +148,19 @@ dekt4pets() {
     echo "           1. Deploy app via src-to-img supply-chain"
     echo "           2. Apply production routes, mapping and micro-gateway"
     echo
-    kubectl apply -f workloads/dekt4pets/backend/routes/dekt4pets-backend-mapping.yaml -n $DEMO_APPS_NS
+    kubectl apply -f workloads/dekt4pets/backend/routes/dekt4pets-backend-mapping.yaml -n $APPS_NAMESPACE
 
     echo
     echo "=========> Promote dekt4pets-frontend to production (outer loop) ..."
     echo "           1. Deploy app via src-to-img supply-chain"
     echo "           2. Apply production routes, mapping and micro-gateway"
     echo
-    kubectl apply -f workloads/dekt4pets/frontend/routes/dekt4pets-frontend-mapping.yaml -n $DEMO_APPS_NS
+    kubectl apply -f workloads/dekt4pets/frontend/routes/dekt4pets-frontend-mapping.yaml -n $APPS_NAMESPACE
 
     echo
     echo "=========> Create dekt4pets micro-gateway (w/ external traffic)..."
     echo
-    kubectl apply -f workloads/dekt4pets/gateway/dekt4pets-gateway.yaml -n $DEMO_APPS_NS
+    kubectl apply -f workloads/dekt4pets/gateway/dekt4pets-gateway.yaml -n $APPS_NAMESPACE
 
 }
 
@@ -167,7 +171,7 @@ adopter-check () {
     echo "=========> Apply adopter-check TAP workload and deploy via src-to-url supply-chain ..."
     echo
 
-    tanzu apps workload apply adopter-check -f adopter-check-workload.yaml -y -n $DEMO_APPS_NS
+    tanzu apps workload apply adopter-check -f adopter-check-workload.yaml -y -n $APPS_NAMESPACE
 
     #tanzu apps workload tail adopter-check --since 10m --timestamp  -n dekt-apps
 
@@ -188,19 +192,19 @@ commit-adopter-check-api () {
 #cleanup
 cleanup() {
 
-    kp secret delete private-registry-creds -n $DEMO_APPS_NS
-    kubectl delete secret sso-secret -n $DEMO_APPS_NS
-    kubectl delete secret jwk-secret -n $DEMO_APPS_NS
-    kubectl delete secret wavefront-secret -n $DEMO_APPS_NS
-    kp image delete $BACKEND_TBS_IMAGE -n $DEMO_APPS_NS
-    kp image delete $FRONTEND_TBS_IMAGE -n $DEMO_APPS_NS
-    kubectl delete -f workloads/dekt4pets/backend/dekt4pets-backend.yaml -n $DEMO_APPS_NS
-    kubectl delete -f workloads/dekt4pets/backend/routes/dekt4pets-backend-mapping.yaml -n $DEMO_APPS_NS
-    kubectl delete -f workloads/dekt4pets/frontend/routes/dekt4pets-frontend-mapping.yaml -n $DEMO_APPS_NS
-    kubectl delete -f workloads/dekt4pets/gateway/dekt4pets-gateway.yaml -n $DEMO_APPS_NS
-    kubectl delete -f workloads/dekt4pets/gateway/dekt4pets-gateway-dev.yaml -n $DEMO_APPS_NS
-    kubectl delete -f workloads/dekt4pets/backend/routes/dekt4pets-backend-mapping-dev.yaml -n $DEMO_APPS_NS
-    kubectl delete -f workloads/dekt4pets/backend/routes/dekt4pets-backend-route-config.yaml -n $DEMO_APPS_NS
+    kp secret delete private-registry-creds -n $APPS_NAMESPACE
+    kubectl delete secret sso-secret -n $APPS_NAMESPACE
+    kubectl delete secret jwk-secret -n $APPS_NAMESPACE
+    kubectl delete secret wavefront-secret -n $APPS_NAMESPACE
+    kp image delete $BACKEND_TBS_IMAGE -n $APPS_NAMESPACE
+    kp image delete $FRONTEND_TBS_IMAGE -n $APPS_NAMESPACE
+    kubectl delete -f workloads/dekt4pets/backend/dekt4pets-backend.yaml -n $APPS_NAMESPACE
+    kubectl delete -f workloads/dekt4pets/backend/routes/dekt4pets-backend-mapping.yaml -n $APPS_NAMESPACE
+    kubectl delete -f workloads/dekt4pets/frontend/routes/dekt4pets-frontend-mapping.yaml -n $APPS_NAMESPACE
+    kubectl delete -f workloads/dekt4pets/gateway/dekt4pets-gateway.yaml -n $APPS_NAMESPACE
+    kubectl delete -f workloads/dekt4pets/gateway/dekt4pets-gateway-dev.yaml -n $APPS_NAMESPACE
+    kubectl delete -f workloads/dekt4pets/backend/routes/dekt4pets-backend-mapping-dev.yaml -n $APPS_NAMESPACE
+    kubectl delete -f workloads/dekt4pets/backend/routes/dekt4pets-backend-route-config.yaml -n $APPS_NAMESPACE
     kustomize build workloads/dekt4pets/frontend | kubectl delete -f -
 
 
@@ -257,21 +261,21 @@ describe-apigrid() {
     echo
     echo "${bold}Workload Images${normal}"
     echo
-    kp images list -n $DEMO_APPS_NS
+    kp images list -n $APPS_NAMESPACE
     echo "${bold}API Routes${normal}"
     echo
-    kubectl get SpringCloudGatewayRouteConfig -n $DEMO_APPS_NS 
+    kubectl get SpringCloudGatewayRouteConfig -n $APPS_NAMESPACE 
     echo
     echo "${bold}API Mappings${normal}"
     echo
-    kubectl get SpringCloudGatewayMapping -n $DEMO_APPS_NS 
+    kubectl get SpringCloudGatewayMapping -n $APPS_NAMESPACE 
     echo
     echo "${bold}API Gateways${normal}"
     echo
     
     echo
     echo "${bold}Ingress rules${normal}"
-    kubectl get ingress --field-selector metadata.name=dekt4pets-ingress -n $DEMO_APPS_NS
+    kubectl get ingress --field-selector metadata.name=dekt4pets-ingress -n $APPS_NAMESPACE
     echo
 }
 

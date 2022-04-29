@@ -14,10 +14,14 @@ This repo contains artifacts to run a demo illustrating the vision and capabilit
 
 - Rename the folder ```tap-config``` to ```.config```
 
-- Update values in ```.config/tap-values-full.yaml```, ```.config/tap-values-build.yaml``` and ```.config/tap-values-run.yaml```
-
-  - ```MY_DOMAIN``` needs to be enabled to add wild-card DNS record to
-  - ```MY_IMAGE_REGISTRY_HOST``` and ```MY_SYSTEM_REPO``` needs to be accessible from the TAP cluster 
+- Update values in 
+  - ```.config/tap-values-full.yaml```
+  - ```.config/tap-values-build.yaml```
+  - ```.config/tap-values-run.yaml```
+  - ```.config/demo-values.yaml```
+    - ```DOMAIN``` and ```DEMO_APPS_NAMESPACE``` values must much the information in ```.config/tap-values-full.yaml```
+    - ```MY_DOMAIN``` needs to be enabled to add wild-card DNS record to
+    - ```MY_IMAGE_REGISTRY_HOST``` and ```MY_SYSTEM_REPO``` needs to be accessible from the TAP cluster 
 
 - Update your registry details in ```.config/dekt-path2prod.yaml``` custom supplychain 
   - Note: since this is a custom supply chain, the registry values defined in ```tap-values-full``` are NOT applied automatically
@@ -25,10 +29,6 @@ This repo contains artifacts to run a demo illustrating the vision and capabilit
 - Review ```.config/scan-policy.yaml``` and customized if need 
 
 - Review ```.config/tekton-pipeline.yaml``` and customized if need 
-
-- Update values ```.config/config-values.yaml```
-
-    - Note: ```DOMAIN``` and ```DEMO_APPS_NS``` values must much the information in ```.config/tap-values-full.yaml```
 
 - The ingress setup is based on GoDaddy DNS, if you are using a different one, please modify ```scripts/ingress-handler.sh```
 
@@ -47,7 +47,7 @@ git clone https://github.com/dektlong/mood-portal
 
 ## Installation
 
-- Set the target K8S_PROVIDER in ```.config/config-values.yaml```
+- Set the ```provider``` attribute in ```.config/demo-values.yaml```
 - Install the demo components and follow the prompts
 ```
 ./builder.sh init
@@ -79,7 +79,7 @@ run ```./builder.sh apis``` to add the following
 
 ## Running the demo 
 
-- Set the active K8S_PROVIDER in ```.config/config-values.yaml``` (assumes clusters installed with TAP)
+- Set the active ```provider``` attribute in ```.config/demo-values.yaml``` (assumes clusters installed with TAP)
 ### Inner loop
 
 - access tap gui accelerators via the ```cloud-native-devs``` tag

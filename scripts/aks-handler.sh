@@ -1,7 +1,5 @@
 #!/usr/bin/env bash
 
-source .config/config-values.env
-
 RESOURCE_GROUP="tap-aks"
 LOCATION="westus"
 TANZU_NETWORK_USER=$(yq .buildservice.tanzunet_username .config/tap-values-full.yaml)

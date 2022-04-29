@@ -1,14 +1,18 @@
 #!/usr/bin/env bash
 
-#################### configs ################
+#################### load configs from values yaml  ################
 
-    source .config/config-values.env
+    K8S_PROVIDER=$(yq .provider .config/demo-values.yaml)
+    DEV_CLUSTER=$(yq .clusters.devClusterName .config/demo-values.yaml)-$K8S_PROVIDER
+    STAGE_CLUSTER=$(yq .clusters.stageClusterName .config/demo-values.yaml)-$K8S_PROVIDER
+    PROD_CLUSTER=$(yq .clusters.prodClusterName .config/demo-values.yaml)-$K8S_PROVIDER
     DELIVERABLE_FILE_NAME="portal-prod-golden-config.yaml"
     PORTAL_WORKLOAD_NAME="mood-portal"
     SENSORS_WORKLOAD_NAME="mood-sensors"
-    DEV_CLUSTER=$DEV_CLUSTER_NAME-$K8S_PROVIDER
-    STAGE_CLUSTER=$STAGE_CLUSTER_NAME-$K8S_PROVIDER
-    PROD_CLUSTER=$PROD_CLUSTER_NAME-$K8S_PROVIDER
+    TAP_VERSION=$(yq .tap.version .config/demo-values.yaml)
+    SYSTEM_REPO=$(yq .tap.systemRepo .config/demo-values.yaml)
+    APPS_NAMESPACE=$(yq .tap.appNamespace .config/demo-values.yaml)
+    
 
 #################### functions ################
 
@@ -62,14 +66,14 @@
         kubectl config use-context $DEV_CLUSTER
 
         echo
-        echo "tanzu apps workload create -f ../mood-portal/workload.yaml -y -n $DEMO_APPS_NS"
+        echo "tanzu apps workload create -f ../mood-portal/workload.yaml -y -n $APPS_NAMESPACE"
         echo        
-        tanzu apps workload create -f ../mood-portal/workload.yaml -y -n $DEMO_APPS_NS
+        tanzu apps workload create -f ../mood-portal/workload.yaml -y -n $APPS_NAMESPACE
         
         echo
-        echo "tanzu apps workload create -f ../mood-sensors/workload.yaml -y -n $DEMO_APPS_NS"
+        echo "tanzu apps workload create -f ../mood-sensors/workload.yaml -y -n $APPS_NAMESPACE"
         echo
-        tanzu apps workload create -f ../mood-sensors/workload.yaml -y -n $DEMO_APPS_NS
+        tanzu apps workload create -f ../mood-sensors/workload.yaml -y -n $APPS_NAMESPACE
 
     }
 
@@ -83,7 +87,7 @@
             --type web \
             --label app.kubernetes.io/part-of=devx-mood \
             --yes \
-            --namespace $DEMO_APPS_NS 
+            --namespace $APPS_NAMESPACE 
     }
     
     #promote-production
@@ -92,10 +96,10 @@
         kubectl config use-context $STAGE_CLUSTER
 
         echo
-        echo "kubectl get deliverable $PORTAL_WORKLOAD_NAME -n $DEMO_APPS_NS -oyaml > $DELIVERABLE_FILE_NAME"
+        echo "kubectl get deliverable $PORTAL_WORKLOAD_NAME -n $APPS_NAMESPACE -oyaml > $DELIVERABLE_FILE_NAME"
         echo 
         
-        kubectl get deliverable $PORTAL_WORKLOAD_NAME -n $DEMO_APPS_NS -oyaml > $DELIVERABLE_FILE_NAME
+        kubectl get deliverable $PORTAL_WORKLOAD_NAME -n $APPS_NAMESPACE -oyaml > $DELIVERABLE_FILE_NAME
         echo "$DELIVERABLE_FILE_NAME generated."
         yq e 'del(.status)' $DELIVERABLE_FILE_NAME -i 
         yq e 'del(.metadata.ownerReferences)' $DELIVERABLE_FILE_NAME -i 
@@ -107,11 +111,11 @@
 
         kubectl config use-context $PROD_CLUSTER
         echo
-        echo "kubectl apply -f $DELIVERABLE_FILE_NAME -n $DEMO_APPS_NS"
+        echo "kubectl apply -f $DELIVERABLE_FILE_NAME -n $APPS_NAMESPACE"
         echo 
         
-        kubectl apply -f $DELIVERABLE_FILE_NAME -n $DEMO_APPS_NS
-        kubectl get deliverables -n $DEMO_APPS_NS
+        kubectl apply -f $DELIVERABLE_FILE_NAME -n $APPS_NAMESPACE
+        kubectl get deliverables -n $APPS_NAMESPACE
 
     }
 
@@ -129,9 +133,9 @@
     track-sensors () {
 
         echo
-        echo "tanzu apps workload get $SENSORS_WORKLOAD_NAME -n $DEMO_APPS_NS"
+        echo "tanzu apps workload get $SENSORS_WORKLOAD_NAME -n $APPS_NAMESPACE"
         echo
-        tanzu apps workload get $SENSORS_WORKLOAD_NAME -n $DEMO_APPS_NS
+        tanzu apps workload get $SENSORS_WORKLOAD_NAME -n $APPS_NAMESPACE
 
     }
 
@@ -139,29 +143,29 @@
     track-portal () {
 
         echo
-        echo "tanzu apps workload get $PORTAL_WORKLOAD_NAME -n $DEMO_APPS_NS"
+        echo "tanzu apps workload get $PORTAL_WORKLOAD_NAME -n $APPS_NAMESPACE"
         echo
-        tanzu apps workload get $PORTAL_WORKLOAD_NAME -n $DEMO_APPS_NS
+        tanzu apps workload get $PORTAL_WORKLOAD_NAME -n $APPS_NAMESPACE
 
     }    
 
     #tail-sensors-logs
     tail-sensors-logs () {
 
-          tanzu apps workload tail $SENSORS_WORKLOAD_NAME --since 100m --timestamp  -n $DEMO_APPS_NS
+          tanzu apps workload tail $SENSORS_WORKLOAD_NAME --since 100m --timestamp  -n $APPS_NAMESPACE
     }
 
     #tail-portal-logs
     tail-portal-logs () {
 
-        tanzu apps workload tail $PORTAL_WORKLOAD_NAME --since 100m --timestamp  -n $DEMO_APPS_NS
+        tanzu apps workload tail $PORTAL_WORKLOAD_NAME --since 100m --timestamp  -n $APPS_NAMESPACE
 
     }
 
     #scanning-results
     scanning-results () {
 
-        kubectl describe imagescan.scanning.apps.tanzu.vmware.com/$SENSORS_WORKLOAD_NAME -n $DEMO_APPS_NS
+        kubectl describe imagescan.scanning.apps.tanzu.vmware.com/$SENSORS_WORKLOAD_NAME -n $APPS_NAMESPACE
 
     }
         
@@ -170,14 +174,14 @@
     reset() {
 
         kubectl config use-context $STAGE_CLUSTER
-        tanzu apps workload delete $PORTAL_WORKLOAD_NAME -n $DEMO_APPS_NS -y
+        tanzu apps workload delete $PORTAL_WORKLOAD_NAME -n $APPS_NAMESPACE -y
 
         kubectl config use-context $PROD_CLUSTER
         kubectl delete -f $DELIVERABLE_FILE_NAME
 
         kubectl config use-context $DEV_CLUSTER
-        tanzu apps workload delete $PORTAL_WORKLOAD_NAME -n $DEMO_APPS_NS -y
-        tanzu apps workload delete $SENSORS_WORKLOAD_NAME -n $DEMO_APPS_NS -y
+        tanzu apps workload delete $PORTAL_WORKLOAD_NAME -n $APPS_NAMESPACE -y
+        tanzu apps workload delete $SENSORS_WORKLOAD_NAME -n $APPS_NAMESPACE -y
         kubectl delete pod -l app=backstage -n tap-gui
         kubectl -n app-live-view delete pods -l=name=application-live-view-connector
         tanzu package installed update tap --package-name tap.tanzu.vmware.com --version $TAP_VERSION -n tap-install -f .config/tap-values-full.yaml
