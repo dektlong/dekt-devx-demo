@@ -48,7 +48,7 @@ git clone https://github.com/dektlong/mood-portal
 ## Installation
 
 - Set the ```provider``` attribute in ```.config/demo-values.yaml```
-- Install the demo components and follow the prompts
+- Install the demo components
 ```
 ./builder.sh init
 ```
