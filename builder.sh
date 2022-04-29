@@ -3,7 +3,7 @@
 #################### load configs from values yaml #######################
 
     K8S_PROVIDER=$(yq .provider .config/demo-values.yaml)
-    PRIVATE_REPO=$(yq .ootb_supply_chain_basic.registry.server .config/tap-values-full.yaml)
+    PRIVATE_REPO_SERVER=$(yq .ootb_supply_chain_basic.registry.server .config/tap-values-full.yaml)
     PRIVATE_REPO_USER=$(yq .buildservice.kp_default_repository_username .config/tap-values-full.yaml)
     PRIVATE_REPO_PASSWORD=$(yq .buildservice.kp_default_repository_password .config/tap-values-full.yaml)
     TANZU_NETWORK_USER=$(yq .buildservice.tanzunet_username .config/tap-values-full.yaml)
@@ -89,7 +89,7 @@
 
          #setup apps namespace
         kubectl create ns $APPS_NAMESPACE
-        tanzu secret registry add registry-credentials --server $PRIVATE_REPO --username $PRIVATE_REPO_USER --password $PRIVATE_REPO_PASSWORD -n $APPS_NAMESPACE
+        tanzu secret registry add registry-credentials --server $PRIVATE_REPO_SERVER --username $PRIVATE_REPO_USER --password $PRIVATE_REPO_PASSWORD -n $APPS_NAMESPACE
         kubectl apply -f .config/supplychain-rbac.yaml -n $APPS_NAMESPACE
     }
 
@@ -166,7 +166,7 @@
         kubectl create ns scgw-system
 
         kubectl create secret docker-registry spring-cloud-gateway-image-pull-secret \
-            --docker-server=$PRIVATE_REPO \
+            --docker-server=$PRIVATE_REPO_SERVER \
             --docker-username=$PRIVATE_REPO_USER \
             --docker-password=$PRIVATE_REPO_PASSWORD \
             --namespace scgw-system
@@ -189,9 +189,9 @@
         echo "Make sure docker deamon is running..."
         read
         
-        docker login $PRIVATE_REPO -u $PRIVATE_REPO_USER -p $PRIVATE_REPO_PASSWORD
+        docker login $PRIVATE_REPO_SERVER -u $PRIVATE_REPO_USER -p $PRIVATE_REPO_PASSWORD
         
-        $GW_INSTALL_DIR/scripts/relocate-images.sh $PRIVATE_REPO/$SYSTEM_REPO
+        $GW_INSTALL_DIR/scripts/relocate-images.sh $PRIVATE_REPO_SERVER/$SYSTEM_REPO
     }
 
     #relocate-tap-images
@@ -200,13 +200,13 @@
         echo "Make sure docker deamon is running..."
         read
         
-        docker login $PRIVATE_REPO -u $PRIVATE_REPO_USER -p $PRIVATE_REPO_PASSWORD
+        docker login $PRIVATE_REPO_SERVER -u $PRIVATE_REPO_USER -p $PRIVATE_REPO_PASSWORD
 
         docker login registry.tanzu.vmware.com -u $TANZU_NETWORK_USER -p $TANZU_NETWORK_PASSWORD
         
         export INSTALL_REGISTRY_USERNAME=$PRIVATE_REPO_USER
         export INSTALL_REGISTRY_PASSWORD=$PRIVATE_REPO_PASSWORD
-        export INSTALL_REGISTRY_HOSTNAME=$PRIVATE_REPO
+        export INSTALL_REGISTRY_HOSTNAME=$PRIVATE_REPO_SERVER
         export TAP_VERSION=$TAP_VERSION
 
         imgpkg copy -b registry.tanzu.vmware.com/tanzu-application-platform/tap-packages:$TAP_VERSION \
