@@ -155,7 +155,9 @@ run ```./builder.sh apis``` to add the following
 
 ## Cleanup
 
-- full cleanup to delete the cluster  ```./builder.sh cleanup [aks/eks]```
+- Set the active ```provider``` attribute in ```.config/demo-values.yaml``
+
+- full cleanup to delete all clusters  ```./builder.sh cleanup```
 
 - partial cleanup to remove just workloads on all tap clusters ```./demo-helper.sh reset```
 
