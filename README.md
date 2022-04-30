@@ -47,7 +47,6 @@ git clone https://github.com/dektlong/mood-portal
 
 ## Installation
 
-- Set the ```provider``` attribute in ```.config/demo-values.yaml```
 - Install the demo components
 ```
 ./builder.sh init
@@ -155,7 +154,6 @@ run ```./builder.sh apis``` to add the following
 
 ## Cleanup
 
-- Set the active ```provider``` attribute in ```.config/demo-values.yaml```
 
 - full cleanup to delete all clusters  ```./builder.sh cleanup```
 
