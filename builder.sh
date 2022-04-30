@@ -360,7 +360,7 @@ delete)
     esac
     ;;
 set-provider)
-    set-provider
+    set-provider "demo"
     ;;
 apis)
     add-apis
