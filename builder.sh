@@ -52,7 +52,7 @@
         echo "========================================================================"
         echo
 
-         kubectl config use-context $tap_cluster_name
+        kubectl config use-context $tap_cluster_name
         kubectl create ns tap-install
        
         tanzu secret registry add tap-registry \
@@ -278,15 +278,17 @@
         echo "Incorrect usage. Please specify one of the following: "
         echo
         echo
-        echo "  install - install all clusters and demo components on $K8S_PROVIDER"
-        echo
-        echo "      (supported k8s providers: aks, eks, tkg, minikube)" 
+        echo "  install - install all clusters and demo components on a selected k8s provider"
+        echo "      (supported providers: aks, eks, tkg, minikube)" 
         echo       
+        echo "  active-provider -  set an active provider for demo operations and refresh DNS config"
+        echo "      (assumes install is completed)"
+        echo
         echo "  apis"
         echo
         echo "  dev"
         echo
-        echo "  delete - delete all clusters and demo components on $K8S_PROVIDER"
+        echo "  delete - delete all clusters and demo components on a selected k8s provider"
         echo
         echo "  relocate-tap-images"
         echo
@@ -359,8 +361,9 @@ delete)
         ;;
     esac
     ;;
-set-provider)
+active-provider)
     set-provider "demo"
+    install-all
     ;;
 apis)
     add-apis

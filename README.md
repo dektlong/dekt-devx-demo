@@ -78,9 +78,9 @@ run ```./builder.sh apis``` to add the following
 
 ## Running the demo 
 
-- Set the active ``` k8 provider```  (assumes clusters installed with TAP)
+- Set the active k8s provider and refresh install configs
 ```
-./builder.sh set-provider
+./builder.sh active-provider
 ```
 
 ### Inner loop
