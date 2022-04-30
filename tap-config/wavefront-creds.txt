@@ -1,2 +1,0 @@
-wavefront.api-token=CHANGE_ME
-wavefront.uri=https://vmware.wavefront.com

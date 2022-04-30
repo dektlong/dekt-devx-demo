@@ -12,7 +12,7 @@ This repo contains artifacts to run a demo illustrating the vision and capabilit
   - ```scripts/aks-handler.sh```
   - ```scripts/minikube-handler.sh```
 
-- Rename the folder ```tap-config``` to ```.config```
+- Rename the folder ```config-templates``` to ```.config```
 
 - Update values in 
   - ```.config/tap-values-full.yaml```
