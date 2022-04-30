@@ -1,6 +1,7 @@
 
+# Set at runtime via user input 
 # accepted values: aks, eks, tkg, minikube
-provider: eks
+provider: 
 
 clusters:
   devClusterName: ""
