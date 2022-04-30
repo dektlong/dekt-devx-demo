@@ -49,7 +49,7 @@ git clone https://github.com/dektlong/mood-portal
 
 - Install the demo components
 ```
-./builder.sh init
+./builder.sh install
 ```
   - install dev cluster
     - TAP full profile
@@ -78,7 +78,11 @@ run ```./builder.sh apis``` to add the following
 
 ## Running the demo 
 
-- Set the active ```provider``` attribute in ```.config/demo-values.yaml``` (assumes clusters installed with TAP)
+- Set the active ``` k8 provider```  (assumes clusters installed with TAP)
+```
+./builder.sh set-provider
+```
+
 ### Inner loop
 
 - access tap gui accelerators via the ```cloud-native-devs``` tag
@@ -155,7 +159,7 @@ run ```./builder.sh apis``` to add the following
 ## Cleanup
 
 
-- full cleanup to delete all clusters  ```./builder.sh cleanup```
+- full cleanup to delete all clusters  ```./builder.sh delete```
 
 - partial cleanup to remove workloads and reset configs ```./demo-helper.sh reset```
 

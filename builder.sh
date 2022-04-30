@@ -1,25 +1,6 @@
 #!/usr/bin/env bash
 
-#################### load configs from values yaml #######################
-
-    K8S_PROVIDER=$(yq .provider .config/demo-values.yaml)
-    PRIVATE_REPO_SERVER=$(yq .ootb_supply_chain_basic.registry.server .config/tap-values-full.yaml)
-    PRIVATE_REPO_USER=$(yq .buildservice.kp_default_repository_username .config/tap-values-full.yaml)
-    PRIVATE_REPO_PASSWORD=$(yq .buildservice.kp_default_repository_password .config/tap-values-full.yaml)
-    TANZU_NETWORK_USER=$(yq .buildservice.tanzunet_username .config/tap-values-full.yaml)
-    TANZU_NETWORK_PASSWORD=$(yq .buildservice.tanzunet_password .config/tap-values-full.yaml)
-    SYSTEM_SUB_DOMAIN=$(yq .tap_gui.ingressDomain .config/tap-values-full.yaml | cut -d'.' -f 1)
-    DEV_SUB_DOMAIN=$(yq .cnrs.domain_name .config/tap-values-full.yaml | cut -d'.' -f 1)
-    RUN_SUB_DOMAIN=$(yq .cnrs.domain_name .config/tap-values-run.yaml | cut -d'.' -f 1)
-    DEV_CLUSTER=$(yq .clusters.devClusterName .config/demo-values.yaml)-$K8S_PROVIDER
-    STAGE_CLUSTER=$(yq .clusters.stageClusterName .config/demo-values.yaml)-$K8S_PROVIDER
-    PROD_CLUSTER=$(yq .clusters.prodClusterName .config/demo-values.yaml)-$K8S_PROVIDER
-    TAP_VERSION=$(yq .tap.version .config/demo-values.yaml)
-    SYSTEM_REPO=$(yq .tap.systemRepo .config/demo-values.yaml)
-    APPS_NAMESPACE=$(yq .tap.appNamespace .config/demo-values.yaml)
-    GW_INSTALL_DIR=$(yq .apis.scgwInstallDirectory .config/demo-values.yaml)
-    
-#################### installers ################
+#################### functions ################
 
     #install-all
     install-all() {
@@ -234,6 +215,61 @@
        
     }
 
+    #set k8s provider
+    set-provider() {
+
+        echo
+        echo "Select a k8s provider for $1 operation"
+        echo
+        echo "  1 AKS"
+        echo "  2 EKS"
+        echo "  3 TKG"
+        echo "  4 Minikube"
+        echo
+        read -p "Enter 1-4:" provider
+        
+        case $provider in
+        1)
+            yq -i '.provider = "aks"' .config/demo-values.yaml
+            ;;
+        2)
+            yq -i '.provider = "eks"' .config/demo-values.yaml
+            ;;
+        3)
+            yq -i '.provider = "tkg"' .config/demo-values.yaml
+            ;;
+        4)
+            yq -i '.provider = "minikube"' .config/demo-values.yaml
+            ;;
+        *)
+            incorrect-usage
+            ;;
+        esac
+
+        load-configs
+
+    }
+
+    #load-configs
+    load-configs () {
+        
+        K8S_PROVIDER=$(yq .provider .config/demo-values.yaml)
+        PRIVATE_REPO_SERVER=$(yq .ootb_supply_chain_basic.registry.server .config/tap-values-full.yaml)
+        PRIVATE_REPO_USER=$(yq .buildservice.kp_default_repository_username .config/tap-values-full.yaml)
+        PRIVATE_REPO_PASSWORD=$(yq .buildservice.kp_default_repository_password .config/tap-values-full.yaml)
+        TANZU_NETWORK_USER=$(yq .buildservice.tanzunet_username .config/tap-values-full.yaml)
+        TANZU_NETWORK_PASSWORD=$(yq .buildservice.tanzunet_password .config/tap-values-full.yaml)
+        SYSTEM_SUB_DOMAIN=$(yq .tap_gui.ingressDomain .config/tap-values-full.yaml | cut -d'.' -f 1)
+        DEV_SUB_DOMAIN=$(yq .cnrs.domain_name .config/tap-values-full.yaml | cut -d'.' -f 1)
+        RUN_SUB_DOMAIN=$(yq .cnrs.domain_name .config/tap-values-run.yaml | cut -d'.' -f 1)
+        DEV_CLUSTER=$(yq .clusters.devClusterName .config/demo-values.yaml)-$K8S_PROVIDER
+        STAGE_CLUSTER=$(yq .clusters.stageClusterName .config/demo-values.yaml)-$K8S_PROVIDER
+        PROD_CLUSTER=$(yq .clusters.prodClusterName .config/demo-values.yaml)-$K8S_PROVIDER
+        TAP_VERSION=$(yq .tap.version .config/demo-values.yaml)
+        SYSTEM_REPO=$(yq .tap.systemRepo .config/demo-values.yaml)
+        APPS_NAMESPACE=$(yq .tap.appNamespace .config/demo-values.yaml)
+        GW_INSTALL_DIR=$(yq .apis.scgwInstallDirectory .config/demo-values.yaml)
+    }
     
     #incorrect usage
     incorrect-usage() {
@@ -242,7 +278,7 @@
         echo "Incorrect usage. Please specify one of the following: "
         echo
         echo
-        echo "  init - install all clusters and demo components on $K8S_PROVIDER"
+        echo "  install - install all clusters and demo components on $K8S_PROVIDER"
         echo
         echo "      (supported k8s providers: aks, eks, tkg, minikube)" 
         echo       
@@ -250,7 +286,7 @@
         echo
         echo "  dev"
         echo
-        echo "  cleanup - delete all clusters and demo components on $K8S_PROVIDER"
+        echo "  delete - delete all clusters and demo components on $K8S_PROVIDER"
         echo
         echo "  relocate-tap-images"
         echo
@@ -262,7 +298,8 @@
 #################### main ##########################
 
 case $1 in
-init)
+install)
+    set-provider "install"
     case $K8S_PROVIDER in
     aks)
         scripts/aks-handler.sh create $DEV_CLUSTER 3
@@ -295,10 +332,8 @@ init)
         ;;
     esac
     ;;
-cleanup)
-    echo
-    echo "!!!! About to delete all $K8S_PROVIDER clusters. Are you sure?"
-    read
+delete)
+    set-provider "delete"
     ./demo-helper.sh cleanup-helper
     case $K8S_PROVIDER in
     aks)
@@ -323,6 +358,9 @@ cleanup)
         incorrect-usage
         ;;
     esac
+    ;;
+set-provider)
+    set-provider
     ;;
 apis)
     add-apis
