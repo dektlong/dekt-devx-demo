@@ -1,0 +1,30 @@
+#==================================================================
+# TAP Profiles
+#   accepted values: full, iterate, build, run, view
+#==================================================================
+profile: run
+
+#==================================================================
+# Cloud Native Runtimes
+#==================================================================
+cnrs:
+  domain_template: "{{.Name}}.{{.Domain}}"
+  domain_name: "MY_PROD_SUBDOMAIN.MY_DOMAIN"
+
+contour:
+  envoy:
+    service:
+      type: LoadBalancer
+
+supply_chain: basic
+
+appliveview_connector:
+  backend:
+    sslDisabled: "true"
+    host: appliveview.MY_SYSTEM_SUBDOMAIN.MY_DOMAIN
+
+excluded_packages:
+  - learningcenter.tanzu.vmware.com 
+  - workshops.learningcenter.tanzu.vmware.com
+
+ceip_policy_disclosed: true

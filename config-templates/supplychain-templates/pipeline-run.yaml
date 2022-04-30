@@ -1,0 +1,22 @@
+apiVersion: carto.run/v1alpha1
+kind: ClusterRunTemplate
+metadata:
+  name: tekton-source-pipelinerun
+spec:
+  outputs:
+    revision: spec.params[?(@.name=="source-revision")].value
+    url: spec.params[?(@.name=="source-url")].value
+  template:
+    apiVersion: tekton.dev/v1beta1
+    kind: PipelineRun
+    metadata:
+      generateName: $(runnable.metadata.name)$-
+      labels: $(runnable.metadata.labels)$
+    spec:
+      params:
+      - name: source-url
+        value: $(runnable.spec.inputs.source-url)$
+      - name: source-revision
+        value: $(runnable.spec.inputs.source-revision)$
+      pipelineRef:
+        name: $(selected.metadata.name)$

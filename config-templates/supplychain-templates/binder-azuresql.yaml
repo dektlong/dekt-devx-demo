@@ -1,0 +1,50 @@
+apiVersion: carto.run/v1alpha1
+kind: ClusterTemplate
+metadata:
+  name: azureql-binder
+spec:
+  ytt: |
+    #@ load("@ytt:data", "data")
+    #@ load("@ytt:yaml", "yaml")
+
+    !@ Binding to Azure SQL instance using Crossplane
+    !@
+    !@ Assumptions
+    !@ 1. Crossplane installed
+    !@ 2. ProviderConfig configured to Azure SQL
+    !@ 3. Azure SQL Instance instance provisioned
+    !@
+    apiVersion: apiextensions.crossplane.io/v1
+    kind: Composition
+    metadata:
+      name: dekt-azuresql-binder
+      labels:
+        provider: dekt-provider-azure
+        vpc: dekt-vpc-data-services
+    spec:
+      writeConnectionSecretsToNamespace: crossplane-system
+      compositeTypeRef:
+        apiVersion: database.example.org/v1alpha1
+        kind: CompositePostgreSQLInstance
+      resources:
+        - name: data.values.workload.metadata.dbName
+          base:
+            apiVersion: postgresql.sql.crossplane.io/v1alpha1
+            kind: ProviderConfig
+            metadata:
+              name: default
+            spec:
+              # defaultDatabase is the default database to be used in DSN.
+              # Similar to PGDATABASE environment variable and defaults to "postgres"
+              # if not set.
+              # defaultDatabase: postgres
+              credentials:
+                source: PostgreSQLConnectionSecret
+                connectionSecretRef:
+                  namespace: default
+                  name: db-conn
+                      connectionDetails:
+            - fromConnectionSecretKey: username
+            - fromConnectionSecretKey: password
+            - fromConnectionSecretKey: endpoint
+            - fromConnectionSecretKey: port

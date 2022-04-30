@@ -1,0 +1,22 @@
+apiVersion: carto.run/v1alpha1
+kind: ClusterSourceTemplate
+metadata:
+  name: source-scanner-template
+spec:
+  revisionPath: .status.compliantArtifact.blob.revision
+  urlPath: .status.compliantArtifact.blob.url
+  ytt: |
+    #@ load("@ytt:data", "data")
+    apiVersion: scanning.apps.tanzu.vmware.com/v1beta1
+    kind: SourceScan
+    metadata:
+      name: #@ data.values.workload.metadata.name
+      labels:
+        app.kubernetes.io/component: source-scan
+        #@ if/end hasattr(data.values.workload.metadata, "labels") and hasattr(data.values.workload.metadata.labels, "app.kubernetes.io/part-of"):
+        app.kubernetes.io/part-of: #@ data.values.workload.metadata.labels["app.kubernetes.io/part-of"]
+    spec:
+      blob:
+        url: #@ data.values.source.url
+      scanTemplate: blob-source-scan-template
+      scanPolicy: scan-policy

@@ -1,0 +1,114 @@
+#==================================================================
+# TAP Profiles
+#   accepted values: full, iterate, build, run, view
+#==================================================================
+profile: full
+
+#==================================================================
+# Build Service
+#==================================================================
+buildservice:
+  kp_default_repository: "MY_IMAGE_REGISTRY_HOST/MY_SYSTEM_REPO/build-service"
+  kp_default_repository_username: ""
+  kp_default_repository_password: ""
+  tanzunet_username: ""
+  tanzunet_password: ""
+  descriptor_name: "full"
+  enable_automatic_dependency_updates: true
+  
+#==================================================================
+# Supply Chains
+#   accepted values: basic , testing , testing_scanning
+#==================================================================
+supply_chain: basic
+
+ootb_supply_chain_basic:
+  registry:
+    server: "MY_IMAGE_REGISTRY_HOST"
+    repository: "MY_APP_REPO"
+  gitops:
+    ssh_secret: ""
+
+ootb_supply_chain_testing:
+  registry:
+    server: "MY_IMAGE_REGISTRY_HOST"
+    repository: "MY_APP_REPO"
+  gitops:
+    ssh_secret: ""
+
+ootb_supply_chain_testing_scanning:
+  registry:
+    server: "MY_IMAGE_REGISTRY_HOST"
+    repository: "MY_APP_REPO"
+  gitops:
+    ssh_secret: ""
+
+#==================================================================
+# TAP GUI (Backstage)
+#==================================================================
+tap_gui:
+  service_type: ClusterIP
+  ingressEnabled: "true"
+  ingressDomain: "MY_SYSTEM_SUBDOMAIN.MY_DOMAIN"
+  app_config:
+    app:
+      baseUrl: http://tap-gui.MY_SYSTEM_SUBDOMAIN.MY_DOMAIN
+    catalog:
+      locations:
+        - type: url
+          target: https://github.com/tanzu-demo/tap-gui-catalogs/blob/main/blank/catalog-info.yaml
+        - type: url
+          target: https://github.com/dektlong/dekt-supplychain/blob/main/backstage/catalog-info.yaml
+    backend:
+        baseUrl: http://tap-gui.MY_SYSTEM_SUBDOMAIN.MY_DOMAIN
+        cors:
+            origin: http://tap-gui.MY_SYSTEM_SUBDOMAIN.MY_DOMAIN
+    #============================
+    # Multi cluster workload viewer
+    #============================
+    kubernetes:
+      serviceLocatorMethod:
+        type: 'multiTenant'
+      clusterLocatorMethods:
+        - type: 'config'
+          clusters:
+            - url: CLUSTER-URL #kubectl config view --minify -o jsonpath='{.clusters[0].cluster.server}'
+              name: FULL-CLUSTER-NAME #unique name of your choice
+              authProvider: serviceAccount
+              serviceAccountToken: "CLUSTER-TOKEN" #kubectl -n tap-gui get secret $(kubectl -n tap-gui get sa tap-gui-viewer -o=json jq -r '.secrets[0].name') -o=json jq -r '.data["token"]' base64 --decode
+              skipTLSVerify: true
+            - url: CLUSTER-URL #kubectl config view --minify -o jsonpath='{.clusters[0].cluster.server}'
+              name: BUILD-CLUSTER-NAME #unique name of your choice
+              authProvider: serviceAccount
+              serviceAccountToken: "CLUSTER-TOKEN" #kubectl -n tap-gui get secret $(kubectl -n tap-gui get sa tap-gui-viewer -o=json jq -r '.secrets[0].name') -o=json jq -r '.data["token"]' base64 --decode
+              skipTLSVerify: true
+
+metadata_store:
+  app_service_type: LoadBalancer
+
+cnrs:
+  domain_template: "{{.Name}}.{{.Domain}}"
+  domain_name: "MY_DEV_SUBDOMAIN.MY_DOMAIN"
+
+contour:
+  envoy:
+    service:
+      type: LoadBalancer
+
+appliveview:
+  ingressEnabled: true
+  ingressDomain: MY_SYSTEM_SUBDOMAIN.MY_DOMAIN
+
+accelerator:
+  server:
+    service_type: "ClusterIP"
+
+grype:
+  namespace: "MY_APP_NS"
+  targetImagePullSecret: "registry-credentials"
+
+ceip_policy_disclosed: true
+
+learningcenter:
+  ingressDomain: learningcenter.MY_SYSTEM_SUBDOMAIN.MY_DOMAIN
+
