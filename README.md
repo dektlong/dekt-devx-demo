@@ -80,7 +80,7 @@ run ```./builder.sh apis``` to add the following
 
 - Set the active k8s provider and refresh install configs
 ```
-./builder.sh active-provider
+./builder.sh activate
 ```
 
 ### Inner loop

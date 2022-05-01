@@ -281,8 +281,8 @@
         echo "  install - install all clusters and demo components on a selected k8s provider"
         echo "      (supported providers: aks, eks, tkg, minikube)" 
         echo       
-        echo "  active-provider -  set an active provider for demo operations and refresh DNS config"
-        echo "      (assumes install is completed)"
+        echo "  activate -  set an active provider for demo operations and refresh DNS config"
+        echo "      (assumes install on the target provider is completed)"
         echo
         echo "  apis"
         echo
@@ -361,20 +361,23 @@ delete)
         ;;
     esac
     ;;
-active-provider)
-    set-provider "demo"
+activate)
+    set-provider "active demo"
     install-all
     ;;
 apis)
+    load-configs
     add-apis
     ;;
 dev)
+    load-configs
     install-gui-dev
     ;;
 relocate-tap-images)
     relocate-tap-images
     ;;
 runme)
+    load-configs
     $2
     ;;
 *)
