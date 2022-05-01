@@ -47,7 +47,7 @@ git clone https://github.com/dektlong/mood-portal
 
 ## Installation
 
-- Install the demo components
+- Create clusters on the selected k8s provider and install TAP + demo components
 ```
 ./builder.sh install
 ```
