@@ -63,7 +63,7 @@ incorrect-usage() {
 case $1 in
 create)
   	create-aks-cluster $2 $3
-    scripts/install-carvel.sh
+    scripts/add-carvel-tools.sh
     ;;
 delete)
     delete-aks-cluster $2

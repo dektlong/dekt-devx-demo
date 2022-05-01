@@ -64,7 +64,7 @@ incorrect-usage() {
 case $1 in
 create)
   	create-eks-cluster $2 $3
-    scripts/install-carvel.sh
+    scripts/add-carvel-tools.sh
     ;;
 delete)
     delete-eks-cluster $2
