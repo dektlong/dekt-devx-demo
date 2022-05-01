@@ -14,15 +14,12 @@ This repo contains artifacts to run a demo illustrating the vision and capabilit
 
 - Rename the folder ```config-templates``` to ```.config```
 
-- Update values in 
+- Update values in the following files. Make sure domain, system-repo and registry-host are identical across all configs
   - ```.config/tap-values-full.yaml```
   - ```.config/tap-values-build.yaml```
   - ```.config/tap-values-run.yaml```
   - ```.config/demo-values.yaml```
-    - ```DOMAIN``` and ```DEMO_APPS_NAMESPACE``` values must much the information in ```.config/tap-values-full.yaml```
-    - ```MY_DOMAIN``` needs to be enabled to add wild-card DNS record to
-    - ```MY_IMAGE_REGISTRY_HOST``` and ```MY_SYSTEM_REPO``` needs to be accessible from the TAP cluster 
-
+  
 - Update your registry details in ```.config/dekt-path2prod.yaml``` custom supplychain 
   - Note: since this is a custom supply chain, the registry values defined in ```tap-values-full``` are NOT applied automatically
 
@@ -32,7 +29,7 @@ This repo contains artifacts to run a demo illustrating the vision and capabilit
 
 - The ingress setup is based on GoDaddy DNS, if you are using a different one, please modify ```scripts/ingress-handler.sh```
 
-- Clone the workloads repos
+- Clone the workloads repos to the same root directory as the supplychain repo
 ```
 git clone https://github.com/dektlong/mood-sensors
 git clone https://github.com/dektlong/mood-portal
