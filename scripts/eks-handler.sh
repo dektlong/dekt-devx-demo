@@ -64,7 +64,7 @@ incorrect-usage() {
 case $1 in
 create)
   	create-eks-cluster $2 $3
-    scripts/add-carvel-tools.sh
+    scripts/tanzu-handler.sh add-carvel-tools
     ;;
 delete)
     delete-eks-cluster $2
