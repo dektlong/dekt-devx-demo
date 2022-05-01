@@ -60,6 +60,9 @@ add-carvel-tools )
 remove-carvel-tools)
     remove-carvel
     ;;
+add-nginx)
+    install-nginx
+    ;;
 *)
 	incorrect-usage
 	;;
