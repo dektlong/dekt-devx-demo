@@ -85,11 +85,11 @@ case $1 in
 update-tap-dns)
     update-dns-A-record "*.$subDomain" "envoy" "tanzu-system-ingress"
     ;;
-apis)
+add-brownfield-apis)
     create-ingress-rule "api-portal-ingress" "contour" "api-portal.$subDomain.$DOMAIN" "api-portal-server" "8080" "api-portal"
     create-ingress-rule "scg-openapi-ingress" "contour" "scg-openapi.$subDomain.$DOMAIN"  "scg-operator" "80" "scgw-system"
     ;;
-scgw)
+add-scgw-ingress)
     scripts/install-nginx.sh
     update-dns-A-record "*.$subDomain" "dekt-ingress-nginx-controller" "nginx-system" 
     create-ingress-rule "dekt4pets-dev" "nginx" "dekt4pets-dev.$subDomain.$DOMAIN"  "dekt4pets-gateway" "80" $DEMO_APPS_NS

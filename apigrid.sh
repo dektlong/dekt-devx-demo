@@ -8,6 +8,7 @@ BUILDER_NAME="online-stores-builder"
 BACKEND_TBS_IMAGE="dekt4pets-backend"
 FRONTEND_TBS_IMAGE="dekt4pets-frontend"
 APPS_NAMESPACE=$(yq .tap.appNamespace .config/demo-values.yaml)
+DEV_SUB_DOMAIN=$(yq .cnrs.domain_name .config/tap-values-full.yaml | cut -d'.' -f 1)
 
 #init (assumes api-portal and api-gw are installed)
 init() {
@@ -51,7 +52,7 @@ init() {
         create-frontend
 
         #ingress rules
-        scripts/ingress-handler.sh scgw
+        scripts/ingress-handler.sh add-scgw-ingress $DEV_SUB_DOMAIN
 
 }
 

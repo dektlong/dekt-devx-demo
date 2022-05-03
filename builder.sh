@@ -161,7 +161,7 @@
         kubectl create secret generic sso-credentials --from-env-file=.config/sso-creds.txt -n api-portal
         kustomize build brownfield-apis | kubectl apply -f -
 
-        scripts/ingress-handler.sh apis
+        scripts/ingress-handler.sh add-brownfield-apis $SYSTEM_SUB_DOMAIN
     }
 
     #relocate-images
