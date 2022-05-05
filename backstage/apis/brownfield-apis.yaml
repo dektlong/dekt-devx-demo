@@ -192,13 +192,13 @@ spec:
           tags:
             - providers
       /check-sentiment:
-        post:
+        get:
           summary: Check a sentiment by userId and social media properties
           tags:
             - users
-      /check-aggregated-sentiment:
+      /activate-sentiment-probes:
         post:
-          summary: Check an aggregated sentiment by userId and a list of social media properties
+          summary: Active a sentiment probes by userId across a list of social media properties
           tags:
             - users
 ---
