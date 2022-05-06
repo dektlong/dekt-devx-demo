@@ -43,7 +43,7 @@ git clone https://github.com/dektlong/mood-portal
 
 ## Installation
 
-- Update your cluster prociders on ```.config/demo-values.yaml```
+- Update your clusters providers on ```.config/demo-values.yaml```
 - Create clusters and install TAP + demo components
 ```
 ./builder.sh init
