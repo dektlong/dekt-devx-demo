@@ -2,10 +2,9 @@
 
 #################### load configs from values yaml  ################
 
-    K8S_PROVIDER=$(yq .provider .config/demo-values.yaml)
-    DEV_CLUSTER=$(yq .clusters.devClusterName .config/demo-values.yaml)-$K8S_PROVIDER
-    STAGE_CLUSTER=$(yq .clusters.stageClusterName .config/demo-values.yaml)-$K8S_PROVIDER
-    PROD_CLUSTER=$(yq .clusters.prodClusterName .config/demo-values.yaml)-$K8S_PROVIDER
+    DEV_CLUSTER_NAME=$(yq .dev-cluster.name .config/demo-values.yaml)
+    STAGE_CLUSTER_NAME=$(yq .stage-cluster.name .config/demo-values.yaml)
+    PROD_CLUSTER_NAME=$(yq .prod-cluster.name .config/demo-values.yaml)
     DELIVERABLE_FILE_NAME="portal-prod-golden-config.yaml"
     PORTAL_WORKLOAD_NAME="mood-portal"
     SENSORS_WORKLOAD_NAME="mood-sensors"
@@ -29,10 +28,12 @@
         echo "      --namespace tap-install"
         echo
         echo "==========================================================="
-        echo "TAP packages installed on $DEV_CLUSTER cluster ..."
+        echo "TAP packages installed on $DEV_CLUSTER_NAME cluster ..."
         echo "==========================================================="
         echo
-        kubectl config use-context $DEV_CLUSTER
+        kubectl config use-context $DEV_CLUSTER_NAME
+        kubectl get nodes
+        echo
         tanzu package installed list -n tap-install
     }
 
@@ -41,10 +42,12 @@
 
         echo
         echo "==========================================================="
-        echo "TAP packages installed on $STAGE_CLUSTER cluster ..."
+        echo "TAP packages installed on $STAGE_CLUSTER_NAME cluster ..."
         echo "==========================================================="
         echo
-        kubectl config use-context $STAGE_CLUSTER
+        kubectl config use-context $STAGE_CLUSTER_NAME
+        kubectl get nodes
+        echo
         tanzu package installed list -n tap-install
     }
 
@@ -53,17 +56,19 @@
         
         echo
         echo "==========================================================="
-        echo "TAP packages installed on $PROD_CLUSTER cluster ..."
+        echo "TAP packages installed on $PROD_CLUSTER_NAME cluster ..."
         echo "==========================================================="
         echo
-        kubectl config use-context $PROD_CLUSTER
+        kubectl config use-context $PROD_CLUSTER_NAME
+        kubectl get nodes
+        echo
         tanzu package installed list -n tap-install
     }
 
     #deploy-workloads
     deploy-workloads() {
 
-        kubectl config use-context $DEV_CLUSTER
+        kubectl config use-context $DEV_CLUSTER_NAME
 
         echo
         echo "tanzu apps workload create -f ../mood-portal/workload.yaml -y -n $APPS_NAMESPACE"
@@ -80,7 +85,7 @@
     #promote-staging
     promote-staging() {
 
-        kubectl config use-context $STAGE_CLUSTER
+        kubectl config use-context $STAGE_CLUSTER_NAME
         tanzu apps workload create $PORTAL_WORKLOAD_NAME \
             --git-repo https://github.com/dektlong/mood-portal \
             --git-branch integrate \
@@ -93,7 +98,7 @@
     #promote-production
     promote-production () {
 
-        kubectl config use-context $STAGE_CLUSTER
+        kubectl config use-context $STAGE_CLUSTER_NAME
 
         echo
         echo "kubectl get deliverable $PORTAL_WORKLOAD_NAME -n $APPS_NAMESPACE -oyaml > $DELIVERABLE_FILE_NAME"
@@ -109,7 +114,7 @@
         echo "Hit any key to go production! ..."
         read
 
-        kubectl config use-context $PROD_CLUSTER
+        kubectl config use-context $PROD_CLUSTER_NAME
         echo
         echo "kubectl apply -f $DELIVERABLE_FILE_NAME -n $APPS_NAMESPACE"
         echo 
@@ -173,13 +178,13 @@
     #soft reset of all clusters configurations
     reset() {
 
-        kubectl config use-context $STAGE_CLUSTER
+        kubectl config use-context $STAGE_CLUSTER_NAME
         tanzu apps workload delete $PORTAL_WORKLOAD_NAME -n $APPS_NAMESPACE -y
 
-        kubectl config use-context $PROD_CLUSTER
+        kubectl config use-context $PROD_CLUSTER_NAME
         kubectl delete -f $DELIVERABLE_FILE_NAME
 
-        kubectl config use-context $DEV_CLUSTER
+        kubectl config use-context $DEV_CLUSTER_NAME
         tanzu apps workload delete $PORTAL_WORKLOAD_NAME -n $APPS_NAMESPACE -y
         tanzu apps workload delete $SENSORS_WORKLOAD_NAME -n $APPS_NAMESPACE -y
         kubectl delete pod -l app=backstage -n tap-gui

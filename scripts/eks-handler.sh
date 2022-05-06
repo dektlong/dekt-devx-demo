@@ -2,8 +2,6 @@
 
 
 REGION="us-west-1" #aws ec2 describe-regions --output table
-CLUSTER_FULL_NAME=$2-eks
-NUMBER_OF_NODES=$3
 TANZU_NETWORK_USER=$(yq .buildservice.tanzunet_username .config/tap-values-full.yaml)
 TANZU_NETWORK_PASSWORD=$(yq .buildservice.tanzunet_password .config/tap-values-full.yaml)
 

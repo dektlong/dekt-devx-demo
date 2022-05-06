@@ -18,7 +18,6 @@ This repo contains artifacts to run a demo illustrating the vision and capabilit
   - ```.config/tap-values-full.yaml```
   - ```.config/tap-values-build.yaml```
   - ```.config/tap-values-run.yaml```
-  - ```.config/demo-values.yaml```
   
 - Update your registry details in ```.config/dekt-path2prod.yaml``` custom supplychain 
   - Note: since this is a custom supply chain, the registry values defined in ```tap-values-full``` are NOT applied automatically
@@ -44,9 +43,10 @@ git clone https://github.com/dektlong/mood-portal
 
 ## Installation
 
-- Create clusters on the selected k8s provider and install TAP + demo components
+- Update your cluster prociders on ```.config/demo-values.yaml```
+- Create clusters and install TAP + demo components
 ```
-./builder.sh install
+./builder.sh init
 ```
   - install dev cluster
     - TAP full profile
@@ -74,11 +74,6 @@ run ```./builder.sh apis``` to add the following
   - note - this is also needed for a Global Namespaces TSM demo
 
 ## Running the demo 
-
-- Set the active k8s provider and refresh install configs
-```
-./builder.sh activate
-```
 
 ### Inner loop
 

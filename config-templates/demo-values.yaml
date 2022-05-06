@@ -1,10 +1,13 @@
 
-provider: # Set at runtime via user input , accepted values: aks, eks, tkg, minikube
-
-clusters:
-  devClusterName: ""
-  stageClusterName: ""
-  prodClusterName: ""
+dev-cluster:
+  provider:  #acceptable values: aks, eks, tkg, minikube
+  name: ""
+stage-cluster:
+  provider:  #acceptable values: aks, eks, tkg
+  name: ""
+prod-cluster:
+  provider:  #acceptable values: aks, eks, tkg
+  name: ""
 
 tap:
   version: "1.1.0"

@@ -1,21 +1,46 @@
 #!/usr/bin/env bash
 
+#################### configs ################
+    #clusters
+    DEV_CLUSTER_PROVIDER=$(yq .dev-cluster.provider .config/demo-values.yaml)
+    DEV_CLUSTER_NAME=$(yq .dev-cluster.name .config/demo-values.yaml)
+    STAGE_CLUSTER_PROVIDER=$(yq .stage-cluster.provider .config/demo-values.yaml)
+    STAGE_CLUSTER_NAME=$(yq .stage-cluster.name .config/demo-values.yaml)
+    PROD_CLUSTER_PROVIDER=$(yq .prod-cluster.provider .config/demo-values.yaml)
+    PROD_CLUSTER_NAME=$(yq .prod-cluster.name .config/demo-values.yaml)
+    #image registry
+    PRIVATE_REPO_SERVER=$(yq .ootb_supply_chain_basic.registry.server .config/tap-values-full.yaml)
+    PRIVATE_REPO_USER=$(yq .buildservice.kp_default_repository_username .config/tap-values-full.yaml)
+    PRIVATE_REPO_PASSWORD=$(yq .buildservice.kp_default_repository_password .config/tap-values-full.yaml)
+    SYSTEM_REPO=$(yq .tap.systemRepo .config/demo-values.yaml)
+    #tap
+    TANZU_NETWORK_USER=$(yq .buildservice.tanzunet_username .config/tap-values-full.yaml)
+    TANZU_NETWORK_PASSWORD=$(yq .buildservice.tanzunet_password .config/tap-values-full.yaml)
+    TAP_VERSION=$(yq .tap.version .config/demo-values.yaml)
+    APPS_NAMESPACE=$(yq .tap.appNamespace .config/demo-values.yaml)
+    #domains
+    SYSTEM_SUB_DOMAIN=$(yq .tap_gui.ingressDomain .config/tap-values-full.yaml | cut -d'.' -f 1)
+    DEV_SUB_DOMAIN=$(yq .cnrs.domain_name .config/tap-values-full.yaml | cut -d'.' -f 1)
+    RUN_SUB_DOMAIN=$(yq .cnrs.domain_name .config/tap-values-run.yaml | cut -d'.' -f 1)
+    #misc        
+    GW_INSTALL_DIR=$(yq .apis.scgwInstallDirectory .config/demo-values.yaml)
+
 #################### functions ################
 
     #install-all
     install-all() {
 
         
-        install-tap $DEV_CLUSTER "tap-values-full.yaml"
+        install-tap $DEV_CLUSTER_NAME "tap-values-full.yaml"
         scripts/ingress-handler.sh update-tap-dns $SYSTEM_SUB_DOMAIN
         scripts/ingress-handler.sh update-tap-dns $DEV_SUB_DOMAIN
 
-        install-tap $STAGE_CLUSTER "tap-values-build.yaml"
+        install-tap $STAGE_CLUSTER_NAME "tap-values-build.yaml"
 
-        install-tap $PROD_CLUSTER "tap-values-run.yaml"
+        install-tap $PROD_CLUSTER_NAME "tap-values-run.yaml"
         scripts/ingress-handler.sh update-tap-dns $RUN_SUB_DOMAIN
 
-        add-dekt-supplychain $DEV_CLUSTER
+        add-dekt-supplychain $DEV_CLUSTER_NAME
 
         update-multi-cluster-views
     }
@@ -23,8 +48,8 @@
     #install-localhost
     install-localhost() {
 
-        install-tap $DEV_CLUSTER "tap-values-localhost.yaml"
-        add-dekt-supplychain $DEV_CLUSTER
+        install-tap $DEV_CLUSTER_NAME "tap-values-localhost.yaml"
+        add-dekt-supplychain $DEV_CLUSTER_NAME
 
         echo
         echo "update gui LB IP values in tap-values-localhost.yaml. hit any key.."
@@ -36,7 +61,7 @@
     #install-mac
     install-mac() {
 
-        install-tap $DEV_CLUSTER "tap-values-laptop.yaml"
+        install-tap $DEV_CLUSTER_NAME "tap-values-laptop.yaml"
     }
 
 
@@ -81,7 +106,7 @@
        echo "Configure TAP Workloads GUI plugin to support multi-clusters ..."
        echo
        
-       kubectl config use-context $STAGE_CLUSTER
+       kubectl config use-context $STAGE_CLUSTER_NAME
        kubectl apply -f .config/tap-gui-viewer-sa-rbac.yaml
        export buildClusterUrl=$(kubectl config view --minify -o jsonpath='{.clusters[0].cluster.server}')
        export buildClusterToken=$(kubectl -n tap-gui get secret $(kubectl -n tap-gui get sa tap-gui-viewer -o=json \
@@ -93,7 +118,7 @@
        yq '.tap_gui.app_config.kubernetes.clusterLocatorMethods.[0].clusters.[0].serviceAccountToken = env(buildClusterToken)' .config/tap-values-full.yaml -i
 
 
-       kubectl config use-context $DEV_CLUSTER
+       kubectl config use-context $DEV_CLUSTER_NAME
        kubectl apply -f .config/tap-gui-viewer-sa-rbac.yaml
        export devClusterUrl=$(kubectl config view --minify -o jsonpath='{.clusters[0].cluster.server}')
        export devClusterToken=$(kubectl -n tap-gui get secret $(kubectl -n tap-gui get sa tap-gui-viewer -o=json \
@@ -214,62 +239,6 @@
         
        
     }
-
-    #set k8s provider
-    set-provider() {
-
-        echo
-        echo "Select a k8s provider for $1 operation"
-        echo
-        echo "  1 AKS"
-        echo "  2 EKS"
-        echo "  3 TKG"
-        echo "  4 Minikube"
-        echo
-        read -p "Enter 1-4:" provider
-        
-        case $provider in
-        1)
-            yq -i '.provider = "aks"' .config/demo-values.yaml
-            ;;
-        2)
-            yq -i '.provider = "eks"' .config/demo-values.yaml
-            ;;
-        3)
-            yq -i '.provider = "tkg"' .config/demo-values.yaml
-            ;;
-        4)
-            yq -i '.provider = "minikube"' .config/demo-values.yaml
-            ;;
-        *)
-            incorrect-usage
-            ;;
-        esac
-
-        load-configs
-
-    }
-
-    #load-configs
-    load-configs () {
-        
-        K8S_PROVIDER=$(yq .provider .config/demo-values.yaml)
-        PRIVATE_REPO_SERVER=$(yq .ootb_supply_chain_basic.registry.server .config/tap-values-full.yaml)
-        PRIVATE_REPO_USER=$(yq .buildservice.kp_default_repository_username .config/tap-values-full.yaml)
-        PRIVATE_REPO_PASSWORD=$(yq .buildservice.kp_default_repository_password .config/tap-values-full.yaml)
-        TANZU_NETWORK_USER=$(yq .buildservice.tanzunet_username .config/tap-values-full.yaml)
-        TANZU_NETWORK_PASSWORD=$(yq .buildservice.tanzunet_password .config/tap-values-full.yaml)
-        SYSTEM_SUB_DOMAIN=$(yq .tap_gui.ingressDomain .config/tap-values-full.yaml | cut -d'.' -f 1)
-        DEV_SUB_DOMAIN=$(yq .cnrs.domain_name .config/tap-values-full.yaml | cut -d'.' -f 1)
-        RUN_SUB_DOMAIN=$(yq .cnrs.domain_name .config/tap-values-run.yaml | cut -d'.' -f 1)
-        DEV_CLUSTER=$(yq .clusters.devClusterName .config/demo-values.yaml)-$K8S_PROVIDER
-        STAGE_CLUSTER=$(yq .clusters.stageClusterName .config/demo-values.yaml)-$K8S_PROVIDER
-        PROD_CLUSTER=$(yq .clusters.prodClusterName .config/demo-values.yaml)-$K8S_PROVIDER
-        TAP_VERSION=$(yq .tap.version .config/demo-values.yaml)
-        SYSTEM_REPO=$(yq .tap.systemRepo .config/demo-values.yaml)
-        APPS_NAMESPACE=$(yq .tap.appNamespace .config/demo-values.yaml)
-        GW_INSTALL_DIR=$(yq .apis.scgwInstallDirectory .config/demo-values.yaml)
-    }
     
     #incorrect usage
     incorrect-usage() {
@@ -278,17 +247,13 @@
         echo "Incorrect usage. Please specify one of the following: "
         echo
         echo
-        echo "  install - install all clusters and demo components on a selected k8s provider"
-        echo "      (supported providers: aks, eks, tkg, minikube)" 
+        echo "  init"
         echo       
-        echo "  activate -  set an active provider for demo operations and refresh DNS config"
-        echo "      (assumes install on the target provider is completed)"
-        echo
         echo "  apis"
         echo
         echo "  dev"
         echo
-        echo "  delete - delete all clusters and demo components on a selected k8s provider"
+        echo "  delete"
         echo
         echo "  relocate-tap-images"
         echo
@@ -300,30 +265,16 @@
 #################### main ##########################
 
 case $1 in
-install)
-    set-provider "install"
-    case $K8S_PROVIDER in
+init)
+    case $DEV_CLUSTER_PROVIDER in
     aks)
-        scripts/aks-handler.sh create $DEV_CLUSTER 3
-        scripts/aks-handler.sh create $STAGE_CLUSTER 2
-        scripts/aks-handler.sh create $PROD_CLUSTER 2
-        install-all
+        scripts/aks-handler.sh create $DEV_CLUSTER_NAME 3
         ;;
     eks)
-        scripts/eks-handler.sh create $DEV_CLUSTER 3
-        scripts/eks-handler.sh create $STAGE_CLUSTER 2
-        scripts/eks-handler.sh create $PROD_CLUSTER 2
-        install-all
+        scripts/eks-handler.sh create $DEV_CLUSTER_NAME 3
         ;;
     tkg)
-        scripts/tkg-handler.sh create $DEV_CLUSTER 3
-        scripts/tkg-handler.sh create $STAGE_CLUSTER 2
-        scripts/tkg-handler.sh create $PROD_CLUSTER  2
-        install-all
-        ;;
-    localhost)
-        scripts/aks-handler.sh create $DEV_CLUSTER 3
-        install-localhost
+        scripts/tkg-handler.sh create $DEV_CLUSTER_NAME 3
         ;;
     minikube)
         scripts/minikube-handler.sh create
@@ -333,51 +284,61 @@ install)
         incorrect-usage
         ;;
     esac
-    ;;
-delete)
-    set-provider "delete"
-    ./demo-helper.sh cleanup-helper
-    case $K8S_PROVIDER in
+    case $STAGE_CLUSTER_PROVIDER in
     aks)
-        scripts/aks-handler.sh delete $DEV_CLUSTER
-        scripts/aks-handler.sh delete $STAGE_CLUSTER
-        scripts/aks-handler.sh delete $PROD_CLUSTER
+        scripts/aks-handler.sh create $STAGE_CLUSTER_NAME 2
         ;;
     eks)
-        scripts/eks-handler.sh delete $DEV_CLUSTER
-        scripts/eks-handler.sh delete $STAGE_CLUSTER
-        scripts/eks-handler.sh delete $PROD_CLUSTER
+        scripts/eks-handler.sh create $STAGE_CLUSTER_NAME 2
         ;;
     tkg)
-        scripts/tkg-handler.sh delete $DEV_CLUSTER
-        scripts/tkg-handler.sh delete $STAGE_CLUSTER
-        scripts/tkg-handler.sh delete $PROD_CLUSTER
-        ;;
-    minikube)
-        scripts/minikube-handler.sh delete
+        scripts/tkg-handler.sh create $STAGE_CLUSTER_NAME 2
         ;;
     *)
         incorrect-usage
         ;;
     esac
-    ;;
-activate)
-    set-provider "active demo"
+    case $PROD_CLUSTER_PROVIDER in
+    aks)
+        scripts/aks-handler.sh create $PROD_CLUSTER_NAME 2
+        ;;
+    eks)
+        scripts/eks-handler.sh create $PROD_CLUSTER_NAME 2
+        ;;
+    tkg)
+        scripts/tkg-handler.sh create $PROD_CLUSTER_NAME 2
+        ;;
+    *)
+        incorrect-usage
+        ;;
+    esac
     install-all
     ;;
+delete)
+    echo "!!!Are you sure you want to delete all clusters?"
+    read
+    ./demo-helper.sh cleanup-helper
+    scripts/aks-handler.sh delete $DEV_CLUSTER_NAME
+    scripts/aks-handler.sh delete $STAGE_CLUSTER_NAME
+    scripts/aks-handler.sh delete $PROD_CLUSTER_NAME
+    scripts/eks-handler.sh delete $DEV_CLUSTER_NAME
+    scripts/eks-handler.sh delete $STAGE_CLUSTER_NAME
+    scripts/eks-handler.sh delete $PROD_CLUSTER_NAME
+    scripts/tkg-handler.sh delete $DEV_CLUSTER_NAME
+    scripts/tkg-handler.sh delete $STAGE_CLUSTER_NAME
+    scripts/tkg-handler.sh delete $PROD_CLUSTER_NAME
+    scripts/minikube-handler.sh delete
+    ;;
 apis)
-    load-configs
     add-apis
     ;;
 dev)
-    load-configs
     install-gui-dev
     ;;
 relocate-tap-images)
     relocate-tap-images
     ;;
 runme)
-    load-configs
     $2
     ;;
 *)

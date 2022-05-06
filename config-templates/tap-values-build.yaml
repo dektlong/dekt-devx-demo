@@ -43,6 +43,9 @@ ootb_supply_chain_testing_scanning:
   gitops:
     ssh_secret: ""
 
+metadata_store:
+  app_service_type: LoadBalancer
+  
 grype:
   namespace: "MY_APPS_NS" # (optional) Defaults to default namespace.
   targetImagePullSecret: "registry-credentials"
