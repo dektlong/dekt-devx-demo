@@ -32,15 +32,14 @@
 
         
         install-tap $DEV_CLUSTER_NAME "tap-values-full.yaml"
-        scripts/ingress-handler.sh update-tap-dns $SYSTEM_SUB_DOMAIN
-        scripts/ingress-handler.sh update-tap-dns $DEV_SUB_DOMAIN
-
+       
         install-tap $STAGE_CLUSTER_NAME "tap-values-build.yaml"
 
         install-tap $PROD_CLUSTER_NAME "tap-values-run.yaml"
-        scripts/ingress-handler.sh update-tap-dns $RUN_SUB_DOMAIN
-
+        
         add-dekt-supplychain $DEV_CLUSTER_NAME
+
+        update-dns-entries
 
         update-multi-cluster-views
     }
@@ -97,6 +96,17 @@
         kubectl create ns $APPS_NAMESPACE
         tanzu secret registry add registry-credentials --server $PRIVATE_REPO_SERVER --username $PRIVATE_REPO_USER --password $PRIVATE_REPO_PASSWORD -n $APPS_NAMESPACE
         kubectl apply -f .config/supplychain-rbac.yaml -n $APPS_NAMESPACE
+    }
+
+    #update-dns-entries
+    update-dns-entries() {
+
+        kubectl config use-context $DEV_CLUSTER_NAME
+        scripts/ingress-handler.sh update-tap-dns $SYSTEM_SUB_DOMAIN
+        scripts/ingress-handler.sh update-tap-dns $DEV_SUB_DOMAIN
+
+        kubectl config use-context $PROD_CLUSTER_NAME
+        scripts/ingress-handler.sh update-tap-dns $RUN_SUB_DOMAIN
     }
 
     #update-multi-cluster-views
