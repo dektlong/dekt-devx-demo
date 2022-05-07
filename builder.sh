@@ -324,10 +324,10 @@ delete)
     scripts/eks-handler.sh delete $DEV_CLUSTER_NAME
     scripts/eks-handler.sh delete $STAGE_CLUSTER_NAME
     scripts/eks-handler.sh delete $PROD_CLUSTER_NAME
-    scripts/tkg-handler.sh delete $DEV_CLUSTER_NAME
-    scripts/tkg-handler.sh delete $STAGE_CLUSTER_NAME
-    scripts/tkg-handler.sh delete $PROD_CLUSTER_NAME
-    scripts/minikube-handler.sh delete
+    #scripts/tkg-handler.sh delete $DEV_CLUSTER_NAME
+    #scripts/tkg-handler.sh delete $STAGE_CLUSTER_NAME
+    #scripts/tkg-handler.sh delete $PROD_CLUSTER_NAME
+    #scripts/minikube-handler.sh delete
     ;;
 apis)
     add-apis
