@@ -191,7 +191,7 @@ spec:
           summary: List available social media sources that reports sentiment
           tags:
             - providers
-      /sentiment:
+      /social-sentiment:
         get:
           summary: Check a sentiment by userId and social media properties
           tags:
