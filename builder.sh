@@ -272,7 +272,7 @@
         echo
         echo "  init"
         echo       
-        echo "  apis"
+        echo "  brownfield"
         echo
         echo "  dev"
         echo
@@ -295,7 +295,6 @@ init)
     scripts/tanzu-handler.sh add-carvel-tools
     scripts/k8s-handler.sh create $PROD_CLUSTER_PROVIDER $PROD_CLUSTER_NAME $PROD_CLUSTER_NODES
     scripts/tanzu-handler.sh add-carvel-tools
-    scripts/k8s-handler.sh create $HERITAGE_CLUSTER_PROVIDER $HERITAGE_CLUSTER_NAME $HERITAGE_CLUSTER_NODES
     install-all
     ;;
 delete)
@@ -307,7 +306,8 @@ delete)
     scripts/k8s-handler.sh delete $PROD_CLUSTER_PROVIDER $PROD_CLUSTER_NAME
     scripts/k8s-handler.sh delete $HERITAGE_CLUSTER_PROVIDER $HERITAGE_CLUSTER_NAME
     ;;
-apis)
+brownfield)
+    scripts/k8s-handler.sh create $HERITAGE_CLUSTER_PROVIDER $HERITAGE_CLUSTER_NAME $HERITAGE_CLUSTER_NODES
     add-apis
     ;;
 dev)
