@@ -10,7 +10,8 @@ This repo contains artifacts to run a demo illustrating the vision and capabilit
 - Rename the folder ```config-templates``` to ```.config```
 
 - Update your demo setup in ```.config/demo-values.yaml```
-  - Make sure your clusters support the required capacity (worker nodes types can me modified in ```scripts/k8s-hanlder.sh```)
+  - Make sure your clusters support the required capacity 
+  - Worker nodes types can me modified in ```scripts/k8s-hanlder.sh```
 
 - Update TAP install values
   - ```.config/tap-values-full.yaml```
