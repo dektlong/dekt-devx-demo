@@ -1,12 +1,19 @@
 
-dev-cluster:
-  provider:  #acceptable values: aks, eks, tkg, minikube
+dev-cluster: # TAP full profile installed
+  provider:  #acceptable values: aks, eks, minikube
+  nodes:  #see https://docs.vmware.com/en/Tanzu-Application-Platform/1.1/tap/GUID-prerequisites.html#resource-requirements-4
   name: ""
-stage-cluster:
-  provider:  #acceptable values: aks, eks, tkg
+stage-cluster: # TAP build profile installed
+  provider:  #acceptable values: aks, eks
+  nodes:  #see https://docs.vmware.com/en/Tanzu-Application-Platform/1.1/tap/GUID-prerequisites.html#resource-requirements-4
   name: ""
-prod-cluster:
-  provider:  #acceptable values: aks, eks, tkg
+prod-cluster: # TAP run profile installed
+  provider: #acceptable values: aks, eks
+  nodes:  #see https://docs.vmware.com/en/Tanzu-Application-Platform/1.1/tap/GUID-prerequisites.html#resource-requirements-4
+  name: ""
+heritage-cluster: #for bronwfield apis demo, TSM agent installed, no TAP installed
+  provider:  #acceptable values: aks, eks
+  nodes:  #see https://docs.vmware.com/en/VMware-Tanzu-Service-Mesh/services/tanzu-service-mesh-environment-requirements-and-supported-platforms/GUID-D0B939BE-474E-4075-9A65-3D72B5B9F237.html
   name: ""
 
 tap:

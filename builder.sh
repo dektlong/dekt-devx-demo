@@ -2,12 +2,19 @@
 
 #################### configs ################
     #clusters
+    DEV_CLUSTER_NAME=$(yq .dev-cluster.name .config/demo-values.yaml)
     DEV_CLUSTER_PROVIDER=$(yq .dev-cluster.provider .config/demo-values.yaml)
-    DEV_CLUSTER=$(yq .dev-cluster.name .config/demo-values.yaml)
+    DEV_CLUSTER_NODES=$(yq .dev-cluster.nodes .config/demo-values.yaml)
+    STAGE_CLUSTER_NAME=$(yq .stage-cluster.name .config/demo-values.yaml)
     STAGE_CLUSTER_PROVIDER=$(yq .stage-cluster.provider .config/demo-values.yaml)
-    STAGE_CLUSTER=$(yq .stage-cluster.name .config/demo-values.yaml)
+    STAGE_CLUSTER_NODES=$(yq .stage-cluster.nodes .config/demo-values.yaml)
+    PROD_CLUSTER_NAME=$(yq .prod-cluster.name .config/demo-values.yaml)
     PROD_CLUSTER_PROVIDER=$(yq .prod-cluster.provider .config/demo-values.yaml)
-    PROD_CLUSTER=$(yq .prod-cluster.name .config/demo-values.yaml)
+    PROD_CLUSTER_NODES=$(yq .prod-cluster.nodes .config/demo-values.yaml)
+    HERITAGE_CLUSTER_NAME=$(yq .heritage-cluster.name .config/demo-values.yaml)
+    HERITAGE_CLUSTER_PROVIDER=$(yq .heritage-cluster.provider .config/demo-values.yaml)
+    HERITAGE_CLUSTER_NODES=$(yq .heritage-cluster.nodes .config/demo-values.yaml)
+
     #image registry
     PRIVATE_REPO_SERVER=$(yq .ootb_supply_chain_basic.registry.server .config/tap-values-full.yaml)
     PRIVATE_REPO_USER=$(yq .buildservice.kp_default_repository_username .config/tap-values-full.yaml)
@@ -31,13 +38,13 @@
     install-all() {
 
         
-        install-tap $DEV_CLUSTER "tap-values-full.yaml"
+        install-tap $DEV_CLUSTER_NAME "tap-values-full.yaml"
        
-        install-tap $STAGE_CLUSTER "tap-values-build.yaml"
+        install-tap $STAGE_CLUSTER_NAME "tap-values-build.yaml"
 
-        install-tap $PROD_CLUSTER "tap-values-run.yaml"
+        install-tap $PROD_CLUSTER_NAME "tap-values-run.yaml"
         
-        add-dekt-supplychain $DEV_CLUSTER
+        add-dekt-supplychain $DEV_CLUSTER_NAME
 
         update-dns-entries
 
@@ -47,8 +54,8 @@
     #install-localhost
     install-localhost() {
 
-        install-tap $DEV_CLUSTER "tap-values-localhost.yaml"
-        add-dekt-supplychain $DEV_CLUSTER
+        install-tap $DEV_CLUSTER_NAME "tap-values-localhost.yaml"
+        add-dekt-supplychain $DEV_CLUSTER_NAME
 
         echo
         echo "update gui LB IP values in tap-values-localhost.yaml. hit any key.."
@@ -56,13 +63,6 @@
 
         tanzu package installed update tap --package-name tap.tanzu.vmware.com --version $TAP_VERSION -n tap-install -f .config/tap-values-localhost.yaml
     }
-
-    #install-mac
-    install-mac() {
-
-        install-tap $DEV_CLUSTER "tap-values-laptop.yaml"
-    }
-
 
     #install-tap
     install-tap () {
@@ -101,11 +101,11 @@
     #update-dns-entries
     update-dns-entries() {
 
-        kubectl config use-context $DEV_CLUSTER
+        kubectl config use-context $DEV_CLUSTER_NAME
         scripts/ingress-handler.sh update-tap-dns $SYSTEM_SUB_DOMAIN
         scripts/ingress-handler.sh update-tap-dns $DEV_SUB_DOMAIN
 
-        kubectl config use-context $PROD_CLUSTER
+        kubectl config use-context $PROD_CLUSTER_NAME
         scripts/ingress-handler.sh update-tap-dns $RUN_SUB_DOMAIN
     }
 
@@ -116,7 +116,7 @@
        echo "Configure TAP Workloads GUI plugin to support multi-clusters ..."
        echo
        
-       kubectl config use-context $PROD_CLUSTER
+       kubectl config use-context $PROD_CLUSTER_NAME
        kubectl apply -f .config/tap-gui-viewer-sa-rbac.yaml
        export prodClusterUrl=$(kubectl config view --minify -o jsonpath='{.clusters[0].cluster.server}')
        export prodClusterToken=$(kubectl -n tap-gui get secret $(kubectl -n tap-gui get sa tap-gui-viewer -o=json \
@@ -128,7 +128,7 @@
        yq '.tap_gui.app_config.kubernetes.clusterLocatorMethods.[0].clusters.[0].serviceAccountToken = env(prodClusterToken)' .config/tap-values-full.yaml -i
 
 
-       kubectl config use-context $STAGE_CLUSTER
+       kubectl config use-context $STAGE_CLUSTER_NAME
        kubectl apply -f .config/tap-gui-viewer-sa-rbac.yaml
        export stageClusterUrl=$(kubectl config view --minify -o jsonpath='{.clusters[0].cluster.server}')
        export stageClusterToken=$(kubectl -n tap-gui get secret $(kubectl -n tap-gui get sa tap-gui-viewer -o=json \
@@ -140,7 +140,7 @@
        yq '.tap_gui.app_config.kubernetes.clusterLocatorMethods.[0].clusters.[1].serviceAccountToken = env(stageClusterToken)' .config/tap-values-full.yaml -i
 
 
-       kubectl config use-context $DEV_CLUSTER
+       kubectl config use-context $DEV_CLUSTER_NAME
        kubectl apply -f .config/tap-gui-viewer-sa-rbac.yaml
        export devClusterUrl=$(kubectl config view --minify -o jsonpath='{.clusters[0].cluster.server}')
        export devClusterToken=$(kubectl -n tap-gui get secret $(kubectl -n tap-gui get sa tap-gui-viewer -o=json \
@@ -289,103 +289,23 @@
 
 case $1 in
 init)
-    case $DEV_CLUSTER_PROVIDER in
-    aks)
-        scripts/aks-handler.sh create $DEV_CLUSTER 4
-        ;;
-    eks)
-        scripts/eks-handler.sh create $DEV_CLUSTER 4
-        ;;
-    tkg)
-        scripts/tkg-handler.sh create $DEV_CLUSTER 4
-        ;;
-    minikube)
-        scripts/minikube-handler.sh create
-        install-mac
-        ;;
-    *)
-        incorrect-usage
-        ;;
-    esac
-    case $STAGE_CLUSTER_PROVIDER in
-    aks)
-        scripts/aks-handler.sh create $STAGE_CLUSTER 3
-        ;;
-    eks)
-        scripts/eks-handler.sh create $STAGE_CLUSTER 3
-        ;;
-    tkg)
-        scripts/tkg-handler.sh create $STAGE_CLUSTER 3
-        ;;
-    *)
-        incorrect-usage
-        ;;
-    esac
-    case $PROD_CLUSTER_PROVIDER in
-    aks)
-        scripts/aks-handler.sh create $PROD_CLUSTER 2
-        ;;
-    eks)
-        scripts/eks-handler.sh create $PROD_CLUSTER 2
-        ;;
-    tkg)
-        scripts/tkg-handler.sh create $PROD_CLUSTER 2
-        ;;
-    *)
-        incorrect-usage
-        ;;
-    esac
+    scripts/k8s-handler.sh create $DEV_CLUSTER_PROVIDER $DEV_CLUSTER_NAME $DEV_CLUSTER_NODES
+    scripts/tanzu-handler.sh add-carvel-tools
+    scripts/k8s-handler.sh create $STAGE_CLUSTER_PROVIDER $STAGE_CLUSTER_NAME $STAGE_CLUSTER_NODES
+    scripts/tanzu-handler.sh add-carvel-tools
+    scripts/k8s-handler.sh create $PROD_CLUSTER_PROVIDER $PROD_CLUSTER_NAME $PROD_CLUSTER_NODES
+    scripts/tanzu-handler.sh add-carvel-tools
+    scripts/k8s-handler.sh create $HERITAGE_CLUSTER_PROVIDER $HERITAGE_CLUSTER_NAME $HERITAGE_CLUSTER_NODES
     install-all
     ;;
 delete)
     echo "!!!Are you sure you want to delete all clusters?"
     read
     ./demo-helper.sh cleanup-helper
-    case $DEV_CLUSTER_PROVIDER in
-    aks)
-        scripts/aks-handler.sh delete $DEV_CLUSTER
-        ;;
-    eks)
-        scripts/eks-handler.sh delete $DEV_CLUSTER
-        ;;
-    tkg)
-        scripts/tkg-handler.sh delete $DEV_CLUSTER
-        ;;
-    minikube)
-        scripts/minikube-handler.sh delete
-        ;;
-    *)
-        incorrect-usage
-        ;;
-    esac
-    case $STAGE_CLUSTER_PROVIDER in
-    aks)
-        scripts/aks-handler.sh delete $STAGE_CLUSTER
-        ;;
-    eks)
-        scripts/eks-handler.sh delete $STAGE_CLUSTER
-        ;;
-    tkg)
-        scripts/tkg-handler.sh delete $STAGE_CLUSTER
-        ;;
-    *)
-        incorrect-usage
-        ;;
-    esac
-    case $PROD_CLUSTER_PROVIDER in
-    aks)
-        scripts/aks-handler.sh delete $PROD_CLUSTER
-        ;;
-    eks)
-        scripts/eks-handler.sh delete $PROD_CLUSTER
-        ;;
-    tkg)
-        scripts/tkg-handler.sh delete $PROD_CLUSTER
-        ;;
-    *)
-        incorrect-usage
-        ;;
-    esac
+    scripts/k8s-handler.sh delete $DEV_CLUSTER_PROVIDER $DEV_CLUSTER_NAME
+    scripts/k8s-handler.sh delete $STAGE_CLUSTER_PROVIDER $STAGE_CLUSTER_NAME
+    scripts/k8s-handler.sh delete $PROD_CLUSTER_PROVIDER $PROD_CLUSTER_NAME
+    scripts/k8s-handler.sh delete $HERITAGE_CLUSTER_PROVIDER $HERITAGE_CLUSTER_NAME
     ;;
 apis)
     add-apis

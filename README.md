@@ -7,14 +7,12 @@ This repo contains artifacts to run a demo illustrating the vision and capabilit
 
 - Clone the supplychain repo ```git clone https://github.com/dektlong/dekt-supplychain```
 
-- Verify your target cluster supports up to 7 nodes creation acroos 3 clusters with the resource and permissions outlined in 
-  - ```scripts/eks-handler.sh``` 
-  - ```scripts/aks-handler.sh```
-  - ```scripts/minikube-handler.sh```
-
 - Rename the folder ```config-templates``` to ```.config```
 
-- Update values in the following files. Make sure domain, system-repo and registry-host are identical across all configs
+- Update your demo setup in ```.config/demo-values.yaml```
+  - Make sure your clusters support the required capacity (worker nodes types can me modified in ```scripts/k8s.hanlder.sh```)
+
+- Update TAP install values.  Make sure domain, system-repo and registry-host are identical across all configs
   - ```.config/tap-values-full.yaml```
   - ```.config/tap-values-build.yaml```
   - ```.config/tap-values-run.yaml```
@@ -43,8 +41,7 @@ git clone https://github.com/dektlong/mood-portal
 
 ## Installation
 
-- Update your clusters providers on ```.config/demo-values.yaml```
-- Create clusters and install TAP + demo components
+- Create clusters and install TAP + demo components following specification in ```./config/demo-values.yaml```
 ```
 ./builder.sh init
 ```
