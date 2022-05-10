@@ -47,7 +47,7 @@ git clone https://github.com/dektlong/mood-portal
 ```
 ./builder.sh init
 ```
-  - create *dev* cluster and install the following 
+  - create **dev** cluster and install the following 
     - Carvel tools
     - TAP full profile
     - Custom app accelerators 
@@ -58,20 +58,20 @@ git clone https://github.com/dektlong/mood-portal
     - RabbitMQ operator and instance
     - system ingress rule
     - cnr dev ingress rule
-  - create *stage* cluster and install the following
+  - create **stage** cluster and install the following
     - Carvel tools
     - TAP build profile
     - Default supplychain configs for apps namespace 
     - Grype scanning policy 
     - Tekton pipeline run 
-  - create *prod* cluster and install the following 
+  - create **prod** cluster and install the following 
     - Carvel tools
     - TAP run profile
     - Default supplychain configs for apps namespace 
     - cnr run ingress rule
 
 run ```./builder.sh brownfield``` to add the following
-  - Create heritage cluster 
+  - Create **heritage** cluster 
   - You should install the TSM agent and Spring Cloud Gateway operator via the TSM console on-board cluster process
   - add brownfield APIs routes and gateways (see ```brownfield-apis```)
 
