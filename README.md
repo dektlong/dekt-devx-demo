@@ -10,12 +10,13 @@ This repo contains artifacts to run a demo illustrating the vision and capabilit
 - Rename the folder ```config-templates``` to ```.config```
 
 - Update your demo setup in ```.config/demo-values.yaml```
-  - Make sure your clusters support the required capacity (worker nodes types can me modified in ```scripts/k8s.hanlder.sh```)
+  - Make sure your clusters support the required capacity (worker nodes types can me modified in ```scripts/k8s-hanlder.sh```)
 
-- Update TAP install values.  Make sure domain, system-repo and registry-host are identical across all configs
+- Update TAP install values
   - ```.config/tap-values-full.yaml```
   - ```.config/tap-values-build.yaml```
   - ```.config/tap-values-run.yaml```
+  - Make sure domain, system-repo and registry-host are identical across all configs
   
 - Update your registry details in ```.config/dekt-path2prod.yaml``` custom supplychain 
   - Note: since this is a custom supply chain, the registry values defined in ```tap-values-full``` are NOT applied automatically
