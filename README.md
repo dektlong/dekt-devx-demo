@@ -5,7 +5,7 @@ This repo contains artifacts to run a demo illustrating the vision and capabilit
 
 ## Preparations 
 
-- Clone the supplychain repo ```git clone https://github.com/dektlong/dekt-supplychain```
+- Clone the supplychain repo ```git clone https://github.com/dektlong/dekt-devx-demo```
 
 - Rename the folder ```config-templates``` to ```.config```
 
