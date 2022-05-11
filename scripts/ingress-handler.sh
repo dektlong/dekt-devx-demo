@@ -52,7 +52,7 @@ update-dns-A-record()
 
     ingressType=""
 
-    printf "Waiting for ingress controller to receive public address from loadbalancer ."
+    scripts/dektecho.sh info "Waiting for ingress controller to receive public address from loadbalancer ."
 
     while [ "$ingressType" == "" ]
     do
@@ -68,8 +68,7 @@ update-dns-A-record()
         ingress_public_ip=$(kubectl get svc $ingress_service_name --namespace $ingress_namespace -o=jsonpath='{.status.loadBalancer.ingress[0].ip}')
     fi
         
-    echo
-    echo "updating this A record in GoDaddy:  $record_name.$DOMAIN--> $ingress_public_ip..."
+    scripts/dektecho.sh info "updating this A record in GoDaddy:  $record_name.$DOMAIN--> $ingress_public_ip"
 
     # Update/Create DNS A Record
 
@@ -99,7 +98,7 @@ gui-dev)
     create-ingress-rule "tap-gui-ingress" "contour" "tap-gui.$subDomain.$DOMAIN" "server" "7000" "tap-gui"
     ;;
 *)
-    echo "incorrect usage. Please use 'tap-full', 'tap-run', 'apis', 'gui-dev' or 'scgw'"
+    scripts/dektecho.sh err "incorrect usage. Please use 'tap-full', 'tap-run', 'apis', 'gui-dev' or 'scgw'"
     ;;
 esac
 

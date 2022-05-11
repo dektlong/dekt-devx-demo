@@ -66,7 +66,7 @@
         tap_cluster_name=$1
         tap_values_file_name=$2
 
-        scripts/printmsg.sh "Installing TAP on $tap_cluster_name cluster with $tap_values_file_name configs"
+        scripts/dektecho.sh info "Installing TAP on $tap_cluster_name cluster with $tap_values_file_name configs"
         
         kubectl config use-context $tap_cluster_name
         kubectl create ns tap-install
@@ -88,25 +88,25 @@
     #post-install-configs
     post-install-configs () {
 
-        scripts/printmsg.sh "Running post install configurations for $VIEW_CLUSTER_NAME cluster"
+        scripts/dektecho.sh info "Running post install configurations for $VIEW_CLUSTER_NAME cluster"
         kubectl config use-context $VIEW_CLUSTER_NAME
         kustomize build accelerators | kubectl apply -f -
 
-        scripts/printmsg.sh "Running post install configurations for $DEV_CLUSTER_NAME cluster"
+        scripts/dektecho.sh info "Running post install configurations for $DEV_CLUSTER_NAME cluster"
         kubectl config use-context $DEV_CLUSTER_NAME
         setup-apps-namespace
         kubectl apply -f .config/disable-scale2zero.yaml
         kubectl apply -f .config/dekt-dev-supplychain.yaml
         kubectl apply -f .config/tekton-pipeline.yaml -n $APPS_NAMESPACE
 
-        scripts/printmsg.sh "Running post install configurations for $STAGE_CLUSTER_NAME cluster"
+        scripts/dektecho.sh info "Running post install configurations for $STAGE_CLUSTER_NAME cluster"
         kubectl config use-context $STAGE_CLUSTER_NAME
         setup-apps-namespace
         kubectl apply -f .config/dekt-build-supplychain.yaml
         kubectl apply -f .config/scan-policy.yaml -n $APPS_NAMESPACE
         kubectl apply -f .config/tekton-pipeline.yaml -n $APPS_NAMESPACE
 
-        scripts/printmsg.sh "Running post install configurations for $PROD_CLUSTER_NAME cluster"
+        scripts/dektecho.sh info "Running post install configurations for $PROD_CLUSTER_NAME cluster"
         kubectl config use-context $PROD_CLUSTER_NAME
         kubectl apply -f .config/disable-scale2zero.yaml
         setup-apps-namespace
@@ -125,7 +125,7 @@
     #update-dns-records
     update-dns-records() {
 
-        scripts/printmsg.sh "Updating DNS records"
+        scripts/dektecho.sh info "Updating DNS records"
 
         kubectl config use-context $VIEW_CLUSTER_NAME
         scripts/ingress-handler.sh update-tap-dns $SYSTEM_SUB_DOMAIN
@@ -140,7 +140,7 @@
     #update-multi-cluster-views
     update-multi-cluster-views() {
 
-        scripts/printmsg.sh "Configure TAP Workloads GUI plugin to support multi-clusters"
+        scripts/dektecho.sh info "Configure TAP Workloads GUI plugin to support multi-clusters"
           
         kubectl config use-context $PROD_CLUSTER_NAME
         kubectl apply -f .config/tap-gui-viewer-sa-rbac.yaml
@@ -184,7 +184,7 @@
     #add-data-services
     provision-data-services() {
 
-        scripts/printmsg.sh "Provision data services"
+        scripts/dektecho.sh info "Provision data services"
 
         kubectl config use-context $DEV_CLUSTER_NAME
         kapp -y deploy --app rmq-operator --file https://github.com/rabbitmq/cluster-operator/releases/download/v1.9.0/cluster-operator.yml
@@ -239,7 +239,7 @@
     #relocate-tap-images
     relocate-tap-images() {
 
-        echo "Make sure docker deamon is running..."
+        scripts/dektecho.sh err "Make sure docker deamon is running..."
         read
         
         docker login $PRIVATE_REPO_SERVER -u $PRIVATE_REPO_USER -p $PRIVATE_REPO_PASSWORD
@@ -279,10 +279,8 @@
     #incorrect usage
     incorrect-usage() {
         
-        echo
-        echo "Incorrect usage. Please specify one of the following: "
-        echo
-        echo
+        scripts/dektecho.sh err "Incorrect usage. Please specify one of the following: "
+        
         echo "  init"
         echo       
         echo "  brownfield"

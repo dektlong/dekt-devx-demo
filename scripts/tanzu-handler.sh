@@ -28,9 +28,7 @@ remove-carvel () {
 #install-nginx
 install-nginx ()
 {
-    echo
-    echo "=========> Install nginx ingress controller ..."
-    echo
+    scripts/dektecho.sh info "Install nginx ingress controller"
 
     # Add the ingress-nginx repository
     helm repo add ingress-nginx https://kubernetes.github.io/ingress-nginx
@@ -49,7 +47,7 @@ install-nginx ()
 
 #incorrect-usage
 incorrect-usage() {
-    echo "Incorrect usage. Please specify: add-carvel-tools / remove-carvel-tools / add-nginx"
+    scripts/dektecho.sh err "Incorrect usage. Please specify: add-carvel-tools / remove-carvel-tools / add-nginx"
     exit
 }
 

@@ -13,7 +13,7 @@ DEV_SUB_DOMAIN=$(yq .cnrs.domain_name .config/tap-values-full.yaml | cut -d'.' -
 #init (assumes api-portal and api-gw are installed)
 init() {
 
-        echo "!!! currently only working on AKS due to SCGW issue. Hit any key to continue..."
+        scripts/dektecho.sh err "!!! currently only working on AKS due to SCGW issue. Hit any key to continue..."
         read
         #dekt4pets images
         frontend_image_location=$PRIVATE_REPO/$PRIVATE_REGISTRY_APP_REPO/$FRONTEND_TBS_IMAGE:0.0.1
@@ -59,14 +59,9 @@ init() {
 #create-backend 
 create-backend() {
 
-    echo
-    echo "${bold}Deploy dekt4pets-backend (inner loop)${normal}"
-    echo "------------------------------------------"
-    echo
-   
-    echo
-    echo "=========> 1. Commit code changes to $DEMO_APP_GIT_REPO"
-    echo            
+    scripts/dektecho.sh info "Deploy dekt4pets-backend (inner loop)"
+    
+    scripts/dektecho.sh info "1. Commit code changes to $DEMO_APP_GIT_REPO"
     
     touch dummy-commit.me
 
@@ -74,25 +69,19 @@ create-backend() {
     git commit -q -m "done backend inner-loop" dummy-commit.me
     git push
 
-    echo
-    echo "=========> 2. Apply development routes, mapping and micro-gateway"
-    echo
-
+    scripts/dektecho.sh info "2. Apply development routes, mapping and micro-gateway"
+    
     kubectl apply -f workloads/dekt4pets/backend/routes/dekt4pets-backend-mapping-dev.yaml -n $APPS_NAMESPACE
     kubectl apply -f workloads/dekt4pets/backend/routes/dekt4pets-backend-route-config.yaml -n $APPS_NAMESPACE
     #dekt4pets-dev gateway instances created as part of demo build to save time
 
-    echo
-    echo "=========> 3. Create backend app via src-to-img supply-chain"
-    echo
+    scripts/dektecho.sh info "3. Create backend app via src-to-img supply-chain"
 
     #kp image patch $BACKEND_TBS_IMAGE -n $APPS_NAMESPACE
 
     #wait-for-tbs $BACKEND_TBS_IMAGE $APPS_NAMESPACE
 
-    echo
-    echo "Starting to tail build logs ..."
-    echo
+    scripts/dektecho.sh info "Starting to tail build logs ..."
     
     kp build logs $BACKEND_TBS_IMAGE -n $APPS_NAMESPACE
     
@@ -102,8 +91,7 @@ create-backend() {
 #create-frontend 
 create-frontend() {
 	
-    echo
-    echo "=========> Create dekt4pets-frontend (inner loop) ..."
+    scripts/dektecho.sh info "Create dekt4pets-frontend (inner loop)"
     echo "           1. Deploy app via src-to-img supply-chain"
     echo "           2. Apply development routes, mapping and micro-gateway"
     echo
@@ -117,23 +105,17 @@ create-frontend() {
 #patch-backend
 patch-backend() {
     
-    echo
-    echo "=========> Commit code changes to $DEMO_APP_GIT_REPO  ..."
-    echo
-    
+    scripts/dektecho.sh info "Commit code changes to $DEMO_APP_GIT_REPO"
+        
     commit-adopter-check-api
 
     wait-for-tbs $BACKEND_TBS_IMAGE $APPS_NAMESPACE
 
-    echo
-    echo "Starting to tail build logs ..."
-    echo
+    scripts/dektecho.sh info "Starting to tail build logs ..."
     
     kp build logs $BACKEND_TBS_IMAGE -n $APPS_NAMESPACE
     
-    echo
-    echo "=========> Apply changes to backend app, service and routes ..."
-    echo
+    scripts/dektecho.sh info "Apply changes to backend app, service and routes"
     
     kubectl delete -f workloads/dekt4pets/backend/dekt4pets-backend.yaml -n $APPS_NAMESPACE
     kubectl apply -f workloads/dekt4pets/backend/dekt4pets-backend.yaml -n $APPS_NAMESPACE
@@ -144,22 +126,19 @@ patch-backend() {
 #dekt4pets
 dekt4pets() {
 
-    echo
-    echo "=========> Promote dekt4pets-backend to production (outer loop) ..."
+   scripts/dektecho.sh info "Promote dekt4pets-backend to production (outer loop)"
     echo "           1. Deploy app via src-to-img supply-chain"
     echo "           2. Apply production routes, mapping and micro-gateway"
     echo
     kubectl apply -f workloads/dekt4pets/backend/routes/dekt4pets-backend-mapping.yaml -n $APPS_NAMESPACE
 
-    echo
-    echo "=========> Promote dekt4pets-frontend to production (outer loop) ..."
+    scripts/dektecho.sh info "Promote dekt4pets-frontend to production (outer loop)"
     echo "           1. Deploy app via src-to-img supply-chain"
     echo "           2. Apply production routes, mapping and micro-gateway"
     echo
     kubectl apply -f workloads/dekt4pets/frontend/routes/dekt4pets-frontend-mapping.yaml -n $APPS_NAMESPACE
 
-    echo
-    echo "=========> Create dekt4pets micro-gateway (w/ external traffic)..."
+    scripts/dektecho.sh info "Create dekt4pets micro-gateway (w/ external traffic)"
     echo
     kubectl apply -f workloads/dekt4pets/gateway/dekt4pets-gateway.yaml -n $APPS_NAMESPACE
 
@@ -168,8 +147,7 @@ dekt4pets() {
 #adopter-check-workload
 adopter-check () {
 
-    echo
-    echo "=========> Apply adopter-check TAP workload and deploy via src-to-url supply-chain ..."
+    scripts/dektecho.sh info "Apply adopter-check TAP workload and deploy via src-to-url supply-chain"
     echo
 
     tanzu apps workload apply adopter-check -f adopter-check-workload.yaml -y -n $APPS_NAMESPACE
@@ -232,8 +210,7 @@ wait-for-tbs() {
 #usage
 usage() {
 
-    echo
-	echo "Incorrect usage. Please specify one of the following:"
+    scripts/dektecho.sh err "Incorrect usage. Please specify one of the following:"
 	echo
     echo "${bold}init${normal} - deploy the dekt4pets api-grid core components and dekt4petsdev instances"
     echo
@@ -255,11 +232,8 @@ usage() {
 #describe-apigrid
 describe-apigrid() {
 
-    echo
-    echo "${bold}Dekt4pets api-grid components${normal}"
-    echo "-------------------------------------"
-    echo
-    echo
+    scripts/dektecho.sh info "Dekt4pets api-grid components"
+
     echo "${bold}Workload Images${normal}"
     echo
     kp images list -n $APPS_NAMESPACE

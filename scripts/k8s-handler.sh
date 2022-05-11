@@ -14,7 +14,7 @@ create-aks-cluster() {
 	cluster_name=$1
 	number_of_nodes=$2
 
-	scripts/printmsg.sh "Creating AKS cluster named $cluster_name with $number_of_nodes nodes"
+	scripts/dektecho.sh info "Creating AKS cluster named $cluster_name with $number_of_nodes nodes"
 		
 	#make sure your run 'az login' and use WorkspaceOn SSO prior to running this
 	
@@ -35,7 +35,7 @@ delete-aks-cluster() {
 
 	cluster_name=$1
 
-	scripts/printmsg.sh "Starting deleting resources of AKS cluster $cluster_name"
+	scripts/dektecho.sh info "Starting deleting resources of AKS cluster $cluster_name"
 	
 	az aks delete --name $cluster_name --resource-group $AZURE_RESOURCE_GROUP --yes
 }
@@ -49,7 +49,7 @@ create-eks-cluster () {
     cluster_name=$1
 	number_of_nodes=$2
 
-	scripts/printmsg.sh "Creating EKS cluster $cluster_name with $number_of_nodes nodes"
+	scripts/dektecho.sh info "Creating EKS cluster $cluster_name with $number_of_nodes nodes"
 
     eksctl create cluster \
     --name $cluster_name \
@@ -69,7 +69,7 @@ delete-eks-cluster () {
 
     cluster_name=$1
 
-	scripts/printmsg.sh "Starting deleting resources of EKS cluster $cluster_name ..."
+	scripts/dektecho.sh info "Starting deleting resources of EKS cluster $cluster_name ..."
 	
     eksctl delete cluster --name $cluster_name --force
 }
@@ -80,7 +80,7 @@ create-gke-cluster () {
 	cluster_name=$1
 	number_of_nodes=$2
 
-	scripts/printmsg.sh "Creating GKE cluster $cluster_name with $number_of_nodes nodes"
+	scripts/dektecho.sh info "Creating GKE cluster $cluster_name with $number_of_nodes nodes"
 	
 	gcloud container clusters create $cluster_name \
 		--zone $GKE_ZONE \
@@ -98,7 +98,7 @@ delete-gke-cluster () {
 
     cluster_name=$1
 
-	scripts/printmsg.sh "Starting deleting resources of GKE cluster $cluster_name"
+	scripts/dektecho.sh info "Starting deleting resources of GKE cluster $cluster_name"
 	
     gcloud container clusters delete $cluster_name \
 		--zone $GKE_ZONE \
@@ -127,8 +127,8 @@ delete-minikube-cluster() {
 
 #incorrect-usage
 incorrect-usage() {
-    echo
-	echo "Incorrect usage. Please specify:"
+	
+	scripts/dektecho.sh err "Incorrect usage. Please specify:"
     echo "  create [aks/eks/minikube cluster-name numbber-of-nodes]"
     echo "  delete [aks/eks/minikube cluster-name]"
     exit
