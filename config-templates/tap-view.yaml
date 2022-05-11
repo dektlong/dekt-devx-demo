@@ -1,0 +1,75 @@
+#==================================================================
+# TAP Profiles
+#   accepted values: full, iterate, build, run, view
+#==================================================================
+profile: view
+
+#==================================================================
+# TAP GUI (Backstage)
+#==================================================================
+tap_gui:
+  service_type: ClusterIP
+  ingressEnabled: "true"
+  ingressDomain: "MY_SYS_SUBDOMAIN.MY_DOMAIN"
+  app_config:
+    app:
+      baseUrl: http://tap-gui.MY_SYS_SUBDOMAIN.MY_DOMAIN
+    catalog:
+      locations:
+        - type: url
+          target: https://github.com/tanzu-demo/tap-gui-catalogs/blob/main/blank/catalog-info.yaml
+        - type: url
+          target: https://github.com/dektlong/dekt-supplychain/blob/main/backstage/catalog-info.yaml
+    backend:
+      baseUrl: http://tap-gui.MY_SYS_SUBDOMAIN.MY_DOMAIN
+      cors:
+        origin: http://tap-gui.MY_SYS_SUBDOMAIN.MY_DOMAIN
+    #============================
+    # Multi cluster workload viewer
+    #============================
+    kubernetes:
+      serviceLocatorMethod:
+        type: 'multiTenant'
+      clusterLocatorMethods:
+        - type: 'config'
+          clusters:
+            - url: #updated during install
+              name: DEV_CLUSTER_NAME
+              authProvider: serviceAccount
+              serviceAccountToken: #updated during install
+              skipTLSVerify: true
+            - url: #updated during install
+              name: STAGE_CLUSTER_NAME
+              authProvider: serviceAccount
+              serviceAccountToken: #updated during install
+              skipTLSVerify: true
+            - url: #updated during install
+              name: PROD_CLUSTER_NAME
+              authProvider: serviceAccount
+              serviceAccountToken: #updated during install
+              skipTLSVerify: true
+appliveview:
+  ingressEnabled: "true"
+  ingressDomain: MY_SYS_SUBDOMAIN.MY_DOMAIN
+
+metadata_store:
+  ingress_enabled: "true"
+  ingress_domain: "MY_SYS_SUBDOMAIN.MY_DOMAIN"
+  
+contour:
+  envoy:
+    service:
+      type: LoadBalancer
+
+accelerator:
+  server:
+    service_type: "ClusterIP"
+
+excluded_packages:
+  - learningcenter.tanzu.vmware.com
+  - workshops.learningcenter.tanzu.vmware.com
+
+#learningcenter:
+#  ingressDomain: learningcenter.MY_SYS_SUBDOMAIN.MY_DOMAIN
+
+ceip_policy_disclosed: true

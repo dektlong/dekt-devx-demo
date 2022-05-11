@@ -5,34 +5,34 @@ This repo contains artifacts to run a demo illustrating the vision and capabilit
 
 ## Preparations 
 
+- Install public cloud k8s command line tools
+  - az (with AKS plugin)
+  - eksclt 
+  - gcloud
+
 - Clone the supplychain repo ```git clone https://github.com/dektlong/dekt-devx-demo```
 
 - Rename the folder ```config-templates``` to ```.config```
 
 - Update your demo setup in ```.config/demo-values.yaml```
   - Make sure your clusters support the required capacity 
-  - Worker nodes types can me modified in ```scripts/k8s-hanlder.sh```
+  - Modified the specific cloud info in ```scripts/k8s-hanlder.sh```
 
 - Update TAP install values
-  - ```.config/tap-values-full.yaml```
-  - ```.config/tap-values-build.yaml```
-  - ```.config/tap-values-run.yaml```
+  - ```.config/tap-view.yaml```
+  - ```.config/tap-interate.yaml```
+  - ```.config/tap-build.yaml```
+  - ```.config/tap-run.yaml```
   - Make sure domain, system-repo and registry-host are identical across all configs
   
-- Update your registry details in ```.config/dekt-path2prod.yaml``` custom supplychain 
-  - Note: since this is a custom supply chain, the registry values defined in ```tap-values-full``` are NOT applied automatically
+- Update your registry details in ```.config/dekt-dev-supplychain.yaml``` and ```.config/dekt-build-supplychain.yaml``` 
+  - Note: since this is a custom supply chain, the registry values defined in ```tap-dev.yaml``` are NOT applied automatically
 
 - Review ```.config/scan-policy.yaml``` and customized if need 
 
 - Review ```.config/tekton-pipeline.yaml``` and customized if need 
 
 - The ingress setup is based on GoDaddy DNS, if you are using a different one, please modify ```scripts/ingress-handler.sh```
-
-- Clone the workloads repos to the same root directory as the supplychain repo
-```
-git clone https://github.com/dektlong/mood-sensors
-git clone https://github.com/dektlong/mood-portal
-```
 
 - Relocate TAP images (optional to avoid dependencies on Tanzu Network uptime)
 ```
@@ -47,17 +47,20 @@ git clone https://github.com/dektlong/mood-portal
 ```
 ./builder.sh init
 ```
+  - create **view** cluster and install the following 
+    - Carvel tools
+    - TAP view profile
+    - Custom app accelerators 
+    - System ingress rule
   - create **dev** cluster and install the following 
     - Carvel tools
     - TAP full profile
-    - Custom app accelerators 
     - Default supplychain configs for apps namespace 
     - Grype scanning policy 
     - Tekton pipeline run 
     - Custom ```dekt-path2prod``` supplychain 
     - RabbitMQ operator and instance
-    - system ingress rule
-    - cnr dev ingress rule
+    - CNR dev ingress rule
   - create **stage** cluster and install the following
     - Carvel tools
     - TAP build profile
@@ -68,7 +71,7 @@ git clone https://github.com/dektlong/mood-portal
     - Carvel tools
     - TAP run profile
     - Default supplychain configs for apps namespace 
-    - cnr run ingress rule
+    - CNR run ingress rule
 
 run ```./builder.sh brownfield``` to add the following
   - Create **heritage** cluster 
@@ -91,21 +94,19 @@ run ```./builder.sh brownfield``` to add the following
 - show the simple tap installed command (don't actually run)
   - ```tanzu package install tap -p tap.tanzu.vmware.com -v 1.0.1  --values-file tap-values-full.yaml -n tap-install```
 
-- show all the packages installed using 
-```
-./demo-helper.sh dev-cluster
-```
+- show all clusters ```./demo-helper.sh clusters```
 
-- create workloads 
-```
-./demo-helper.sh deploy-workloads
+- switch to view cluster ```./demo-helper.sh view```
+
+- switch to dev cluster ```./demo-helper.sh dev```
+
+- deploy workloads ```./demo-helper.sh deploy-workloads```
 ```
 - follow workloads and supply chain progress via Backstage and/or
 ```
-./demo-helper.sh track-sensors
-./demo-helper.sh track-portal
-./demo-helper.sh tail-sensors-logs
-./demo-helper.sh scanning-results
+./demo-helper.sh track-sensors [logs]
+./demo-helper.sh track-portal [logs]
+./demo-helper.sh scan-results
 ```
 
 - access tap gui accelerators using the ```cloud-native-devsecops``` tag
@@ -122,11 +123,8 @@ run ```./builder.sh brownfield``` to add the following
 
 - access the live url of mood-portal workload and show the call back to the mood-sensors APIs 
 
-- register a entities in tap backstage gui
-  - https://github.com/dektlong/mood-sensors/config/backstage/catalog-info.yaml
-  - https://github.com/dektlong/mood-poratl/config/backstage/catalog-info.yaml
-  - show system view diagram via ```devx-mood```
-  - click down on ```mood-sensors``` to show application live view
+- show system view diagram via ```devx-mood```
+- click down on ```mood-sensors``` to show application live view
 
 - make a code change in ```mood-portal``` app to bypass the backend api calls 
 ```
@@ -137,7 +135,7 @@ run ```./builder.sh brownfield``` to add the following
 ### Outer loop
 - 'promote' to Build cluster (source code)
   ```
-  ./demo-helper.sh stage-cluster
+  ./demo-helper.sh stage
   ./demo-helper.sh promote-staging
   ```
   - show supply chain progress on multi-cluster Backstage
@@ -145,7 +143,7 @@ run ```./builder.sh brownfield``` to add the following
   
 - 'promote' to Run cluster (Deliverable) 
   ```
-  ./demo-helper.sh prod-cluster
+  ./demo-helper.sh prod
   ./demo-helper.sh promote-production
   ```
   - show that the new Deliverable is deployed on the production domain - run.dekt.io

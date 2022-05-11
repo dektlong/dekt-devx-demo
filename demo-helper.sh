@@ -2,6 +2,7 @@
 
 #################### load configs from values yaml  ################
 
+    VIEW_CLUSTER=$(yq .view-cluster.name .config/demo-values.yaml)
     DEV_CLUSTER=$(yq .dev-cluster.name .config/demo-values.yaml)
     STAGE_CLUSTER=$(yq .stage-cluster.name .config/demo-values.yaml)
     PROD_CLUSTER=$(yq .prod-cluster.name .config/demo-values.yaml)
@@ -16,53 +17,72 @@
 
 #################### functions ################
 
-    #dev-cluster
-    dev-cluster() {
+    #display-all-clusters-nodes
+    display-all-clusters-nodes () {
 
-        echo
-        echo "One API to install TAP on any kubectl:"
-        echo
+        scripts/printmsg.sh "One API Install"
+        
         echo "  tanzu package install tap"
         echo "      --package tap.tanzu.vmware.com"
         echo "      --version $TAP_VERSION"
         echo "      --values-file .config/tap_values.yaml"
         echo "      --namespace tap-install"
-        echo
-        echo "==========================================================="
-        echo "TAP packages installed on $DEV_CLUSTER cluster ..."
-        echo "==========================================================="
-        echo
+        
+        scripts/printmsg.sh "View Cluster"
+        
+        kubectl config use-context $VIEW_CLUSTER
+        kubectl get nodes
+
+        scripts/printmsg.sh "Dev/Test Cluster"
+        
         kubectl config use-context $DEV_CLUSTER
         kubectl get nodes
-        echo
+        
+        scripts/printmsg.sh "Staging Cluster"
+
+        kubectl config use-context $STAGE_CLUSTER
+        kubectl get nodes
+        
+        scripts/printmsg.sh "Production Cluster"
+
+        kubectl config use-context $PROD_CLUSTER
+        kubectl get nodes
+
+    }
+
+    #view-cluster
+    view-cluster() {
+
+        scripts/printmsg.sh "TAP 'view' profile, installed on $VIEW_CLUSTER cluster"
+        
+        kubectl config use-context $VIEW_CLUSTER
+        tanzu package installed list -n tap-install
+    }
+
+    #dev-cluster
+    dev-cluster() {
+
+        scripts/printmsg.sh "TAP 'iterate' profile, installed on $DEV_CLUSTER cluster"
+        
+        kubectl config use-context $DEV_CLUSTER
         tanzu package installed list -n tap-install
     }
 
     #stage-cluster
     stage-cluster() {
 
-        echo
-        echo "==========================================================="
-        echo "TAP packages installed on $STAGE_CLUSTER cluster ..."
-        echo "==========================================================="
-        echo
+        scripts/printmsg.sh "TAP 'build' profile, installed on $STAGE_CLUSTER cluster"
+        
         kubectl config use-context $STAGE_CLUSTER
-        kubectl get nodes
-        echo
         tanzu package installed list -n tap-install
     }
 
     #prod-cluster
     prod-cluster() {
         
-        echo
-        echo "==========================================================="
-        echo "TAP packages installed on $PROD_CLUSTER cluster ..."
-        echo "==========================================================="
-        echo
+        scripts/printmsg.sh "TAP 'run' profile, installed on $PROD_CLUSTER cluster"
+        
         kubectl config use-context $PROD_CLUSTER
-        kubectl get nodes
-        echo
         tanzu package installed list -n tap-install
     }
 
@@ -71,54 +91,57 @@
 
         kubectl config use-context $DEV_CLUSTER
 
-        echo
-        echo "tanzu apps workload create -f ../mood-portal/workload.yaml -y -n $APPS_NAMESPACE"
-        echo        
-        tanzu apps workload create -f ../mood-portal/workload.yaml -y -n $APPS_NAMESPACE
+        scripts/printmsg.sh "tanzu apps workload create -f workloads/mood-portal.yaml -y -n $APPS_NAMESPACE"
         
-        echo
-        echo "tanzu apps workload create -f ../mood-sensors/workload.yaml -y -n $APPS_NAMESPACE"
-        echo
-        tanzu apps workload create -f ../mood-sensors/workload.yaml  -y -n $APPS_NAMESPACE
+        tanzu apps workload create -f workloads/mood-portal.yaml -y -n $APPS_NAMESPACE
+
+        scripts/printmsg.sh "tanzu apps workload create -f workloads/mood-sensors.yaml -y -n $APPS_NAMESPACE"
+        
+        tanzu apps workload create -f workloads/mood-sensors.yaml -y -n $APPS_NAMESPACE
     }
 
     #promote-staging
     promote-staging() {
 
+        scripts/printmsg.sh "Promoting workloads (integration branch) to staging cluster"
         kubectl config use-context $STAGE_CLUSTER
         
-        tanzu apps workload create $PORTAL_WORKLOAD \
-            --git-repo https://github.com/dektlong/mood-portal \
-            --git-branch integrate \
-            --type web \
-            --label app.kubernetes.io/part-of=devx-mood \
-            --yes \
-            --namespace $APPS_NAMESPACE 
+        tanzu apps workload create -f workloads/mood-portal-integrate.yaml -y -n $APPS_NAMESPACE
+
+        tanzu apps workload create -f workloads/mood-sensors-integrate.yaml -y -n $APPS_NAMESPACE
     }
   
     #promote-production
     promote-production () {
 
+        scripts/printmsg.sh "Promoting scanned images to pre-prod cluster"
         kubectl config use-context $STAGE_CLUSTER
 
-        echo
-        echo "kubectl get deliverable $PORTAL_WORKLOAD -n $APPS_NAMESPACE -oyaml > $PORTAL_DELIVERABLE"
-        echo 
+        scripts/printmsg.sh "kubectl get deliverable $PORTAL_WORKLOAD -n $APPS_NAMESPACE -oyaml > $PORTAL_DELIVERABLE"
+        
         kubectl get deliverable $PORTAL_WORKLOAD -n $APPS_NAMESPACE -oyaml > $PORTAL_DELIVERABLE
+        
         echo "$PORTAL_DELIVERABLE generated."
         yq e 'del(.status)' $PORTAL_DELIVERABLE -i 
         yq e 'del(.metadata.ownerReferences)' $PORTAL_DELIVERABLE -i 
 
-        echo
-        echo "Hit any key to go production! ..."
+        scripts/printmsg.sh "kubectl get deliverable $SENSORS_WORKLOAD -n $APPS_NAMESPACE -oyaml > $SENSORS_DELIVERABLE"
+         
+        kubectl get deliverable $SENSORS_WORKLOAD -n $APPS_NAMESPACE -oyaml > $SENSORS_DELIVERABLE
+        echo "$SENSORS_DELIVERABLE generated."
+        yq e 'del(.status)' $SENSORS_DELIVERABLE -i 
+        yq e 'del(.metadata.ownerReferences)' $SENSORS_DELIVERABLE -i 
+        
+        scripts/printmsg.sh "Hit any key to go production!"
         read
 
         kubectl config use-context $PROD_CLUSTER
 
-        echo
-        echo "kubectl apply -f $PORTAL_DELIVERABLE -n $APPS_NAMESPACE"
-        echo 
+        scripts/printmsg.sh "kubectl apply -f $PORTAL_DELIVERABLE -n $APPS_NAMESPACE"
         kubectl apply -f $PORTAL_DELIVERABLE -n $APPS_NAMESPACE
+
+        scripts/printmsg.sh "kubectl apply -f $SENSORS_DELIVERABLE -n $APPS_NAMESPACE"
+        kubectl apply -f $SENSORS_DELIVERABLE -n $APPS_NAMESPACE
 
         kubectl get deliverables -n $APPS_NAMESPACE
 
@@ -128,47 +151,46 @@
     #supplychains
     supplychains () {
 
-        echo
-        echo "tanzu apps cluster-supply-chain list"
-        echo
+        scripts/printmsg.sh "tanzu apps cluster-supply-chain list"
+        
         tanzu apps cluster-supply-chain list
     }
 
     #track-sensors
     track-sensors () {
 
-        echo
-        echo "tanzu apps workload get $SENSORS_WORKLOAD -n $APPS_NAMESPACE"
-        echo
+        scripts/printmsg.sh "tanzu apps workload get $SENSORS_WORKLOAD -n $APPS_NAMESPACE"
+        
         tanzu apps workload get $SENSORS_WORKLOAD -n $APPS_NAMESPACE
 
+        
+        if [ "$1" == "logs" ]; then
+            scripts/printmsg.sh "tanzu apps workload tail $SENSORS_WORKLOAD --since 100m --timestamp  -n $APPS_NAMESPACE"
+            
+            tanzu apps workload tail $SENSORS_WORKLOAD --since 100m --timestamp  -n $APPS_NAMESPACE
+        fi
     }
 
     #track-portal
     track-portal () {
 
-        echo
-        echo "tanzu apps workload get $PORTAL_WORKLOAD -n $APPS_NAMESPACE"
-        echo
+        scripts/printmsg.sh "tanzu apps workload get $PORTAL_WORKLOAD -n $APPS_NAMESPACE"
+        
         tanzu apps workload get $PORTAL_WORKLOAD -n $APPS_NAMESPACE
+
+        if [ "$1" == "logs" ]; then
+            scripts/printmsg.sh "tanzu apps workload tail $PORTAL_WORKLOAD --since 100m --timestamp  -n $APPS_NAMESPACE"
+            
+            tanzu apps workload tail $PORTAL_WORKLOAD --since 100m --timestamp  -n $APPS_NAMESPACE
+        fi
 
     }    
 
-    #tail-sensors-logs
-    tail-sensors-logs () {
-
-          tanzu apps workload tail $SENSORS_WORKLOAD --since 100m --timestamp  -n $APPS_NAMESPACE
-    }
-
-    #tail-portal-logs
-    tail-portal-logs () {
-
-        tanzu apps workload tail $PORTAL_WORKLOAD --since 100m --timestamp  -n $APPS_NAMESPACE
-
-    }
-
+    
     #scanning-results
-    scanning-results () {
+    scan-results () {
+
+        scripts/printmsg.sh "Scanning results"
 
         kubectl describe imagescan.scanning.apps.tanzu.vmware.com/$SENSORS_WORKLOAD -n $APPS_NAMESPACE
 
@@ -229,23 +251,24 @@
         echo
         echo "Incorrect usage. Please specify one of the following: "
         echo
+        echo "  clusters"
         echo
-        echo "  dev-cluster"
+        echo "  view"
+        echo
+        echo "  dev"
         echo "  deploy-workloads"
         echo "  behappy"
         echo
-        echo "  stage-cluster"
+        echo "  stage"
         echo "  promote-staging"
         echo
-        echo "  prod-cluster"
+        echo "  prod"
         echo "  promote-production"
         echo
         echo "  supplychains"
-        echo "  track-sensors"
-        echo "  track-portal"
-        echo "  tail-sensors-logs"
-        echo "  tail-portal-logs"
-        echo "  scanning-results"
+        echo "  track-sensors [logs]"
+        echo "  track-portal [logs]"
+        echo "  scan-results"
         echo
         echo "  reset"
         exit
@@ -254,13 +277,19 @@
 #################### main ##########################
 
 case $1 in
-dev-cluster)
+clusters)
+    display-all-clusters-nodes
+    ;;
+view)
+    view-cluster
+    ;;
+dev)
     dev-cluster
     ;;
-stage-cluster)
+stage)
     stage-cluster
     ;;
-prod-cluster)
+prod)
     prod-cluster
     ;;
 deploy-workloads)
@@ -276,19 +305,13 @@ supplychains)
     supplychains
     ;;
 track-sensors)
-    track-sensors
+    track-sensors $2
     ;;
 track-portal)
-    track-portal
+    track-portal $2
     ;;
-tail-sensors-logs)
-    tail-sensors-logs
-    ;;
-tail-portal-logs)
-    tail-portal-logs
-    ;;
-scanning-results)
-    scanning-results
+scan-results)
+    scan-results
     ;;
 behappy)
     toggle-dog happy

@@ -1,31 +1,44 @@
-
-dev-cluster: # TAP full profile installed
-  provider:  #acceptable values: aks, eks, minikube
-  nodes:  #see https://docs.vmware.com/en/Tanzu-Application-Platform/1.1/tap/GUID-prerequisites.html#resource-requirements-4
+#==================================================================
+# Clusters definitions
+#
+# Supported k8s providers: aks, eks, gke, minikube
+#
+# see resource requirements:
+#   https://docs.vmware.com/en/Tanzu-Application-Platform/1.1/tap/GUID-prerequisites.html#resource-requirements-4
+#   https://docs.vmware.com/en/VMware-Tanzu-Service-Mesh/services/tanzu-service-mesh-environment-requirements-and-supported-platforms/GUID-D0B939BE-474E-4075-9A65-3D72B5B9F237.html
+#==================================================================
+view-cluster: # TAP view profile installed
   name: ""
+  provider:  
+  nodes:
+dev-cluster: # TAP iterate profile installed
+  name: ""
+  provider:  
+  nodes:  
 stage-cluster: # TAP build profile installed
-  provider:  #acceptable values: aks, eks
-  nodes:  #see https://docs.vmware.com/en/Tanzu-Application-Platform/1.1/tap/GUID-prerequisites.html#resource-requirements-4
   name: ""
+  provider:  
+  nodes:  
 prod-cluster: # TAP run profile installed
-  provider: #acceptable values: aks, eks
-  nodes:  #see https://docs.vmware.com/en/Tanzu-Application-Platform/1.1/tap/GUID-prerequisites.html#resource-requirements-4
   name: ""
-heritage-cluster: #for bronwfield apis demo, TSM agent installed, no TAP installed
-  provider:  #acceptable values: aks, eks
-  nodes:  #see https://docs.vmware.com/en/VMware-Tanzu-Service-Mesh/services/tanzu-service-mesh-environment-requirements-and-supported-platforms/GUID-D0B939BE-474E-4075-9A65-3D72B5B9F237.html
+  provider: 
+  nodes:  
+heritage-cluster: #TSM agent installed, no TAP installed
   name: ""
+  provider:  
+  nodes: 
 
+#==================================================================
+# Configs
+#==================================================================
 tap:
   version: "1.1.0"
   systemRepo: ""
   appRepo: ""
   appNamespace: ""
-
 dns:
   domain: ""
   godaddyApiKey: ""
   godaddyApiSecret: ""
-
 apis:
   scgwInstallDirectory: ""
