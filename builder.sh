@@ -322,7 +322,7 @@ delete)
     ;;
 brownfield)
     scripts/k8s-handler.sh create $HERITAGE_CLUSTER_PROVIDER $HERITAGE_CLUSTER_NAME $HERITAGE_CLUSTER_NODES
-    add-apis
+    kubectl create ns brownfield-apis
     ;;
 dev)
     install-gui-dev

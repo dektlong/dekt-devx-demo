@@ -3,7 +3,7 @@
 AZURE_RESOURCE_GROUP="tap-aks"
 AZURE_LOCATION="westus"
 AWS_REGION="us-west-1" #aws ec2 describe-regions --output table
-GKE_ZONE="us-west1-a"
+GKE_REGION="us-central1"
 GCP_PROJECT_ID="fe-asaikali"
 TANZU_NETWORK_USER=$(yq .buildservice.tanzunet_username .config/tap-values-full.yaml)
 TANZU_NETWORK_PASSWORD=$(yq .buildservice.tanzunet_password .config/tap-values-full.yaml)
@@ -83,9 +83,10 @@ create-gke-cluster () {
 	scripts/dektecho.sh info "Creating GKE cluster $cluster_name with $number_of_nodes nodes"
 	
 	gcloud container clusters create $cluster_name \
-		--zone $GKE_ZONE \
+		--region $GKE_REGION \
 		--project $GCP_PROJECT_ID \
-		--num-nodes $number_of_nodes
+		--num-nodes $number_of_nodes \
+		--machine-type "e2-standard-4"
 
 	gcloud container clusters get-credentials $cluster_name --zone $GKE_ZONE --project $GCP_PROJECT_ID
 
@@ -101,7 +102,7 @@ delete-gke-cluster () {
 	scripts/dektecho.sh info "Starting deleting resources of GKE cluster $cluster_name"
 	
     gcloud container clusters delete $cluster_name \
-		--zone $GKE_ZONE \
+		--region $GKE_REGION \
 		--project $GCP_PROJECT_ID \
 		--quiet
 
