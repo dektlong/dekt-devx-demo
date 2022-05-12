@@ -307,6 +307,9 @@ outerloop)
         ;;
     esac
     ;;
+supplychains)
+    supplychains
+    ;;
 track-sensors)
     track-sensors $2
     ;;
