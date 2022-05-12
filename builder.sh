@@ -312,7 +312,7 @@ init)
     install-all
     ;;
 delete)
-    echo "!!!Are you sure you want to delete all clusters?"
+    scripts/dektecho.sh err  "!!!Are you sure you want to delete all clusters?"
     read
     ./demo-helper.sh cleanup-helper
     scripts/k8s-handler.sh delete $DEV_CLUSTER_PROVIDER $DEV_CLUSTER_NAME
