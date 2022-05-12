@@ -14,9 +14,9 @@
     VIEW_CLUSTER_NAME=$(yq .view-cluster.name .config/demo-values.yaml)
     VIEW_CLUSTER_PROVIDER=$(yq .view-cluster.provider .config/demo-values.yaml)
     VIEW_CLUSTER_NODES=$(yq .view-cluster.nodes .config/demo-values.yaml)
-    HERITAGE_CLUSTER_NAME=$(yq .heritage-cluster.name .config/demo-values.yaml)
-    HERITAGE_CLUSTER_PROVIDER=$(yq .heritage-cluster.provider .config/demo-values.yaml)
-    HERITAGE_CLUSTER_NODES=$(yq .heritage-cluster.nodes .config/demo-values.yaml)
+    EXTERNAL_CLUSTER_NAME=$(yq .external-cluster.name .config/demo-values.yaml)
+    EXTERNAL_CLUSTER_PROVIDER=$(yq .external-cluster.provider .config/demo-values.yaml)
+    EXTERNAL_CLUSTER_NODES=$(yq .external-cluster.nodes .config/demo-values.yaml)
 
     #image registry
     PRIVATE_REPO_SERVER=$(yq .ootb_supply_chain_basic.registry.server .config/tap-iterate.yaml)
@@ -318,10 +318,10 @@ delete)
     scripts/k8s-handler.sh delete $DEV_CLUSTER_PROVIDER $DEV_CLUSTER_NAME
     scripts/k8s-handler.sh delete $STAGE_CLUSTER_PROVIDER $STAGE_CLUSTER_NAME
     scripts/k8s-handler.sh delete $PROD_CLUSTER_PROVIDER $PROD_CLUSTER_NAME
-    scripts/k8s-handler.sh delete $HERITAGE_CLUSTER_PROVIDER $HERITAGE_CLUSTER_NAME
+    scripts/k8s-handler.sh delete $EXTERNAL_CLUSTER_PROVIDER $EXTERNAL_CLUSTER_NAME
     ;;
 brownfield)
-    scripts/k8s-handler.sh create $HERITAGE_CLUSTER_PROVIDER $HERITAGE_CLUSTER_NAME $HERITAGE_CLUSTER_NODES
+    scripts/k8s-handler.sh create $EXTERNAL_CLUSTER_PROVIDER $EXTERNAL_CLUSTER_NAME $EXTERNAL_CLUSTER_NODES
     kubectl create ns brownfield-apis
     ;;
 dev)

@@ -6,6 +6,7 @@
     DEV_CLUSTER=$(yq .dev-cluster.name .config/demo-values.yaml)
     STAGE_CLUSTER=$(yq .stage-cluster.name .config/demo-values.yaml)
     PROD_CLUSTER=$(yq .prod-cluster.name .config/demo-values.yaml)
+    EXTERNAL_CLUSTER=$(yq .external-cluster.name .config/demo-values.yaml)
     PORTAL_WORKLOAD="mood-portal"
     SENSORS_WORKLOAD="mood-sensors"
     PORTAL_DELIVERABLE="portal-prod-golden-config.yaml"
@@ -40,6 +41,9 @@
         kubectl cluster-info | grep 'control plane' --color=never
 
         kubectl config use-context $PROD_CLUSTER 
+        kubectl cluster-info | grep 'control plane' --color=never
+
+             kubectl config use-context $EXTERNAL_CLUSTER 
         kubectl cluster-info | grep 'control plane' --color=never
 
     }
