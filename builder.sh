@@ -142,16 +142,16 @@
 
         scripts/dektecho.sh info "Configure TAP Workloads GUI plugin to support multi-clusters"
           
-        kubectl config use-context $PROD_CLUSTER_NAME
+        kubectl config use-context $DEV_CLUSTER_NAME
         kubectl apply -f .config/tap-gui-viewer-sa-rbac.yaml
-        export prodClusterUrl=$(kubectl config view --minify -o jsonpath='{.clusters[0].cluster.server}')
-        export prodClusterToken=$(kubectl -n tap-gui get secret $(kubectl -n tap-gui get sa tap-gui-viewer -o=json \
+        export devClusterUrl=$(kubectl config view --minify -o jsonpath='{.clusters[0].cluster.server}')
+        export devClusterToken=$(kubectl -n tap-gui get secret $(kubectl -n tap-gui get sa tap-gui-viewer -o=json \
         | jq -r '.secrets[0].name') -o=json \
         | jq -r '.data["token"]' \
         | base64 --decode)
 
-        yq '.tap_gui.app_config.kubernetes.clusterLocatorMethods.[0].clusters.[0].url = env(prodClusterUrl)' .config/tap-view.yaml -i
-        yq '.tap_gui.app_config.kubernetes.clusterLocatorMethods.[0].clusters.[0].serviceAccountToken = env(prodClusterToken)' .config/tap-view.yaml -i
+        yq '.tap_gui.app_config.kubernetes.clusterLocatorMethods.[0].clusters.[0].url = env(devClusterUrl)' .config/tap-view.yaml -i
+        yq '.tap_gui.app_config.kubernetes.clusterLocatorMethods.[0].clusters.[0].serviceAccountToken = env(devClusterToken)' .config/tap-view.yaml -i
 
         kubectl config use-context $STAGE_CLUSTER_NAME
         kubectl apply -f .config/tap-gui-viewer-sa-rbac.yaml
@@ -164,16 +164,17 @@
         yq '.tap_gui.app_config.kubernetes.clusterLocatorMethods.[0].clusters.[1].url = env(stageClusterUrl)' .config/tap-view.yaml -i
         yq '.tap_gui.app_config.kubernetes.clusterLocatorMethods.[0].clusters.[1].serviceAccountToken = env(stageClusterToken)' .config/tap-view.yaml -i
 
-        kubectl config use-context $DEV_CLUSTER_NAME
+
+        kubectl config use-context $PROD_CLUSTER_NAME
         kubectl apply -f .config/tap-gui-viewer-sa-rbac.yaml
-        export devClusterUrl=$(kubectl config view --minify -o jsonpath='{.clusters[0].cluster.server}')
-        export devClusterToken=$(kubectl -n tap-gui get secret $(kubectl -n tap-gui get sa tap-gui-viewer -o=json \
+        export prodClusterUrl=$(kubectl config view --minify -o jsonpath='{.clusters[0].cluster.server}')
+        export prodClusterToken=$(kubectl -n tap-gui get secret $(kubectl -n tap-gui get sa tap-gui-viewer -o=json \
         | jq -r '.secrets[0].name') -o=json \
         | jq -r '.data["token"]' \
         | base64 --decode)
 
-        yq '.tap_gui.app_config.kubernetes.clusterLocatorMethods.[0].clusters.[2].url = env(devClusterUrl)' .config/tap-view.yaml -i
-        yq '.tap_gui.app_config.kubernetes.clusterLocatorMethods.[0].clusters.[2].serviceAccountToken = env(devClusterToken)' .config/tap-view.yaml -i
+        yq '.tap_gui.app_config.kubernetes.clusterLocatorMethods.[0].clusters.[2].url = env(prodClusterUrl)' .config/tap-view.yaml -i
+        yq '.tap_gui.app_config.kubernetes.clusterLocatorMethods.[0].clusters.[2].serviceAccountToken = env(prodClusterToken)' .config/tap-view.yaml -i
 
         kubectl config use-context $VIEW_CLUSTER_NAME
         tanzu package installed update tap --package-name tap.tanzu.vmware.com --version $TAP_VERSION -n tap-install -f .config/tap-view.yaml

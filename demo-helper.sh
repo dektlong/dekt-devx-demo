@@ -17,8 +17,8 @@
 
 #################### functions ################
 
-    #display-all-clusters-nodes
-    display-all-clusters-nodes () {
+    #info
+    info () {
 
         scripts/dektecho.sh info "One API Install"
         
@@ -28,25 +28,19 @@
         echo "      --values-file .config/tap_values.yaml"
         echo "      --namespace tap-install"
         
-        scripts/dektecho.sh info "View Cluster"
+        scripts/dektecho.sh info "Cluster topology"
         
         kubectl config use-context $VIEW_CLUSTER
-        kubectl get nodes
+        kubectl cluster-info | grep 'control plane' --color=never
 
-        scripts/dektecho.sh info "Dev/Test Cluster"
+        kubectl config use-context $DEV_CLUSTER 
+        kubectl cluster-info | grep 'control plane' --color=never
         
-        kubectl config use-context $DEV_CLUSTER
-        kubectl get nodes
-        
-        scripts/dektecho.sh info "Staging Cluster"
+        kubectl config use-context $STAGE_CLUSTER 
+        kubectl cluster-info | grep 'control plane' --color=never
 
-        kubectl config use-context $STAGE_CLUSTER
-        kubectl get nodes
-        
-        scripts/dektecho.sh info "Production Cluster"
-
-        kubectl config use-context $PROD_CLUSTER
-        kubectl get nodes
+        kubectl config use-context $PROD_CLUSTER 
+        kubectl cluster-info | grep 'control plane' --color=never
 
     }
 
@@ -254,18 +248,18 @@
         echo
         scripts/dektecho.sh err "Incorrect usage. Please specify one of the following: "
         echo
-        echo "  clusters"
+        echo "  info"
         echo
-        echo "  view"
+        echo "  view-cluster"
         echo
-        echo "  dev"
+        echo "  dev-cluster"
         echo "  deploy-workloads"
         echo "  behappy"
         echo
-        echo "  stage"
+        echo "  stage-cluster"
         echo "  promote-staging"
         echo
-        echo "  prod"
+        echo "  prod-cluster"
         echo "  promote-production"
         echo
         echo "  supplychains"
@@ -280,19 +274,19 @@
 #################### main ##########################
 
 case $1 in
-clusters)
-    display-all-clusters-nodes
+info)
+    info
     ;;
-view)
+view-cluster)
     view-cluster
     ;;
-dev)
+dev-cluster)
     dev-cluster
     ;;
-stage)
+stage-cluster)
     stage-cluster
     ;;
-prod)
+prod-cluster)
     prod-cluster
     ;;
 deploy-workloads)

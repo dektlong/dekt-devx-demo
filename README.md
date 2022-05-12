@@ -94,11 +94,11 @@ run ```./builder.sh brownfield``` to add the following
 - show the simple tap installed command (don't actually run)
   - ```tanzu package install tap -p tap.tanzu.vmware.com -v 1.0.1  --values-file tap-values-full.yaml -n tap-install```
 
-- show all clusters ```./demo-helper.sh clusters```
+- show cluster topology ```./demo-helper.sh info```
 
-- switch to view cluster ```./demo-helper.sh view```
+- switch to view cluster ```./demo-helper.sh view-cluster```
 
-- switch to dev cluster ```./demo-helper.sh dev```
+- switch to dev cluster ```./demo-helper.sh dev-cluster```
 
 - deploy workloads ```./demo-helper.sh deploy-workloads```
 ```
@@ -135,7 +135,7 @@ run ```./builder.sh brownfield``` to add the following
 ### Outer loop
 - 'promote' to Build cluster (source code)
   ```
-  ./demo-helper.sh stage
+  ./demo-helper.sh stage-cluster
   ./demo-helper.sh promote-staging
   ```
   - show supply chain progress on multi-cluster Backstage
@@ -143,7 +143,7 @@ run ```./builder.sh brownfield``` to add the following
   
 - 'promote' to Run cluster (Deliverable) 
   ```
-  ./demo-helper.sh prod
+  ./demo-helper.sh prod-cluster
   ./demo-helper.sh promote-production
   ```
   - show that the new Deliverable is deployed on the production domain - run.dekt.io
