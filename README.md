@@ -96,18 +96,14 @@ run ```./builder.sh brownfield``` to add the following
 
 - show cluster topology ```./demo-helper.sh info```
 
-- switch to view cluster ```./demo-helper.sh view-cluster```
+- show inner loop tap clusters (view, dev) ```./demo-helper.sh innerloop tap```
 
-- switch to dev cluster ```./demo-helper.sh dev-cluster```
+- deploy workloads ```./demo-helper.sh innerloop deploy```
 
-- deploy workloads ```./demo-helper.sh deploy-workloads```
-```
 - follow workloads and supply chain progress via Backstage and/or
-```
-./demo-helper.sh track-sensors [logs]
-./demo-helper.sh track-portal [logs]
-./demo-helper.sh scan-results
-```
+  - ```./demo-helper.sh track-sensors [logs]```
+  - ```./demo-helper.sh track-portal [logs]```
+  - ```./demo-helper.sh scan-results```
 
 - access tap gui accelerators using the ```cloud-native-devsecops``` tag
   - create ```dekt-path2prod``` supplychain using the microservices-supplychain accelerator with ```web-backend``` workload type 
@@ -116,10 +112,7 @@ run ```./builder.sh brownfield``` to add the following
 
 - highlight the separation of concerns between supplychain (AppOps) and supplychain-templates (Platform Ops)
 
-- show applied supply chains using 
-```
-./demo-helper.sh supplychains
-```
+- show applied supply chains using ```./demo-helper.sh supplychains```
 
 - access the live url of mood-portal workload and show the call back to the mood-sensors APIs 
 
@@ -127,25 +120,16 @@ run ```./builder.sh brownfield``` to add the following
 - click down on ```mood-sensors``` to show application live view
 
 - make a code change in ```mood-portal``` app to bypass the backend api calls 
-```
-./demo-helper behappy
-```
+  - ```./demo-helper innerloop behappy```
   - show how the supplychain re-builds and deploy a new revision with a happy dog
 
 ### Outer loop
-- 'promote' to Build cluster (source code)
-  ```
-  ./demo-helper.sh stage-cluster
-  ./demo-helper.sh promote-staging
-  ```
-  - show supply chain progress on multi-cluster Backstage
-  - Retrieve the mood-portal supplychain deliverable output on the Build cluster
-  
-- 'promote' to Run cluster (Deliverable) 
-  ```
-  ./demo-helper.sh prod-cluster
-  ./demo-helper.sh promote-production
-  ```
+- show outer loop tap clusters (stage, prod) ```./demo-helper.sh outerloop tap```
+
+- 'promote' to Staging cluster (source code) ```./demo-helper.sh outerloop staging```
+  - show the enhanced supply chain (dekt-build with scanning) progress on multi-cluster Backstage
+ 
+- 'promote' to Run cluster (Deliverable)  ```./demo-helper.sh outerloop production```
   - show that the new Deliverable is deployed on the production domain - run.dekt.io
 
 ## Cleanup

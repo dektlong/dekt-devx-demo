@@ -329,7 +329,7 @@ delete)
     ;;
 brownfield)
     scripts/k8s-handler.sh create $BROWNFIELD_CLUSTER_PROVIDER $BROWNFIELD_CLUSTER_NAME $BROWNFIELD_CLUSTER_NODES
-    install-brownfield-apis $STAGE_CLUSTER_NAME
+    #install-brownfield-apis $STAGE_CLUSTER_NAME
     install-brownfield-apis $BROWNFIELD_CLUSTER_NAME
     ;;
 dev)

@@ -130,7 +130,7 @@
         yq e 'del(.status)' $SENSORS_DELIVERABLE -i 
         yq e 'del(.metadata.ownerReferences)' $SENSORS_DELIVERABLE -i 
         
-        scripts/dektecho.sh info "Hit any key to go production!"
+        scripts/dektecho.sh err "Hit any key to go production!"
         read
 
         kubectl config use-context $PROD_CLUSTER
@@ -254,17 +254,9 @@
         echo
         echo "  info"
         echo
-        echo "  view-cluster"
+        echo "  innerloop [tap / deploy / behappy]"
         echo
-        echo "  dev-cluster"
-        echo "  deploy-workloads"
-        echo "  behappy"
-        echo
-        echo "  stage-cluster"
-        echo "  promote-staging"
-        echo
-        echo "  prod-cluster"
-        echo "  promote-production"
+        echo "  outerloop [tap / staging / production]"
         echo
         echo "  supplychains"
         echo "  track-sensors [logs]"
@@ -281,29 +273,39 @@ case $1 in
 info)
     info
     ;;
-view-cluster)
-    view-cluster
+innerloop)
+    case $2 in
+    tap)
+        view-cluster
+        dev-cluster
+        ;;
+    deploy)
+        deploy-workloads
+        ;;
+    behappy)
+        toggle-dog happy
+        ;;
+    *)
+        incorrect-usage
+        ;;
+    esac
     ;;
-dev-cluster)
-    dev-cluster
-    ;;
-stage-cluster)
-    stage-cluster
-    ;;
-prod-cluster)
-    prod-cluster
-    ;;
-deploy-workloads)
-    deploy-workloads
-    ;;
-promote-staging)
-    promote-staging
-    ;;
-promote-production)
-    promote-production
-    ;;
-supplychains)
-    supplychains
+outerloop)
+    case $2 in
+    tap)
+        stage-cluster
+        prod-cluster
+        ;;
+    staging)
+        promote-staging
+        ;;
+    production)
+        promote-production
+        ;;
+    *)
+        incorrect-usage
+        ;;
+    esac
     ;;
 track-sensors)
     track-sensors $2
