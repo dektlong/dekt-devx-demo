@@ -23,7 +23,7 @@ prod-cluster: # TAP run profile installed
   name: ""
   provider: 
   nodes:  
-external-cluster: #TSM agent installed, no TAP installed
+brownfield-cluster: #TSM agent installed, no TAP installed
   name: ""
   provider:  
   nodes: 

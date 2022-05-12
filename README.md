@@ -74,9 +74,9 @@ This repo contains artifacts to run a demo illustrating the vision and capabilit
     - CNR run ingress rule
 
 run ```./builder.sh brownfield``` to add the following
-  - Create **heritage** cluster 
+  - Create **brownfield** cluster 
   - You should install the TSM agent and Spring Cloud Gateway operator via the TSM console on-board cluster process
-  - add brownfield APIs routes and gateways (see ```brownfield-apis```)
+  - The scripts creade the brownfield APIs routes and gateways (see ```brownfield-apis```)
 
 ## Running the demo 
 

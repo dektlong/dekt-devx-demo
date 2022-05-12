@@ -14,9 +14,9 @@
     VIEW_CLUSTER_NAME=$(yq .view-cluster.name .config/demo-values.yaml)
     VIEW_CLUSTER_PROVIDER=$(yq .view-cluster.provider .config/demo-values.yaml)
     VIEW_CLUSTER_NODES=$(yq .view-cluster.nodes .config/demo-values.yaml)
-    EXTERNAL_CLUSTER_NAME=$(yq .external-cluster.name .config/demo-values.yaml)
-    EXTERNAL_CLUSTER_PROVIDER=$(yq .external-cluster.provider .config/demo-values.yaml)
-    EXTERNAL_CLUSTER_NODES=$(yq .external-cluster.nodes .config/demo-values.yaml)
+    BROWNFIELD_CLUSTER_NAME=$(yq .brownfield-cluster.name .config/demo-values.yaml)
+    BROWNFIELD_CLUSTER_PROVIDER=$(yq .brownfield-cluster.provider .config/demo-values.yaml)
+    BROWNFIELD_CLUSTER_NODES=$(yq .brownfield-cluster.nodes .config/demo-values.yaml)
 
     #image registry
     PRIVATE_REPO_SERVER=$(yq .ootb_supply_chain_basic.registry.server .config/tap-iterate.yaml)
@@ -203,8 +203,15 @@
         kubectl apply -f .config/reading-rabbitmq-prod.yaml -n $APPS_NAMESPACE
     }
 
-    #add-apis
-    add-apis () {
+    
+    #install-brownfield-apis
+    install-brownfield-apis () {
+        
+        tap_cluster_name=$1
+
+        kubectl config use-context $tap_cluster_name
+
+        scripts/dektecho.sh info "Installing brownfield APIs on $tap_cluster_name"
 
         kubectl create ns scgw-system
 
@@ -214,7 +221,7 @@
             --docker-password=$PRIVATE_REPO_PASSWORD \
             --namespace scgw-system
  
-        relocate-gw-images
+        #relocate-gw-images
 
         $GW_INSTALL_DIR/scripts/install-spring-cloud-gateway.sh --namespace scgw-system
 
@@ -223,7 +230,7 @@
         kubectl create secret generic sso-credentials --from-env-file=.config/sso-creds.txt -n api-portal
         kustomize build brownfield-apis | kubectl apply -f -
 
-        scripts/ingress-handler.sh add-brownfield-apis $SYSTEM_SUB_DOMAIN
+        #scripts/ingress-handler.sh add-brownfield-apis $SYSTEM_SUB_DOMAIN
     }
 
     #relocate-images
@@ -318,11 +325,12 @@ delete)
     scripts/k8s-handler.sh delete $DEV_CLUSTER_PROVIDER $DEV_CLUSTER_NAME
     scripts/k8s-handler.sh delete $STAGE_CLUSTER_PROVIDER $STAGE_CLUSTER_NAME
     scripts/k8s-handler.sh delete $PROD_CLUSTER_PROVIDER $PROD_CLUSTER_NAME
-    scripts/k8s-handler.sh delete $EXTERNAL_CLUSTER_PROVIDER $EXTERNAL_CLUSTER_NAME
+    scripts/k8s-handler.sh delete $BROWNFIELD_CLUSTER_PROVIDER $BROWNFIELD_CLUSTER_NAME
     ;;
 brownfield)
-    scripts/k8s-handler.sh create $EXTERNAL_CLUSTER_PROVIDER $EXTERNAL_CLUSTER_NAME $EXTERNAL_CLUSTER_NODES
-    kubectl create ns brownfield-apis
+    scripts/k8s-handler.sh create $BROWNFIELD_CLUSTER_PROVIDER $BROWNFIELD_CLUSTER_NAME $BROWNFIELD_CLUSTER_NODES
+    install-brownfield-apis $STAGE_CLUSTER_NAME
+    install-brownfield-apis $BROWNFIELD_CLUSTER_NAME
     ;;
 dev)
     install-gui-dev
