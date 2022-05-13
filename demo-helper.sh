@@ -54,6 +54,7 @@
         scripts/dektecho.sh info "Brownfield cluster (Tanzu Service Mesh)"
         kubectl config use-context $BROWNFIELD_CLUSTER 
         kubectl cluster-info | grep 'control plane' --color=never
+        kubectl get pods -n brownfield-apis
 
     }
 

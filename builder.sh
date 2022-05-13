@@ -244,6 +244,18 @@
         $GW_INSTALL_DIR/scripts/relocate-images.sh $PRIVATE_REPO_SERVER/$SYSTEM_REPO
     }
 
+    #relocate-tds-images
+    relocate-tds-images() {
+
+        #docker login $PRIVATE_REPO_SERVER -u $PRIVATE_REPO_USER -p $PRIVATE_REPO_PASSWORD
+        #docker login registry.tanzu.vmware.com -u $TANZU_NETWORK_USER -p $TANZU_NETWORK_PASSWORD
+        
+        #imgpkg copy -b registry.tanzu.vmware.com/packages-for-vmware-tanzu-data-services/tds-packages:1.0.0 \
+        #    --to-repo $PRIVATE_REPO_SERVER/$SYSTEM_REPO/tds-packages
+
+        tanzu package repository add tanzu-data-services-repository --url $PRIVATE_REPO_SERVER/$SYSTEM_REPO/tds-packages:1.0.0 -n tap-install
+    }
+
     #relocate-tap-images
     relocate-tap-images() {
 
