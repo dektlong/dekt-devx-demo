@@ -199,8 +199,8 @@
     reset() {
 
         kubectl config use-context $STAGE_CLUSTER
-        tanzu apps workload delete $PORTAL_WORKLOAD -n $APPS_NAMESPACE -y
-        tanzu apps workload delete $SENSORS_WORKLOAD -n $APPS_NAMESPACE -y
+        tanzu apps workload delete $PORTAL_WORKLOAD-build -n $APPS_NAMESPACE -y
+        tanzu apps workload delete $SENSORS_WORKLOAD-build -n $APPS_NAMESPACE -y
 
         kubectl config use-context $PROD_CLUSTER
         kubectl delete -f $PORTAL_DELIVERABLE

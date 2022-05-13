@@ -264,6 +264,26 @@
 
     }
     
+    #uninstall-tap
+    uninstall-tap () {
+
+        scripts/dektecho.sh err  "!!!Are you sure you want to uninstall TAP from all clusters?"
+        read
+
+        kubectl config use-context $VIEW_CLUSTER_NAME
+        tanzu package installed delete tap -y -n tap-install
+        
+        kubectl config use-context $DEV_CLUSTER_NAME
+        tanzu package installed delete tap -y -n tap-install
+        
+        kubectl config use-context $STAGE_CLUSTER_NAME
+        tanzu package installed delete tap -y -n tap-install
+
+        kubectl config use-context $PROD_CLUSTER_NAME
+        tanzu package installed delete tap -y -n tap-install
+
+    }
+
     #install-gui-dev
     install-gui-dev() {
 
