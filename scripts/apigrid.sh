@@ -1,14 +1,14 @@
 #!/usr/bin/env bash
 
-PRIVATE_REPO=$(yq e .ootb_supply_chain_basic.registry.server .config/tap-values-full.yaml)
-PRIVATE_REPO_USER=$(yq e .buildservice.kp_default_repository_username .config/tap-values-full.yaml)
-PRIVATE_REPO_PASSWORD=$(yq e .buildservice.kp_default_repository_password .config/tap-values-full.yaml)
+PRIVATE_REPO=$(yq e .ootb_supply_chain_basic.registry.server ../.config/tap-values-full.yaml)
+PRIVATE_REPO_USER=$(yq e .buildservice.kp_default_repository_username ../.config/tap-values-full.yaml)
+PRIVATE_REPO_PASSWORD=$(yq e .buildservice.kp_default_repository_password ../.config/tap-values-full.yaml)
 DEMO_APP_GIT_REPO="https://github.com/dektlong/APIGridDemo"
 BUILDER_NAME="online-stores-builder"
 BACKEND_TBS_IMAGE="dekt4pets-backend"
 FRONTEND_TBS_IMAGE="dekt4pets-frontend"
-APPS_NAMESPACE=$(yq .tap.appNamespace .config/demo-values.yaml)
-DEV_SUB_DOMAIN=$(yq .cnrs.domain_name .config/tap-values-full.yaml | cut -d'.' -f 1)
+APPS_NAMESPACE=$(yq .tap.appNamespace ../.config/demo-values.yaml)
+DEV_SUB_DOMAIN=$(yq .cnrs.domain_name ../.config/tap-values-full.yaml | cut -d'.' -f 1)
 
 #init (assumes api-portal and api-gw are installed)
 init() {
@@ -42,9 +42,9 @@ init() {
         --wait
 
         #dekt4pets secrets
-        kubectl create secret generic sso-secret --from-env-file=.config/sso-creds.txt -n $APPS_NAMESPACE
-        kubectl create secret generic jwk-secret --from-env-file=.config/jwk-creds.txt -n $APPS_NAMESPACE
-        kubectl create secret generic wavefront-secret --from-env-file=.config/wavefront-creds.txt -n $APPS_NAMESPACE
+        kubectl create secret generic sso-secret --from-env-file=../.config/sso-creds.txt -n $APPS_NAMESPACE
+        kubectl create secret generic jwk-secret --from-env-file=../.config/jwk-creds.txt -n $APPS_NAMESPACE
+        kubectl create secret generic wavefront-secret --from-env-file=../.config/wavefront-creds.txt -n $APPS_NAMESPACE
 
         #dev gateway and apps
         kubectl apply -f workloads/dekt4pets/gateway/dekt4pets-gateway-dev.yaml -n $APPS_NAMESPACE
@@ -72,7 +72,7 @@ create-backend() {
     scripts/dektecho.sh info "2. Apply development routes, mapping and micro-gateway"
     
     kubectl apply -f workloads/dekt4pets/backend/routes/dekt4pets-backend-mapping-dev.yaml -n $APPS_NAMESPACE
-    kubectl apply -f workloads/dekt4pets/backend/routes/dekt4pets-backend-route-config.yaml -n $APPS_NAMESPACE
+    kubectl apply -f workloads/dekt4pets/backend/routes/dekt4pets-backend-route../.config.yaml -n $APPS_NAMESPACE
     #dekt4pets-dev gateway instances created as part of demo build to save time
 
     scripts/dektecho.sh info "3. Create backend app via src-to-img supply-chain"
@@ -119,7 +119,7 @@ patch-backend() {
     
     kubectl delete -f workloads/dekt4pets/backend/dekt4pets-backend.yaml -n $APPS_NAMESPACE
     kubectl apply -f workloads/dekt4pets/backend/dekt4pets-backend.yaml -n $APPS_NAMESPACE
-    kubectl apply -f workloads/dekt4pets/backend/routes/dekt4pets-backend-route-config.yaml -n $APPS_NAMESPACE
+    kubectl apply -f workloads/dekt4pets/backend/routes/dekt4pets-backend-route../.config.yaml -n $APPS_NAMESPACE
 
 }
 
@@ -161,7 +161,7 @@ adopter-check () {
 #commit-adopter-check-api
 commit-adopter-check-api () {
 
-    git commit -m "add check-adpoter api route" workloads/dekt4pets/backend/routes/dekt4pets-backend-route-config.yaml
+    git commit -m "add check-adpoter api route" workloads/dekt4pets/backend/routes/dekt4pets-backend-route../.config.yaml
 
     git commit -m "add check-adpoter function" workloads/dekt4pets/backend/src/main/java/io/spring/cloud/samples/animalrescue/backend/AnimalController.java
 
@@ -183,7 +183,7 @@ cleanup() {
     kubectl delete -f workloads/dekt4pets/gateway/dekt4pets-gateway.yaml -n $APPS_NAMESPACE
     kubectl delete -f workloads/dekt4pets/gateway/dekt4pets-gateway-dev.yaml -n $APPS_NAMESPACE
     kubectl delete -f workloads/dekt4pets/backend/routes/dekt4pets-backend-mapping-dev.yaml -n $APPS_NAMESPACE
-    kubectl delete -f workloads/dekt4pets/backend/routes/dekt4pets-backend-route-config.yaml -n $APPS_NAMESPACE
+    kubectl delete -f workloads/dekt4pets/backend/routes/dekt4pets-backend-route../.config.yaml -n $APPS_NAMESPACE
     kustomize build workloads/dekt4pets/frontend | kubectl delete -f -
 
 
