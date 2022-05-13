@@ -3,7 +3,7 @@
 
 # Ignore the secrets folder
 .config
-
+.gitops
 # Ignore files related to config values and credentials
 .env
 

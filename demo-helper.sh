@@ -11,8 +11,8 @@
     PORTAL_WORKLOAD_PROD="mood-portal"
     SENSORS_WORKLOAD_DEV="mysensors"
     SENSORS_WORKLOAD_PROD="mood-sensors"
-    PORTAL_DELIVERABLE="portal-prod-golden-config.yaml"
-    SENSORS_DELIVERABLE="sensors-prod-golden-config.yaml"
+    PORTAL_DELIVERABLE=".gitops/portal-prod-golden-config.yaml"
+    SENSORS_DELIVERABLE=".gitops/sensors-prod-golden-config.yaml"
     TAP_VERSION=$(yq .tap.version .config/demo-values.yaml)
     SYSTEM_REPO=$(yq .tap.systemRepo .config/demo-values.yaml)
     APPS_NAMESPACE=$(yq .tap.appNamespace .config/demo-values.yaml)
