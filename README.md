@@ -96,13 +96,10 @@ run ```./builder.sh brownfield``` to add the following
 
 - show cluster topology ```./demo-helper.sh info```
 
-- show inner loop tap clusters (view, dev) ```./demo-helper.sh innerloop tap```
-
-- deploy workloads ```./demo-helper.sh innerloop deploy```
+- innerloop dev deploy ```./demo-helper.sh dev```
 
 - follow workloads and supply chain progress via Backstage and/or
-  - ```./demo-helper.sh track-sensors [logs]```
-  - ```./demo-helper.sh track-portal [logs]```
+  - ```./demo-helper.sh track mysensors [logs]```
   - ```./demo-helper.sh scan-results```
 
 - access tap gui accelerators using the ```cloud-native-devsecops``` tag
@@ -124,12 +121,10 @@ run ```./builder.sh brownfield``` to add the following
   - show how the supplychain re-builds and deploy a new revision with a happy dog
 
 ### Outer loop
-- show outer loop tap clusters (stage, prod) ```./demo-helper.sh outerloop tap```
-
-- 'promote' to Staging cluster (source code) ```./demo-helper.sh outerloop staging```
+- 'promote' to Staging cluster (source code) ```./demo-helper.sh stage```
   - show the enhanced supply chain (dekt-build with scanning) progress on multi-cluster Backstage
  
-- 'promote' to Run cluster (Deliverable)  ```./demo-helper.sh outerloop production```
+- 'promote' to Run cluster (Deliverable)  ```./demo-helper.sh peod```
   - show that the new Deliverable is deployed on the production domain - run.dekt.io
 
 ## Cleanup
