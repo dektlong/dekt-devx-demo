@@ -103,36 +103,37 @@
     #prod-roleout
     prod-roleout () {
 
-        scripts/dektecho.sh info "Promoting scanned images to pre-prod cluster"
-        kubectl config use-context $STAGE_CLUSTER
+        auditFile=.gitops/audit.log
 
-        scripts/dektecho.sh cmd "kubectl get deliverable $PORTAL_WORKLOAD_PROD -n $APPS_NAMESPACE -oyaml > $PORTAL_DELIVERABLE"
-
-        kubectl get deliverable $PORTAL_WORKLOAD_PROD -n $APPS_NAMESPACE -oyaml > $PORTAL_DELIVERABLE
+        #get Deliverables from stage cluster
+        printf "$(date): " >> $auditFile 
+        kubectl config use-context $STAGE_CLUSTER >> $auditFile
         
-        echo "$PORTAL_DELIVERABLE generated."
+        kubectl get deliverable $PORTAL_WORKLOAD_PROD -n $APPS_NAMESPACE -oyaml > $PORTAL_DELIVERABLE
         yq e 'del(.status)' $PORTAL_DELIVERABLE -i 
         yq e 'del(.metadata.ownerReferences)' $PORTAL_DELIVERABLE -i 
-
-        scripts/dektecho.sh cmd "kubectl get deliverable $SENSORS_WORKLOAD_PROD -n $APPS_NAMESPACE -oyaml > $SENSORS_DELIVERABLE"
+        echo "$(date): $PORTAL_DELIVERABLE generated." >> $auditFile 
 
         kubectl get deliverable $SENSORS_WORKLOAD_PROD -n $APPS_NAMESPACE -oyaml > $SENSORS_DELIVERABLE
-        echo "$SENSORS_DELIVERABLE generated."
         yq e 'del(.status)' $SENSORS_DELIVERABLE -i 
         yq e 'del(.metadata.ownerReferences)' $SENSORS_DELIVERABLE -i 
+        echo "$(date): $SENSORS_DELIVERABLE generated." >> $auditFile 
         
-        scripts/dektecho.sh err "Hit any key to go production!"
+        scripts/dektecho.sh info "Review Deliverables in gitops repo"
+        scripts/dektecho.sh err "Hit any key to apply Deliverables to $PROD_CLUSTER cluster"
         read
 
-        kubectl config use-context $PROD_CLUSTER
+        printf "$(date): " >> $auditFile 
+        kubectl config use-context $PROD_CLUSTER >> $auditFile
 
-        scripts/dektecho.sh cmd "kubectl apply -f $PORTAL_DELIVERABLE -n $APPS_NAMESPACE"
-        kubectl apply -f $PORTAL_DELIVERABLE -n $APPS_NAMESPACE
+        echo "$(date): kubectl apply -f $PORTAL_DELIVERABLE -n $APPS_NAMESPACE" >> $auditFile
+        kubectl apply -f $PORTAL_DELIVERABLE -n $APPS_NAMESPACE >> $auditFile
 
-        scripts/dektecho.sh cmd "kubectl apply -f $SENSORS_DELIVERABLE -n $APPS_NAMESPACE"
-        kubectl apply -f $SENSORS_DELIVERABLE -n $APPS_NAMESPACE
+        echo "$(date): kubectl apply -f $SENSORS_DELIVERABLE -n $APPS_NAMESPACE" >> $auditFile
+        kubectl apply -f $SENSORS_DELIVERABLE -n $APPS_NAMESPACE >> $auditFile
 
-        kubectl get deliverables -n $APPS_NAMESPACE
+        printf "$(date): " >> $auditFile 
+        kubectl get deliverables -n $APPS_NAMESPACE >> $auditFile
 
     }
 
