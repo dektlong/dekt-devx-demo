@@ -175,7 +175,7 @@
 
         scripts/dektecho.sh info "Scanning results"
 
-        kubectl describe imagescan.scanning.apps.tanzu.vmware.com/$SENSORS_WORKLOAD-build -n $APPS_NAMESPACE
+        kubectl describe imagescan.scanning.apps.tanzu.vmware.com/$SENSORS_WORKLOAD_PROD -n $APPS_NAMESPACE
 
     }
         
