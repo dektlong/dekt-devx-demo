@@ -232,6 +232,7 @@
     cleanup-helper() {
         toggle-dog sad
         rm -f $PORTAL_DELIVERABLE
+        rm -f $SENSORS_DELIVERABLE
     }
     #incorrect usage
     incorrect-usage() {
