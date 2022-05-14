@@ -141,6 +141,9 @@
         printf "$(date): " >> $auditFile 
         kubectl get deliverables -n $APPS_NAMESPACE >> $auditFile
 
+        echo >> $auditFile
+        echo >> $auditFile
+
         scripts/dektecho.sh info "Congratulations. Your DevX-Mood application is in production"
 
     }
