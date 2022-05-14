@@ -51,10 +51,16 @@
         kubectl cluster-info | grep 'control plane' --color=never
         tanzu package installed list -n tap-install
 
-        scripts/dektecho.sh info "Brownfield cluster (Tanzu Service Mesh)"
-        kubectl config use-context $BROWNFIELD_CLUSTER 
-        kubectl cluster-info | grep 'control plane' --color=never
-        kubectl get pods -n brownfield-apis
+        addBrownfield=$(kubectl config get-contexts | grep $BROWNFIELD_CLUSTER)
+        if [ -z "$addBrownfield" ]
+        then
+            echo ""
+        else
+            scripts/dektecho.sh info "Brownfield cluster (Tanzu Service Mesh)"
+            kubectl config use-context $BROWNFIELD_CLUSTER 
+            kubectl cluster-info | grep 'control plane' --color=never
+            kubectl get pods -n brownfield-apis
+        fi
 
     }
 
