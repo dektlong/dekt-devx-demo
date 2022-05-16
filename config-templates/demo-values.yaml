@@ -36,7 +36,7 @@ tap:
   systemRepo: "" # e.g. dekt-system
   appRepo: "" # e.g. dekt-apps
   appNamespace: "" # e.g. dekt-apps
-  prodAuditFile: "" # e.g .gitops/audit-prod.log
+  prodAuditFile: "" # e.g audit-prod.log, will be created in the .gitops folder
 dns:
   domain: "" # e.g. dekt.io
   godaddyApiKey: ""

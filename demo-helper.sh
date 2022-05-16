@@ -16,7 +16,7 @@
     TAP_VERSION=$(yq .tap.version .config/demo-values.yaml)
     SYSTEM_REPO=$(yq .tap.systemRepo .config/demo-values.yaml)
     APPS_NAMESPACE=$(yq .tap.appNamespace .config/demo-values.yaml)
-    PROD_AUDIT_FILE=$(yq .tap.prodAuditFile .config/demo-values.yaml)
+    PROD_AUDIT_FILE=.gitops/$(yq .tap.prodAuditFile .config/demo-values.yaml)
     
     
 
@@ -111,6 +111,7 @@
     #prod-roleout
     prod-roleout () {
 
+        mkdir .gitops
         #get Deliverables from stage cluster
         printf "$(date): " > $PROD_AUDIT_FILE 
         kubectl config use-context $STAGE_CLUSTER >> $PROD_AUDIT_FILE
@@ -133,7 +134,7 @@
         kubectl config use-context $PROD_CLUSTER >> $PROD_AUDIT_FILE
 
         echo "$(date): kubectl apply -f $PORTAL_DELIVERABLE -n $APPS_NAMESPACE" >> $PROD_AUDIT_FILE
-        kubectl apply -f $PORTAL_DELIVERABLE -n $APPS_NAMESPACE >> $auditFile
+        kubectl apply -f $PORTAL_DELIVERABLE -n $APPS_NAMESPACE >> $PROD_AUDIT_FILE
 
         echo "$(date): kubectl apply -f $SENSORS_DELIVERABLE -n $APPS_NAMESPACE" >> $PROD_AUDIT_FILE
         kubectl apply -f $SENSORS_DELIVERABLE -n $APPS_NAMESPACE >> $PROD_AUDIT_FILE
@@ -203,7 +204,7 @@
         toggle-dog sad
         rm -f $PORTAL_DELIVERABLE
         rm -f $SENSORS_DELIVERABLE
-        rm -f $PROD_AUDIT_FILE
+        rm -r .gitops
     }
 
     #toggle the BYPASS_BACKEND flag in mood-portal

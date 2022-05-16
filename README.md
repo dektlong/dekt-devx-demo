@@ -10,7 +10,7 @@ This repo contains artifacts to run a demo illustrating the vision and capabilit
   - eksclt 
   - gcloud
 
-- Clone the supplychain repo ```git clone https://github.com/dektlong/dekt-devx-demo```
+- Clone the dekt-devx-demo repo ```git clone https://github.com/dektlong/dekt-devx-demo```
 
 - Rename the folder ```config-templates``` to ```.config```
 
@@ -125,6 +125,8 @@ run ```./builder.sh brownfield``` to add the following
   - show the enhanced supply chain (dekt-build with scanning) progress on multi-cluster Backstage
  
 - 'promote' to Run cluster (Deliverable)  ```./demo-helper.sh peod```
+  - Review the Deliverables created in the ```.gitops``` directory
+  - Review the events added to the ```.gitops/YOUR-prodAuditFile```
   - show that the new Deliverable is deployed on the production domain - run.dekt.io
 
 ## Cleanup
