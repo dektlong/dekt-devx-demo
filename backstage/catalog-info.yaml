@@ -11,6 +11,7 @@ spec:
     - ./domains/dekt-domain.yaml
     - ./groups/dekt-teams.yaml
     - ./systems/devx-mood.yaml
+    - ./systems/mymood.yaml
     - https://github.com/dektlong/mood-sensors/blob/dev/config/backstage/catalog-info.yaml
     - https://github.com/dektlong/mood-sensors/blob/integrate/config/backstage/catalog-info.yaml
     - https://github.com/dektlong/mood-portal/blob/dev/config/backstage/catalog-info.yaml

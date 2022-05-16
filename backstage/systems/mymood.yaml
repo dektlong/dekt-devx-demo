@@ -1,7 +1,7 @@
 apiVersion: backstage.io/v1alpha1
 kind: System
 metadata:
-  name: devx-mood
+  name: mymood
   description: The DevX Mood Application
   annotations:
     'backstage.io/techdocs-ref': dir:.
