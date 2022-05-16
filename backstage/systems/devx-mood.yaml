@@ -8,3 +8,14 @@ metadata:
 spec:
   owner: dekt-app-ops
   domain: dekt-domain
+---
+apiVersion: backstage.io/v1alpha1
+kind: System
+metadata:
+  name: mymood
+  description: The DevX Mood Application
+  annotations:
+    'backstage.io/techdocs-ref': dir:.
+spec:
+  owner: dekt-app-ops
+  domain: dekt-domain
