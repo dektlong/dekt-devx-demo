@@ -19,7 +19,7 @@ tap_gui:
         - type: url
           target: https://github.com/tanzu-demo/tap-gui-catalogs/blob/main/blank/catalog-info.yaml
         - type: url
-          target: https://github.com/dektlong/dekt-supplychain/blob/main/backstage/catalog-info.yaml
+          target: https://github.com/dektlong/dekt-devx-demo/blob/main/backstage/catalog-info.yaml
     backend:
       baseUrl: http://tap-gui.MY_SYS_SUBDOMAIN.MY_DOMAIN
       cors:
