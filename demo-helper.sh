@@ -16,6 +16,8 @@
     TAP_VERSION=$(yq .tap.version .config/demo-values.yaml)
     SYSTEM_REPO=$(yq .tap.systemRepo .config/demo-values.yaml)
     APPS_NAMESPACE=$(yq .tap.appNamespace .config/demo-values.yaml)
+    PROD_AUDIT_FILE=$(yq .tap.prodAuditFile .config/demo-values.yaml)
+    
     
 
 #################### functions ################
@@ -109,40 +111,35 @@
     #prod-roleout
     prod-roleout () {
 
-        auditFile=.gitops/audit.log
-
         #get Deliverables from stage cluster
-        printf "$(date): " >> $auditFile 
-        kubectl config use-context $STAGE_CLUSTER >> $auditFile
+        printf "$(date): " > $PROD_AUDIT_FILE 
+        kubectl config use-context $STAGE_CLUSTER >> $PROD_AUDIT_FILE
         
         kubectl get deliverable $PORTAL_WORKLOAD_PROD -n $APPS_NAMESPACE -oyaml > $PORTAL_DELIVERABLE
         yq e 'del(.status)' $PORTAL_DELIVERABLE -i 
         yq e 'del(.metadata.ownerReferences)' $PORTAL_DELIVERABLE -i 
-        echo "$(date): $PORTAL_DELIVERABLE generated." >> $auditFile 
+        echo "$(date): $PORTAL_DELIVERABLE generated." >> $PROD_AUDIT_FILE 
 
         kubectl get deliverable $SENSORS_WORKLOAD_PROD -n $APPS_NAMESPACE -oyaml > $SENSORS_DELIVERABLE
         yq e 'del(.status)' $SENSORS_DELIVERABLE -i 
         yq e 'del(.metadata.ownerReferences)' $SENSORS_DELIVERABLE -i 
-        echo "$(date): $SENSORS_DELIVERABLE generated." >> $auditFile 
+        echo "$(date): $SENSORS_DELIVERABLE generated." >> $PROD_AUDIT_FILE 
         
         scripts/dektecho.sh info "Review Deliverables in gitops repo"
         scripts/dektecho.sh err "Hit any key to apply Deliverables to $PROD_CLUSTER cluster"
         read
 
-        printf "$(date): " >> $auditFile 
-        kubectl config use-context $PROD_CLUSTER >> $auditFile
+        printf "$(date): " >> $PROD_AUDIT_FILE 
+        kubectl config use-context $PROD_CLUSTER >> $PROD_AUDIT_FILE
 
-        echo "$(date): kubectl apply -f $PORTAL_DELIVERABLE -n $APPS_NAMESPACE" >> $auditFile
+        echo "$(date): kubectl apply -f $PORTAL_DELIVERABLE -n $APPS_NAMESPACE" >> $PROD_AUDIT_FILE
         kubectl apply -f $PORTAL_DELIVERABLE -n $APPS_NAMESPACE >> $auditFile
 
-        echo "$(date): kubectl apply -f $SENSORS_DELIVERABLE -n $APPS_NAMESPACE" >> $auditFile
-        kubectl apply -f $SENSORS_DELIVERABLE -n $APPS_NAMESPACE >> $auditFile
+        echo "$(date): kubectl apply -f $SENSORS_DELIVERABLE -n $APPS_NAMESPACE" >> $PROD_AUDIT_FILE
+        kubectl apply -f $SENSORS_DELIVERABLE -n $APPS_NAMESPACE >> $PROD_AUDIT_FILE
 
-        printf "$(date): " >> $auditFile 
-        kubectl get deliverables -n $APPS_NAMESPACE >> $auditFile
-
-        echo >> $auditFile
-        echo >> $auditFile
+        printf "$(date): " >> $PROD_AUDIT_FILE 
+        kubectl get deliverables -n $APPS_NAMESPACE >> $PROD_AUDIT_FILE
 
         scripts/dektecho.sh info "Congratulations. Your DevX-Mood application is in production"
 
@@ -206,6 +203,7 @@
         toggle-dog sad
         rm -f $PORTAL_DELIVERABLE
         rm -f $SENSORS_DELIVERABLE
+        rm -f $PROD_AUDIT_FILE
     }
 
     #toggle the BYPASS_BACKEND flag in mood-portal

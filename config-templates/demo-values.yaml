@@ -32,13 +32,14 @@ brownfield-cluster: #TSM agent installed, no TAP installed
 # Configs
 #==================================================================
 tap:
-  version: "1.1.0"
-  systemRepo: ""
-  appRepo: ""
-  appNamespace: ""
+  version: "" # e.g. 1.1.1
+  systemRepo: "" # e.g. dekt-system
+  appRepo: "" # e.g. dekt-apps
+  appNamespace: "" # e.g. dekt-apps
+  prodAuditFile: "" # e.g .gitops/audit-prod.log
 dns:
-  domain: ""
+  domain: "" # e.g. dekt.io
   godaddyApiKey: ""
   godaddyApiSecret: ""
 apis:
-  scgwInstallDirectory: ""
+  scgwInstallDirectory: "" # relative to the dekt-dev-demo root directory

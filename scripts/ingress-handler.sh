@@ -52,7 +52,7 @@ update-dns-A-record()
 
     ingressType=""
 
-    scripts/dektecho.sh info "Waiting for ingress controller to receive public address from loadbalancer ."
+    printf "Waiting for ingress controller to receive public address from loadbalancer ."
 
     while [ "$ingressType" == "" ]
     do
