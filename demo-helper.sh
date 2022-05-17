@@ -182,7 +182,7 @@
 
         scripts/dektecho.sh info "Brownfield *provider* on $BROWNFIELD_CLUSTER cluster, brownfield-provider namespace"
         kubectl config use-context $BROWNFIELD_CLUSTER 
-        kubectl get pods -n brownfield-provider
+        kubectl get svc -n brownfield-provider
     }
 
     
