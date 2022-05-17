@@ -165,7 +165,7 @@
         tanzu apps workload get $workloadName -n $APPS_NAMESPACE
 
         
-        if [ "$1" == "logs" ]; then
+        if [ "$2" == "logs" ]; then
             scripts/dektecho.sh cmd "tanzu apps workload tail $workloadName --since 100m --timestamp  -n $APPS_NAMESPACE"
             
             tanzu apps workload tail $workloadName --since 100m --timestamp  -n $APPS_NAMESPACE
