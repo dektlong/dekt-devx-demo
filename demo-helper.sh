@@ -131,7 +131,7 @@
         printf "$(date): " >> $PROD_AUDIT_FILE 
         kubectl config use-context $PROD_CLUSTER >> $PROD_AUDIT_FILE
 
-        scripts/dektecho.sh cmd "Aapplying production Deliverables to $PROD_CLUSTER cluster..."
+        scripts/dektecho.sh cmd "Applying production Deliverables to $PROD_CLUSTER cluster..."
 
         echo "$(date): kubectl apply -f $PORTAL_DELIVERABLE -n $APPS_NAMESPACE" >> $PROD_AUDIT_FILE
         kubectl apply -f $PORTAL_DELIVERABLE -n $APPS_NAMESPACE >> $PROD_AUDIT_FILE
