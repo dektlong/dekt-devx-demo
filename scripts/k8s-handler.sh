@@ -88,7 +88,7 @@ create-gke-cluster () {
 		--num-nodes $number_of_nodes \
 		--machine-type "e2-standard-4"
 
-	gcloud container clusters get-credentials $cluster_name --zone $GKE_ZONE --project $GCP_PROJECT_ID
+	gcloud container clusters get-credentials $cluster_name --region $GKE_REGION --project $GCP_PROJECT_ID
 
 	kubectl config rename-context $(kubectl config current-context) $cluster_name
 

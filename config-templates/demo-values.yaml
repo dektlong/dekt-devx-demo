@@ -1,7 +1,7 @@
 #==================================================================
 # Clusters definitions
 #
-# Supported k8s providers: aks, eks, gke, minikube
+# Supported k8s providers: aks, eks, gke, tkg, minikube
 #
 # see resource requirements:
 #   https://docs.vmware.com/en/Tanzu-Application-Platform/1.1/tap/GUID-prerequisites.html#resource-requirements-4
@@ -23,7 +23,7 @@ prod-cluster: # TAP run profile installed
   name: ""
   provider: 
   nodes:  
-brownfield-cluster: #TSM agent installed, no TAP installed
+brownfield-cluster: #TSM and Spring Cloud Gatewat installed (no TAP)
   name: ""
   provider:  
   nodes: 

@@ -1,0 +1,491 @@
+---
+
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: 'vmware-system-tsm'
+  labels:
+    owner: operator-deployer
+    configured-by: vmware-tsm
+---
+
+apiVersion: apiextensions.k8s.io/v1beta1
+kind: CustomResourceDefinition
+metadata:
+  name: tsmclusters.tsm.vmware.com
+  labels:
+    owner: operator-deployer
+    configured-by: vmware-tsm
+spec:
+  group: tsm.vmware.com
+  version: v1
+  names:
+    kind: TsmCluster
+    plural: tsmclusters
+  scope: Namespaced
+---
+
+apiVersion: apiextensions.k8s.io/v1beta1
+kind: CustomResourceDefinition
+metadata:
+  annotations:
+    controller-gen.kubebuilder.io/version: v0.2.5
+  creationTimestamp: null
+  name: clusterhealths.client.cluster.tsm.tanzu.vmware.com
+spec:
+  group: client.cluster.tsm.tanzu.vmware.com
+  names:
+    kind: ClusterHealth
+    listKind: ClusterHealthList
+    plural: clusterhealths
+    shortNames:
+    - clusterhealth
+    singular: clusterhealth
+  scope: Namespaced
+  validation:
+    openAPIV3Schema:
+      properties:
+        apiVersion:
+          description: 'APIVersion defines the versioned schema of this representation
+            of an object. Servers should convert recognized schemas to the latest
+            internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources'
+          type: string
+        kind:
+          description: 'Kind is a string value representing the REST resource this
+            object represents. Servers may infer this from the endpoint the client
+            submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds'
+          type: string
+        metadata:
+          type: object
+        spec:
+          description: ClusterHealthSpec defines the desired state of ClusterHealth
+          type: object
+        status:
+          description: ClusterHealthStatus defines the observed state of ClusterHealth
+          properties:
+            connectionStatus:
+              properties:
+                lastConnect:
+                  type: string
+                lastDisconnect:
+                  type: string
+                lastScantime:
+                  type: string
+                message:
+                  type: string
+                networkStat:
+                  properties:
+                    counter:
+                      properties:
+                        totalActiveConnections:
+                          format: int64
+                          type: integer
+                        totalClosedConnections:
+                          format: int64
+                          type: integer
+                        totalOpenedConnections:
+                          format: int64
+                          type: integer
+                        totalRxBytes:
+                          type: string
+                        totalTxBytes:
+                          type: string
+                      type: object
+                    flows:
+                      items:
+                        properties:
+                          id:
+                            type: string
+                          rxBytes:
+                            type: string
+                          txBytes:
+                            type: string
+                        type: object
+                      type: array
+                  type: object
+                reason:
+                  type: string
+                state:
+                  type: string
+              type: object
+            proxy:
+              type: string
+            url:
+              type: string
+            version:
+              type: string
+          type: object
+      type: object
+  version: v1alpha1
+  versions:
+  - name: v1alpha1
+    served: true
+    storage: true
+status:
+  acceptedNames:
+    kind: ""
+    plural: ""
+  conditions: []
+  storedVersions: []
+---
+
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: 'tsm-agent-operator'
+  namespace: 'vmware-system-tsm'
+  labels:
+    owner: operator-deployer
+    configured-by: vmware-tsm
+data:
+  .tsm-agent-operator.yaml: |
+    allspark-version: "2.0.2-001b4701b391ac375eb28e035890a3b23f57ea4b"
+    insecureskipverify: true
+    maxdownloadretry: 5
+    maxinstallationretry: 5
+    memorybufflimit: 10485760
+    workingthreadnum: 5
+    installationbucket: tsm-release
+    installationregion: us-west-2
+    installationbasename: installation.yaml
+    livenessprobeport: 9090
+    livenessprobepath: /healthz
+    notliveinseconds: 180
+---
+
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: tsm-agent-operator-deployer
+  namespace: 'vmware-system-tsm'
+  labels:
+    owner: operator-deployer
+    configured-by: vmware-tsm
+---
+
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: tsm-agent-operator-cluster-role
+rules:
+- nonResourceURLs: ["*"]
+  verbs: ["get", "list", "watch"]
+- apiGroups: ["*"]
+  resources: ["*"]
+  verbs: ["get", "list", "watch"]
+- apiGroups: [""]
+  resources: ["namespaces"]
+  verbs: ["*"]
+- apiGroups: ["rbac.authorization.k8s.io"]
+  resources: ["clusterroles", "clusterrolebindings"]
+  verbs: ["*"]
+- apiGroups: ["apiextensions.k8s.io"]
+  resources: ["customresourcedefinitions"]
+  verbs: ["*"]
+- apiGroups: ["tsm.vmware.com", "tsm.tanzu.vmware.com"]
+  resources: ["*"]
+  verbs: ["*"]
+---
+
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: vmware-system-tsm-namespace-admin-role
+  namespace: vmware-system-tsm
+rules:
+- apiGroups: ["*"]
+  resources: ["*"]
+  verbs: ["*"]
+---
+
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: tsm-agent-operator-crb
+  labels:
+    owner: operator-deployer
+    configured-by: vmware-tsm
+roleRef:
+  kind: ClusterRole
+  name: tsm-agent-operator-cluster-role
+  apiGroup: ''
+subjects:
+- kind: ServiceAccount
+  name: tsm-agent-operator-deployer
+  namespace: vmware-system-tsm
+---
+
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: tsm-agent-operator-rb
+  namespace: vmware-system-tsm
+  labels:
+    owner: operator-deployer
+    configured-by: vmware-tsm
+roleRef:
+  kind: Role
+  name: vmware-system-tsm-namespace-admin-role
+  apiGroup: ''
+subjects:
+- kind: ServiceAccount
+  name: tsm-agent-operator-deployer
+  namespace: vmware-system-tsm
+---
+
+# TSM client cluster Operator
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: tsm-agent-operator
+  namespace: 'vmware-system-tsm'
+  labels:
+    owner: operator-deployer
+    configured-by: vmware-tsm
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: 'tsm-agent-operator'
+  template:
+    metadata:
+      labels:
+        app: 'tsm-agent-operator'
+    spec:
+      imagePullSecrets:
+      - name: ecr-read-only--docker-credentials
+      serviceAccountName: tsm-agent-operator-deployer
+      containers:
+      - image: "284299419820.dkr.ecr.us-west-2.amazonaws.com/tsm-agent-operator:v3.3.0"
+        imagePullPolicy: Always
+        name: 'tsm-agent-operator'
+        ports:
+        - name: liveness-port
+          containerPort: 9090
+        livenessProbe:
+          httpGet:
+            path: /healthz
+            port: 9090
+          failureThreshold: 3
+          periodSeconds: 180
+        volumeMounts:
+        - name: config-volume
+          mountPath: /home/operator
+        - name: proxy-config
+          mountPath: /etc/tsm/proxy
+        - name: tmc-proxy-token
+          mountPath: /etc/tsm/tmc-proxy
+        env:
+        - name: GODEBUG
+          value: x509ignoreCN=0
+        - name: AWS_ACCESS_KEY_ID
+          valueFrom:
+            secretKeyRef:
+              name: operator-ecr-read-only--aws-credentials
+              key: AWS_ACCESS_KEY_ID
+        - name: AWS_SECRET_ACCESS_KEY
+          valueFrom:
+            secretKeyRef:
+              name: operator-ecr-read-only--aws-credentials
+              key: AWS_SECRET_ACCESS_KEY
+        - name: NAMESPACE
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.namespace
+        - name: POD_NAME
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.name
+      restartPolicy: Always
+      volumes:
+      - name: config-volume
+        configMap:
+          name: 'tsm-agent-operator'
+      - name: proxy-config
+        secret:
+          defaultMode: 420
+          secretName: cluster-proxy
+          optional: true
+      - name: tmc-proxy-token
+        secret:
+          secretName: tmc-proxy-secret
+          defaultMode: 420
+          optional: true
+---
+
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: operator-ecr-read-only--service-account
+  namespace: 'vmware-system-tsm'
+  labels:
+    owner: operator-deployer
+    configured-by: vmware-tsm
+---
+
+apiVersion: v1
+kind: Secret
+metadata:
+  name: operator-ecr-read-only--aws-credentials
+  namespace: 'vmware-system-tsm'
+  labels:
+    owner: operator-deployer
+    configured-by: vmware-tsm
+type: Opaque
+data:
+  # The secret variables need to be removed
+  # See https://jira.eng.vmware.com/browse/AS-1087
+  AWS_ACCESS_KEY_ID: 'QUtJQUpFREg1NERBUTRHWFcyRUE='
+  AWS_SECRET_ACCESS_KEY: 'WFVUU0ptaXdYNFN1bzBYZ0kxMWFhU2thUXliZTdVYVVDSjl2Mk4yWQ=='
+---
+
+kind: Role
+apiVersion: rbac.authorization.k8s.io/v1beta1
+metadata:
+  name: operator-ecr-read-only--role
+  namespace: "vmware-system-tsm"
+  labels:
+    owner: operator-deployer
+    configured-by: vmware-tsm
+rules:
+- apiGroups: [""]
+  resources: ["secrets"]
+  verbs: ["create", "get", "watch", "list", "update", "delete"]
+- apiGroups: ["policy"]
+  resources: ["podsecuritypolicies"]
+  verbs: ["use"]
+---
+
+kind: RoleBinding
+apiVersion: rbac.authorization.k8s.io/v1beta1
+metadata:
+  name: operator-ecr-read-only--role-binding
+  namespace: 'vmware-system-tsm'
+  labels:
+    owner: operator-deployer
+    configured-by: vmware-tsm
+subjects:
+- kind: ServiceAccount
+  name: operator-ecr-read-only--service-account
+roleRef:
+  kind: Role
+  name: operator-ecr-read-only--role
+  apiGroup: rbac.authorization.k8s.io
+---
+
+apiVersion: batch/v1beta1
+kind: CronJob
+metadata:
+  name: operator-ecr-read-only--renew-token
+  namespace: 'vmware-system-tsm'
+  labels:
+    owner: operator-deployer
+    configured-by: vmware-tsm
+spec:
+  successfulJobsHistoryLimit: 0
+  failedJobsHistoryLimit: 1
+  schedule: "0 */8 * * *"
+  jobTemplate:
+    spec: &cronjob_spec
+      template:
+        metadata:
+          labels:
+            run: operator-ecr-read-only--renew-token
+        spec:
+          serviceAccountName: operator-ecr-read-only--service-account
+          containers:
+          - name: operator-ecr-read-only--renew-token
+            image: public.ecr.aws/v6x6b8s5/ecr-token:v3.1.0
+            imagePullPolicy: IfNotPresent
+            env:
+              - name: NAMESPACE
+                valueFrom:
+                  fieldRef:
+                    fieldPath: metadata.namespace
+              - name: GODEBUG
+                value: x509ignoreCN=0
+              - name: AWS_ACCESS_KEY_ID
+                valueFrom:
+                  secretKeyRef:
+                    name: operator-ecr-read-only--aws-credentials
+                    key: AWS_ACCESS_KEY_ID
+              - name: AWS_SECRET_ACCESS_KEY
+                valueFrom:
+                  secretKeyRef:
+                    name: operator-ecr-read-only--aws-credentials
+                    key: AWS_SECRET_ACCESS_KEY
+            volumeMounts:
+            - name: proxy-config
+              mountPath: /etc/tsm/proxy
+            - name: tmc-proxy-token
+              mountPath: /etc/tsm/tmc-proxy
+          volumes:
+          - name: proxy-config
+            secret:
+              defaultMode: 420
+              secretName: cluster-proxy
+              optional: true
+          - name: tmc-proxy-token
+            secret:
+              secretName: tmc-proxy-secret
+              defaultMode: 420
+              optional: true
+          restartPolicy: Never
+---
+
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: operator-ecr-read-only--renew-token
+  namespace: 'vmware-system-tsm'
+  labels:
+    owner: operator-deployer
+    configured-by: vmware-tsm
+spec:
+  # Note that a YAML anchor does NOT work across YAML document :-(
+  # <<: *cronjob_spec
+  backoffLimit: 4
+  template:
+    metadata:
+      name: operator-ecr-read-only--renew-token
+    spec:
+      serviceAccountName: operator-ecr-read-only--service-account
+      containers:
+      - name: operator-ecr-read-only--renew-token
+        image: public.ecr.aws/v6x6b8s5/ecr-token:v3.1.0
+        imagePullPolicy: IfNotPresent
+        env:
+          - name: NAMESPACE
+            valueFrom:
+              fieldRef:
+                fieldPath: metadata.namespace
+          - name: GODEBUG
+            value: x509ignoreCN=0
+          - name: AWS_ACCESS_KEY_ID
+            valueFrom:
+              secretKeyRef:
+                name: operator-ecr-read-only--aws-credentials
+                key: AWS_ACCESS_KEY_ID
+          - name: AWS_SECRET_ACCESS_KEY
+            valueFrom:
+              secretKeyRef:
+                name: operator-ecr-read-only--aws-credentials
+                key: AWS_SECRET_ACCESS_KEY
+        volumeMounts:
+        - name: proxy-config
+          mountPath: /etc/tsm/proxy
+        - name: tmc-proxy-token
+          mountPath: /etc/tsm/tmc-proxy
+      volumes:
+      - name: proxy-config
+        secret:
+          defaultMode: 420
+          secretName: cluster-proxy
+          optional: true
+      - name: tmc-proxy-token
+        secret:
+          secretName: tmc-proxy-secret
+          defaultMode: 420
+          optional: true
+      restartPolicy: Never
+---

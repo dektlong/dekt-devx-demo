@@ -61,7 +61,6 @@
             scripts/dektecho.sh info "Brownfield cluster (Tanzu Service Mesh)"
             kubectl config use-context $BROWNFIELD_CLUSTER 
             kubectl cluster-info | grep 'control plane' --color=never
-            kubectl get pods -n brownfield-apis
         fi
 
     }
@@ -127,11 +126,12 @@
         echo "$(date): $SENSORS_DELIVERABLE generated." >> $PROD_AUDIT_FILE 
         
         scripts/dektecho.sh info "Review Deliverables in gitops repo"
-        scripts/dektecho.sh err "Hit any key to apply Deliverables to $PROD_CLUSTER cluster"
-        read
+        scripts/dektecho.sh err "Hit any key to go production!" && read
 
         printf "$(date): " >> $PROD_AUDIT_FILE 
         kubectl config use-context $PROD_CLUSTER >> $PROD_AUDIT_FILE
+
+        scripts/dektecho.sh cmd "Aapplying production Deliverables to $PROD_CLUSTER cluster..."
 
         echo "$(date): kubectl apply -f $PORTAL_DELIVERABLE -n $APPS_NAMESPACE" >> $PROD_AUDIT_FILE
         kubectl apply -f $PORTAL_DELIVERABLE -n $APPS_NAMESPACE >> $PROD_AUDIT_FILE
@@ -170,6 +170,19 @@
             
             tanzu apps workload tail $workloadName --since 100m --timestamp  -n $APPS_NAMESPACE
         fi
+    }
+
+    #brownfield
+    brownfield () {
+
+        scripts/dektecho.sh info "Brownfield *consumer* on $STAGE_CLUSTER cluster, brownfield-consumer namespace"
+
+        kubectl config use-context $STAGE_CLUSTER
+        kubectl get svc -n brownfield-consumer
+
+        scripts/dektecho.sh info "Brownfield *provider* on $BROWNFIELD_CLUSTER cluster, brownfield-provider namespace"
+        kubectl config use-context $BROWNFIELD_CLUSTER 
+        kubectl get pods -n brownfield-provider
     }
 
     
@@ -238,6 +251,7 @@
         rm -f $PORTAL_DELIVERABLE
         rm -f $SENSORS_DELIVERABLE
     }
+
     #incorrect usage
     incorrect-usage() {
         
@@ -255,6 +269,9 @@
         echo "  supplychains"
         echo "  track workload-name [ logs ]"
         echo "  scan-results"
+        echo 
+        echo "  brownfield"
+        echo
         echo "  behappy"
         echo
         echo "  reset"
@@ -287,6 +304,9 @@ track)
     ;;
 scan-results)
     scan-results
+    ;;
+brownfield)
+    brownfield
     ;;
 behappy)
     toggle-dog happy

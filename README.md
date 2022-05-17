@@ -73,10 +73,17 @@ This repo contains artifacts to run a demo illustrating the vision and capabilit
     - Default supplychain configs for apps namespace 
     - CNR run ingress rule
 
-run ```./builder.sh brownfield``` to add the following
-  - Create **brownfield** cluster 
-  - You should install the TSM agent and Spring Cloud Gateway operator via the TSM console on-board cluster process
-  - The scripts creade the brownfield APIs routes and gateways (see ```brownfield-apis```)
+To add Brownfield APIs
+  - run ```./builder.sh brownfield```
+    - Create **brownfield** cluster 
+    - Install Spring Cloud Gateway operator
+    - Create brownfield APIs SCGW instances and routes in ```brownfield-provider``` ns
+  - From the TSM console onboard the ```dekt-brownfield``` cluster
+    - Do not use the option to install Spring Cloud Gateway
+    - Exclude the ```default``` namespace
+  - From the TSM console onboard ```dekt-stage``` cluster
+    - Exclude ALL TAP namespaces
+    - Do not use the option to install Spring Cloud Gateway
 
 ## Running the demo 
 
@@ -88,6 +95,7 @@ run ```./builder.sh brownfield``` to add the following
   - use ```devx-mood```  as the parent application in both cases
 
 - access the api-portal and highlight how discovery of existing APIs prior to creating new ones is done
+  - if planning to show Brownfield API (see below), highlight how a developer can simply access an off platform external service by calling the 'brownfield URL' directly,  e.g. ```sentiment.tanzu-sm.io/v1/check-sentiment```
 
 - highlight the simplicity of the ```workload.yaml```
 
@@ -128,6 +136,14 @@ run ```./builder.sh brownfield``` to add the following
   - Review the Deliverables created in the ```.gitops``` directory
   - Review the events added to the ```.gitops/YOUR-prodAuditFile```
   - show that the new Deliverable is deployed on the production domain - run.dekt.io
+
+### Brownfield APIs
+
+- Highlight simple developer and staging access on the TAP cluster at the ```brownfield-consumer``` namespace as if the external services are just local k8s services
+- Create a Global Namespace named ```brownfield```
+  - Domain: ```tanzu-sm.io```
+  - Map ```brownfield-provider``` ns in ```dekt-brownfield``` cluster to ```brownfield-consumer``` ns in ```dekt-stage``` cluster
+  - Skip the option to add gateway instances (they are already created), but highlight that functionality
 
 ## Cleanup
 
