@@ -54,6 +54,8 @@
 
         provision-data-services
 
+        add-brownfield-apis
+
         update-dns-records
 
         update-multi-cluster-views
@@ -207,45 +209,44 @@
     }
 
     
-    #install-brownfield-provider
-    install-brownfield-provider () {
+    #add-brownfield-apis
+    add-brownfield-apis () {
         
-        cluster_name=$1
+        brownfield_apis_ns="brownfield-apis"
 
-        kubectl config use-context $cluster_name
-
-        scripts/dektecho.sh info "Installing brownfield APIs provider on $cluster_name cluster"
-
+        scripts/dektecho.sh info "Installing brownfield APIs 'provider' components on $BROWNFIELD_CLUSTER_NAME cluster"
+        kubectl config use-context $BROWNFIELD_CLUSTER_NAME
         kubectl create ns scgw-system
-
         kubectl create secret docker-registry spring-cloud-gateway-image-pull-secret \
             --docker-server=$PRIVATE_REPO_SERVER \
             --docker-username=$PRIVATE_REPO_USER \
             --docker-password=$PRIVATE_REPO_PASSWORD \
             --namespace scgw-system
- 
         #relocate-gw-images
-
         $GW_INSTALL_DIR/scripts/install-spring-cloud-gateway.sh --namespace scgw-system
-
-        kubectl create ns brownfield-provider
+        kubectl create ns $brownfield_apis_ns
         kustomize build brownfield-apis | kubectl apply -f -
 
-        #scripts/ingress-handler.sh add-brownfield-apis $SYSTEM_SUB_DOMAIN
+        scripts/dektecho.sh info "Installing brownfield APIs 'consumer' components on $DEV_CLUSTER_NAME cluster"
+        kubectl config use-context $DEV_CLUSTER_NAME
+        kubectl create ns $brownfield_apis_ns
+        kubectl create service clusterip sentiment-api --tcp=80:80 -n $brownfield_apis_ns
+        kubectl create service clusterip datacheck-api --tcp=80:80 -n $brownfield_apis_ns
+
+        scripts/dektecho.sh info "Installing brownfield APIs 'consumer' components on $STAGE_CLUSTER_NAME cluster"
+        kubectl config use-context $STAGE_CLUSTER_NAME
+        kubectl create ns $brownfield_apis_ns
+        kubectl create service clusterip sentiment-api --tcp=80:80 -n $brownfield_apis_ns
+        kubectl create service clusterip datacheck-api --tcp=80:80 -n $brownfield_apis_ns
+
+        scripts/dektecho.sh info "Installing brownfield APIs 'consumer' components on $PROD_CLUSTER_NAME cluster"
+        kubectl config use-context $PROD_CLUSTER_NAME
+        kubectl create ns $brownfield_apis_ns
+        kubectl create service clusterip sentiment-api --tcp=80:80 -n $brownfield_apis_ns
+        kubectl create service clusterip datacheck-api --tcp=80:80 -n $brownfield_apis_ns
+
     }
 
-    #add-brownfield-consumer
-    add-brownfield-consumer() {
-        
-        kubectl create ns brownfield-consumer
-
-        kubectl create service clusterip sentiment-api --tcp=80:80 -n brownfield-consumer
-
-        kubectl create service clusterip datacheck-api --tcp=80:80 -n brownfield-consumer
-
-
-
-    }
     #relocate-images
     relocate-gw-images() {
 
@@ -348,8 +349,6 @@
         
         echo "  init"
         echo       
-        echo "  brownfield"
-        echo
         echo "  dev"
         echo
         echo "  delete"
@@ -373,6 +372,7 @@ init)
     scripts/tanzu-handler.sh add-carvel-tools
     scripts/k8s-handler.sh create $PROD_CLUSTER_PROVIDER $PROD_CLUSTER_NAME $PROD_CLUSTER_NODES
     scripts/tanzu-handler.sh add-carvel-tools
+    scripts/k8s-handler.sh create $BROWNFIELD_CLUSTER_PROVIDER $BROWNFIELD_CLUSTER_NAME $BROWNFIELD_CLUSTER_NODES
     install-all
     ;;
 delete)
@@ -384,10 +384,6 @@ delete)
     scripts/k8s-handler.sh delete $PROD_CLUSTER_PROVIDER $PROD_CLUSTER_NAME
     scripts/k8s-handler.sh delete $BROWNFIELD_CLUSTER_PROVIDER $BROWNFIELD_CLUSTER_NAME
     rm -f ~.kube/config
-    ;;
-brownfield)
-    scripts/k8s-handler.sh create $BROWNFIELD_CLUSTER_PROVIDER $BROWNFIELD_CLUSTER_NAME $BROWNFIELD_CLUSTER_NODES
-    install-brownfield-provider $BROWNFIELD_CLUSTER_NAME
     ;;
 dev)
     install-gui-dev

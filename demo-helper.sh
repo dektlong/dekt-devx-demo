@@ -175,14 +175,16 @@
     #brownfield
     brownfield () {
 
-        scripts/dektecho.sh info "Brownfield *consumer* on $STAGE_CLUSTER cluster, brownfield-consumer namespace"
+        scripts/dektecho.sh info "Brownfield consumer services on $STAGE_CLUSTER cluster"
 
         kubectl config use-context $STAGE_CLUSTER
-        kubectl get svc -n brownfield-consumer
+        kubectl get svc -n brownfield-apis
 
-        scripts/dektecho.sh info "Brownfield *provider* on $BROWNFIELD_CLUSTER cluster, brownfield-provider namespace"
+        scripts/dektecho.sh info "Brownfield provider service on $BROWNFIELD_CLUSTER cluster"
         kubectl config use-context $BROWNFIELD_CLUSTER 
-        kubectl get svc -n brownfield-provider
+        kubectl get svc -n brownfield-apis
+
+        
     }
 
     

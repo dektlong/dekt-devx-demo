@@ -72,12 +72,17 @@ This repo contains artifacts to run a demo illustrating the vision and capabilit
     - TAP run profile
     - Default supplychain configs for apps namespace 
     - CNR run ingress rule
+  - Create **brownfield** cluster install the following  
+    - Spring Cloud Gateway operator
+    - Brownfield APIs SCGW instances and routes in ```brownfield-apis``` ns
+    - Add brownfield 'consumer' k8s services to TAP clusters in ```brownfield-apis``` ns
 
-To add Brownfield APIs
-  - run ```./builder.sh brownfield```
-    - Create **brownfield** cluster 
-    - Install Spring Cloud Gateway operator
-    - Create brownfield APIs SCGW instances and routes in ```brownfield-provider``` ns
+Optional
+  - Attached clusters to TMC
+  - Onboard clusteers to TSM
+    - exclude TAP namespaces
+    - Do not use the option to install Spring Cloud Gateway
+    
   - From the TSM console onboard the ```dekt-brownfield``` cluster
     - Do not use the option to install Spring Cloud Gateway
     - Exclude the ```default``` namespace
