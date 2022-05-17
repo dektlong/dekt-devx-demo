@@ -284,15 +284,27 @@
 
         kubectl config use-context $VIEW_CLUSTER_NAME
         tanzu package installed delete tap -y -n tap-install
+        kubectl delete ns tap-gui
+        kubectl delete ns tap-install
         
         kubectl config use-context $DEV_CLUSTER_NAME
         tanzu package installed delete tap -y -n tap-install
-        
+        kubectl delete ns tap-install
+        kubectl delete ns dekt-apps
+        kubectl delete ns rabbitmq-system 
+
         kubectl config use-context $STAGE_CLUSTER_NAME
         tanzu package installed delete tap -y -n tap-install
+        kubectl delete ns tap-install
+        kubectl delete ns dekt-apps
+        kubectl delete ns rabbitmq-system 
+        kubectl delete ns tap-gui
 
         kubectl config use-context $PROD_CLUSTER_NAME
         tanzu package installed delete tap -y -n tap-install
+        kubectl delete ns tap-install
+        kubectl delete ns dekt-apps
+        kubectl delete ns rabbitmq-system 
 
     }
 
