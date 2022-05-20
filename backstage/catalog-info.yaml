@@ -12,4 +12,5 @@ spec:
     - ./groups/dekt-teams.yaml
     - ./systems/devx-mood.yaml
     - https://github.com/dektlong/mood-sensors/blob/dev/config/backstage/catalog-info.yaml
-    - https://github.com/dektlong/mood-portal/blob/dev/config/backstage/catalog-info.yaml
+    - https://github.com/dektlong/mood-sensors/blob/integrate/config/backstage/catalog-info.yaml
+    - https://github.com/dektlong/mood-portal/blob/integrate/config/backstage/catalog-info.yaml
