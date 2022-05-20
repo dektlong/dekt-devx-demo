@@ -99,7 +99,7 @@
             --git-repo https://github.com/dektlong/mood-sensors \
             --git-branch $gitBranch \
             --type web-backend \
-            --label app.kubernetes.io/part-of=devx-mood \
+            --label app.kubernetes.io/part-of=$sensorsWorkload \
             --label apps.tanzu.vmware.com/has-tests=true \
             --service-ref rabbitmq-claim=rabbitmq.com/v1beta1:RabbitmqCluster:reading \
             --yes \
