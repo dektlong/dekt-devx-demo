@@ -89,7 +89,7 @@
             --git-repo https://github.com/dektlong/mood-portal \
             --git-branch $gitBranch \
             --type web \
-            --label app.kubernetes.io/part-of=devx-mood \
+            --label app.kubernetes.io/part-of=$portalWorkload \
             --yes \
             --namespace $APPS_NAMESPACE
 
