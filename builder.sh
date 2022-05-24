@@ -100,7 +100,7 @@
         kubectl apply -f .config/disable-scale2zero.yaml
         kubectl apply -f .config/dekt-dev-supplychain.yaml
         kubectl apply -f .config/tekton-pipeline.yaml -n $APPS_NAMESPACE
-        add-brownfield-consumer
+        add-brownfield-apis
 
         scripts/dektecho.sh info "Running post install configurations for $STAGE_CLUSTER_NAME cluster"
         kubectl config use-context $STAGE_CLUSTER_NAME
@@ -108,13 +108,13 @@
         kubectl apply -f .config/dekt-build-supplychain.yaml
         kubectl apply -f .config/scan-policy.yaml -n $APPS_NAMESPACE
         kubectl apply -f .config/tekton-pipeline.yaml -n $APPS_NAMESPACE
-        add-brownfield-consumer
+        add-brownfield-apis
 
         scripts/dektecho.sh info "Running post install configurations for $PROD_CLUSTER_NAME cluster"
         kubectl config use-context $PROD_CLUSTER_NAME
         kubectl apply -f .config/disable-scale2zero.yaml
         setup-apps-namespace
-        add-brownfield-consumer
+        add-brownfield-apis
     }
 
     #setup-apps-namespace
@@ -379,6 +379,7 @@ delete)
     scripts/dektecho.sh err  "!!!Are you sure you want to delete all clusters?"
     read
     ./demo-helper.sh cleanup-helper
+    scripts/k8s-handler.sh delete $VIEW_CLUSTER_PROVIDER $VIEW_CLUSTER_NAME
     scripts/k8s-handler.sh delete $DEV_CLUSTER_PROVIDER $DEV_CLUSTER_NAME
     scripts/k8s-handler.sh delete $STAGE_CLUSTER_PROVIDER $STAGE_CLUSTER_NAME
     scripts/k8s-handler.sh delete $PROD_CLUSTER_PROVIDER $PROD_CLUSTER_NAME

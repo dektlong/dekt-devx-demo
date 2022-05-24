@@ -73,15 +73,17 @@
             portalWorkload=$PORTAL_WORKLOAD_DEV
             sensorsWorkload=$SENSORS_WORKLOAD_DEV
             gitBranch="dev"
-            kubectl config use-context $DEV_CLUSTER
+            tapCluster=$DEV_CLUSTER
             ;;
         stage)
             portalWorkload=$PORTAL_WORKLOAD_PROD
             sensorsWorkload=$SENSORS_WORKLOAD_PROD
             gitBranch="integrate"
-            kubectl config use-context $STAGE_CLUSTER
+            tapCluster=$STAGE_CLUSTER
             ;;
         esac
+
+        kubectl config use-context $tapCluster
 
         scripts/dektecho.sh cmd "tanzu apps workload create $portalWorkload --git-repo https://github.com/dektlong/mood-portal --git-branch $gitBranch -y -n $APPS_NAMESPACE"
         
@@ -104,7 +106,6 @@
             --service-ref rabbitmq-claim=rabbitmq.com/v1beta1:RabbitmqCluster:reading \
             --yes \
             --namespace $APPS_NAMESPACE
-        
     }
 
     #prod-roleout
@@ -123,6 +124,7 @@
         kubectl get deliverable $SENSORS_WORKLOAD_PROD -n $APPS_NAMESPACE -oyaml > $SENSORS_DELIVERABLE
         yq e 'del(.status)' $SENSORS_DELIVERABLE -i 
         yq e 'del(.metadata.ownerReferences)' $SENSORS_DELIVERABLE -i 
+              
         echo "$(date): $SENSORS_DELIVERABLE generated." >> $PROD_AUDIT_FILE 
         
         scripts/dektecho.sh info "Review Deliverables in gitops repo"
