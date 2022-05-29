@@ -114,7 +114,6 @@
         kubectl config use-context $PROD_CLUSTER_NAME
         kubectl apply -f .config/disable-scale2zero.yaml
         setup-apps-namespace
-        add-brownfield-apis
     }
 
     #setup-apps-namespace
