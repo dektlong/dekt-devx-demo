@@ -107,13 +107,13 @@ Optional
 - show the simple tap installed command (don't actually run)
   - ```tanzu package install tap -p tap.tanzu.vmware.com -v 1.0.1  --values-file tap-values-full.yaml -n tap-install```
 
-- show cluster topology ```./demo-helper.sh info```
+- show cluster topology ```./dekt-DevSecOps.sh info```
 
-- innerloop dev deploy ```./demo-helper.sh dev```
+- innerloop dev deploy ```./dekt-DevSecOps.sh dev```
 
 - follow workloads and supply chain progress via Backstage and/or
-  - ```./demo-helper.sh track mysensors [logs]```
-  - ```./demo-helper.sh scan-results```
+  - ```./dekt-DevSecOps.sh track mysensors [logs]```
+  - ```./dekt-DevSecOps.sh scan-results```
 
 - access tap gui accelerators using the ```cloud-native-devsecops``` tag
   - create ```dekt-path2prod``` supplychain using the microservices-supplychain accelerator with ```web-backend``` workload type 
@@ -122,7 +122,7 @@ Optional
 
 - highlight the separation of concerns between supplychain (AppOps) and supplychain-templates (Platform Ops)
 
-- show applied supply chains using ```./demo-helper.sh supplychains```
+- show applied supply chains using ```./dekt-DevSecOps.sh supplychains```
 
 - access the live url of mood-portal workload and show the call back to the mood-sensors APIs 
 
@@ -134,10 +134,10 @@ Optional
   - show how the supplychain re-builds and deploy a new revision with a happy dog
 
 ### Outer loop
-- 'promote' to Staging cluster (source code) ```./demo-helper.sh stage```
+- 'promote' to Staging cluster (source code) ```./dekt-DevSecOps.sh stage```
   - show the enhanced supply chain (dekt-build with scanning) progress on multi-cluster Backstage
  
-- 'promote' to Run cluster (Deliverable)  ```./demo-helper.sh peod```
+- 'promote' to Run cluster (Deliverable)  ```./dekt-DevSecOps.sh peod```
   - Review the Deliverables created in the ```.gitops``` directory
   - Review the events added to the ```.gitops/YOUR-prodAuditFile```
   - show that the new Deliverable is deployed on the production domain - run.dekt.io
@@ -155,7 +155,7 @@ Optional
 
 - full cleanup to delete all clusters  ```./builder.sh delete```
 
-- partial cleanup to remove workloads and reset configs ```./demo-helper.sh reset```
+- partial cleanup to remove workloads and reset configs ```./dekt-DevSecOps.sh reset```
 
 ### Enjoy!
 
