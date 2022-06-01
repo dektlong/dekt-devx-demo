@@ -382,7 +382,7 @@ init)
 delete)
     scripts/dektecho.sh err  "!!!Are you sure you want to delete all clusters?"
     read
-    ./demo-helper.sh cleanup-helper
+    ./dekt-DevSecOps.sh cleanup-helper
     scripts/k8s-handler.sh delete $VIEW_CLUSTER_PROVIDER $VIEW_CLUSTER_NAME
     scripts/k8s-handler.sh delete $DEV_CLUSTER_PROVIDER $DEV_CLUSTER_NAME
     scripts/k8s-handler.sh delete $STAGE_CLUSTER_PROVIDER $STAGE_CLUSTER_NAME
