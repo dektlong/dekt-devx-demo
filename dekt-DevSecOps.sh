@@ -223,6 +223,7 @@
         kubectl config use-context $DEV_CLUSTER
         tanzu apps workload delete $PORTAL_WORKLOAD_DEV -n $APPS_NAMESPACE -y
         tanzu apps workload delete $SENSORS_WORKLOAD_DEV -n $APPS_NAMESPACE -y
+        tanzu apps workload delete $SENSORS_WORKLOAD_DEV -n mydev -y
         
         kubectl config use-context $VIEW_CLUSTER
         kubectl delete pod -l app=backstage -n tap-gui
