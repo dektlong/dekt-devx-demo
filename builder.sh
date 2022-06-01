@@ -100,6 +100,7 @@
         kubectl apply -f .config/disable-scale2zero.yaml
         kubectl apply -f .config/dekt-dev-supplychain.yaml
         kubectl apply -f .config/tekton-pipeline.yaml -n $APPS_NAMESPACE
+        kubectl apply -f .config/tekton-pipeline.yaml -n mydev
         add-brownfield-apis
 
         scripts/dektecho.sh info "Running post install configurations for $STAGE_CLUSTER_NAME cluster"
@@ -119,10 +120,14 @@
     #setup-apps-namespace
     setup-apps-namespace() {
         
-        kubectl create ns $APPS_NAMESPACE
-        
-        tanzu secret registry add registry-credentials --server $PRIVATE_REPO_SERVER --username $PRIVATE_REPO_USER --password $PRIVATE_REPO_PASSWORD -n $APPS_NAMESPACE
-        
+        #single dev ns
+        kubectl create ns mydev    
+        tanzu secret registry add registry-credentials --server $PRIVATE_REPO_SERVER --username $PRIVATE_REPO_USER --password $PRIVATE_REPO_PASSWORD -n mydev    
+        kubectl apply -f .config/supplychain-rbac.yaml -n mydev
+
+        #teams dev ns
+        kubectl create ns $APPS_NAMESPACE     
+        tanzu secret registry add registry-credentials --server $PRIVATE_REPO_SERVER --username $PRIVATE_REPO_USER --password $PRIVATE_REPO_PASSWORD -n $APPS_NAMESPACE      
         kubectl apply -f .config/supplychain-rbac.yaml -n $APPS_NAMESPACE
     }
 
