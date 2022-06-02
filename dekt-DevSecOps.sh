@@ -64,15 +64,6 @@
         fi
 
     }
-
-    #local-dev
-    local-dev () {
-
-        pushd ../mood-sensors
-        kubectl config use-context $DEV_CLUSTER 
-
-        tilt up --stream 
-    }
     
     #create-workloads
     create-workloads() {
@@ -274,8 +265,6 @@
         echo
         echo "  info"
         echo
-        echo "  local"
-        echo
         echo "  dev"
         echo
         echo "  stage"
@@ -299,9 +288,6 @@
 case $1 in
 info)
     info
-    ;;
-local)
-    local-dev
     ;;
 dev)
     create-workloads "dev"
