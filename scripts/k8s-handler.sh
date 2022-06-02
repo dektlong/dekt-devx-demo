@@ -108,30 +108,14 @@ delete-gke-cluster () {
 
 }
 
-#create-minikube-cluster
-create-minikube-cluster() {
-
-	minikube start --cpus='8' --memory='10g' --kubernetes-version='1.22.6' --keep-context=true
-
-	minikube tunnel
-
-	kubectl config use-context minikube
-}
-
-#delete-minikube-cluster() {
-delete-minikube-cluster() {
-	
-	minikube stop
-
-}
 #################### main #######################
 
 #incorrect-usage
 incorrect-usage() {
 	
 	scripts/dektecho.sh err "Incorrect usage. Please specify:"
-    echo "  create [aks/eks/minikube cluster-name numbber-of-nodes]"
-    echo "  delete [aks/eks/minikube cluster-name]"
+    echo "  create [aks/eks/gke cluster-name numbber-of-nodes]"
+    echo "  delete [aks/eks/gke cluster-name]"
     exit
 }
 
@@ -146,9 +130,6 @@ create)
 		;;
 	gke)
 		create-gke-cluster $3 $4
-		;;
-	minikube)
-		create-minikube-cluster $3 $4
 		;;
 	*)
 		incorrect-usage
@@ -165,9 +146,6 @@ delete)
 		;;
 	gke)
 		delete-gke-cluster $3
-		;;
-	minikube)
-		delete-minikube-cluster $3
 		;;
 	*)
 		incorrect-usage
