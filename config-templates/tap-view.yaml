@@ -3,17 +3,16 @@
 #   accepted values: full, iterate, build, run, view
 #==================================================================
 profile: view
-
 #==================================================================
 # TAP GUI (Backstage)
 #==================================================================
 tap_gui:
   service_type: ClusterIP
   ingressEnabled: "true"
-  ingressDomain: "MY_SYS_SUBDOMAIN.MY_DOMAIN"
+  ingressDomain: "sys.{YOUR_DOMAIN}"
   app_config:
     app:
-      baseUrl: http://tap-gui.MY_SYS_SUBDOMAIN.MY_DOMAIN
+      baseUrl: http://tap-gui.sys.{YOUR_DOMAIN}
     catalog:
       locations:
         - type: url
@@ -21,9 +20,9 @@ tap_gui:
         - type: url
           target: https://github.com/dektlong/dekt-devx-demo/blob/main/backstage/catalog-info.yaml
     backend:
-      baseUrl: http://tap-gui.MY_SYS_SUBDOMAIN.MY_DOMAIN
+      baseUrl: http://tap-gui.sys.{YOUR_DOMAIN}
       cors:
-        origin: http://tap-gui.MY_SYS_SUBDOMAIN.MY_DOMAIN
+        origin: http://tap-gui.sys.{YOUR_DOMAIN}
     #============================
     # Multi cluster workload viewer
     #============================
@@ -33,39 +32,39 @@ tap_gui:
       clusterLocatorMethods:
         - type: 'config'
           clusters:
-            - url: #updated during install
-              name: DEV_CLUSTER_NAME
+            - url: {UPDATED_IN_RUNTIME}
+              name: {UPDATE_FROM_DEMO_VALUES}
               authProvider: serviceAccount
-              serviceAccountToken: #updated during install
+              serviceAccountToken: {UPDATED_IN_RUNTIME}
               skipTLSVerify: true
-            - url: #updated during install
-              name: STAGE_CLUSTER_NAME
+            - url: {UPDATED_IN_RUNTIME}
+              name: {UPDATE_FROM_DEMO_VALUES}
               authProvider: serviceAccount
-              serviceAccountToken: #updated during install
+              serviceAccountToken: {UPDATED_IN_RUNTIME}
               skipTLSVerify: true
-            - url: #updated during install
-              name: PROD_CLUSTER_NAME
+            - url: {UPDATED_IN_RUNTIME}
+              name: {UPDATE_FROM_DEMO_VALUES}
               authProvider: serviceAccount
-              serviceAccountToken: #updated during install
+              serviceAccountToken: {UPDATED_IN_RUNTIME}
               skipTLSVerify: true
 appliveview:
   ingressEnabled: "true"
-  ingressDomain: MY_SYS_SUBDOMAIN.MY_DOMAIN
-
-metadata_store:
-  ingress_enabled: "true"
-  ingress_domain: "MY_SYS_SUBDOMAIN.MY_DOMAIN"
-  
+  ingressDomain: "sys.{YOUR_DOMAIN}"
+#metadata_store:
+#  ingress_enabled: "true"
+#  ingress_domain: "sys.{YOUR_DOMAIN}"
 contour:
   envoy:
     service:
       type: LoadBalancer
-
 accelerator:
   server:
     service_type: "ClusterIP"
-
+excluded_packages:
+  #- learningcenter.tanzu.vmware.com
+  #- workshops.learningcenter.tanzu.vmware.com
+  - metadata-store.apps.tanzu.vmware.com #workaround
+#- grype.scanning.apps.tanzu.vmware.com
 learningcenter:
-  ingressDomain: learningcenter.MY_SYS_SUBDOMAIN.MY_DOMAIN
-
+  ingressDomain: dekt-learn.sys.{YOUR_DOMAIN}
 ceip_policy_disclosed: true

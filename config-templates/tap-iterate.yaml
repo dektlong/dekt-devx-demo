@@ -7,7 +7,7 @@ profile: iterate
 # Build Service
 #==================================================================
 buildservice:
-  kp_default_repository: "MY_IMAGE_REGISTRY_HOST/MY_SYSTEM_REPO/build-service"
+  kp_default_repository: "{PRIVATE_REPO_SERVER}/{SYSTEM_REPO}/build-service"
   kp_default_repository_username: ""
   kp_default_repository_password: ""
   tanzunet_username: ""
@@ -21,19 +21,20 @@ buildservice:
 supply_chain: basic
 ootb_supply_chain_basic:
   registry:
-    server: "MY_IMAGE_REGISTRY_HOST"
-    repository: "MY_APP_REPO"
+    server: "{PRIVATE_REPO_SERVER}"
+    repository: "{DEV_APPS_REPO}"
   gitops:
     ssh_secret: ""
 ootb_supply_chain_testing:
   registry:
-    server: "MY_IMAGE_REGISTRY_HOST"
-    repository: "MY_APP_REPO"
+    server: "{PRIVATE_REPO_SERVER}"
+    repository: "{DEV_APPS_REPO}"
+  gitops:
     ssh_secret: ""
 ootb_supply_chain_testing_scanning:
   registry:
-    server: "MY_IMAGE_REGISTRY_HOST"
-    repository: "MY_APP_REPO"
+    server: "{PRIVATE_REPO_SERVER}"
+    repository: "{DEV_APPS_REPO}"
   gitops:
     ssh_secret: ""
 #==================================================================
@@ -41,23 +42,22 @@ ootb_supply_chain_testing_scanning:
 #==================================================================
 cnrs:
   domain_template: "{{.Name}}.{{.Domain}}"
-  domain_name: "MY_DEV_SUBDOMAIN.MY_DOMAIN"
+  domain_name: "dev.{YOUR_DOMAIN}"
+
 contour:
   envoy:
     service:
       type: LoadBalancer
-grype:
-  namespace: "MY_APP_REPO"
-  targetImagePullSecret: "registry-credentials"
 
 appliveview_connector:
   backend:
     sslDisabled: "true"
-    host: appliveview.MY_SYS_SUBDOMAIN.MY_DOMAIN
-    
+    host: appliveview.sys.{YOUR_DOMAIN}
+
 excluded_packages:
+  #- tap-gui.tanzu.vmware.com
   - learningcenter.tanzu.vmware.com
   - workshops.learningcenter.tanzu.vmware.com
 #learningcenter:
-#  ingressDomain: learningcenter.MY_SYS_SUBDOMAIN.MY_DOMAIN
+#  ingressDomain: learningcenter.sys.dekt.io
 ceip_policy_disclosed: true

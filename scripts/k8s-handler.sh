@@ -1,10 +1,17 @@
 #!/usr/bin/env bash
 
+AZURE_LOCATION="westus" #increase quota only available in us region
 AZURE_RESOURCE_GROUP="tap-aks"
-AZURE_LOCATION="westus"
-AWS_REGION="us-west-1" #aws ec2 describe-regions --output table
-GKE_REGION="us-central1"
+
+#aws ec2 describe-regions --output table
+AWS_REGION="us-west-1"
+
+#gcloud compute regions list --project fe-asaikali
+GKE_REGION="us-central1" 
 GCP_PROJECT_ID="fe-asaikali"
+
+
+
 TANZU_NETWORK_USER=$(yq .buildservice.tanzunet_username .config/tap-values-full.yaml)
 TANZU_NETWORK_PASSWORD=$(yq .buildservice.tanzunet_password .config/tap-values-full.yaml)
 

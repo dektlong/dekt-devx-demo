@@ -1,7 +1,7 @@
 apiVersion: carto.run/v1alpha1
 kind: ClusterSupplyChain
 metadata:
-  name: dekt-path2prod
+  name: dekt-dev
 spec:
   selector:
     apps.tanzu.vmware.com/has-tests: 'true'
@@ -38,13 +38,13 @@ spec:
       kind: ClusterSourceTemplate
       name: testing-pipeline
   #scan-source
-  - name: scan-source
-    sources:
-    - name: source
-      resource: test-source
-    templateRef:
-      kind: ClusterSourceTemplate
-      name: source-scanner-template
+ # - name: scan-source
+ #   sources:
+ #   - name: source
+ #     resource: test-source
+ #   templateRef:
+ #     kind: ClusterSourceTemplate
+ #     name: source-scanner-template
   #build-image
   - name: build-image
     params:
@@ -54,27 +54,27 @@ spec:
       value: default
     - name: registry
       value:
-        repository:  dekt-apps
-        server:  harbor.apps.cf.tanzutime.com
+        repository:  {UPDATE_FROM_TAP_ITERATE_SC_INFO}
+        server:  {UPDATE_FROM_TAP_ITERATE_SC_INFO}
     sources:
     - name: source
-      resource: scan-source
+      resource: test-source
     templateRef:
       kind: ClusterImageTemplate
       name: kpack-template
   #scan-image
-  - name: scan-image
-    images:
-    - name: image
-      resource: build-image
-    templateRef:
-      kind: ClusterImageTemplate
-      name: image-scanner-template
+  #- name: scan-image
+  #  images:
+  #  - name: image
+  #    resource: build-image
+  #  templateRef:
+  #    kind: ClusterImageTemplate
+  #    name: image-scanner-template
   #get pod conventions
   - name: get-conventions
     images:
     - name: image
-      resource: scan-image
+      resource: build-image
     params:
     - name: serviceAccount
       value: default
@@ -82,20 +82,13 @@ spec:
       kind: ClusterConfigTemplate
       name: convention-template
   #bind to app services
-  - name: bind-services-tap
+  - name: bind-services
     configs:
     - name: config
       resource: get-conventions
     templateRef:
       kind: ClusterConfigTemplate
-      name: binder-tap
-  - name: bind-services-rds
-    configs:
-    - name: config
-      resource: get-conventions
-    templateRef:
-      kind: ClusterConfigTemplate
-      name: binder-rds
+      name: config-template
   #write configs
   - name: write-configs
     configs:
@@ -106,8 +99,8 @@ spec:
       value: default
     - name: registry
       value:
-        repository: dekt-apps
-        server: harbor.apps.cf.tanzutime.com
+        repository: {UPDATE_FROM_TAP_ITERATE_SC_INFO}
+        server: {UPDATE_FROM_TAP_ITERATE_SC_INFO}
     templateRef:
       kind: ClusterTemplate
       name: config-writer-template
@@ -116,8 +109,8 @@ spec:
     params:
     - name: registry
       value:
-        repository: dekt-apps
-        server: harbor.apps.cf.tanzutime.com
+        repository: {UPDATE_FROM_TAP_ITERATE_SC_INFO}
+        server: {UPDATE_FROM_TAP_ITERATE_SC_INFO}
     templateRef:
       kind: ClusterTemplate
       name: deliverable-template

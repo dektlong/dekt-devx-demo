@@ -18,7 +18,7 @@ This repo contains artifacts to run a demo illustrating the vision and capabilit
   - Make sure your clusters support the required capacity 
   - Modified the specific cloud info in ```scripts/k8s-hanlder.sh```
 
-- Update TAP install values
+- Update TAP install values marked inside {}
   - ```.config/tap-view.yaml```
   - ```.config/tap-interate.yaml```
   - ```.config/tap-build.yaml```
@@ -26,7 +26,7 @@ This repo contains artifacts to run a demo illustrating the vision and capabilit
   - Make sure domain, system-repo and registry-host are identical across all configs
   
 - Update your registry details in ```.config/dekt-dev-supplychain.yaml``` and ```.config/dekt-build-supplychain.yaml``` 
-  - Note: since this is a custom supply chain, the registry values defined in ```tap-dev.yaml``` are NOT applied automatically
+  - Note: since this is a custom supply chain, the registry values defined in custom supply chains are NOT applied automatically
 
 - Review ```.config/scan-policy.yaml``` and customized if need 
 
@@ -104,16 +104,18 @@ Optional
 
 - highlight the simplicity of the ```workload.yaml```
 
+- Show the single dev experiece from VSCode via tilt 
+  - The single dev deploy will run on ```mydev``` namespaces in the ```dev-cluster```
+  
 - show the simple tap installed command (don't actually run)
   - ```tanzu package install tap -p tap.tanzu.vmware.com -v 1.0.1  --values-file tap-values-full.yaml -n tap-install```
 
 - show cluster topology ```./dekt-DevSecOps.sh info```
 
-- innerloop dev deploy ```./dekt-DevSecOps.sh dev```
+- innerloop teams (shared dev work) ```./dekt-DevSecOps.sh team```
 
 - follow workloads and supply chain progress via Backstage and/or
-  - ```./dekt-DevSecOps.sh track mysensors [logs]```
-  - ```./dekt-DevSecOps.sh scan-results```
+  - ```./dekt-DevSecOps.sh track team [logs]```
 
 - access tap gui accelerators using the ```cloud-native-devsecops``` tag
   - create ```dekt-path2prod``` supplychain using the microservices-supplychain accelerator with ```web-backend``` workload type 
@@ -137,7 +139,7 @@ Optional
 - 'promote' to Staging cluster (source code) ```./dekt-DevSecOps.sh stage```
   - show the enhanced supply chain (dekt-build with scanning) progress on multi-cluster Backstage
  
-- 'promote' to Run cluster (Deliverable)  ```./dekt-DevSecOps.sh peod```
+- 'promote' to Run cluster (Deliverable)  ```./dekt-DevSecOps.sh prod```
   - Review the Deliverables created in the ```.gitops``` directory
   - Review the events added to the ```.gitops/YOUR-prodAuditFile```
   - show that the new Deliverable is deployed on the production domain - run.dekt.io

@@ -2,42 +2,55 @@
 # TAP Profiles
 #   accepted values: full, iterate, build, run, view
 #==================================================================
-profile: build
+#profile: build
+profile: full #workaround until store-ca secrets issue is resovled
 
+#==================================================================
+# Build Service
+#==================================================================
 buildservice:
-  kp_default_repository: "MY_IMAGE_REGISTRY_HOST/MY_SYSTEM_REPO/build-service"
+  kp_default_repository: "{PRIVATE_REPO_SERVER}/{SYSTEM_REPO}/build-service"
   kp_default_repository_username: ""
   kp_default_repository_password: ""
   tanzunet_username: ""
   tanzunet_password: ""
   descriptor_name: "full"
   enable_automatic_dependency_updates: true
+
 #==================================================================
 # Supply Chains
 #   accepted values: basic , testing , testing_scanning
 #==================================================================
 supply_chain: basic
+
 ootb_supply_chain_basic:
   registry:
-    server: "MY_IMAGE_REGISTRY_HOST"
-    repository: "MY_APP_REPO"
+    server: "{PRIVATE_REPO_SERVER}"
+    repository: "{PROD_APPS_REPO}"
   gitops:
     ssh_secret: ""
 
-ceip_policy_disclosed: true
-
-metadata_store:
-  url: https://metadata-store.MY_SYS_SUBDOMAIN.MY_DOMAIN
-  caSecret:
-    name: store-ca-cert
-    importFromNamespace: metadata-store-secrets
-  authSecret:
-   name: store-auth-token
+#metadata_store:
+#  url: https://metadata-store.sys.dekt.io
+#  caSecret:
+#    name: store-ca-cert
+#    importFromNamespace: metadata-store-secrets
+#  authSecret:
+#   name: store-auth-token
 
 grype:
-  namespace: "MY_APP_REPO"
+  namespace: "{STAGE_PROD_NAMESPACE}"
   targetImagePullSecret: "registry-credentials"
+
+ceip_policy_disclosed: true
 
 excluded_packages:
   - learningcenter.tanzu.vmware.com 
   - workshops.learningcenter.tanzu.vmware.com
+  - tap-gui.tanzu.vmware.com
+  - learningcenter.tanzu.vmware.com
+  - workshops.learningcenter.tanzu.vmware.com
+  - backend.appliveview.tanzu.vmware.com
+  - connector.appliveview.tanzu.vmware.com
+  - conventions.appliveview.tanzu.vmware.com 
+  - cnrs.tanzu.vmware.com 

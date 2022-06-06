@@ -2,20 +2,23 @@
 
 #################### load configs from values yaml  ################
 
+    #clusters
     VIEW_CLUSTER=$(yq .view-cluster.name .config/demo-values.yaml)
     DEV_CLUSTER=$(yq .dev-cluster.name .config/demo-values.yaml)
     STAGE_CLUSTER=$(yq .stage-cluster.name .config/demo-values.yaml)
     PROD_CLUSTER=$(yq .prod-cluster.name .config/demo-values.yaml)
     BROWNFIELD_CLUSTER=$(yq .brownfield-cluster.name .config/demo-values.yaml)
-    PORTAL_WORKLOAD_DEV="myportal"
-    PORTAL_WORKLOAD_PROD="mood-portal"
-    SENSORS_WORKLOAD_DEV="mysensors"
-    SENSORS_WORKLOAD_PROD="mood-sensors"
-    PORTAL_DELIVERABLE=".gitops/portal-prod-deliverable.yaml"
-    SENSORS_DELIVERABLE=".gitops/sensors-prod-deliverable.yaml"
+    #workloads
+    PORTAL_WORKLOAD="mood-portal"
+    SENSORS_WORKLOAD="mood-sensors"
+    PORTAL_DELIVERABLE=".gitops/portal_deliverable.yaml"
+    SENSORS_DELIVERABLE=".gitops/sensors_deliverable.yaml"
+    #tap
     TAP_VERSION=$(yq .tap.version .config/demo-values.yaml)
     SYSTEM_REPO=$(yq .tap.systemRepo .config/demo-values.yaml)
-    APPS_NAMESPACE=$(yq .tap.appNamespace .config/demo-values.yaml)
+    #apps-namespaces
+    TEAM_NAMESPACE=$(yq .apps-namespaces.team .config/demo-values.yaml)
+    STAGEPROD_NAMESPACE=$(yq .apps-namespaces.stageProd .config/demo-values.yaml)
     PROD_AUDIT_FILE=.gitops/$(yq .tap.prodAuditFile .config/demo-values.yaml)
     
     
@@ -63,49 +66,49 @@
             kubectl cluster-info | grep 'control plane' --color=never
         fi
 
+        kubectl config use-context $DEV_CLUSTER 
+
     }
     
     #create-workloads
     create-workloads() {
 
         case $1 in
-        dev)
-            portalWorkload=$PORTAL_WORKLOAD_DEV
-            sensorsWorkload=$SENSORS_WORKLOAD_DEV
+        team)
             gitBranch="dev"
             tapCluster=$DEV_CLUSTER
+            appsNamespace=$TEAM_NAMESPACE
             ;;
         stage)
-            portalWorkload=$PORTAL_WORKLOAD_PROD
-            sensorsWorkload=$SENSORS_WORKLOAD_PROD
             gitBranch="integrate"
             tapCluster=$STAGE_CLUSTER
+            appsNamespace=$STAGEPROD_NAMESPACE
             ;;
         esac
 
         kubectl config use-context $tapCluster
 
-        scripts/dektecho.sh cmd "tanzu apps workload create $portalWorkload --git-repo https://github.com/dektlong/mood-portal --git-branch $gitBranch -y -n $APPS_NAMESPACE"
+        scripts/dektecho.sh cmd "tanzu apps workload create $PORTAL_WORKLOAD --git-repo https://github.com/dektlong/mood-portal --git-branch $gitBranch -y -n $appsNamespace"
         
-        tanzu apps workload create $portalWorkload \
+        tanzu apps workload create $PORTAL_WORKLOAD \
             --git-repo https://github.com/dektlong/mood-portal \
             --git-branch $gitBranch \
             --type web \
-            --label app.kubernetes.io/part-of=$portalWorkload \
+            --label app.kubernetes.io/part-of=$PORTAL_WORKLOAD \
             --yes \
-            --namespace $APPS_NAMESPACE
+            --namespace $appsNamespace
 
-        scripts/dektecho.sh cmd "tanzu apps workload create $sensorsWorkload --git-repo https://github.com/dektlong/mood-sensors --git-branch $gitBranch -y -n $APPS_NAMESPACE"
+        scripts/dektecho.sh cmd "tanzu apps workload create $SENSORS_WORKLOAD --git-repo https://github.com/dektlong/mood-sensors --git-branch $gitBranch -y -n $appsNamespace"
 
-        tanzu apps workload create $sensorsWorkload \
+        tanzu apps workload create $SENSORS_WORKLOAD \
             --git-repo https://github.com/dektlong/mood-sensors \
             --git-branch $gitBranch \
             --type web-backend \
-            --label app.kubernetes.io/part-of=$sensorsWorkload \
+            --label app.kubernetes.io/part-of=$SENSORS_WORKLOAD \
             --label apps.tanzu.vmware.com/has-tests=true \
             --service-ref rabbitmq-claim=rabbitmq.com/v1beta1:RabbitmqCluster:reading \
             --yes \
-            --namespace $APPS_NAMESPACE
+            --namespace $appsNamespace
     }
 
     #prod-roleout
@@ -116,12 +119,12 @@
         printf "$(date): " > $PROD_AUDIT_FILE 
         kubectl config use-context $STAGE_CLUSTER >> $PROD_AUDIT_FILE
         
-        kubectl get deliverable $PORTAL_WORKLOAD_PROD -n $APPS_NAMESPACE -oyaml > $PORTAL_DELIVERABLE
+        kubectl get deliverable $PORTAL_WORKLOAD -n $STAGEPROD_NAMESPACE -oyaml > $PORTAL_DELIVERABLE
         yq e 'del(.status)' $PORTAL_DELIVERABLE -i 
         yq e 'del(.metadata.ownerReferences)' $PORTAL_DELIVERABLE -i 
         echo "$(date): $PORTAL_DELIVERABLE generated." >> $PROD_AUDIT_FILE 
 
-        kubectl get deliverable $SENSORS_WORKLOAD_PROD -n $APPS_NAMESPACE -oyaml > $SENSORS_DELIVERABLE
+        kubectl get deliverable $SENSORS_WORKLOAD -n $STAGEPROD_NAMESPACE -oyaml > $SENSORS_DELIVERABLE
         yq e 'del(.status)' $SENSORS_DELIVERABLE -i 
         yq e 'del(.metadata.ownerReferences)' $SENSORS_DELIVERABLE -i 
               
@@ -135,14 +138,14 @@
 
         scripts/dektecho.sh cmd "Applying production Deliverables to $PROD_CLUSTER cluster..."
 
-        echo "$(date): kubectl apply -f $PORTAL_DELIVERABLE -n $APPS_NAMESPACE" >> $PROD_AUDIT_FILE
-        kubectl apply -f $PORTAL_DELIVERABLE -n $APPS_NAMESPACE >> $PROD_AUDIT_FILE
+        echo "$(date): kubectl apply -f $PORTAL_DELIVERABLE -n $STAGEPROD_NAMESPACE" >> $PROD_AUDIT_FILE
+        kubectl apply -f $PORTAL_DELIVERABLE -n $STAGEPROD_NAMESPACE >> $PROD_AUDIT_FILE
 
-        echo "$(date): kubectl apply -f $SENSORS_DELIVERABLE -n $APPS_NAMESPACE" >> $PROD_AUDIT_FILE
-        kubectl apply -f $SENSORS_DELIVERABLE -n $APPS_NAMESPACE >> $PROD_AUDIT_FILE
+        echo "$(date): kubectl apply -f $SENSORS_DELIVERABLE -n $STAGEPROD_NAMESPACE" >> $PROD_AUDIT_FILE
+        kubectl apply -f $SENSORS_DELIVERABLE -n $STAGEPROD_NAMESPACE >> $PROD_AUDIT_FILE
 
         printf "$(date): " >> $PROD_AUDIT_FILE 
-        kubectl get deliverables -n $APPS_NAMESPACE >> $PROD_AUDIT_FILE
+        kubectl get deliverables -n $STAGEPROD_NAMESPACE >> $PROD_AUDIT_FILE
 
         scripts/dektecho.sh info "Congratulations. Your DevX-Mood application is in production"
 
@@ -160,17 +163,30 @@
     #track-workload
     track-workload () {
 
-        workloadName=$1
+        case $1 in
+        team)
+            tapCluster=$DEV_CLUSTER
+            appsNamespace=$TEAM_NAMESPACE
+            ;;
+        stage)
+            tapCluster=$STAGE_CLUSTER
+            appsNamespace=$STAGEPROD_NAMESPACE
+            ;;
+        esac
 
-        scripts/dektecho.sh cmd "tanzu apps workload get $workloadName-n $APPS_NAMESPACE"
-        
-        tanzu apps workload get $workloadName -n $APPS_NAMESPACE
+        kubectl config use-context $tapCluster
+
+        scripts/dektecho.sh cmd "tanzu apps workload get $PORTAL_WORKLOAD -n $appsNamespace"
+        tanzu apps workload get $PORTAL_WORKLOAD -n $appsNamespace
+
+        scripts/dektecho.sh cmd "tanzu apps workload get $SENSORS_WORKLOAD -n $appsNamespace"
+        tanzu apps workload get $SENSORS_WORKLOAD -n $appsNamespace
 
         
         if [ "$2" == "logs" ]; then
-            scripts/dektecho.sh cmd "tanzu apps workload tail $workloadName --since 100m --timestamp  -n $APPS_NAMESPACE"
+            scripts/dektecho.sh cmd "tanzu apps workload tail $SENSORS_WORKLOAD --since 100m --timestamp  -n $appsNamespace"
             
-            tanzu apps workload tail $workloadName --since 100m --timestamp  -n $APPS_NAMESPACE
+            tanzu apps workload tail $SENSORS_WORKLOAD --since 100m --timestamp  -n $appsNamespace
         fi
     }
 
@@ -195,7 +211,7 @@
 
         scripts/dektecho.sh info "Scanning results"
 
-        kubectl describe imagescan.scanning.apps.tanzu.vmware.com/$SENSORS_WORKLOAD_PROD -n $APPS_NAMESPACE
+        kubectl describe imagescan.scanning.apps.tanzu.vmware.com/$SENSORS_WORKLOAD -n $STAGEPROD_NAMESPACE
 
     }
         
@@ -204,17 +220,16 @@
     reset() {
 
         kubectl config use-context $STAGE_CLUSTER
-        tanzu apps workload delete $PORTAL_WORKLOAD_PROD -n $APPS_NAMESPACE -y
-        tanzu apps workload delete $SENSORS_WORKLOAD_PROD -n $APPS_NAMESPACE -y
+        tanzu apps workload delete $PORTAL_WORKLOAD -n $STAGEPROD_NAMESPACE -y
+        tanzu apps workload delete $SENSORS_WORKLOAD -n $STAGEPROD_NAMESPACE -y
 
         kubectl config use-context $PROD_CLUSTER
         kubectl delete -f $PORTAL_DELIVERABLE
         kubectl delete -f $SENSORS_DELIVERABLE
 
         kubectl config use-context $DEV_CLUSTER
-        tanzu apps workload delete $PORTAL_WORKLOAD_DEV -n $APPS_NAMESPACE -y
-        tanzu apps workload delete $SENSORS_WORKLOAD_DEV -n $APPS_NAMESPACE -y
-        tanzu apps workload delete $SENSORS_WORKLOAD_DEV -n mydev -y
+        tanzu apps workload delete $PORTAL_WORKLOAD -n $TEAM_NAMESPACE  -y
+        tanzu apps workload delete $SENSORS_WORKLOAD -n $TEAM_NAMESPACE -y
         
         kubectl config use-context $VIEW_CLUSTER
         kubectl delete pod -l app=backstage -n tap-gui
@@ -225,6 +240,8 @@
         rm -f $PORTAL_DELIVERABLE
         rm -f $SENSORS_DELIVERABLE
         rm -r .gitops
+
+        kubectl config use-context $DEV_CLUSTER
     }
 
     #toggle the BYPASS_BACKEND flag in mood-portal
@@ -265,14 +282,14 @@
         echo
         echo "  info"
         echo
-        echo "  dev"
+        echo "  team"
         echo
         echo "  stage"
         echo
         echo "  prod"
         echo
         echo "  supplychains"
-        echo "  track workload-name [ logs ]"
+        echo "  track team/stage [ logs ]"
         echo "  scan-results"
         echo 
         echo "  brownfield"
@@ -289,8 +306,8 @@ case $1 in
 info)
     info
     ;;
-dev)
-    create-workloads "dev"
+team)
+    create-workloads "team"
     ;;
 stage)
     create-workloads "stage"

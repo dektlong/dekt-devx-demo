@@ -8,6 +8,8 @@ export INSTALL_REGISTRY_PASSWORD=$(yq .buildservice.tanzunet_password .config/ta
 #add-carvel
 add-carvel () {
 
+    scripts/dektecho.sh info "Add Carvel tools to cluster $(kubectl config current-context)"
+
     pushd scripts/carvel
 
     ./install.sh --yes

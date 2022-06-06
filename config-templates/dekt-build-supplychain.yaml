@@ -1,7 +1,7 @@
 apiVersion: carto.run/v1alpha1
 kind: ClusterSupplyChain
 metadata:
-  name: dekt-path2prod
+  name: dekt-build
 spec:
   selector:
     apps.tanzu.vmware.com/has-tests: 'true'
@@ -54,8 +54,8 @@ spec:
       value: default
     - name: registry
       value:
-        repository:  {UPDATE_ME}
-        server:  {UPDATE_ME}
+        repository:  {UPDATE_FROM_TAP_BUILD_SC_INFO}
+        server:  {UPDATE_FROM_TAP_BUILD_SC_INFO}
     sources:
     - name: source
       resource: scan-source
@@ -99,18 +99,25 @@ spec:
       value: default
     - name: registry
       value:
-        repository: #must match tap-values-full.yaml ootb_supply_chain_testing_scanning.registry.repository
-        server: #must match tap-values-full.yaml ootb_supply_chain_testing_scanning.registry.server
+        repository: {UPDATE_FROM_TAP_BUILD_SC_INFO}
+        server: {UPDATE_FROM_TAP_BUILD_SC_INFO}
     templateRef:
       kind: ClusterTemplate
       name: config-writer-template
     #supply-chain output
   - name: deliverable
+    #gitops:
+    #  repository_prefix: "ssh://git@github.com:dekt-gitops/"
+    #  branch: main
+    #  username: "dektlong"
+    #  email: "dekel.tankel@gmail.com"
+    #  commit_message: "creating dekt prod deliverable"
+    #  ssh_secret: dekt-gitops-secret
     params:
     - name: registry
       value:
-        repository: #must match tap-values-full.yaml ootb_supply_chain_testing_scanning.registry.repository
-        server: #must match tap-values-full.yaml ootb_supply_chain_testing_scanning.registry.server
+        repository: {UPDATE_FROM_TAP_BUILD_SC_INFO}
+        server: {UPDATE_FROM_TAP_BUILD_SC_INFO}
     templateRef:
       kind: ClusterTemplate
       name: deliverable-template
