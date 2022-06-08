@@ -11,5 +11,8 @@ spec:
     - ./domains/dekt-domain.yaml
     - ./groups/dekt-teams.yaml
     - ./systems/devx-mood.yaml
+    - ./resources/brownfield-gns.yaml
+    - ./components/legacy-mood.yaml
+    - ./systems/devx-mood.yaml
     - https://github.com/dektlong/mood-portal/blob/dev/config/backstage/catalog-info.yaml
     - https://github.com/dektlong/mood-sensors/blob/dev/config/backstage/catalog-info.yaml

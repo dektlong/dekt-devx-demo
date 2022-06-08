@@ -1,0 +1,11 @@
+apiVersion: backstage.io/v1alpha1
+kind: Resource
+metadata:
+  name: brownfield-gns
+  description: TSM Brownfield global namespace setup
+  annotations:
+    'backstage.io/techdocs-ref': dir:.
+spec:
+  type: network
+  owner: dekt-platform-ops
+  system: devx-mood
