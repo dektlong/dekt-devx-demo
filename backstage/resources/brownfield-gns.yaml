@@ -1,7 +1,7 @@
 apiVersion: backstage.io/v1alpha1
 kind: Resource
 metadata:
-  name: brownfield-gns
+  name: brownfield
   description: TSM Brownfield global namespace setup
   annotations:
     'backstage.io/techdocs-ref': dir:.
