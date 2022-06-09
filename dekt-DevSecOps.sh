@@ -226,8 +226,8 @@
         tanzu package installed update tap --package-name tap.tanzu.vmware.com --version $TAP_VERSION -n tap-install -f .config/tap-build.yaml
 
         kubectl config use-context $PROD_CLUSTER
-        kubectl delete -f $PORTAL_DELIVERABLE
-        kubectl delete -f $SENSORS_DELIVERABLE
+        kubectl delete deliverable $PORTAL_WORKLOAD -n $STAGEPROD_NAMESPACE
+        kubectl delete deliverable $SENSORS_WORKLOAD -n $STAGEPROD_NAMESPACE
         tanzu package installed update tap --package-name tap.tanzu.vmware.com --version $TAP_VERSION -n tap-install -f .config/tap-run.yaml
 
         kubectl config use-context $DEV_CLUSTER
