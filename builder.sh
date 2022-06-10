@@ -80,29 +80,65 @@
     #post-install-configs
     post-install-configs () {
 
+        config-view-cluster
+
+        config-dev-cluster
+
+        config-stage-cluster
+
+        config-prod-cluster
+    }
+
+    #config-view-cluster
+    config-view-cluster() {
+
         scripts/dektecho.sh info "Running post install configurations for $VIEW_CLUSTER_NAME cluster"
+        
         kubectl config use-context $VIEW_CLUSTER_NAME
+        
         kustomize build accelerators | kubectl apply -f -
+    }
+
+    #config-dev-cluster
+    config-dev-cluster() {
 
         scripts/dektecho.sh info "Running post install configurations for $DEV_CLUSTER_NAME cluster"
+
         kubectl config use-context $DEV_CLUSTER_NAME
+        
         setup-apps-namespace $DEV_NAMESPACE
         setup-apps-namespace $TEAM_NAMESPACE
+        
         kubectl apply -f .config/disable-scale2zero.yaml
         kubectl apply -f .config/dekt-dev-supplychain.yaml
         kubectl apply -f .config/tekton-pipeline.yaml -n $DEV_NAMESPACE
         kubectl apply -f .config/tekton-pipeline.yaml -n $TEAM_NAMESPACE
 
+    }    
+
+    #config-stage-cluster
+    config-stage-cluster() {
+
         scripts/dektecho.sh info "Running post install configurations for $STAGE_CLUSTER_NAME cluster"
+
         kubectl config use-context $STAGE_CLUSTER_NAME
+        
         setup-apps-namespace $STAGEPROD_NAMESPACE
+        
         kubectl apply -f .config/dekt-build-supplychain.yaml
         kubectl apply -f .config/scan-policy.yaml -n $STAGEPROD_NAMESPACE
         kubectl apply -f .config/tekton-pipeline.yaml -n $STAGEPROD_NAMESPACE
+    }
+
+    #config-prod-cluster
+    config-prod-cluster() {
 
         scripts/dektecho.sh info "Running post install configurations for $PROD_CLUSTER_NAME cluster"
+
         kubectl config use-context $PROD_CLUSTER_NAME
+        
         kubectl apply -f .config/disable-scale2zero.yaml
+        
         setup-apps-namespace $STAGEPROD_NAMESPACE
     }
 
