@@ -342,6 +342,8 @@
     #delete-tap
     delete-tap() {
 
+        kubectl config use-context $1
+
         tanzu package installed delete tap -n tap-install -y
 
         kubectl delete ns tap-install
@@ -401,6 +403,14 @@
 
         kubectl config use-context $PROD_CLUSTER_NAME
         scripts/tanzu-handler.sh add-carvel-tools
+    }
+
+    #remove-tap
+    remove-tap() {
+        delete-tap "dekt-view"
+        delete-tap "dekt-dev"
+        delete-tap "dekt-stage"
+        delete-tap "dekt-prod"
     }
 
 #################### main ##########################

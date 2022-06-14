@@ -97,6 +97,9 @@ add-scgw-ingress)
 gui-dev)
     create-ingress-rule "tap-gui-ingress" "contour" "tap-gui.$subDomain.$DOMAIN" "server" "7000" "tap-gui"
     ;;
+acc)
+    create-ingress-rule "acc-ingress" "contour" "acc.sys.dekt.io" "acc-server" "80" "accelerator-system"
+    ;;
 *)
     scripts/dektecho.sh err "incorrect usage. Please use 'tap-full', 'tap-run', 'apis', 'gui-dev' or 'scgw'"
     ;;
