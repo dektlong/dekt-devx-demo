@@ -301,6 +301,8 @@
         echo
         echo "  behappy"
         echo
+        echo "  pre-deploy"
+        echo
         echo "  reset"
         exit
     }
@@ -340,6 +342,14 @@ behappy)
     ;;
 reset)
     reset
+    ;;
+pre-deploy)
+    kubectl config use-context $DEV_CLUSTER
+    tanzu apps workload apply -y -f ../mood-sensors/workload.yaml -n $DEV_NAMESPACE
+    create-workloads "team"
+    create-workloads "stage"
+    scripts/dektecho.sh err "Hit any key when stage workloads are ready!" && read
+    prod-roleout 
     ;;
 cleanup-helper)
     cleanup-helper
