@@ -28,6 +28,7 @@ tap_gui:
       reading:
         allow:
         - host: petstore.swagger.io
+        - host: "*.{YOUR_DOMAIN}"
     #============================
     # Multi cluster workload viewer
     #============================
