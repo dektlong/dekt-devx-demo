@@ -47,16 +47,15 @@ This repo contains artifacts to run a demo illustrating the vision and capabilit
 ```
 ./builder.sh create-clusters
 ```
-  - verify all clusters and contexts were created 
 - install TAP + demo components following specification in ```./config/demo-values.yaml```
 ```
 ./builder.sh install-demo
 ```
-  - Install the following on **view** cluster
-    - Carvel tools
-    - TAP view profile
-    - Custom app accelerators 
-    - System ingress rule
+    - Install the following on **view** cluster
+      - Carvel tools
+      - TAP view profile
+      - Custom app accelerators 
+      - System ingress rule
   - Install the following on **dev** cluster
     - Carvel tools
     - TAP full profile
