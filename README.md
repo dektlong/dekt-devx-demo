@@ -51,11 +51,11 @@ This repo contains artifacts to run a demo illustrating the vision and capabilit
 ```
 ./builder.sh install-demo
 ```
-    - Install the following on **view** cluster
-      - Carvel tools
-      - TAP view profile
-      - Custom app accelerators 
-      - System ingress rule
+  - Install the following on **view** cluster
+    - Carvel tools
+    - TAP view profile
+    - Custom app accelerators 
+    - System ingress rule
   - Install the following on **dev** cluster
     - Carvel tools
     - TAP full profile
