@@ -43,20 +43,21 @@ This repo contains artifacts to run a demo illustrating the vision and capabilit
 
 ## Installation
 
-- Create clusters
+### Create clusters
 ```
 ./builder.sh create-clusters
 ```
-- install TAP + demo components following specification in ```./config/demo-values.yaml```
+
+### Install demo components
 ```
 ./builder.sh install-demo
 ```
-  - Install the following on **view** cluster
+  - The following is installed on the **view** cluster
     - Carvel tools
     - TAP view profile
     - Custom app accelerators 
     - System ingress rule
-  - Install the following on **dev** cluster
+  - The following is installed on **dev** cluster
     - Carvel tools
     - TAP full profile
     - Default supplychain configs for apps namespace 
@@ -65,23 +66,23 @@ This repo contains artifacts to run a demo illustrating the vision and capabilit
     - Custom ```dekt-path2prod``` supplychain 
     - RabbitMQ operator and instance
     - CNR dev ingress rule
-  - Install the following on **stage** cluster
+  - The following is installed on **stage** cluster
     - Carvel tools
     - TAP build profile
     - Default supplychain configs for apps namespace 
     - Grype scanning policy 
     - Tekton pipeline run 
-  - Install the following on **prod** cluster
+  - The following is installed on **prod** cluster
     - Carvel tools
     - TAP run profile
     - Default supplychain configs for apps namespace 
     - CNR run ingress rule
-  - Install the following on **brownfield** cluster  
+  - The following is installed on **brownfield** cluster  
     - Spring Cloud Gateway operator
     - Brownfield APIs SCGW instances and routes in ```brownfield-apis``` ns
     - Add brownfield 'consumer' k8s services to TAP clusters in ```brownfield-apis``` ns
 
-Optional
+### Config TMC & TSM (optional)
   - Attached clusters to TMC
   - Onboard clusteers to TSM
     - exclude TAP namespaces
