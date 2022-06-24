@@ -359,9 +359,12 @@
         scripts/dektecho.sh err "Incorrect usage. Please specify one of the following: "
         
         echo "  create-clusters"
+        echo
         echo "  install-demo"
         echo       
-        echo "  delete"
+        echo "  uninstall-demo"
+        echo
+        echo "  delete-all"
         echo
         echo "  relocate-tap-images"
         echo
@@ -424,12 +427,16 @@ install-demo)
     update-dns-records
     update-multi-cluster-views
     ;;
-delete)
-    scripts/dektecho.sh err  "!!!Are you sure you want to delete all clusters?"
-    read
+delete-all)
+    scripts/dektecho.sh prompt  "Are you sure you want to delete all clusters?" && [ $? -eq 0 ] || exit
     ./dekt-DevSecOps.sh cleanup-helper
     delete-clusters
-    rm -f /Users/dekt/.kube
+    rm -f /Users/dekt/.kube/config
+    ;;
+uninstall-demo)
+    scripts/dektecho.sh prompt  "Are you sure you want to uninstall all demo components?" && [ $? -eq 0 ] || exit
+    ./dekt-DevSecOps.sh cleanup-helper
+    remove-tap
     ;;
 relocate-tap-images)
     relocate-tap-images

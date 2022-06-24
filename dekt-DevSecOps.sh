@@ -134,7 +134,7 @@
         scripts/dektecho.sh info "Review Deliverables in gitops repo"
 
         if [ "$1" != "no-wait" ]; then
-            scripts/dektecho.sh err "Hit any key to go production!" && read
+            scripts/dektecho.sh prompt  "Are you sure you want deploy to production?" && [ $? -eq 0 ] || exit
         fi
 
         printf "$(date): " >> $PROD_AUDIT_FILE 

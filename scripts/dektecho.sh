@@ -10,15 +10,29 @@ infomsg () {
 #cmdmsg
 cmdmsg () {
     echo
-    printf "\e[36m▶️ $1 \e[m\n"
+    printf "\e[36m▶ $1 \e[m\n"
     echo
 }
 
 #errmsg
 errmsg () {
     echo
-    printf "\e[31m⏹️  $1 \e[m\n"
+    printf "\e[31m⏹  $1 \e[m\n"
     echo
+}
+
+#prompt
+prompt() {
+
+    while true; do
+        printf "\e[33m⏯  $1 (y/n) \e[m"
+        read yn
+        case $yn in
+            [Yy]* ) exit 0;;
+            [Nn]* ) exit 1;;
+            * ) errmsg "Please answer yes or no.";;
+        esac
+    done
 }
 
 
@@ -32,7 +46,10 @@ cmd)
 err)
     errmsg "$2"
     ;;
+prompt)
+    prompt "$2"
+    ;;
 *)
-	errmsg "Incorrect usage. Please specify one of the following: info [msg], cmd [msg], err [msg]"
+	errmsg "Incorrect usage. Please specify one of the following: info [msg], cmd [msg], err [msg], prompt [msg]"
 	;;
 esac

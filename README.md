@@ -159,10 +159,11 @@ This repo contains artifacts to run a demo illustrating the vision and capabilit
 
 ## Cleanup
 
-
-- full cleanup to delete all clusters  ```./builder.sh delete```
-
 - partial cleanup to remove workloads and reset configs ```./dekt-DevSecOps.sh reset```
+
+- partial cleanup to uninstall TAP and demo components from all clusters ```./builder.sh uninstall-demo```
+
+- full cleanup to delete all clusters  ```./builder.sh delete-all```
 
 ### Enjoy!
 
