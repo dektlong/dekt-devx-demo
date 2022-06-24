@@ -358,7 +358,8 @@
         
         scripts/dektecho.sh err "Incorrect usage. Please specify one of the following: "
         
-        echo "  init"
+        echo "  create-clusters"
+        echo "  install-demo"
         echo       
         echo "  delete"
         echo
@@ -367,16 +368,6 @@
         echo "  runme [ function-name ]"
         echo
         exit
-    }
-
-    #create-clusters
-    create-clusters() {
-
-        scripts/k8s-handler.sh create $VIEW_CLUSTER_PROVIDER $VIEW_CLUSTER_NAME $VIEW_CLUSTER_NODES
-        scripts/k8s-handler.sh create $DEV_CLUSTER_PROVIDER $DEV_CLUSTER_NAME $DEV_CLUSTER_NODES
-        scripts/k8s-handler.sh create $STAGE_CLUSTER_PROVIDER $STAGE_CLUSTER_NAME $STAGE_CLUSTER_NODES  
-        scripts/k8s-handler.sh create $PROD_CLUSTER_PROVIDER $PROD_CLUSTER_NAME $PROD_CLUSTER_NODES
-        scripts/k8s-handler.sh create $BROWNFIELD_CLUSTER_PROVIDER $BROWNFIELD_CLUSTER_NAME $BROWNFIELD_CLUSTER_NODES
     }
 
     #delete-clusters
@@ -416,8 +407,14 @@
 #################### main ##########################
 
 case $1 in
-init)
-    create-clusters
+create-clusters)
+    scripts/k8s-handler.sh create $VIEW_CLUSTER_PROVIDER $VIEW_CLUSTER_NAME $VIEW_CLUSTER_NODES
+    scripts/k8s-handler.sh create $DEV_CLUSTER_PROVIDER $DEV_CLUSTER_NAME $DEV_CLUSTER_NODES
+    scripts/k8s-handler.sh create $STAGE_CLUSTER_PROVIDER $STAGE_CLUSTER_NAME $STAGE_CLUSTER_NODES  
+    scripts/k8s-handler.sh create $PROD_CLUSTER_PROVIDER $PROD_CLUSTER_NAME $PROD_CLUSTER_NODES
+    scripts/k8s-handler.sh create $BROWNFIELD_CLUSTER_PROVIDER $BROWNFIELD_CLUSTER_NAME $BROWNFIELD_CLUSTER_NODES
+    ;;
+install-demo)    
     add-carvel-tools
     install-tap
     post-install-configs
