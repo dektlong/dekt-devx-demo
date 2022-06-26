@@ -71,45 +71,56 @@
 
     }
     
-    #create-workloads
-    create-workloads() {
+    #create-team-workloads
+    create-team-workloads() {
 
-        case $1 in
-        team)
-            gitBranch="dev"
-            tapCluster=$DEV_CLUSTER
-            appsNamespace=$TEAM_NAMESPACE
-            ;;
-        stage)
-            gitBranch="integrate"
-            tapCluster=$STAGE_CLUSTER
-            appsNamespace=$STAGEPROD_NAMESPACE
-            ;;
-        esac
-
-        kubectl config use-context $tapCluster
-
-        scripts/dektecho.sh cmd "tanzu apps workload create $PORTAL_WORKLOAD --git-repo https://github.com/dektlong/mood-portal --git-branch $gitBranch -y -n $appsNamespace"
+        kubectl config use-context $DEV_CLUSTER
         
+        scripts/dektecho.sh cmd "tanzu apps workload create $PORTAL_WORKLOAD -f workload.yaml -n $TEAM_NAMESPACE"
         tanzu apps workload create $PORTAL_WORKLOAD \
             --git-repo https://github.com/dektlong/mood-portal \
-            --git-branch $gitBranch \
+            --git-branch dev \
             --type web \
             --label app.kubernetes.io/part-of=$PORTAL_WORKLOAD \
             --yes \
-            --namespace $appsNamespace
+            --namespace $TEAM_NAMESPACE
 
-        scripts/dektecho.sh cmd "tanzu apps workload create $SENSORS_WORKLOAD --git-repo https://github.com/dektlong/mood-sensors --git-branch $gitBranch -y -n $appsNamespace"
-
+        scripts/dektecho.sh cmd "tanzu apps workload create $SENSORS_WORKLOAD -f workload.yaml -n $TEAM_NAMESPACE"
         tanzu apps workload create $SENSORS_WORKLOAD \
             --git-repo https://github.com/dektlong/mood-sensors \
-            --git-branch $gitBranch \
+            --git-branch dev \
             --type web-backend \
+            --label apps.tanzu.vmware.com/has-tests="true" \
             --label app.kubernetes.io/part-of=$SENSORS_WORKLOAD \
-            --label apps.tanzu.vmware.com/has-tests=true \
             --service-ref rabbitmq-claim=rabbitmq.com/v1beta1:RabbitmqCluster:reading \
             --yes \
-            --namespace $appsNamespace
+            --namespace $TEAM_NAMESPACE
+    }
+
+    #create-stage-workloads
+    create-stage-workloads() {
+
+        kubectl config use-context $STAGE_CLUSTER
+        
+        scripts/dektecho.sh cmd "tanzu apps workload create $PORTAL_WORKLOAD -f workload.yaml -n $STAGEPROD_NAMESPACE"
+        tanzu apps workload create $PORTAL_WORKLOAD \
+            --git-repo https://github.com/dektlong/mood-portal \
+            --git-branch integrate \
+            --type web \
+            --label app.kubernetes.io/part-of=$PORTAL_WORKLOAD \
+            --yes \
+            --namespace $STAGEPROD_NAMESPACE
+
+        scripts/dektecho.sh cmd "tanzu apps workload create $SENSORS_WORKLOAD -f workload.yaml -n $STAGEPROD_NAMESPACE"
+        tanzu apps workload create $SENSORS_WORKLOAD \
+            --git-repo https://github.com/dektlong/mood-sensors \
+            --git-branch integrate \
+            --type web-backend \
+            --label apps.tanzu.vmware.com/has-tests="true" \
+            --label app.kubernetes.io/part-of=$SENSORS_WORKLOAD-v2 \
+            --service-ref rabbitmq-claim=rabbitmq.com/v1beta1:RabbitmqCluster:reading \
+            --yes \
+            --namespace $STAGEPROD_NAMESPACE
     }
 
     #prod-roleout
@@ -131,7 +142,7 @@
               
         echo "$(date): $SENSORS_DELIVERABLE generated." >> $PROD_AUDIT_FILE 
         
-        scripts/dektecho.sh info "Review Deliverables in gitops repo"
+        scripts/dektecho.sh status "Review Deliverables in gitops repo"
 
         if [ "$1" != "no-wait" ]; then
             scripts/dektecho.sh prompt  "Are you sure you want deploy to production?" && [ $? -eq 0 ] || exit
@@ -151,7 +162,7 @@
         printf "$(date): " >> $PROD_AUDIT_FILE 
         kubectl get deliverables -n $STAGEPROD_NAMESPACE >> $PROD_AUDIT_FILE
 
-        scripts/dektecho.sh info "Congratulations. Your DevX-Mood application is in production"
+        scripts/dektecho.sh status "Congratulations. Your DevX-Mood application is in production"
 
     }
 
@@ -330,10 +341,10 @@ info)
     info
     ;;
 team)
-    create-workloads "team"
+    create-team-workloads
     ;;
 stage)
-    create-workloads "stage"
+    create-stage-workloads
     ;;
 prod)
     prod-roleout

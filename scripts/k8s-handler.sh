@@ -11,10 +11,6 @@ GKE_REGION="us-central1"
 GCP_PROJECT_ID="fe-asaikali"
 
 
-
-TANZU_NETWORK_USER=$(yq .buildservice.tanzunet_username .config/tap-values-full.yaml)
-TANZU_NETWORK_PASSWORD=$(yq .buildservice.tanzunet_password .config/tap-values-full.yaml)
-
 #create-aks-cluster
 create-aks-cluster() {
 
@@ -42,7 +38,7 @@ delete-aks-cluster() {
 
 	cluster_name=$1
 
-	scripts/dektecho.sh info "Starting deleting resources of AKS cluster $cluster_name"
+	scripts/dektecho.sh status "Starting deleting resources of AKS cluster $cluster_name"
 	
 	az aks delete --name $cluster_name --resource-group $AZURE_RESOURCE_GROUP --yes
 }
@@ -67,6 +63,9 @@ create-eks-cluster () {
 	--set-kubeconfig-context \
     --node-type t3.xlarge # 4 vCPU , 16GB memory, 80GB temp disk 
 	
+	#workaround a k8s client version conflict
+	aws eks update-kubeconfig --name $cluster_name --region $AWS_REGION
+
     kubectl config rename-context $(kubectl config current-context) $cluster_name
 }
 
@@ -76,7 +75,7 @@ delete-eks-cluster () {
 
     cluster_name=$1
 
-	scripts/dektecho.sh info "Starting deleting resources of EKS cluster $cluster_name ..."
+	scripts/dektecho.sh status "Starting deleting resources of EKS cluster $cluster_name ..."
 	
     eksctl delete cluster --name $cluster_name --force
 }
@@ -106,7 +105,7 @@ delete-gke-cluster () {
 
     cluster_name=$1
 
-	scripts/dektecho.sh info "Starting deleting resources of GKE cluster $cluster_name"
+	scripts/dektecho.sh status "Starting deleting resources of GKE cluster $cluster_name"
 	
     gcloud container clusters delete $cluster_name \
 		--region $GKE_REGION \

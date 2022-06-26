@@ -68,7 +68,7 @@ update-dns-A-record()
         ingress_public_ip=$(kubectl get svc $ingress_service_name --namespace $ingress_namespace -o=jsonpath='{.status.loadBalancer.ingress[0].ip}')
     fi
         
-    scripts/dektecho.sh info "updating this A record in GoDaddy:  $record_name.$DOMAIN--> $ingress_public_ip"
+    scripts/dektecho.sh status "updating this A record in GoDaddy:  $record_name.$DOMAIN--> $ingress_public_ip"
 
     # Update/Create DNS A Record
 

@@ -7,10 +7,17 @@ infomsg () {
     echo
 }
 
+#statusmsg
+statusmsg () {
+    echo
+    printf "\e[37mℹ️  $1 ...\e[m\n"
+    echo
+}
+
 #cmdmsg
 cmdmsg () {
     echo
-    printf "\e[36m▶ $1 \e[m\n"
+    printf "\e[35m▶ $1 \e[m\n"
     echo
 }
 
@@ -39,6 +46,9 @@ prompt() {
 case $1 in
 info)
   	infomsg "$2"
+    ;;
+status)
+    statusmsg "$2"
     ;;
 cmd)
     cmdmsg "$2"

@@ -40,27 +40,99 @@
 
 #################### functions ################
 
-    #install-tap
-    install-tap() {
+    #install-view-cluster
+    install-view-cluster() {
 
-        add-tap-package $VIEW_CLUSTER_NAME "tap-view.yaml"
+        scripts/dektecho.sh info "Installing demo components for $VIEW_CLUSTER_NAME cluster"
 
-        add-tap-package $DEV_CLUSTER_NAME "tap-iterate.yaml"
+        kubectl config use-context $VIEW_CLUSTER_NAME
+
+        scripts/tanzu-handler.sh add-carvel-tools
         
-        add-tap-package $STAGE_CLUSTER_NAME "tap-build.yaml"
+        add-tap-package "tap-view.yaml"
         
-        add-tap-package $PROD_CLUSTER_NAME "tap-run.yaml"
+        scripts/dektecho.sh status "Adding custom accelerators"
+        kustomize build accelerators | kubectl apply -f -
+
+        scripts/ingress-handler.sh update-tap-dns $SYSTEM_SUB_DOMAIN
+    }
+
+    #install-dev-cluster
+    install-dev-cluster() {
+
+        scripts/dektecho.sh info "Installing demo components for $DEV_CLUSTER_NAME cluster"
+
+        kubectl config use-context $DEV_CLUSTER_NAME
+
+        scripts/tanzu-handler.sh add-carvel-tools
+
+        setup-apps-namespace $DEV_NAMESPACE
+        setup-apps-namespace $TEAM_NAMESPACE
+        
+        add-tap-package "tap-iterate.yaml"
+
+        scripts/dektecho.sh status "Adding dekt-dev custom supply chain"
+        kubectl apply -f .config/disable-scale2zero.yaml
+        kubectl apply -f .config/dekt-dev-supplychain.yaml
+        kubectl apply -f .config/tekton-pipeline.yaml -n $DEV_NAMESPACE
+        kubectl apply -f .config/tekton-pipeline.yaml -n $TEAM_NAMESPACE
+
+        provision-data-services $TEAM_NAMESPACE "reading-rabbitmq-dev.yaml"
+
+        scripts/ingress-handler.sh update-tap-dns $DEV_SUB_DOMAIN
+    }
+
+    #install-stage-cluster
+    install-stage-cluster() {
+
+        scripts/dektecho.sh info "Installing demo components for $STAGE_CLUSTER_NAME cluster"
+
+        kubectl config use-context $STAGE_CLUSTER_NAME
+
+        scripts/tanzu-handler.sh add-carvel-tools
+    
+        setup-apps-namespace $STAGEPROD_NAMESPACE
+        
+        add-tap-package "tap-build.yaml"
+
+        scripts/dektecho.sh status "Adding dekt-build custom supply chain"
+        kubectl apply -f .config/dekt-build-supplychain.yaml
+        kubectl apply -f .config/tekton-pipeline.yaml -n $STAGEPROD_NAMESPACE
+        kubectl apply -f .config/scan-policy.yaml -n $STAGEPROD_NAMESPACE
+
+        provision-data-services $STAGEPROD_NAMESPACE "reading-rabbitmq-prod.yaml"
+
+        #configure-multi-cluster-scanning-store 
+    }
+    
+    #install-prod-cluster
+    install-prod-cluster() {
+
+        scripts/dektecho.sh info "Installing demo components for $PROD_CLUSTER_NAME cluster"
+
+        kubectl config use-context $PROD_CLUSTER_NAME
+
+        scripts/tanzu-handler.sh add-carvel-tools
+        
+        setup-apps-namespace $STAGEPROD_NAMESPACE
+        
+        add-tap-package "tap-run.yaml"
+
+        kubectl apply -f .config/disable-scale2zero.yaml
+
+        provision-data-services $STAGEPROD_NAMESPACE "reading-rabbitmq-prod.yaml"
+
+        scripts/ingress-handler.sh update-tap-dns $RUN_SUB_DOMAIN
+
     }
 
     #add-tap-package
     add-tap-package() {
 
-        tap_cluster_name=$1
-        tap_values_file_name=$2
+        tap_values_file_name=$1
 
-        scripts/dektecho.sh info "Installing TAP on $tap_cluster_name cluster with $tap_values_file_name configs"
-        
-        kubectl config use-context $tap_cluster_name
+        scripts/dektecho.sh status "Installing TAP on $(kubectl config current-context) cluster with $tap_values_file_name configs"
+
         kubectl create ns tap-install
        
         tanzu secret registry add tap-registry \
@@ -77,75 +149,13 @@
             --namespace tap-install
     }
 
-    #post-install-configs
-    post-install-configs () {
-
-        config-view-cluster
-
-        config-dev-cluster
-
-        config-stage-cluster
-
-        config-prod-cluster
-    }
-
-    #config-view-cluster
-    config-view-cluster() {
-
-        scripts/dektecho.sh info "Running post install configurations for $VIEW_CLUSTER_NAME cluster"
-        
-        kubectl config use-context $VIEW_CLUSTER_NAME
-        
-        kustomize build accelerators | kubectl apply -f -
-    }
-
-    #config-dev-cluster
-    config-dev-cluster() {
-
-        scripts/dektecho.sh info "Running post install configurations for $DEV_CLUSTER_NAME cluster"
-
-        kubectl config use-context $DEV_CLUSTER_NAME
-        
-        setup-apps-namespace $DEV_NAMESPACE
-        setup-apps-namespace $TEAM_NAMESPACE
-        
-        kubectl apply -f .config/disable-scale2zero.yaml
-        kubectl apply -f .config/dekt-dev-supplychain.yaml
-        kubectl apply -f .config/tekton-pipeline.yaml -n $DEV_NAMESPACE
-        kubectl apply -f .config/tekton-pipeline.yaml -n $TEAM_NAMESPACE
-
-    }    
-
-    #config-stage-cluster
-    config-stage-cluster() {
-
-        scripts/dektecho.sh info "Running post install configurations for $STAGE_CLUSTER_NAME cluster"
-
-        kubectl config use-context $STAGE_CLUSTER_NAME
-        
-        setup-apps-namespace $STAGEPROD_NAMESPACE
-        
-        kubectl apply -f .config/dekt-build-supplychain.yaml
-        kubectl apply -f .config/scan-policy.yaml -n $STAGEPROD_NAMESPACE
-        kubectl apply -f .config/tekton-pipeline.yaml -n $STAGEPROD_NAMESPACE
-    }
-
-    #config-prod-cluster
-    config-prod-cluster() {
-
-        scripts/dektecho.sh info "Running post install configurations for $PROD_CLUSTER_NAME cluster"
-
-        kubectl config use-context $PROD_CLUSTER_NAME
-        
-        kubectl apply -f .config/disable-scale2zero.yaml
-        
-        setup-apps-namespace $STAGEPROD_NAMESPACE
-    }
-
     #setup-apps-namespace
     setup-apps-namespace() {
         
         appsNamespace=$1
+
+        scripts/dektecho.sh status "Setup $appsNamespace namespace on $(kubectl config current-context) cluster"
+
         kubectl create ns $appsNamespace
         tanzu secret registry add registry-credentials \
             --server $PRIVATE_REPO_SERVER \
@@ -156,25 +166,39 @@
         kubectl apply -f .config/supplychain-rbac.yaml -n $appsNamespace
     }
 
-    #update-dns-records
-    update-dns-records() {
+    #add-data-services
+    provision-data-services() {
 
-        scripts/dektecho.sh info "Updating DNS records"
+        appsNamespace=$1
+        dataInstanceFile=$2
 
-        kubectl config use-context $VIEW_CLUSTER_NAME
-        scripts/ingress-handler.sh update-tap-dns $SYSTEM_SUB_DOMAIN
+        scripts/dektecho.sh status "Provision rabbitMQ instance in $appsNamespace namespace with $dataInstanceFile configs"
 
-        kubectl config use-context $DEV_CLUSTER_NAME
-        scripts/ingress-handler.sh update-tap-dns $DEV_SUB_DOMAIN
-
-        kubectl config use-context $PROD_CLUSTER_NAME
-        scripts/ingress-handler.sh update-tap-dns $RUN_SUB_DOMAIN
+        kapp -y deploy --app rmq-operator --file https://github.com/rabbitmq/cluster-operator/releases/download/v1.9.0/cluster-operator.yml
+        kubectl apply -f .config/rabbitmq-cluster-config.yaml -n $appsNamespace
+        kubectl apply -f .config/$dataInstanceFile -n $appsNamespace
     }
     
+    #configure-multi-cluster-scanning-store
+    configure-multi-cluster-scanning-store() {
+
+        scripts/dektecho.sh status "Configuring multi-cluster scanning Store"
+        
+        kubectl config use-context $VIEW_CLUSTER_NAME
+        export storeCert=$(kubectl get secret -n metadata-store ingress-cert -o json | jq -r ".data.\"ca.crt\"")
+        yq '.data."ca.crt"= env(storeCert)' .config/store-ca.yaml -i
+        storeToken=$(kubectl get secrets -n metadata-store -o jsonpath="{.items[?(@.metadata.annotations['kubernetes\.io/service-account\.name']=='metadata-store-read-write-client')].data.token}" | base64 -d)
+        
+        kubectl config use-context $STAGE_CLUSTER_NAME
+        kubectl create ns metadata-store-secrets
+        kubectl apply -f .config/store-ca.yaml
+        kubectl create secret generic store-auth-token --from-literal=auth_token=$storeToken -n metadata-store-secrets
+        kubectl apply -f .config/store-secrets-export.yaml
+    }
     #update-multi-cluster-views
     update-multi-cluster-views() {
 
-        scripts/dektecho.sh info "Configure TAP Workloads GUI plugin to support multi-clusters"
+        scripts/dektecho.sh status "Configure TAP Workloads GUI plugin to support multi-clusters"
           
         kubectl config use-context $DEV_CLUSTER_NAME
         kubectl apply -f .config/tap-gui-viewer-sa-rbac.yaml
@@ -215,29 +239,6 @@
 
     } 
  
-
-    #add-data-services
-    provision-data-services() {
-
-        scripts/dektecho.sh info "Provision data services"
-
-        kubectl config use-context $DEV_CLUSTER_NAME
-        kapp -y deploy --app rmq-operator --file https://github.com/rabbitmq/cluster-operator/releases/download/v1.9.0/cluster-operator.yml
-        kubectl apply -f .config/rabbitmq-cluster-config.yaml -n $TEAM_NAMESPACE
-        kubectl apply -f .config/reading-rabbitmq-dev.yaml -n $TEAM_NAMESPACE
-
-        kubectl config use-context $STAGE_CLUSTER_NAME
-        kapp -y deploy --app rmq-operator --file https://github.com/rabbitmq/cluster-operator/releases/download/v1.9.0/cluster-operator.yml
-        kubectl apply -f .config/rabbitmq-cluster-config.yaml -n $STAGEPROD_NAMESPACE
-        kubectl apply -f .config/reading-rabbitmq-prod.yaml -n $STAGEPROD_NAMESPACE
-
-        kubectl config use-context $PROD_CLUSTER_NAME
-        kapp -y deploy --app rmq-operator --file https://github.com/rabbitmq/cluster-operator/releases/download/v1.9.0/cluster-operator.yml
-        kubectl apply -f .config/rabbitmq-cluster-config.yaml -n $STAGEPROD_NAMESPACE
-        kubectl apply -f .config/reading-rabbitmq-prod.yaml -n $STAGEPROD_NAMESPACE
-    }
-
-    
     #add-brownfield-apis
     add-brownfield-apis () {
         
@@ -383,22 +384,6 @@
         scripts/k8s-handler.sh delete $BROWNFIELD_CLUSTER_PROVIDER $BROWNFIELD_CLUSTER_NAME
     }
 
-    #add-carvel-tools
-    add-carvel-tools() {
-
-        kubectl config use-context $VIEW_CLUSTER_NAME
-        scripts/tanzu-handler.sh add-carvel-tools
-
-        kubectl config use-context $DEV_CLUSTER_NAME
-        scripts/tanzu-handler.sh add-carvel-tools
-
-        kubectl config use-context $STAGE_CLUSTER_NAME
-        scripts/tanzu-handler.sh add-carvel-tools
-
-        kubectl config use-context $PROD_CLUSTER_NAME
-        scripts/tanzu-handler.sh add-carvel-tools
-    }
-
     #remove-tap
     remove-tap() {
         delete-tap "dekt-view"
@@ -418,13 +403,11 @@ create-clusters)
     scripts/k8s-handler.sh create $BROWNFIELD_CLUSTER_PROVIDER $BROWNFIELD_CLUSTER_NAME $BROWNFIELD_CLUSTER_NODES
     ;;
 install-demo)    
-    add-carvel-tools
-    install-tap
-    post-install-configs
-    #setup-scanning-rbac
-    provision-data-services
+    install-view-cluster
+    install-dev-cluster
+    install-stage-cluster
+    install-prod-cluster
     add-brownfield-apis
-    update-dns-records
     update-multi-cluster-views
     ;;
 delete-all)
