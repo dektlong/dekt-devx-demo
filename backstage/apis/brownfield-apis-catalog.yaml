@@ -92,8 +92,8 @@ spec:
 apiVersion: backstage.io/v1alpha1
 kind: API
 metadata:
-  name: 999-apis
-  description: APIs to interact with 999 systems
+  name: sms-apis
+  description: APIs to interact with sms systems
 spec:
   type: openapi
   lifecycle: integration
