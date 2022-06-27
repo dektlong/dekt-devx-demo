@@ -12,7 +12,6 @@ tags:
 - name: "Data manipulation"
   description: "Data manipulation (write) APIs"
 schemes:
-- "http"
 - "https"
 paths:
   /list-providers:
