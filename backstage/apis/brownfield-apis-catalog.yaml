@@ -100,4 +100,4 @@ spec:
   owner: dekt-app-ops
   system: public-apis
   definition:
-    $text: https://github.com/dektlong/dekt-devx-demo/blob/main/backstage/apis/999-apis-swagger.yaml
+    $text: https://github.com/dektlong/dekt-devx-demo/blob/main/backstage/apis/sms-apis-swagger.yaml
