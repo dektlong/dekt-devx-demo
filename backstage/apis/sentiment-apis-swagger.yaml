@@ -1,0 +1,71 @@
+---
+swagger: "2.0"
+info:
+  description: "Swagger API definition for the sentiment apis"
+  version: "0.0.2"
+  title: "APIs to interact with sentiment external systems"
+host: http://sentiment.tanzu-sm.io
+basePath: "/v1"
+tags:
+- name: "Data collection"
+  description: "Data collection (read-only) APIs"
+- name: "Data manipulation"
+  description: "Data manipulation (write) APIs"
+schemes:
+- "http"
+- "https"
+paths:
+  /list-media-sources:
+    get:
+      tags:
+      - "Data collection"
+      summary: "List available social media sources actively reporting sentiment"
+      produces:
+      - "application/json"
+      responses:
+        200:
+          description: "successful data collection"
+        400:
+          description: "Invalid candidate identifier"
+  /social-sentiment/{cadidateID}:
+    get:
+      tags:
+      - "Data collection"
+      summary: "Check the aggregated social sentiment for a cadidate"
+      consumes:
+      - "application/json"
+      produces:
+      - "application/json"
+      parameters:
+      - name: "cadidateID"
+        in: "path"
+        description: "ID of candidate to collect data on"
+        required: true
+        type: "integer"
+        format: "int64"
+      responses:
+        200:
+          description: "successful data collection"
+        400:
+          description: "Invalid candidate identifier"
+  /activate-sentiment-probes/{socialMediaSource}:
+    post:
+      tags:
+      - "Data manipulation"
+      summary: "Activate the sentiment probes by social media source"
+      consumes:
+      - "application/json"
+      produces:
+      - "application/json"
+      parameters:
+      - name: "cadidateID"
+        in: "path"
+        description: "Social media source ID"
+        required: true
+        type: "integer"
+        format: "int64"
+      responses:
+        200:
+          description: "successful data collection"
+        400:
+          description: "Invalid candidate identifier"

@@ -1,0 +1,50 @@
+---
+swagger: "2.0"
+info:
+  description: "Swagger API definition for the sms apis"
+  version: "0.0.2"
+  title: "APIs to interact with sms external systems"
+host: http://sms.tanzu-sm.io
+basePath: "/v1"
+tags:
+- name: "Data collection"
+  description: "Data collection (read-only) APIs"
+- name: "Data manipulation"
+  description: "Data manipulation (write) APIs"
+schemes:
+- "http"
+- "https"
+paths:
+  /list-providers:
+    get:
+      tags:
+      - "Data collection"
+      summary: "List available sms providers"
+      produces:
+      - "application/json"
+      responses:
+        200:
+          description: "successful data collection"
+        400:
+          description: "Invalid candidate identifier"
+  /send-notification/{mobileNumber}:
+    post:
+      tags:
+      - "Data manipulation"
+      summary: "Send notification to a given mobile number"
+      consumes:
+      - "application/json"
+      produces:
+      - "application/json"
+      parameters:
+      - name: "cadidateID"
+        in: "path"
+        description: "Mobile numberr"
+        required: true
+        type: "integer"
+        format: "int64"
+      responses:
+        200:
+          description: "successful data collection"
+        400:
+          description: "Invalid candidate identifier"

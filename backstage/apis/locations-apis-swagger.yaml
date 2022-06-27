@@ -1,0 +1,50 @@
+---
+swagger: "2.0"
+info:
+  description: "Swagger API definition for the locations apis"
+  version: "0.0.2"
+  title: "APIs to interact with locations external systems"
+host: http://locations.tanzu-sm.io
+basePath: "/v1"
+tags:
+- name: "Data collection"
+  description: "Data collection (read-only) APIs"
+- name: "Data manipulation"
+  description: "Data manipulation (write) APIs"
+schemes:
+- "http"
+- "https"
+paths:
+  /list-providers:
+    get:
+      tags:
+      - "Data collection"
+      summary: "List available locations"
+      produces:
+      - "application/json"
+      responses:
+        200:
+          description: "successful data collection"
+        400:
+          description: "Invalid candidate identifier"
+  /team-location/{teamID}:
+    post:
+      tags:
+      - "Data manipulation"
+      summary: "Update a team location"
+      consumes:
+      - "application/json"
+      produces:
+      - "application/json"
+      parameters:
+      - name: "teamID"
+        in: "path"
+        description: "ID of candidate to update data for"
+        required: true
+        type: "integer"
+        format: "int64"
+      responses:
+        200:
+          description: "successful data collection"
+        400:
+          description: "Invalid candidate identifier"

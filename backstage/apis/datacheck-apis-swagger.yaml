@@ -1,0 +1,80 @@
+---
+swagger: "2.0"
+info:
+  description: "Swagger API definition for the datacheck apis"
+  version: "0.0.2"
+  title: "APIs to interact with datacheck external systems"
+host: http://datacheck.tanzu-sm.io
+basePath: "/v1"
+tags:
+- name: "Data collection"
+  description: "Data collection (read-only) APIs"
+- name: "Data manipulation"
+  description: "Data manipulation (write) APIs"
+schemes:
+- "http"
+- "https"
+paths:
+  /good-credit/{cadidateID}:
+    get:
+      tags:
+      - "Data collection"
+      summary: "Verify a good credit score"
+      consumes:
+      - "application/json"
+      produces:
+      - "application/json"
+      parameters:
+      - name: "cadidateID"
+        in: "path"
+        description: "ID of candidate to collect data on"
+        required: true
+        type: "integer"
+        format: "int64"
+      responses:
+        200:
+          description: "successful data collection"
+        400:
+          description: "Invalid candidate identifier"
+  /medical-history/{cadidateID}:
+    get:
+      tags:
+      - "Data collection"
+      summary: "Verify a clean medical history"
+      consumes:
+      - "application/json"
+      produces:
+      - "application/json"
+      parameters:
+      - name: "cadidateID"
+        in: "path"
+        description: "ID of candidate to collect data on"
+        required: true
+        type: "integer"
+        format: "int64"
+      responses:
+        200:
+          description: "successful data collection"
+        400:
+          description: "Invalid candidate identifier"
+  /crimanl-record/{cadidateID}:
+    post:
+      tags:
+      - "Data manipulation"
+      summary: "Initiate a criminal record background check"
+      consumes:
+      - "application/json"
+      produces:
+      - "application/json"
+      parameters:
+      - name: "cadidateID"
+        in: "path"
+        description: "ID of candidate to update data for"
+        required: true
+        type: "integer"
+        format: "int64"
+      responses:
+        200:
+          description: "successful data collection"
+        400:
+          description: "Invalid candidate identifier"

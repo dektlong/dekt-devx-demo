@@ -7,7 +7,7 @@ metadata:
     'backstage.io/techdocs-ref': dir:.
 spec:
   targets:
-    - ./apis/brownfield-apis.yaml
+    - ./apis/brownfield-apis-catalog.yaml
     - ./domains/dekt-domain.yaml
     - ./groups/dekt-teams.yaml
     - ./resources/brownfield-gns.yaml

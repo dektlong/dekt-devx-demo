@@ -1,0 +1,103 @@
+apiVersion: backstage.io/v1alpha1
+kind: API
+metadata:
+  name: datacheck-apis
+  description: APIs to interact with datacheck systems
+spec:
+  type: openapi
+  lifecycle: integration
+  owner: dekt-app-ops
+  system: brownfield-apis
+  definition:
+    $text: https://github.com/dektlong/dekt-devx-demo/blob/main/backstage/apis/datacheck-apis-swagger.yaml
+---
+apiVersion: backstage.io/v1alpha1
+kind: API
+metadata:
+  name: donations-apis
+  description: APIs to interact with donations systems
+spec:
+  type: openapi
+  lifecycle: integration
+  owner: dekt-app-ops
+  system: brownfield-apis
+  definition:
+    $text: https://github.com/dektlong/dekt-devx-demo/blob/main/backstage/apis/donations-apis-swagger.yaml
+---
+apiVersion: backstage.io/v1alpha1
+kind: API
+metadata:
+  name: insurance-apis
+  description: APIs to interact with insurance systems
+spec:
+  type: openapi
+  lifecycle: integration
+  owner: dekt-app-ops
+  system: brownfield-apis
+  definition:
+    $text: https://github.com/dektlong/dekt-devx-demo/blob/main/backstage/apis/insurance-apis-swagger.yaml
+---
+apiVersion: backstage.io/v1alpha1
+kind: API
+metadata:
+  name: payments-apis
+  description: APIs to interact with payments systems
+spec:
+  type: openapi
+  lifecycle: integration
+  owner: dekt-app-ops
+  system: brownfield-apis
+  definition:
+    $text: https://github.com/dektlong/dekt-devx-demo/blob/main/backstage/apis/payments-apis-swagger.yaml
+---
+apiVersion: backstage.io/v1alpha1
+kind: API
+metadata:
+  name: suppliers-apis
+  description: APIs to interact with suppliers systems
+spec:
+  type: openapi
+  lifecycle: integration
+  owner: dekt-app-ops
+  system: brownfield-apis
+  definition:
+    $text: https://github.com/dektlong/dekt-devx-demo/blob/main/backstage/apis/suppliers-apis-swagger.yaml
+---
+apiVersion: backstage.io/v1alpha1
+kind: API
+metadata:
+  name: locations-apis
+  description: APIs to interact with locations systems
+spec:
+  type: openapi
+  lifecycle: integration
+  owner: dekt-app-ops
+  system: public-apis
+  definition:
+    $text: https://github.com/dektlong/dekt-devx-demo/blob/main/backstage/apis/locations-apis-swagger.yaml
+---
+apiVersion: backstage.io/v1alpha1
+kind: API
+metadata:
+  name: sentiment-apis
+  description: APIs to interact with sentiment systems
+spec:
+  type: openapi
+  lifecycle: integration
+  owner: dekt-app-ops
+  system: public-apis
+  definition:
+    $text: https://github.com/dektlong/dekt-devx-demo/blob/main/backstage/apis/sentiment-apis-swagger.yaml
+---
+apiVersion: backstage.io/v1alpha1
+kind: API
+metadata:
+  name: 999-apis
+  description: APIs to interact with 999 systems
+spec:
+  type: openapi
+  lifecycle: integration
+  owner: dekt-app-ops
+  system: public-apis
+  definition:
+    $text: https://github.com/dektlong/dekt-devx-demo/blob/main/backstage/apis/999-apis-swagger.yaml
