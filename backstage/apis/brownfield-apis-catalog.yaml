@@ -88,3 +88,16 @@ spec:
   system: public-apis
   definition:
     $text: https://github.com/dektlong/dekt-devx-demo/blob/main/backstage/apis/sentiment-apis-swagger.yaml
+---
+apiVersion: backstage.io/v1alpha1
+kind: API
+metadata:
+  name: sms-apis
+  description: APIs to interact with sms systems
+spec:
+  type: openapi
+  lifecycle: integration
+  owner: dekt-app-ops
+  system: public-apis
+  definition:
+    $text: https://github.com/dektlong/dekt-devx-demo/blob/main/backstage/apis/sms-apis-swagger.yaml
