@@ -175,19 +175,12 @@
         tanzu apps cluster-supply-chain list
     }
 
-    #track-workload
-    track-workload () {
+    #track-workloads
+    track-workloads () {
 
-        case $1 in
-        team)
-            tapCluster=$DEV_CLUSTER
-            appsNamespace=$TEAM_NAMESPACE
-            ;;
-        stage)
-            tapCluster=$STAGE_CLUSTER
-            appsNamespace=$STAGEPROD_NAMESPACE
-            ;;
-        esac
+        tapCluster=$1
+        appsNamespace=$2
+        
 
         kubectl config use-context $tapCluster
 
@@ -203,6 +196,19 @@
             
             tanzu apps workload tail $SENSORS_WORKLOAD --since 100m --timestamp  -n $appsNamespace
         fi
+    }
+
+    #tail-logs
+    tail-logs () {
+
+        tapCluster=$1
+        appsNamespace=$2
+
+        kubectl config use-context $tapCluster
+
+        scripts/dektecho.sh cmd "tanzu apps workload tail $SENSORS_WORKLOAD --since 100m --timestamp  -n $appsNamespace"
+            
+        tanzu apps workload tail $SENSORS_WORKLOAD --since 100m --timestamp  -n $appsNamespace
     }
 
     #brownfield
@@ -277,7 +283,7 @@
             git commit -a -m "usually sad"
             ;;
         *)      
-            echo "!!!incorrect-usage. please specify happy / sad"
+            scripts/dektecho.sh err "!!!incorrect-usage. please specify happy / sad"
             ;;
         esac
         
@@ -314,14 +320,18 @@
         echo
         echo "  info"
         echo
-        echo "  team"
+        echo "  dev"
         echo
         echo "  stage"
         echo
         echo "  prod"
         echo
         echo "  supplychains"
-        echo "  track team/stage [ logs ]"
+        echo
+        echo "  track dev/stage"
+        echo
+        echo "  logs dev/stage"
+        echo
         echo "  scan-results"
         echo 
         echo "  brownfield"
@@ -340,7 +350,7 @@ case $1 in
 info)
     info
     ;;
-team)
+dev)
     create-team-workloads
     ;;
 stage)
@@ -356,7 +366,30 @@ supplychains)
     supplychains
     ;;
 track)
-    track-workload $2 $3
+    case $2 in
+    dev)
+        track-workloads $DEV_CLUSTER $TEAM_NAMESPACE
+        ;;
+    stage)
+        track-workloads $STAGE_CLUSTER $STAGEPROD_NAMESPACE
+        ;;
+    *)
+        incorrect-usage
+        ;;
+    esac
+    ;;
+logs)
+    case $2 in
+    dev)
+        tail-logs $DEV_CLUSTER $TEAM_NAMESPACE
+        ;;
+    stage)
+        tail-logs $STAGE_CLUSTER $STAGEPROD_NAMESPACE
+        ;;
+    *)
+        incorrect-usage
+        ;;
+    esac
     ;;
 scan-results)
     scan-results

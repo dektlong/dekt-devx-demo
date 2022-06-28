@@ -117,10 +117,10 @@ This repo contains artifacts to run a demo illustrating the vision and capabilit
 
 - show cluster topology ```./dekt-DevSecOps.sh info```
 
-- innerloop teams (shared dev work) ```./dekt-DevSecOps.sh team```
+- innerloop teams (shared dev work) ```./dekt-DevSecOps.sh dev```
 
 - follow workloads and supply chain progress via Backstage and/or
-  - ```./dekt-DevSecOps.sh track team [logs]```
+  - ```./dekt-DevSecOps.sh track dev [logs]```
 
 - access tap gui accelerators using the ```cloud-native-devsecops``` tag
   - create ```dekt-path2prod``` supplychain using the microservices-supplychain accelerator with ```web-backend``` workload type 
