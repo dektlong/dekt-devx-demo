@@ -57,7 +57,7 @@ create-eks-cluster () {
     eksctl create cluster \
     --name $cluster_name \
     --nodegroup-name workers-$cluster_name \
-    --version "1.21" \
+    --version "1.22" \
     --region $AWS_REGION \
     --nodes $number_of_nodes \
 	--set-kubeconfig-context \
