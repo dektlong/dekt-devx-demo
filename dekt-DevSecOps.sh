@@ -105,7 +105,7 @@
         scripts/dektecho.sh cmd "tanzu apps workload create $PORTAL_WORKLOAD -f workload.yaml -n $STAGEPROD_NAMESPACE"
         tanzu apps workload create $PORTAL_WORKLOAD \
             --git-repo https://github.com/dektlong/mood-portal \
-            --git-branch integrate \
+            --git-branch release-v1.0 \
             --type web \
             --label app.kubernetes.io/part-of=$PORTAL_WORKLOAD \
             --yes \
@@ -114,7 +114,7 @@
         scripts/dektecho.sh cmd "tanzu apps workload create $SENSORS_WORKLOAD -f workload.yaml -n $STAGEPROD_NAMESPACE"
         tanzu apps workload create $SENSORS_WORKLOAD \
             --git-repo https://github.com/dektlong/mood-sensors \
-            --git-branch integrate \
+            --git-branch release-v1.0 \
             --type web-backend \
             --label apps.tanzu.vmware.com/has-tests="true" \
             --label app.kubernetes.io/part-of=$SENSORS_WORKLOAD-v2 \
