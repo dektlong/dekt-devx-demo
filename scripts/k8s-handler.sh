@@ -64,7 +64,7 @@ create-eks-cluster () {
     --node-type t3.xlarge # 4 vCPU , 16GB memory, 80GB temp disk 
 	
 	#workaround a k8s client version conflict
-	aws eks update-kubeconfig --name $cluster_name --region $AWS_REGION
+	#aws eks update-kubeconfig --name $cluster_name --region $AWS_REGION
 
     kubectl config rename-context $(kubectl config current-context) $cluster_name
 }
