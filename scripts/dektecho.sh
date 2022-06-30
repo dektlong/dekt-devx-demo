@@ -31,8 +31,9 @@ errmsg () {
 #prompt
 prompt() {
 
+    echo
     while true; do
-        printf "\e[33m⏯  $1 (y/n) \e[m"
+        printf "\e[34m⏯  $1 (y/n) \e[m"
         read yn
         case $yn in
             [Yy]* ) exit 0;;
@@ -40,6 +41,7 @@ prompt() {
             * ) errmsg "Please answer yes or no.";;
         esac
     done
+    echo
 }
 
 
