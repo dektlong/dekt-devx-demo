@@ -144,9 +144,7 @@
         
         scripts/dektecho.sh status "Review Deliverables in gitops repo"
 
-        if [ "$1" != "no-wait" ]; then
-            scripts/dektecho.sh prompt  "Are you sure you want deploy to production?" && [ $? -eq 0 ] || exit
-        fi
+        scripts/dektecho.sh prompt  "Are you sure you want deploy to production?" && [ $? -eq 0 ] || exit
 
         printf "$(date): " >> $PROD_AUDIT_FILE 
         kubectl config use-context $PROD_CLUSTER >> $PROD_AUDIT_FILE
@@ -300,16 +298,10 @@
 
     #pre-deploy
     pre-deploy() {
-
-        kubectl config use-context $DEV_CLUSTER
-        tanzu apps workload create -y -f ../mood-sensors/workload.yaml -n $DEV_NAMESPACE
-        tanzu apps workload create $PORTAL_WORKLOAD --git-repo https://github.com/dektlong/mood-portal --git-branch "dev" --type web --label app.kubernetes.io/part-of=$PORTAL_WORKLOAD -y -n $TEAM_NAMESPACE
-        tanzu apps workload create $SENSORS_WORKLOAD --git-repo https://github.com/dektlong/mood-sensors --git-branch "dev" --type web-backend --label app.kubernetes.io/part-of=$SENSORS_WORKLOAD --label apps.tanzu.vmware.com/has-tests=true --service-ref rabbitmq-claim=rabbitmq.com/v1beta1:RabbitmqCluster:reading -y -n $TEAM_NAMESPACE
-        kubectl config use-context $STAGE_CLUSTER
-        tanzu apps workload create $PORTAL_WORKLOAD --git-repo https://github.com/dektlong/mood-portal --git-branch "integrate" --type web --label app.kubernetes.io/part-of=$PORTAL_WORKLOAD -y -n $STAGEPROD_NAMESPACE
-        tanzu apps workload create $SENSORS_WORKLOAD --git-repo https://github.com/dektlong/mood-sensors --git-branch "integrate" --type web-backend --label app.kubernetes.io/part-of=$SENSORS_WORKLOAD --label apps.tanzu.vmware.com/has-tests=true --service-ref rabbitmq-claim=rabbitmq.com/v1beta1:RabbitmqCluster:reading --wait -y -n $STAGEPROD_NAMESPACE
-        prod-roleout "no-wait"
-
+        create-team-workloads
+        create-stage-workloads
+        scripts/dektecho.sh prompt  "Should we start prod role out?" && [ $? -eq 0 ] || exit
+        prod-roleout
     }
 
     #incorrect usage
