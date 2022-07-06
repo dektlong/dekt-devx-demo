@@ -55,13 +55,16 @@ create-eks-cluster () {
 	scripts/dektecho.sh info "Creating EKS cluster $cluster_name with $number_of_nodes nodes"
 
     eksctl create cluster \
-    --name $cluster_name \
-    --nodegroup-name workers-$cluster_name \
-    --version "1.22" \
-    --region $AWS_REGION \
-    --nodes $number_of_nodes \
-	--set-kubeconfig-context \
-    --node-type t3.xlarge # 4 vCPU , 16GB memory, 80GB temp disk 
+		--name $cluster_name \
+		--region $AWS_REGION \
+		--version 1.22 \
+		--nodes $number_of_nodes \
+		--node-type t3.xlarge # 4 vCPU , 16GB memory, 80GB temp disk 
+		--set-kubeconfig-context 
+
+		#--vpc-private-subnets subnet-ExampleID1,subnet-ExampleID2 --without-nodegroup
+
+	#
 	
 	#workaround a k8s client version conflict
 	#aws eks update-kubeconfig --name $cluster_name --region $AWS_REGION
