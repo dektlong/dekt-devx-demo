@@ -362,6 +362,8 @@
         echo "  create-clusters"
         echo
         echo "  install-demo"
+        echo 
+        echo "  inner-loop"
         echo       
         echo "  uninstall-demo"
         echo
