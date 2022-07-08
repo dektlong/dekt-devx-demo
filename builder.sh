@@ -32,9 +32,9 @@
     TEAM_NAMESPACE=$(yq .apps-namespaces.team .config/demo-values.yaml)
     STAGEPROD_NAMESPACE=$(yq .apps-namespaces.stageProd .config/demo-values.yaml)
     #domains
-    SYSTEM_SUB_DOMAIN=$(yq .tap_gui.ingressDomain .config/tap-view.yaml | cut -d'.' -f 1)
-    DEV_SUB_DOMAIN=$(yq .cnrs.domain_name .config/tap-iterate.yaml | cut -d'.' -f 1)
-    RUN_SUB_DOMAIN=$(yq .cnrs.domain_name .config/tap-run.yaml | cut -d'.' -f 1)
+    SYSTEM_SUB_DOMAIN=$(yq .shared.ingress_domain .config/tap-view.yaml | cut -d'.' -f 1)
+    DEV_SUB_DOMAIN=$(yq .shared.ingress_domain .config/tap-iterate.yaml | cut -d'.' -f 1)
+    RUN_SUB_DOMAIN=$(yq .shared.ingress_domain .config/tap-run.yaml | cut -d'.' -f 1)
     #misc        
     GW_INSTALL_DIR=$(yq .apis.scgwInstallDirectory .config/demo-values.yaml)
 
@@ -50,11 +50,18 @@
         scripts/tanzu-handler.sh add-carvel-tools
         
         add-tap-package "tap-view.yaml"
+
+        scripts/dektecho.sh prompt "workaround! verify metadata-store is reconciled and hit 'y' to continue"
         
         scripts/dektecho.sh status "Adding custom accelerators"
         kustomize build accelerators | kubectl apply -f -
 
         scripts/ingress-handler.sh update-tap-dns $SYSTEM_SUB_DOMAIN
+
+        update-store-secrets
+
+        set-multi-cluster-access
+
     }
 
     #install-dev-cluster
@@ -71,9 +78,9 @@
         
         add-tap-package "tap-iterate.yaml"
 
-        scripts/dektecho.sh status "Adding dekt-dev custom supply chain"
+        scripts/dektecho.sh status "Adding dekt-innerloop custom supply chain"
         kubectl apply -f .config/disable-scale2zero.yaml
-        kubectl apply -f .config/dekt-dev-supplychain.yaml
+        kubectl apply -f .config/dekt-innerloop-sc.yaml
         kubectl apply -f .config/tekton-pipeline.yaml -n $DEV_NAMESPACE
         kubectl apply -f .config/tekton-pipeline.yaml -n $TEAM_NAMESPACE
 
@@ -92,17 +99,20 @@
         scripts/tanzu-handler.sh add-carvel-tools
     
         setup-apps-namespace $STAGEPROD_NAMESPACE
+
+        scripts/dektecho.sh status "Adding metadata-store-secrets to access remote Store"
+        kubectl create ns metadata-store-secrets
+        kubectl apply -f .config/metadata-store-secrets -n metadata-store-secrets
         
         add-tap-package "tap-build.yaml"
 
-        scripts/dektecho.sh status "Adding dekt-build custom supply chain"
-        kubectl apply -f .config/dekt-build-supplychain.yaml
+        scripts/dektecho.sh status "Adding dekt-outerloop custom supply chain"
+        kubectl apply -f .config/dekt-outerloop-sc.yaml
         kubectl apply -f .config/tekton-pipeline.yaml -n $STAGEPROD_NAMESPACE
         kubectl apply -f .config/scan-policy.yaml -n $STAGEPROD_NAMESPACE
 
         provision-data-services $STAGEPROD_NAMESPACE "reading-rabbitmq-prod.yaml"
 
-        #configure-multi-cluster-scanning-store 
     }
     
     #install-prod-cluster
@@ -163,7 +173,8 @@
             --password $PRIVATE_REPO_PASSWORD \
             --namespace $appsNamespace    
 
-        kubectl apply -f .config/supplychain-rbac.yaml -n $appsNamespace
+        #kubectl apply -f .config/supplychain-rbac.yaml -n $appsNamespace
+        kubectl apply -f .config/app-ns-rbac.yaml -n $appsNamespace
     }
 
     #add-data-services
@@ -179,27 +190,24 @@
         kubectl apply -f .config/$dataInstanceFile -n $appsNamespace
     }
     
-    #configure-multi-cluster-scanning-store
-    configure-multi-cluster-scanning-store() {
+    #update-store-secrets
+    update-store-secrets() {
 
-        scripts/dektecho.sh status "Configuring multi-cluster scanning Store"
-        
-        kubectl config use-context $VIEW_CLUSTER_NAME
         export storeCert=$(kubectl get secret -n metadata-store ingress-cert -o json | jq -r ".data.\"ca.crt\"")
-        yq '.data."ca.crt"= env(storeCert)' .config/store-ca.yaml -i
-        storeToken=$(kubectl get secrets -n metadata-store -o jsonpath="{.items[?(@.metadata.annotations['kubernetes\.io/service-account\.name']=='metadata-store-read-write-client')].data.token}" | base64 -d)
-        
-        kubectl config use-context $STAGE_CLUSTER_NAME
-        kubectl create ns metadata-store-secrets
-        kubectl apply -f .config/store-ca.yaml
-        kubectl create secret generic store-auth-token --from-literal=auth_token=$storeToken -n metadata-store-secrets
-        kubectl apply -f .config/store-secrets-export.yaml
-    }
-    #update-multi-cluster-views
-    update-multi-cluster-views() {
+        export storeTokenReadWrite=$(kubectl get secrets -n metadata-store -o jsonpath="{.items[?(@.metadata.annotations['kubernetes\.io/service-account\.name']=='metadata-store-read-write-client')].data.token}" | base64 -d)
+        export storeProxyAuthHeader="Bearer $storeTokenReadWrite"
 
-        scripts/dektecho.sh status "Configure TAP Workloads GUI plugin to support multi-clusters"
-          
+        yq '.data."ca.crt"= env(storeCert)' .config/metadata-store-secrets/store-ca-cert.yaml -i
+        yq '.stringData.auth_token= env(storeTokenReadWrite)' .config/metadata-store-secrets/store-auth-token.yaml -i
+        yq '.tap_gui.app_config.proxy."/metadata-store".headers.Authorization= env(storeProxyAuthHeader)' .config/tap-view.yaml -i
+    }
+    
+    #set-multi-cluster-access
+    set-multi-cluster-access() {
+        
+        scripts/dektecho.sh status "Setting Backstage access to dev,stage & prod clusters"
+
+        #configure GUI on view cluster to access dev cluster
         kubectl config use-context $DEV_CLUSTER_NAME
         kubectl apply -f .config/tap-gui-viewer-sa-rbac.yaml
         export devClusterUrl=$(kubectl config view --minify -o jsonpath='{.clusters[0].cluster.server}')
@@ -207,10 +215,10 @@
         | jq -r '.secrets[0].name') -o=json \
         | jq -r '.data["token"]' \
         | base64 --decode)
-
         yq '.tap_gui.app_config.kubernetes.clusterLocatorMethods.[0].clusters.[0].url = env(devClusterUrl)' .config/tap-view.yaml -i
         yq '.tap_gui.app_config.kubernetes.clusterLocatorMethods.[0].clusters.[0].serviceAccountToken = env(devClusterToken)' .config/tap-view.yaml -i
 
+        #configure GUI on view cluster to access stage cluster
         kubectl config use-context $STAGE_CLUSTER_NAME
         kubectl apply -f .config/tap-gui-viewer-sa-rbac.yaml
         export stageClusterUrl=$(kubectl config view --minify -o jsonpath='{.clusters[0].cluster.server}')
@@ -218,11 +226,11 @@
         | jq -r '.secrets[0].name') -o=json \
         | jq -r '.data["token"]' \
         | base64 --decode)
-
         yq '.tap_gui.app_config.kubernetes.clusterLocatorMethods.[0].clusters.[1].url = env(stageClusterUrl)' .config/tap-view.yaml -i
         yq '.tap_gui.app_config.kubernetes.clusterLocatorMethods.[0].clusters.[1].serviceAccountToken = env(stageClusterToken)' .config/tap-view.yaml -i
 
 
+        #configure GUI on view cluster to access prod cluster
         kubectl config use-context $PROD_CLUSTER_NAME
         kubectl apply -f .config/tap-gui-viewer-sa-rbac.yaml
         export prodClusterUrl=$(kubectl config view --minify -o jsonpath='{.clusters[0].cluster.server}')
@@ -230,15 +238,30 @@
         | jq -r '.secrets[0].name') -o=json \
         | jq -r '.data["token"]' \
         | base64 --decode)
-
         yq '.tap_gui.app_config.kubernetes.clusterLocatorMethods.[0].clusters.[2].url = env(prodClusterUrl)' .config/tap-view.yaml -i
         yq '.tap_gui.app_config.kubernetes.clusterLocatorMethods.[0].clusters.[2].serviceAccountToken = env(prodClusterToken)' .config/tap-view.yaml -i
 
+        #update view cluster after config changes
         kubectl config use-context $VIEW_CLUSTER_NAME
         tanzu package installed update tap --package-name tap.tanzu.vmware.com --version $TAP_VERSION -n tap-install -f .config/tap-view.yaml
+        
 
     } 
  
+    #add-snyk-scanner
+    add-snyk-scanner() {
+
+        scripts/dektecho.sh status "Installing SNYK image scanner"
+
+        kubectl apply -f .config/scan-policy.yaml -n $STAGEPROD_NAMESPACE  
+
+        tanzu package install snyk-scanner \
+            --package-name snyk.scanning.apps.tanzu.vmware.com \
+            --version 1.0.0-beta.1 \
+            --namespace tap-install \
+            --values-file .config/snyk-values.yaml
+
+    }
     #add-brownfield-apis
     add-brownfield-apis () {
         
@@ -347,10 +370,14 @@
 
         tanzu package installed delete tap -n tap-install -y
 
-        kubectl delete ns tap-install
+        kubectl delete ns tap-gui
+        kubectl delete ns metadata-store-secrets
         kubectl delete ns dekt-apps
         kubectl delete ns mydev
         kubectl delete ns myteam
+        kubectl delete ns rabbitmq-system
+        kubectl delete ns secretgen-controller
+        kubectl delete ns tap-install
 
     }
     
@@ -410,7 +437,6 @@ install-demo)
     install-stage-cluster
     install-prod-cluster
     add-brownfield-apis
-    update-multi-cluster-views
     ;;
 delete-all)
     scripts/dektecho.sh prompt  "Are you sure you want to delete all clusters?" && [ $? -eq 0 ] || exit

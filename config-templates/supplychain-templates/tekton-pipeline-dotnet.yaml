@@ -1,0 +1,43 @@
+apiVersion: tekton.dev/v1beta1
+kind: Pipeline
+metadata:
+  name: developer-defined-tekton-pipeline-dotnet
+  labels:
+    apps.tanzu.vmware.com/pipeline: test-dotnet     # (!) required
+spec:
+  params:
+    - name: source-url                       # (!) required
+    - name: source-revision                  # (!) required
+    - name: source-sub-path                  # (!) optional
+      default: ""
+  tasks:
+    - name: test
+      params:
+        - name: source-url
+          value: $(params.source-url)
+        - name: source-revision
+          value: $(params.source-revision)
+        - name: source-sub-path
+          value: $(params.source-sub-path)
+      taskSpec:
+        params:
+          - name: source-url
+          - name: source-revision
+          - name: source-sub-path
+        steps:
+          - name: test
+            image: mcr.microsoft.com/dotnet/sdk:6.0
+            script: |-
+              cd `mktemp -d`
+
+              wget -qO- $(params.source-url) | tar xvz -m
+
+              SUB_PATH=$(params.source-sub-path)
+              if [ -z ${SUB_PATH:-""} ]; then
+                echo "INFO: No subpath provided."
+              else
+                echo "INFO: Changing directory to $SUB_PATH"
+                cd $SUB_PATH
+              fi
+
+              dotnet test

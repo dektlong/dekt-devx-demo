@@ -3,11 +3,15 @@
 #   accepted values: full, iterate, build, run, view
 #==================================================================
 profile: iterate
+
+shared:
+  ingress_domain: "YOUR_DEV_SUBDOMAIN.YOUR_DOMAIN"
+
 #==================================================================
 # Build Service
 #==================================================================
 buildservice:
-  kp_default_repository: "{PRIVATE_REPO_SERVER}/{SYSTEM_REPO}/build-service"
+  kp_default_repository: "YOUR_REGISTRY_SERVER/YOUR_SYSTEM_REPO/build-service"
   kp_default_repository_username: ""
   kp_default_repository_password: ""
   tanzunet_username: ""
@@ -21,20 +25,20 @@ buildservice:
 supply_chain: basic
 ootb_supply_chain_basic:
   registry:
-    server: "{PRIVATE_REPO_SERVER}"
-    repository: "{DEV_APPS_REPO}"
+    server: "YOUR_REGISTRY_SERVER"
+    repository: "YOUR_DEV_REPO"
   gitops:
     ssh_secret: ""
 ootb_supply_chain_testing:
   registry:
-    server: "{PRIVATE_REPO_SERVER}"
-    repository: "{DEV_APPS_REPO}"
+    server: "YOUR_REGISTRY_SERVER"
+    repository: "YOUR_DEV_REPO"
   gitops:
     ssh_secret: ""
 ootb_supply_chain_testing_scanning:
   registry:
-    server: "{PRIVATE_REPO_SERVER}"
-    repository: "{DEV_APPS_REPO}"
+    server: "YOUR_REGISTRY_SERVER"
+    repository: "YOUR_DEV_REPO"
   gitops:
     ssh_secret: ""
 #==================================================================
@@ -42,22 +46,17 @@ ootb_supply_chain_testing_scanning:
 #==================================================================
 cnrs:
   domain_template: "{{.Name}}.{{.Domain}}"
-  domain_name: "dev.{YOUR_DOMAIN}"
-
 contour:
   envoy:
     service:
       type: LoadBalancer
-
 appliveview_connector:
   backend:
     sslDisabled: "true"
-    host: appliveview.sys.{YOUR_DOMAIN}
+    host: appliveview.YOUR_SYSTEM_SUBDOMAIN.YOUR_DOMAIN
 
 excluded_packages:
-  #- tap-gui.tanzu.vmware.com
   - learningcenter.tanzu.vmware.com
   - workshops.learningcenter.tanzu.vmware.com
-#learningcenter:
-#  ingressDomain: learningcenter.sys.dekt.io
+
 ceip_policy_disclosed: true

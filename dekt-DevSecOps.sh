@@ -89,7 +89,7 @@
         tanzu apps workload create $SENSORS_WORKLOAD \
             --git-repo https://github.com/dektlong/mood-sensors \
             --git-branch dev \
-            --type web-backend \
+            --type dekt-backend \
             --label apps.tanzu.vmware.com/has-tests="true" \
             --label app.kubernetes.io/part-of=$SENSORS_WORKLOAD \
             --service-ref rabbitmq-claim=rabbitmq.com/v1beta1:RabbitmqCluster:reading \
@@ -113,11 +113,11 @@
 
         scripts/dektecho.sh cmd "tanzu apps workload create $SENSORS_WORKLOAD -f workload.yaml -n $STAGEPROD_NAMESPACE"
         tanzu apps workload create $SENSORS_WORKLOAD \
-            --git-repo https://github.com/dektlong/mood-sensors \
+            --git-repo http://github.com/dektlong/mood-sensors \
             --git-branch release-v1.0 \
-            --type web-backend \
+            --type dekt-backend \
             --label apps.tanzu.vmware.com/has-tests="true" \
-            --label app.kubernetes.io/part-of=$SENSORS_WORKLOAD-v2 \
+            --label app.kubernetes.io/part-of=$SENSORS_WORKLOAD \
             --service-ref rabbitmq-claim=rabbitmq.com/v1beta1:RabbitmqCluster:reading \
             --yes \
             --namespace $STAGEPROD_NAMESPACE
@@ -224,17 +224,6 @@
         
     }
 
-    
-    #scanning-results
-    scan-results () {
-
-        scripts/dektecho.sh info "Scanning results"
-
-        kubectl describe imagescan.scanning.apps.tanzu.vmware.com/$SENSORS_WORKLOAD -n $STAGEPROD_NAMESPACE
-
-    }
-        
-
     #soft reset of all clusters configurations
     reset() {
 
@@ -312,7 +301,7 @@
         echo
         echo "  info"
         echo
-        echo "  dev"
+        echo "  team"
         echo
         echo "  stage"
         echo
@@ -324,8 +313,6 @@
         echo
         echo "  logs dev/stage"
         echo
-        echo "  scan-results"
-        echo 
         echo "  brownfield"
         echo
         echo "  behappy"
@@ -342,7 +329,7 @@ case $1 in
 info)
     info
     ;;
-dev)
+team)
     create-team-workloads
     ;;
 stage)
@@ -359,7 +346,7 @@ supplychains)
     ;;
 track)
     case $2 in
-    dev)
+    team)
         track-workloads $DEV_CLUSTER $TEAM_NAMESPACE
         ;;
     stage)

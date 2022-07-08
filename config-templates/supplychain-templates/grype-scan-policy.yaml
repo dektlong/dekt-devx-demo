@@ -8,7 +8,8 @@ spec:
 
     # Accepted Values: "Critical", "High", "Medium", "Low", "Negligible", "UnknownSeverity"
     #notAllowedSeverities := ["Critical","High","UnknownSeverity"]
-    notAllowedSeverities := ["Critical","UnknownSeverity"]
+    #notAllowedSeverities := ["UnknownSeverity"]
+    violatingSeverities := ["Negligible","UnknownSeverity"]
     ignoreCves := []
 
     contains(array, elem) = true {
