@@ -11,6 +11,7 @@
     #workloads
     PORTAL_WORKLOAD="mood-portal"
     SENSORS_WORKLOAD="mood-sensors"
+    DEV_WORKLOAD="mysensors"
     PORTAL_DELIVERABLE=".gitops/portal_deliverable.yaml"
     SENSORS_DELIVERABLE=".gitops/sensors_deliverable.yaml"
     #tap
@@ -71,6 +72,23 @@
 
     }
     
+    #create-dev-workloads
+    create-dev-workload() {
+
+        kubectl config use-context $DEV_CLUSTER
+
+        scripts/dektecho.sh cmd "tanzu apps workload create $DEV_WORKLOAD -f workload.yaml -n $DEV_NAMESPACE"
+        tanzu apps workload create $DEV_WORKLOAD \
+            --git-repo https://github.com/dektlong/mood-sensors \
+            --git-branch dev \
+            --type dekt-backend \
+            --label apps.tanzu.vmware.com/has-tests="true" \
+            --label app.kubernetes.io/part-of=$DEV_WORKLOAD \
+            --service-ref rabbitmq-claim=rabbitmq.com/v1beta1:RabbitmqCluster:reading \
+            --yes \
+            --namespace $DEV_NAMESPACE
+    }
+
     #create-team-workloads
     create-team-workloads() {
 
@@ -238,7 +256,7 @@
         tanzu package installed update tap --package-name tap.tanzu.vmware.com --version $TAP_VERSION -n tap-install -f .config/tap-run.yaml
 
         kubectl config use-context $DEV_CLUSTER
-        tanzu apps workload delete mysensors -n $DEV_NAMESPACE -y
+        tanzu apps workload delete $DEV_WORKLOAD -n $DEV_NAMESPACE -y
         tanzu apps workload delete $PORTAL_WORKLOAD -n $TEAM_NAMESPACE  -y
         tanzu apps workload delete $SENSORS_WORKLOAD -n $TEAM_NAMESPACE -y
         tanzu package installed update tap --package-name tap.tanzu.vmware.com --version $TAP_VERSION -n tap-install -f .config/tap-iterate.yaml
@@ -287,6 +305,7 @@
 
     #pre-deploy
     pre-deploy() {
+        create-dev-workload
         create-team-workloads
         create-stage-workloads
         scripts/dektecho.sh prompt  "Should we start prod role out?" && [ $? -eq 0 ] || exit
