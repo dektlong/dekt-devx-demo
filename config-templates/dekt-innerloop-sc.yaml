@@ -10,7 +10,7 @@ metadata:
   labels:
     kapp.k14s.io/app: "1657307330139182118"
     kapp.k14s.io/association: v1.8c64ddca205b2ba4c71428ca92333680
-  name: dekt-innerloop
+  name: dekt-path2prod
   resourceVersion: "711735"
   uid: 95f7e0d7-7ab6-4dbf-88ea-4d1451a18bd6
 spec:

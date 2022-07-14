@@ -248,18 +248,18 @@
         kubectl config use-context $STAGE_CLUSTER
         tanzu apps workload delete $PORTAL_WORKLOAD -n $STAGEPROD_NAMESPACE -y
         tanzu apps workload delete $SENSORS_WORKLOAD -n $STAGEPROD_NAMESPACE -y
-        tanzu package installed update tap --package-name tap.tanzu.vmware.com --version $TAP_VERSION -n tap-install -f .config/tap-build.yaml
+        #tanzu package installed update tap --package-name tap.tanzu.vmware.com --version $TAP_VERSION -n tap-install -f .config/tap-build.yaml
 
         kubectl config use-context $PROD_CLUSTER
         kubectl delete deliverable $PORTAL_WORKLOAD -n $STAGEPROD_NAMESPACE
         kubectl delete deliverable $SENSORS_WORKLOAD -n $STAGEPROD_NAMESPACE
-        tanzu package installed update tap --package-name tap.tanzu.vmware.com --version $TAP_VERSION -n tap-install -f .config/tap-run.yaml
+        #tanzu package installed update tap --package-name tap.tanzu.vmware.com --version $TAP_VERSION -n tap-install -f .config/tap-run.yaml
 
         kubectl config use-context $DEV_CLUSTER
         tanzu apps workload delete $DEV_WORKLOAD -n $DEV_NAMESPACE -y
         tanzu apps workload delete $PORTAL_WORKLOAD -n $TEAM_NAMESPACE  -y
         tanzu apps workload delete $SENSORS_WORKLOAD -n $TEAM_NAMESPACE -y
-        tanzu package installed update tap --package-name tap.tanzu.vmware.com --version $TAP_VERSION -n tap-install -f .config/tap-iterate.yaml
+        #tanzu package installed update tap --package-name tap.tanzu.vmware.com --version $TAP_VERSION -n tap-install -f .config/tap-iterate.yaml
         
         kubectl config use-context $VIEW_CLUSTER
         kubectl -n app-live-view delete pods -l=name=application-live-view-connector
@@ -334,7 +334,7 @@
         echo
         echo "  brownfield"
         echo
-        echo "  behappy"
+        echo "  behappy / besad"
         echo
         echo "  pre-deploy"
         echo
@@ -397,6 +397,9 @@ brownfield)
     ;;
 behappy)
     toggle-dog happy
+    ;;
+besad)
+    toggle-dog sad
     ;;
 reset)
     reset

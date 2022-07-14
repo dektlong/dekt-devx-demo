@@ -1,7 +1,7 @@
 apiVersion: carto.run/v1alpha1
 kind: ClusterSupplyChain
 metadata:
-  name: dekt-outerloop
+  name: dekt-path2prod
 spec:
 #WORKLOADS MAPPING
   selector:
