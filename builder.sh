@@ -51,7 +51,7 @@
         
         add-tap-package "tap-view.yaml"
 
-        scripts/dektecho.sh prompt "workaround! verify metadata-store is reconciled and hit 'y' to continue"
+        sleep 20 #workaround! extra time for metadata-store to reconcile
         
         scripts/dektecho.sh status "Adding custom accelerators"
         kustomize build accelerators | kubectl apply -f -
