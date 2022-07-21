@@ -460,7 +460,6 @@ inner-loop)
     scripts/k8s-handler.sh create $DEV_CLUSTER_PROVIDER $DEV_CLUSTER_NAME $DEV_CLUSTER_NODES
     install-view-cluster
     install-dev-cluster
-    update-multi-cluster-views
     ;;
 runme)
     $2 $3 $4
