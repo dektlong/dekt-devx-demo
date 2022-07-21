@@ -32,7 +32,8 @@ brownfield-cluster: #for bronwfield apis demo, SCGW and TSM, no TAP installed
 # Configs
 #==================================================================
 tap:
-  version: "1.1.1"
+  #version: "1.1.1"
+  version: "1.2.0"
   systemRepo: "dekt-system"
   prodAuditFile: "audit-prod.log"
 apps-namespaces:
@@ -40,8 +41,8 @@ apps-namespaces:
   team: "myteam"
   stageProd: "dekt-apps"
 dns:
-  domain: ""
-  godaddyApiKey: ""
-  godaddyApiSecret: ""
+  domain: "[CHANGE_ME]"
+  godaddyApiKey: "[CHANGE_ME]"
+  godaddyApiSecret: "[CHANGE_ME]"
 apis:
-  scgwInstallDirectory: ""
+  scgwInstallDirectory: "[CHANGE_ME]"

@@ -3,7 +3,6 @@ kind: Secret
 type: kubernetes.io/tls
 metadata:
   name: store-ca-cert
-  namespace: metadata-store-secrets
 data:
   ca.crt: "" #updated in runtime
   tls.crt: ""

@@ -14,23 +14,13 @@ This repo contains artifacts to run a demo illustrating the vision and capabilit
 
 - Rename the folder ```config-templates``` to ```.config```
 
-- Update your demo setup in ```.config/demo-values.yaml```
-  - Make sure your clusters support the required capacity 
+- Replace ```[CHANGE_ME]``` with your values
+  - Make sure your clusters support the required capacity you defined in ```.config/demo-values.yaml```
   - Modified the specific cloud info in ```scripts/k8s-hanlder.sh```
-
-- Update TAP install values marked inside {}
-  - ```.config/tap-view.yaml```
-  - ```.config/tap-interate.yaml```
-  - ```.config/tap-build.yaml```
-  - ```.config/tap-run.yaml```
   - Make sure domain, system-repo and registry-host are identical across all configs
-  
-- Update your registry details in ```.config/dekt-dev-supplychain.yaml``` and ```.config/dekt-build-supplychain.yaml``` 
-  - Note: since this is a custom supply chain, the registry values defined in custom supply chains are NOT applied automatically
-
-- Review ```.config/scan-policy.yaml``` and customized if need 
-
-- Review ```.config/tekton-pipeline.yaml``` and customized if need 
+  - Since we are using custom supply chains, the registry values defined in the ootb supply chains are NOT applied automatically
+  - Review ```.config/custom-sc/scan-policy.yaml``` and customized if need 
+  - Review ```.config/custom-sc/tekton-pipeline.yaml``` and customized if need 
 
 - The ingress setup is based on GoDaddy DNS, if you are using a different one, please modify ```scripts/ingress-handler.sh```
 

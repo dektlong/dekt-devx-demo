@@ -5,17 +5,17 @@
 profile: iterate
 
 shared:
-  ingress_domain: "YOUR_DEV_SUBDOMAIN.YOUR_DOMAIN"
+  ingress_domain: "dev.[CHANGE_ME]"
 
 #==================================================================
 # Build Service
 #==================================================================
 buildservice:
-  kp_default_repository: "YOUR_REGISTRY_SERVER/YOUR_SYSTEM_REPO/build-service"
-  kp_default_repository_username: ""
-  kp_default_repository_password: ""
-  tanzunet_username: ""
-  tanzunet_password: ""
+  kp_default_repository: "[CHANGE_ME]/build-service"
+  kp_default_repository_username: "[CHANGE_ME]"
+  kp_default_repository_password: "[CHANGE_ME]"
+  tanzunet_username: "[CHANGE_ME]"
+  tanzunet_password: "[CHANGE_ME]"
   descriptor_name: "full"
   enable_automatic_dependency_updates: true
 #==================================================================
@@ -25,20 +25,20 @@ buildservice:
 supply_chain: basic
 ootb_supply_chain_basic:
   registry:
-    server: "YOUR_REGISTRY_SERVER"
-    repository: "YOUR_DEV_REPO"
+    server: "[CHANGE_ME]"
+    repository: "[CHANGE_ME]"
   gitops:
     ssh_secret: ""
 ootb_supply_chain_testing:
   registry:
-    server: "YOUR_REGISTRY_SERVER"
-    repository: "YOUR_DEV_REPO"
+    server: "[CHANGE_ME]"
+    repository: "[CHANGE_ME]"
   gitops:
     ssh_secret: ""
 ootb_supply_chain_testing_scanning:
   registry:
-    server: "YOUR_REGISTRY_SERVER"
-    repository: "YOUR_DEV_REPO"
+    server: "[CHANGE_ME]"
+    repository: "[CHANGE_ME]"
   gitops:
     ssh_secret: ""
 #==================================================================
@@ -53,7 +53,7 @@ contour:
 appliveview_connector:
   backend:
     sslDisabled: "true"
-    host: appliveview.YOUR_SYSTEM_SUBDOMAIN.YOUR_DOMAIN
+    host: appliveview.sys.[CHANGE_ME]
 
 excluded_packages:
   - learningcenter.tanzu.vmware.com

@@ -3,10 +3,8 @@
 #   accepted values: full, iterate, build, run, view
 #==================================================================
 profile: view
-
 shared:
-  ingress_domain: "YOUR_SYSTEM_SUBDOMAIN.YOUR_DOMAIN"
-
+  ingress_domain: "sys.[CHANGE_ME]"
 #==================================================================
 # TAP GUI (Backstage)
 #==================================================================
@@ -14,7 +12,7 @@ tap_gui:
   service_type: ClusterIP
   app_config:
     app:
-      baseUrl: http://tap-gui.YOUR_SYSTEM_SUBDOMAIN.YOUR_DOMAIN
+      baseUrl: http://tap-gui.sys.[CHANGE_ME]
     catalog:
       locations:
         - type: url
@@ -24,14 +22,13 @@ tap_gui:
         - type: url
           target: https://github.com/krisapplegate/tap-gui-catalogs/blob/main/tap-gui/api-test.yaml
     backend:
-      baseUrl: http://tap-gui.YOUR_SYSTEM_SUBDOMAIN.YOUR_DOMAIN
+      baseUrl: http://tap-gui.sys.[CHANGE_ME]
       cors:
-        origin: http://tap-gui.YOUR_SYSTEM_SUBDOMAIN.YOUR_DOMAIN
+        origin: http://tap-gui.sys.[CHANGE_ME]
       reading:
         allow:
           - host: "petstore.swagger.io"
-          - host: "*.YOUR_DOMAIN"
-    #comment out 'proxy' section if Store is not installed on view cluster
+          - host: "*.[CHANGE_ME]"
     proxy:
       /metadata-store:
         target: https://metadata-store-app.metadata-store:8443/api/v1
@@ -47,21 +44,20 @@ tap_gui:
         - type: 'config'
           clusters:
             - url: "" #updated in runtime
-              name: YOUR_DEV_CLUSTER_NAME
+              name: dekt-dev
               authProvider: serviceAccount
               serviceAccountToken: "" #updated in runtime
               skipTLSVerify: true
             - url: "" #updated in runtime
-              name: YOUR_STAGE_CLUSTER_NAME
+              name: dekt-stage
               authProvider: serviceAccount
               serviceAccountToken: "" #updated in runtime
               skipTLSVerify: true
             - url: "" #updated in runtime
-              name: YOUR_PROD_CLUSTER_NAME
+              name: dekt-prod
               authProvider: serviceAccount
               serviceAccountToken: "" #updated in runtime
               skipTLSVerify: true
-
 contour:
   envoy:
     service:

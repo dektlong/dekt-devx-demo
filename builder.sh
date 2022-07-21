@@ -19,22 +19,22 @@
     BROWNFIELD_CLUSTER_NODES=$(yq .brownfield-cluster.nodes .config/demo-values.yaml)
 
     #image registry
-    PRIVATE_REPO_SERVER=$(yq .ootb_supply_chain_basic.registry.server .config/tap-iterate.yaml)
-    PRIVATE_REPO_USER=$(yq .buildservice.kp_default_repository_username .config/tap-iterate.yaml)
-    PRIVATE_REPO_PASSWORD=$(yq .buildservice.kp_default_repository_password .config/tap-iterate.yaml)
+    PRIVATE_REPO_SERVER=$(yq .ootb_supply_chain_basic.registry.server .config/profiles/tap-iterate.yaml)
+    PRIVATE_REPO_USER=$(yq .buildservice.kp_default_repository_username .config/profiles/tap-iterate.yaml)
+    PRIVATE_REPO_PASSWORD=$(yq .buildservice.kp_default_repository_password .config/profiles/tap-iterate.yaml)
     SYSTEM_REPO=$(yq .tap.systemRepo .config/demo-values.yaml)
     #tap
-    TANZU_NETWORK_USER=$(yq .buildservice.tanzunet_username .config/tap-iterate.yaml)
-    TANZU_NETWORK_PASSWORD=$(yq .buildservice.tanzunet_password .config/tap-iterate.yaml)
+    TANZU_NETWORK_USER=$(yq .buildservice.tanzunet_username .config/profiles/tap-iterate.yaml)
+    TANZU_NETWORK_PASSWORD=$(yq .buildservice.tanzunet_password .config/profiles/tap-iterate.yaml)
     TAP_VERSION=$(yq .tap.version .config/demo-values.yaml)
     #apps-namespaces
     DEV_NAMESPACE=$(yq .apps-namespaces.dev .config/demo-values.yaml)
     TEAM_NAMESPACE=$(yq .apps-namespaces.team .config/demo-values.yaml)
     STAGEPROD_NAMESPACE=$(yq .apps-namespaces.stageProd .config/demo-values.yaml)
     #domains
-    SYSTEM_SUB_DOMAIN=$(yq .shared.ingress_domain .config/tap-view.yaml | cut -d'.' -f 1)
-    DEV_SUB_DOMAIN=$(yq .shared.ingress_domain .config/tap-iterate.yaml | cut -d'.' -f 1)
-    RUN_SUB_DOMAIN=$(yq .shared.ingress_domain .config/tap-run.yaml | cut -d'.' -f 1)
+    SYSTEM_SUB_DOMAIN=$(yq .shared.ingress_domain .config/profiles/tap-view.yaml | cut -d'.' -f 1)
+    DEV_SUB_DOMAIN=$(yq .shared.ingress_domain .config/profiles/tap-iterate.yaml | cut -d'.' -f 1)
+    RUN_SUB_DOMAIN=$(yq .shared.ingress_domain .config/profiles/tap-run.yaml | cut -d'.' -f 1)
     #misc        
     GW_INSTALL_DIR=$(yq .apis.scgwInstallDirectory .config/demo-values.yaml)
 
@@ -79,10 +79,10 @@
         add-tap-package "tap-iterate.yaml"
 
         scripts/dektecho.sh status "Adding dekt-innerloop custom supply chain"
-        kubectl apply -f .config/disable-scale2zero.yaml
-        kubectl apply -f .config/dekt-innerloop-sc.yaml
-        kubectl apply -f .config/tekton-pipeline.yaml -n $DEV_NAMESPACE
-        kubectl apply -f .config/tekton-pipeline.yaml -n $TEAM_NAMESPACE
+        kubectl apply -f .config/custom-sc/disable-scale2zero.yaml
+        kubectl apply -f .config/custom-sc/dekt-innerloop-sc.yaml
+        kubectl apply -f .config/custom-sc/tekton-pipeline.yaml -n $DEV_NAMESPACE
+        kubectl apply -f .config/custom-sc/tekton-pipeline.yaml -n $TEAM_NAMESPACE
 
         provision-data-services $TEAM_NAMESPACE "reading-rabbitmq-dev.yaml"
 
@@ -100,16 +100,14 @@
     
         setup-apps-namespace $STAGEPROD_NAMESPACE
 
-        scripts/dektecho.sh status "Adding metadata-store-secrets to access remote Store"
-        kubectl create ns metadata-store-secrets
-        kubectl apply -f .config/metadata-store-secrets -n metadata-store-secrets
+        configure-scanners
         
         add-tap-package "tap-build.yaml"
 
         scripts/dektecho.sh status "Adding dekt-outerloop custom supply chain"
-        kubectl apply -f .config/dekt-outerloop-sc.yaml
-        kubectl apply -f .config/tekton-pipeline.yaml -n $STAGEPROD_NAMESPACE
-        kubectl apply -f .config/scan-policy.yaml -n $STAGEPROD_NAMESPACE
+        kubectl apply -f .config/custom-sc/dekt-outerloop-sc.yaml
+        kubectl apply -f .config/custom-sc/tekton-pipeline.yaml -n $STAGEPROD_NAMESPACE
+        kubectl apply -f .config/custom-sc/scan-policy.yaml -n $STAGEPROD_NAMESPACE
 
         provision-data-services $STAGEPROD_NAMESPACE "reading-rabbitmq-prod.yaml"
 
@@ -128,7 +126,7 @@
         
         add-tap-package "tap-run.yaml"
 
-        kubectl apply -f .config/disable-scale2zero.yaml
+        kubectl apply -f .config/custom-sc/disable-scale2zero.yaml
 
         provision-data-services $STAGEPROD_NAMESPACE "reading-rabbitmq-prod.yaml"
 
@@ -155,7 +153,7 @@
             --namespace tap-install
 
         tanzu package install tap -p tap.tanzu.vmware.com -v $TAP_VERSION \
-            --values-file .config/$tap_values_file_name \
+            --values-file .config/profiles/$tap_values_file_name \
             --namespace tap-install
     }
 
@@ -173,8 +171,7 @@
             --password $PRIVATE_REPO_PASSWORD \
             --namespace $appsNamespace    
 
-        #kubectl apply -f .config/supplychain-rbac.yaml -n $appsNamespace
-        kubectl apply -f .config/app-ns-rbac.yaml -n $appsNamespace
+        kubectl apply -f .config/rbac/app-ns-rbac.yaml -n $appsNamespace
     }
 
     #add-data-services
@@ -186,8 +183,8 @@
         scripts/dektecho.sh status "Provision rabbitMQ instance in $appsNamespace namespace with $dataInstanceFile configs"
 
         kapp -y deploy --app rmq-operator --file https://github.com/rabbitmq/cluster-operator/releases/download/v1.9.0/cluster-operator.yml
-        kubectl apply -f .config/rabbitmq-cluster-config.yaml -n $appsNamespace
-        kubectl apply -f .config/$dataInstanceFile -n $appsNamespace
+        kubectl apply -f .config/rabbitmq/rabbitmq-cluster-config.yaml -n $appsNamespace
+        kubectl apply -f .config/rabbitmq/$dataInstanceFile -n $appsNamespace
     }
     
     #update-store-secrets
@@ -199,9 +196,29 @@
 
         yq '.data."ca.crt"= env(storeCert)' .config/metadata-store-secrets/store-ca-cert.yaml -i
         yq '.stringData.auth_token= env(storeTokenReadWrite)' .config/metadata-store-secrets/store-auth-token.yaml -i
-        yq '.tap_gui.app_config.proxy."/metadata-store".headers.Authorization= env(storeProxyAuthHeader)' .config/tap-view.yaml -i
+        yq '.tap_gui.app_config.proxy."/metadata-store".headers.Authorization= env(storeProxyAuthHeader)' .config/profiles/tap-view.yaml -i
     }
     
+    #configure-scanners
+    configure-scanners() {
+
+        scripts/dektecho.sh status "Adding metadata-store-secrets to access remote Store"
+        kubectl create ns metadata-store-secrets
+        kubectl apply -f .config/scanners/store-auth-token.yaml -n metadata-store-secrets
+        kubectl apply -f .config/scanners/store-ca-cert.yaml -n metadata-store-secrets
+        kubectl apply -f .config/scanners/store-secrets-export.yaml -n metadata-store-secrets
+
+        scripts/dektecho.sh status "Add Snyk for image scanning "
+        
+        kubectl apply -f .config/scanners/snyk-secret.yaml -n $STAGEPROD_NAMESPACE
+
+        tanzu package install snyk-scanner \
+            --package-name snyk.scanning.apps.tanzu.vmware.com \
+            --version 1.0.0-beta.2 \
+            --namespace tap-install \
+            --values-file .config/scanners/snyk-install.yaml
+
+    }
     #set-multi-cluster-access
     set-multi-cluster-access() {
         
@@ -209,59 +226,45 @@
 
         #configure GUI on view cluster to access dev cluster
         kubectl config use-context $DEV_CLUSTER_NAME
-        kubectl apply -f .config/tap-gui-viewer-sa-rbac.yaml
+        kubectl apply -f .config/rbac/tap-gui-viewer-sa-rbac.yaml
         export devClusterUrl=$(kubectl config view --minify -o jsonpath='{.clusters[0].cluster.server}')
         export devClusterToken=$(kubectl -n tap-gui get secret $(kubectl -n tap-gui get sa tap-gui-viewer -o=json \
         | jq -r '.secrets[0].name') -o=json \
         | jq -r '.data["token"]' \
         | base64 --decode)
-        yq '.tap_gui.app_config.kubernetes.clusterLocatorMethods.[0].clusters.[0].url = env(devClusterUrl)' .config/tap-view.yaml -i
-        yq '.tap_gui.app_config.kubernetes.clusterLocatorMethods.[0].clusters.[0].serviceAccountToken = env(devClusterToken)' .config/tap-view.yaml -i
+        yq '.tap_gui.app_config.kubernetes.clusterLocatorMethods.[0].clusters.[0].url = env(devClusterUrl)' .config/profiles/tap-view.yaml -i
+        yq '.tap_gui.app_config.kubernetes.clusterLocatorMethods.[0].clusters.[0].serviceAccountToken = env(devClusterToken)' .config/profiles/tap-view.yaml -i
 
         #configure GUI on view cluster to access stage cluster
         kubectl config use-context $STAGE_CLUSTER_NAME
-        kubectl apply -f .config/tap-gui-viewer-sa-rbac.yaml
+        kubectl apply -f .config/rbac/tap-gui-viewer-sa-rbac.yaml
         export stageClusterUrl=$(kubectl config view --minify -o jsonpath='{.clusters[0].cluster.server}')
         export stageClusterToken=$(kubectl -n tap-gui get secret $(kubectl -n tap-gui get sa tap-gui-viewer -o=json \
         | jq -r '.secrets[0].name') -o=json \
         | jq -r '.data["token"]' \
         | base64 --decode)
-        yq '.tap_gui.app_config.kubernetes.clusterLocatorMethods.[0].clusters.[1].url = env(stageClusterUrl)' .config/tap-view.yaml -i
-        yq '.tap_gui.app_config.kubernetes.clusterLocatorMethods.[0].clusters.[1].serviceAccountToken = env(stageClusterToken)' .config/tap-view.yaml -i
+        yq '.tap_gui.app_config.kubernetes.clusterLocatorMethods.[0].clusters.[1].url = env(stageClusterUrl)' .config/profiles/tap-view.yaml -i
+        yq '.tap_gui.app_config.kubernetes.clusterLocatorMethods.[0].clusters.[1].serviceAccountToken = env(stageClusterToken)' .config/profiles/tap-view.yaml -i
 
 
         #configure GUI on view cluster to access prod cluster
         kubectl config use-context $PROD_CLUSTER_NAME
-        kubectl apply -f .config/tap-gui-viewer-sa-rbac.yaml
+        kubectl apply -f .config/rbac/tap-gui-viewer-sa-rbac.yaml
         export prodClusterUrl=$(kubectl config view --minify -o jsonpath='{.clusters[0].cluster.server}')
         export prodClusterToken=$(kubectl -n tap-gui get secret $(kubectl -n tap-gui get sa tap-gui-viewer -o=json \
         | jq -r '.secrets[0].name') -o=json \
         | jq -r '.data["token"]' \
         | base64 --decode)
-        yq '.tap_gui.app_config.kubernetes.clusterLocatorMethods.[0].clusters.[2].url = env(prodClusterUrl)' .config/tap-view.yaml -i
-        yq '.tap_gui.app_config.kubernetes.clusterLocatorMethods.[0].clusters.[2].serviceAccountToken = env(prodClusterToken)' .config/tap-view.yaml -i
+        yq '.tap_gui.app_config.kubernetes.clusterLocatorMethods.[0].clusters.[2].url = env(prodClusterUrl)' .config/profiles/tap-view.yaml -i
+        yq '.tap_gui.app_config.kubernetes.clusterLocatorMethods.[0].clusters.[2].serviceAccountToken = env(prodClusterToken)' .config/profiles/tap-view.yaml -i
 
         #update view cluster after config changes
         kubectl config use-context $VIEW_CLUSTER_NAME
-        tanzu package installed update tap --package-name tap.tanzu.vmware.com --version $TAP_VERSION -n tap-install -f .config/tap-view.yaml
+        tanzu package installed update tap --package-name tap.tanzu.vmware.com --version $TAP_VERSION -n tap-install -f .config/profiles/tap-view.yaml
         
 
     } 
  
-    #add-snyk-scanner
-    add-snyk-scanner() {
-
-        scripts/dektecho.sh status "Installing SNYK image scanner"
-
-        kubectl apply -f .config/scan-policy.yaml -n $STAGEPROD_NAMESPACE  
-
-        tanzu package install snyk-scanner \
-            --package-name snyk.scanning.apps.tanzu.vmware.com \
-            --version 1.0.0-beta.1 \
-            --namespace tap-install \
-            --values-file .config/snyk-values.yaml
-
-    }
     #add-brownfield-apis
     add-brownfield-apis () {
         
@@ -354,7 +357,7 @@
 
         tanzu secret registry add dev-registry --username ${INSTALL_REGISTRY_USERNAME} --password ${INSTALL_REGISTRY_PASSWORD} --server ${INSTALL_REGISTRY_HOSTNAME} --export-to-all-namespaces --yes --namespace tap-install
 
-        tanzu package install tap-gui -p tap-gui.tanzu.vmware.com -v 1.1.0-build.1 --values-file .config/tap-gui-values.yaml -n tap-install
+        #tanzu package install tap-gui -p tap-gui.tanzu.vmware.com -v 1.1.0-build.1 --values-file .config/tap/tap-gui-values.yaml -n tap-install
 
         #scripts/ingress-handler.sh gui-dev
         kubectl port-forward service/server 7000 -n tap-gui
