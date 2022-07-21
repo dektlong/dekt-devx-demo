@@ -47,12 +47,12 @@ This repo contains artifacts to run a demo illustrating the vision and capabilit
     - Brownfield cluster
 
 ### Install Innerloop components
-  - The following is installed on the **view** cluster
+  - View cluster
     - Carvel tools
     - TAP view profile
     - Custom app accelerators 
     - System ingress rule
-  - The following is installed on **dev** cluster
+  - Dev cluster
     - Carvel tools
     - TAP full profile
     - Default supplychain configs for apps namespace 
@@ -63,18 +63,18 @@ This repo contains artifacts to run a demo illustrating the vision and capabilit
     - CNR dev ingress rule
 
 ### Install Outerloop demo components
-  - The following is installed on **stage** cluster 
+  - Stage cluster 
     - Carvel tools
     - TAP build profile
     - Default supplychain configs for apps namespace 
     - Grype scanning policy 
     - Tekton pipeline run 
-  - The following is installed on **prod** cluster 
+  - Prod cluster 
     - Carvel tools
     - TAP run profile
     - Default supplychain configs for apps namespace 
     - CNR run ingress rule
-  - The following is installed on **brownfield** cluster
+  - Brownfieldcluster
     - Spring Cloud Gateway operator
     - Brownfield APIs SCGW instances and routes in ```brownfield-apis``` ns
     - Add brownfield 'consumer' k8s services to TAP clusters in ```brownfield-apis``` ns
