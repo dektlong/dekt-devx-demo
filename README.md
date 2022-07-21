@@ -34,7 +34,7 @@ This repo contains artifacts to run a demo illustrating the vision and capabilit
 ## Installation
 
 ```
-./builder.sh init-all
+./builder.sh init-all | ./builder.sh init-innerloop
 ```
 
 ### Create clusters
