@@ -38,13 +38,8 @@ This repo contains artifacts to run a demo illustrating the vision and capabilit
 ```
 
 ### Create clusters
-  - Innerloop
-    - View cluster
-    - Dev cluster
-  - Outerloop
-    - Stage cluster
-    - Prod cluster
-    - Brownfield cluster
+  - Innerloop: View cluster, Dev cluster
+  - Outerloop: Stage cluster, Prod cluster, Brownfield cluster
 
 ### Install Innerloop components
   - View cluster
