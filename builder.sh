@@ -389,11 +389,9 @@
         
         scripts/dektecho.sh err "Incorrect usage. Please specify one of the following: "
         
-        echo "  create-clusters"
-        echo
-        echo "  install-demo"
+        echo "  init-all"
         echo 
-        echo "  inner-loop"
+        echo "  init-innerloop"
         echo       
         echo "  uninstall-demo"
         echo
@@ -427,19 +425,24 @@
 #################### main ##########################
 
 case $1 in
-create-clusters)
+init-all)    
     scripts/k8s-handler.sh create $VIEW_CLUSTER_PROVIDER $VIEW_CLUSTER_NAME $VIEW_CLUSTER_NODES
     scripts/k8s-handler.sh create $DEV_CLUSTER_PROVIDER $DEV_CLUSTER_NAME $DEV_CLUSTER_NODES
     scripts/k8s-handler.sh create $STAGE_CLUSTER_PROVIDER $STAGE_CLUSTER_NAME $STAGE_CLUSTER_NODES  
     scripts/k8s-handler.sh create $PROD_CLUSTER_PROVIDER $PROD_CLUSTER_NAME $PROD_CLUSTER_NODES
     scripts/k8s-handler.sh create $BROWNFIELD_CLUSTER_PROVIDER $BROWNFIELD_CLUSTER_NAME $BROWNFIELD_CLUSTER_NODES
-    ;;
-install-demo)    
+    scripts/dektecho.sh prompt  "Verify that all clusters are operational. Continue?" && [ $? -eq 0 ] || exit
     install-view-cluster
     install-dev-cluster
     install-stage-cluster
     install-prod-cluster
     add-brownfield-apis
+    ;;
+init-innerloop)
+    scripts/k8s-handler.sh create $VIEW_CLUSTER_PROVIDER $VIEW_CLUSTER_NAME $VIEW_CLUSTER_NODES
+    scripts/k8s-handler.sh create $DEV_CLUSTER_PROVIDER $DEV_CLUSTER_NAME $DEV_CLUSTER_NODES
+    install-view-cluster
+    install-dev-cluster
     ;;
 delete-all)
     scripts/dektecho.sh prompt  "Are you sure you want to delete all clusters?" && [ $? -eq 0 ] || exit
@@ -454,12 +457,6 @@ uninstall-demo)
     ;;
 relocate-tap-images)
     relocate-tap-images
-    ;;
-inner-loop)
-    scripts/k8s-handler.sh create $VIEW_CLUSTER_PROVIDER $VIEW_CLUSTER_NAME $VIEW_CLUSTER_NODES
-    scripts/k8s-handler.sh create $DEV_CLUSTER_PROVIDER $DEV_CLUSTER_NAME $DEV_CLUSTER_NODES
-    install-view-cluster
-    install-dev-cluster
     ;;
 runme)
     $2 $3 $4
