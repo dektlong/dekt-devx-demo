@@ -5,7 +5,7 @@ metadata:
 spec:
   count: 2
   api:
-    serverUrl: http://datacheck.tanzu-sm.io
+    serverUrl: http://datacheck.dekt-brownfield.io
     title: User Verification Services
     description: External APIs to provide user verification services
     version: 0.5.0
@@ -30,7 +30,7 @@ metadata:
 spec:
   count: 2
   api:
-    serverUrl: http://donations.tanzu-sm.io
+    serverUrl: http://donations.dekt-brownfield.io
     title: Donation Services
     description: External APIs to help with donations processing
     version: 0.5.0
@@ -55,7 +55,7 @@ metadata:
 spec:
   count: 1
   api:
-    serverUrl: http://insurance.tanzu-sm.io
+    serverUrl: http://insurance.dekt-brownfield.io
     title: Insurance Services
     description: External APIs to help with insurance processing
     version: 0.5.0
