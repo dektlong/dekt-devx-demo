@@ -4,7 +4,7 @@ info:
   description: "Swagger API definition for the donations apis"
   version: "0.0.2"
   title: "APIs to interact with donations external systems"
-host: http://donations.dekt-brownfield.io
+host: donations.dekt-brownfield.io
 basePath: "/v1"
 tags:
 - name: "Data collection"

@@ -4,7 +4,7 @@ info:
   description: "Swagger API definition for the datacheck apis"
   version: "0.0.2"
   title: "APIs to interact with datacheck external systems"
-host: http://datacheck.dekt-brownfield.io
+host: datacheck.dekt-brownfield.io
 basePath: "/v1"
 tags:
 - name: "Data collection"
