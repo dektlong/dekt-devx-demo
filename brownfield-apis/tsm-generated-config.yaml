@@ -5,13 +5,13 @@ metadata:
 spec:
   count: 2
   api:
-    serverUrl: http://datacheck.dekt-brownfield.io
+    serverUrl: datacheck.dekt-brownfield.io
     title: User Verification Services
     description: External APIs to provide user verification services
     version: 0.5.0
     cors:
       allowedOrigins:
-      - http://api-portal.sys.dekt.io
+      - api-portal.sys.dekt.io
 ---
 apiVersion: "tanzu.vmware.com/v1"
 kind: SpringCloudGatewayMapping
@@ -30,13 +30,13 @@ metadata:
 spec:
   count: 2
   api:
-    serverUrl: http://donations.dekt-brownfield.io
+    serverUrl: donations.dekt-brownfield.io
     title: Donation Services
     description: External APIs to help with donations processing
     version: 0.5.0
     cors:
       allowedOrigins:
-      - http://api-portal.sys.dekt.io
+      - api-portal.sys.dekt.io
 ---
 apiVersion: "tanzu.vmware.com/v1"
 kind: SpringCloudGatewayMapping
@@ -55,13 +55,13 @@ metadata:
 spec:
   count: 1
   api:
-    serverUrl: http://insurance.dekt-brownfield.io
+    serverUrl: insurance.dekt-brownfield.io
     title: Insurance Services
     description: External APIs to help with insurance processing
     version: 0.5.0
     cors:
       allowedOrigins:
-      - http://api-portal.sys.dekt.io
+      - api-portal.sys.dekt.io
 ---
 apiVersion: "tanzu.vmware.com/v1"
 kind: SpringCloudGatewayMapping
@@ -80,13 +80,13 @@ metadata:
 spec:
   count: 1
   api:
-    serverUrl: http://location.tanzu-sm.io
+    serverUrl: location.tanzu-sm.io
     title: Location Services
     description: External APIs to help with location processing
     version: 0.5.0
     cors:
       allowedOrigins:
-      - http://api-portal.sys.dekt.io
+      - api-portal.sys.dekt.io
 ---
 apiVersion: "tanzu.vmware.com/v1"
 kind: SpringCloudGatewayMapping
@@ -105,13 +105,13 @@ metadata:
 spec:
   count: 1
   api:
-    serverUrl: http://payment.tanzu-sm.io
+    serverUrl: payment.tanzu-sm.io
     title: Payment Services
     description: External APIs to help with payment processing
     version: 0.5.0
     cors:
       allowedOrigins:
-      - http://api-portal.sys.dekt.io
+      - api-portal.sys.dekt.io
 ---
 apiVersion: "tanzu.vmware.com/v1"
 kind: SpringCloudGatewayMapping
@@ -130,13 +130,13 @@ metadata:
 spec:
   count: 2
   api:
-    serverUrl: http://sentiment.tanzu-sm.io
+    serverUrl: sentiment.tanzu-sm.io
     title: Sentiment Services
     description: External APIs to help with sentiment processing
     version: 0.5.0
     cors:
       allowedOrigins:
-      - http://api-portal.sys.dekt.io
+      - api-portal.sys.dekt.io
 ---
 apiVersion: "tanzu.vmware.com/v1"
 kind: SpringCloudGatewayMapping
@@ -155,13 +155,13 @@ metadata:
 spec:
   count: 1
   api:
-    serverUrl: http://sms.tanzu-sm.io
+    serverUrl: sms.tanzu-sm.io
     title: Messaging Services
     description: External APIs to help with sms processing
     version: 0.5.0
     cors:
       allowedOrigins:
-      - http://api-portal.sys.dekt.io
+      - api-portal.sys.dekt.io
 ---
 apiVersion: "tanzu.vmware.com/v1"
 kind: SpringCloudGatewayMapping
