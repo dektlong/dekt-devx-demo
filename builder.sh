@@ -314,14 +314,13 @@
         scripts/dektecho.sh status "adding 'provider' components on $BROWNFIELD_CLUSTER_NAME cluster"
         kubectl config use-context $BROWNFIELD_CLUSTER_NAME
         
-        #uncomment in case scgw is NOT installed during the TSM cluster on-boarding process
-            #kubectl create ns scgw-system
-            #kubectl create secret docker-registry spring-cloud-gateway-image-pull-secret \
-            #    --docker-server=$PRIVATE_REPO_SERVER \
-            #    --docker-username=$PRIVATE_REPO_USER \
-            #    --docker-password=$PRIVATE_REPO_PASSWORD \
-            #    --namespace scgw-system
-            #$GW_INSTALL_DIR/scripts/install-spring-cloud-gateway.sh --namespace scgw-system
+        kubectl create ns scgw-system
+        kubectl create secret docker-registry spring-cloud-gateway-image-pull-secret \
+            --docker-server=$PRIVATE_REPO_SERVER \
+            --docker-username=$PRIVATE_REPO_USER \
+            --docker-password=$PRIVATE_REPO_PASSWORD \
+            --namespace scgw-system
+        $GW_INSTALL_DIR/scripts/install-spring-cloud-gateway.sh --namespace scgw-system
         
         kubectl create ns $brownfield_apis_ns
         kustomize build brownfield-apis | kubectl apply -f -
