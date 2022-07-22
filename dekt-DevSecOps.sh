@@ -139,6 +139,9 @@
             --service-ref rabbitmq-claim=rabbitmq.com/v1beta1:RabbitmqCluster:reading \
             --yes \
             --namespace $STAGEPROD_NAMESPACE
+        
+        #     --service-ref postgres-claim=services.apps.tanzu.vmware.com/v1alpha1:ResourceClaim:inventory \
+
     }
 
     #prod-roleout
@@ -230,12 +233,23 @@
     #brownfield
     brownfield () {
 
-        scripts/dektecho.sh info "Brownfield consumer services on $STAGE_CLUSTER cluster"
+        scripts/dektecho.sh info "Brownfield CONSUMERS services"
 
+        scripts/dektecho.sh status "Global Namespace: $DEV_CLUSTER/brownfield-apis"
+        kubectl config use-context $DEV_CLUSTER
+        kubectl get svc -n brownfield-apis
+
+        scripts/dektecho.sh status "Global Namespace: $STAGE_CLUSTER/brownfield-apis"
         kubectl config use-context $STAGE_CLUSTER
         kubectl get svc -n brownfield-apis
 
-        scripts/dektecho.sh info "Brownfield provider service on $BROWNFIELD_CLUSTER cluster"
+        scripts/dektecho.sh status "Global Namespace: $PROD_CLUSTER/brownfield-apis"
+        kubectl config use-context $PROD_CLUSTER
+        kubectl get svc -n brownfield-apis
+
+        scripts/dektecho.sh info "Brownfield PROVIDERS services"
+
+        scripts/dektecho.sh status "Global Namespace: $BROWNFIELD_CLUSTER/brownfield-apis"
         kubectl config use-context $BROWNFIELD_CLUSTER 
         kubectl get svc -n brownfield-apis
 

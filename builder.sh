@@ -35,7 +35,8 @@
     SYSTEM_SUB_DOMAIN=$(yq .shared.ingress_domain .config/profiles/tap-view.yaml | cut -d'.' -f 1)
     DEV_SUB_DOMAIN=$(yq .shared.ingress_domain .config/profiles/tap-iterate.yaml | cut -d'.' -f 1)
     RUN_SUB_DOMAIN=$(yq .shared.ingress_domain .config/profiles/tap-run.yaml | cut -d'.' -f 1)
-    #misc        
+    #misc 
+    RDS_PROFILE=$(yq .data-services.rdsProfile .config/demo-values.yaml)       
     GW_INSTALL_DIR=$(yq .apis.scgwInstallDirectory .config/demo-values.yaml)
 
 #################### functions ################
@@ -84,7 +85,7 @@
         kubectl apply -f .config/custom-sc/tekton-pipeline.yaml -n $DEV_NAMESPACE
         kubectl apply -f .config/custom-sc/tekton-pipeline.yaml -n $TEAM_NAMESPACE
 
-        provision-data-services $TEAM_NAMESPACE "reading-rabbitmq-dev.yaml"
+        install-rabbitmq $TEAM_NAMESPACE "reading-rabbitmq-dev.yaml"
 
         scripts/ingress-handler.sh update-tap-dns $DEV_SUB_DOMAIN
     }
@@ -99,17 +100,19 @@
         scripts/tanzu-handler.sh add-carvel-tools
     
         setup-apps-namespace $STAGEPROD_NAMESPACE
+ 
+        add-metadata-store-secrets
 
-        configure-scanners
-        
         add-tap-package "tap-build.yaml"
+
+        install-snyk
 
         scripts/dektecho.sh status "Adding dekt-outerloop custom supply chain"
         kubectl apply -f .config/custom-sc/dekt-outerloop-sc.yaml
         kubectl apply -f .config/custom-sc/tekton-pipeline.yaml -n $STAGEPROD_NAMESPACE
         kubectl apply -f .config/custom-sc/scan-policy.yaml -n $STAGEPROD_NAMESPACE
 
-        provision-data-services $STAGEPROD_NAMESPACE "reading-rabbitmq-prod.yaml"
+        install-rabbitmq $STAGEPROD_NAMESPACE "reading-rabbitmq-prod.yaml"
 
     }
     
@@ -128,7 +131,7 @@
 
         kubectl apply -f .config/custom-sc/disable-scale2zero.yaml
 
-        provision-data-services $STAGEPROD_NAMESPACE "reading-rabbitmq-prod.yaml"
+        install-rabbitmq $STAGEPROD_NAMESPACE "reading-rabbitmq-prod.yaml"
 
         scripts/ingress-handler.sh update-tap-dns $RUN_SUB_DOMAIN
 
@@ -174,8 +177,8 @@
         kubectl apply -f .config/rbac/app-ns-rbac.yaml -n $appsNamespace
     }
 
-    #add-data-services
-    provision-data-services() {
+    #install-rabbitmq
+    install-rabbitmq() {
 
         appsNamespace=$1
         dataInstanceFile=$2
@@ -183,8 +186,40 @@
         scripts/dektecho.sh status "Provision rabbitMQ instance in $appsNamespace namespace with $dataInstanceFile configs"
 
         kapp -y deploy --app rmq-operator --file https://github.com/rabbitmq/cluster-operator/releases/download/v1.9.0/cluster-operator.yml
-        kubectl apply -f .config/rabbitmq/rabbitmq-cluster-config.yaml -n $appsNamespace
-        kubectl apply -f .config/rabbitmq/$dataInstanceFile -n $appsNamespace
+        kubectl apply -f .config/data-services/rabbitmq-cluster-config.yaml -n $appsNamespace
+        kubectl apply -f .config/data-services/$dataInstanceFile -n $appsNamespace
+    }
+
+    #install-rds-crossplane
+    install-rds-crossplane() {
+
+        appsNamespace=$1
+
+        #install cross plane
+        kubectl create namespace crossplane-system
+        helm repo add crossplane-stable https://charts.crossplane.io/stable
+        helm repo update
+        helm install crossplane --namespace crossplane-system crossplane-stable/crossplane \
+            --set 'args={--enable-external-secret-stores}'
+        kubectl apply -f .config/data-services/crossplane-aws-provider.yaml
+
+        #create acesss secrets
+        AWS_PROFILE=$RDS_PROFILE && echo -e "[$RDS_PROFILE]\naws_access_key_id = $(aws configure get aws_access_key_id --profile $AWS_PROFILE)\naws_secret_access_key = $(aws configure get aws_secret_access_key --profile $AWS_PROFILE)\naws_session_token = $(aws configure get aws_session_token --profile $AWS_PROFILE)" > creds.conf
+        kubectl create secret generic aws-provider-creds -n crossplane-system --from-file=creds=./creds.conf
+        rm -f creds.conf
+        
+        #configure crossplane service composition and service-toolkit class
+        kubectl apply -f .config/data-services/crossplane-aws-composition.yaml
+        kubectl apply -f .config/data-services/inventory-rds-class.yaml
+        
+        #provision the inventory RDS instance
+        kubectl apply -f .config/data-services/inventory-rds-postgresql.yaml -n $appsNamespace
+
+        #create a service claim
+        tanzu service claim create inventory \
+            --resource-name inventory-db \
+            --resource-kind Secret \
+            --resource-api-version v1
     }
     
     #update-store-secrets
@@ -194,19 +229,23 @@
         export storeTokenReadWrite=$(kubectl get secrets -n metadata-store -o jsonpath="{.items[?(@.metadata.annotations['kubernetes\.io/service-account\.name']=='metadata-store-read-write-client')].data.token}" | base64 -d)
         export storeProxyAuthHeader="Bearer $storeTokenReadWrite"
 
-        yq '.data."ca.crt"= env(storeCert)' .config/metadata-store-secrets/store-ca-cert.yaml -i
-        yq '.stringData.auth_token= env(storeTokenReadWrite)' .config/metadata-store-secrets/store-auth-token.yaml -i
+        yq '.data."ca.crt"= env(storeCert)' .config/scanners/store-ca-cert.yaml -i
+        yq '.stringData.auth_token= env(storeTokenReadWrite)' .config/scanners/store-auth-token.yaml -i
         yq '.tap_gui.app_config.proxy."/metadata-store".headers.Authorization= env(storeProxyAuthHeader)' .config/profiles/tap-view.yaml -i
     }
     
-    #configure-scanners
-    configure-scanners() {
+    #add-metadata-store-secrets 
+    add-metadata-store-secrets() {
 
         scripts/dektecho.sh status "Adding metadata-store-secrets to access remote Store"
         kubectl create ns metadata-store-secrets
         kubectl apply -f .config/scanners/store-auth-token.yaml -n metadata-store-secrets
         kubectl apply -f .config/scanners/store-ca-cert.yaml -n metadata-store-secrets
         kubectl apply -f .config/scanners/store-secrets-export.yaml -n metadata-store-secrets
+    }
+
+    #install-snyk
+    install-snyk() {
 
         scripts/dektecho.sh status "Add Snyk for image scanning "
         
@@ -270,32 +309,36 @@
         
         brownfield_apis_ns="brownfield-apis"
 
-        scripts/dektecho.sh info "Installing brownfield APIs 'provider' components on $BROWNFIELD_CLUSTER_NAME cluster"
+        scripts/dektecho.sh info "Installing brownfield APIs components"
+
+        scripts/dektecho.sh status "adding 'provider' components on $BROWNFIELD_CLUSTER_NAME cluster"
         kubectl config use-context $BROWNFIELD_CLUSTER_NAME
-        kubectl create ns scgw-system
-        kubectl create secret docker-registry spring-cloud-gateway-image-pull-secret \
-            --docker-server=$PRIVATE_REPO_SERVER \
-            --docker-username=$PRIVATE_REPO_USER \
-            --docker-password=$PRIVATE_REPO_PASSWORD \
-            --namespace scgw-system
-        #relocate-gw-images
-        $GW_INSTALL_DIR/scripts/install-spring-cloud-gateway.sh --namespace scgw-system
+        
+        #uncomment in case scgw is NOT installed during the TSM cluster on-boarding process
+            #kubectl create ns scgw-system
+            #kubectl create secret docker-registry spring-cloud-gateway-image-pull-secret \
+            #    --docker-server=$PRIVATE_REPO_SERVER \
+            #    --docker-username=$PRIVATE_REPO_USER \
+            #    --docker-password=$PRIVATE_REPO_PASSWORD \
+            #    --namespace scgw-system
+            #$GW_INSTALL_DIR/scripts/install-spring-cloud-gateway.sh --namespace scgw-system
+        
         kubectl create ns $brownfield_apis_ns
         kustomize build brownfield-apis | kubectl apply -f -
 
-        scripts/dektecho.sh info "Installing brownfield APIs 'consumer' components on $DEV_CLUSTER_NAME cluster"
+        scripts/dektecho.sh status "adding'consumer' components on $DEV_CLUSTER_NAME cluster"
         kubectl config use-context $DEV_CLUSTER_NAME
         kubectl create ns $brownfield_apis_ns
         kubectl create service clusterip sentiment-api --tcp=80:80 -n $brownfield_apis_ns
         kubectl create service clusterip datacheck-api --tcp=80:80 -n $brownfield_apis_ns
 
-        scripts/dektecho.sh info "Installing brownfield APIs 'consumer' components on $STAGE_CLUSTER_NAME cluster"
+        scripts/dektecho.sh status "adding 'consumer' components on $STAGE_CLUSTER_NAME cluster"
         kubectl config use-context $STAGE_CLUSTER_NAME
         kubectl create ns $brownfield_apis_ns
         kubectl create service clusterip sentiment-api --tcp=80:80 -n $brownfield_apis_ns
         kubectl create service clusterip datacheck-api --tcp=80:80 -n $brownfield_apis_ns
 
-        scripts/dektecho.sh info "Installing brownfield APIs 'consumer' components on $PROD_CLUSTER_NAME cluster"
+        scripts/dektecho.sh status "adding 'consumer' components on $PROD_CLUSTER_NAME cluster"
         kubectl config use-context $PROD_CLUSTER_NAME
         kubectl create ns $brownfield_apis_ns
         kubectl create service clusterip sentiment-api --tcp=80:80 -n $brownfield_apis_ns
@@ -404,56 +447,82 @@
         exit
     }
 
-    #delete-clusters
-    delete-clusters() {
+    #innerloop-handler
+    innerloop-handler() {
 
-        scripts/k8s-handler.sh delete $VIEW_CLUSTER_PROVIDER $VIEW_CLUSTER_NAME
-        scripts/k8s-handler.sh delete $DEV_CLUSTER_PROVIDER $DEV_CLUSTER_NAME
-        scripts/k8s-handler.sh delete $STAGE_CLUSTER_PROVIDER $STAGE_CLUSTER_NAME
-        scripts/k8s-handler.sh delete $PROD_CLUSTER_PROVIDER $PROD_CLUSTER_NAME
-        scripts/k8s-handler.sh delete $BROWNFIELD_CLUSTER_PROVIDER $BROWNFIELD_CLUSTER_NAME
+        case $1 in
+        create-clusters) 
+            scripts/k8s-handler.sh create $VIEW_CLUSTER_PROVIDER $VIEW_CLUSTER_NAME $VIEW_CLUSTER_NODES
+            scripts/k8s-handler.sh create $DEV_CLUSTER_PROVIDER $DEV_CLUSTER_NAME $DEV_CLUSTER_NODES
+            ;;
+        delete-clusters)
+            scripts/k8s-handler.sh delete $VIEW_CLUSTER_PROVIDER $VIEW_CLUSTER_NAME
+            scripts/k8s-handler.sh delete $DEV_CLUSTER_PROVIDER $DEV_CLUSTER_NAME
+            ;;
+        install-demo)
+            install-view-cluster
+            install-dev-cluster 
+            ;;
+        uninstall-demo)
+            delete-tap "dekt-view"
+            delete-tap "dekt-dev"
+            ;;
+        esac
     }
 
-    #remove-tap
-    remove-tap() {
-        delete-tap "dekt-view"
-        delete-tap "dekt-dev"
-        delete-tap "dekt-stage"
-        delete-tap "dekt-prod"
+    #outerloop-handler
+    outerloop-handler() {
+
+        case $1 in
+        create-clusters) 
+            scripts/k8s-handler.sh create $STAGE_CLUSTER_PROVIDER $STAGE_CLUSTER_NAME $STAGE_CLUSTER_NODES  
+            scripts/k8s-handler.sh create $PROD_CLUSTER_PROVIDER $PROD_CLUSTER_NAME $PROD_CLUSTER_NODES
+            scripts/k8s-handler.sh create $BROWNFIELD_CLUSTER_PROVIDER $BROWNFIELD_CLUSTER_NAME $BROWNFIELD_CLUSTER_NODES    
+            ;;
+        delete-clusters)
+            scripts/k8s-handler.sh delete $STAGE_CLUSTER_PROVIDER $STAGE_CLUSTER_NAME
+            scripts/k8s-handler.sh delete $PROD_CLUSTER_PROVIDER $PROD_CLUSTER_NAME
+            scripts/k8s-handler.sh delete $BROWNFIELD_CLUSTER_PROVIDER $BROWNFIELD_CLUSTER_NAME
+            ;;
+        install-demo)
+            install-stage-cluster
+            install-prod-cluster
+            add-brownfield-apis
+            ;;
+        uninstall-demo)
+            delete-tap "dekt-stage"
+            delete-tap "dekt-prod"
+            ;;
+        esac
     }
+   
 
 #################### main ##########################
 
 case $1 in
 init-all)    
-    scripts/k8s-handler.sh create $VIEW_CLUSTER_PROVIDER $VIEW_CLUSTER_NAME $VIEW_CLUSTER_NODES
-    scripts/k8s-handler.sh create $DEV_CLUSTER_PROVIDER $DEV_CLUSTER_NAME $DEV_CLUSTER_NODES
-    scripts/k8s-handler.sh create $STAGE_CLUSTER_PROVIDER $STAGE_CLUSTER_NAME $STAGE_CLUSTER_NODES  
-    scripts/k8s-handler.sh create $PROD_CLUSTER_PROVIDER $PROD_CLUSTER_NAME $PROD_CLUSTER_NODES
-    scripts/k8s-handler.sh create $BROWNFIELD_CLUSTER_PROVIDER $BROWNFIELD_CLUSTER_NAME $BROWNFIELD_CLUSTER_NODES
+    innerloop-handler create-clusters
+    outerloop-handler create-clusters
     scripts/dektecho.sh prompt  "Verify that all clusters are operational. Continue?" && [ $? -eq 0 ] || exit
-    install-view-cluster
-    install-dev-cluster
-    install-stage-cluster
-    install-prod-cluster
-    add-brownfield-apis
+    innerloop-handler install-demo
+    outerloop-handler install-demo
     ;;
 init-innerloop)
-    scripts/k8s-handler.sh create $VIEW_CLUSTER_PROVIDER $VIEW_CLUSTER_NAME $VIEW_CLUSTER_NODES
-    scripts/k8s-handler.sh create $DEV_CLUSTER_PROVIDER $DEV_CLUSTER_NAME $DEV_CLUSTER_NODES
-    install-view-cluster
-    install-dev-cluster
+    innerlopp-handler create-clusters
+    innerlopp-handler install-demo
     ;;
 delete-all)
     scripts/dektecho.sh prompt  "Are you sure you want to delete all clusters?" && [ $? -eq 0 ] || exit
     ./dekt-DevSecOps.sh cleanup-helper
-    delete-clusters
+    innerloop-handler delete-clusters
+    outerloop-handler delete-clusters
     rm -f /Users/dekt/.kube/config
     ;;
 uninstall-demo)
     scripts/dektecho.sh prompt  "Are you sure you want to uninstall all demo components?" && [ $? -eq 0 ] || exit
     ./dekt-DevSecOps.sh cleanup-helper
-    remove-tap
+    innerlopp-handler uninstall-demo
+    outerloop-handler uninstall-demo
     ;;
 relocate-tap-images)
     relocate-tap-images
