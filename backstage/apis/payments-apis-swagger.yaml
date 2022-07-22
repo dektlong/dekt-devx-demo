@@ -4,7 +4,7 @@ info:
   description: "Swagger API definition for the payments apis"
   version: "0.0.2"
   title: "APIs to interact with payments external systems"
-host: http://payments.tanzu-sm.io
+host: http://payments.dekt-brownfield.io
 basePath: "/v1"
 tags:
 - name: "Data collection"

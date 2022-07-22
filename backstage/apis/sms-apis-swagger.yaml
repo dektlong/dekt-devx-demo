@@ -4,7 +4,7 @@ info:
   description: "Swagger API definition for the sms apis"
   version: "0.0.2"
   title: "APIs to interact with sms external systems"
-host: http://sms.tanzu-sm.io
+host: http://sms.dekt-brownfield.io
 basePath: "/v1"
 tags:
 - name: "Data collection"
