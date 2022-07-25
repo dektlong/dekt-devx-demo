@@ -1,0 +1,11 @@
+#! schema-overlay.yaml
+
+#@data/values-schema
+#@library/ref "@bundle/config"
+#@schema/desc "OpenAPIv3 Schema for secretgen-controller"
+---
+#@schema/desc "Configuration for secretgen-controller"
+secretgenController:
+  #@schema/desc "The psp names that secretgen-controller will use in its clusterrole.rules"
+  #@overlay/match missing_ok=True
+  pspNames: [""]
