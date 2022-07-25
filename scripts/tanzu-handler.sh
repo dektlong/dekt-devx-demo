@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-export INSTALL_BUNDLE=registry.tanzu.vmware.com/tanzu-cluster-essentials/cluster-essentials-bundle@sha256:ab0a3539da241a6ea59c75c0743e9058511d7c56312ea3906178ec0f3491f51d
+export INSTALL_BUNDLE=registry.tanzu.vmware.com/tanzu-cluster-essentials/cluster-essentials-bundle@sha256:e00f33b92d418f49b1af79f42cb13d6765f1c8c731f4528dfff8343af042dc3e
 export INSTALL_REGISTRY_HOSTNAME=registry.tanzu.vmware.com
 export INSTALL_REGISTRY_USERNAME=$(yq .buildservice.tanzunet_username .config/profiles/tap-build.yaml)
 export INSTALL_REGISTRY_PASSWORD=$(yq .buildservice.tanzunet_password .config/profiles/tap-build.yaml)

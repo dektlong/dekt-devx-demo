@@ -201,17 +201,19 @@
         helm repo update
         helm install crossplane --namespace crossplane-system crossplane-stable/crossplane \
             --set 'args={--enable-external-secret-stores}'
-        kubectl apply -f .config/data-services/crossplane-aws-provider.yaml
 
         #create acesss secrets
         AWS_PROFILE=$RDS_PROFILE && echo -e "[$RDS_PROFILE]\naws_access_key_id = $(aws configure get aws_access_key_id --profile $AWS_PROFILE)\naws_secret_access_key = $(aws configure get aws_secret_access_key --profile $AWS_PROFILE)\naws_session_token = $(aws configure get aws_session_token --profile $AWS_PROFILE)" > creds.conf
         kubectl create secret generic aws-provider-creds -n crossplane-system --from-file=creds=./creds.conf
-        rm -f creds.conf
+        #rm -f creds.conf
         
-        #configure crossplane service composition and service-toolkit class
+        #configure crossplane aws providers and service composition and service-toolkit class
+        kubectl apply -f .config/data-services/crossplane-aws-provider.yaml
         kubectl apply -f .config/data-services/crossplane-aws-composition.yaml
-        kubectl apply -f .config/data-services/inventory-rds-class.yaml
-        
+
+        #create an taznu services toolkit RDS instance class
+        kubectl apply -f .config/data-services/rds-clusterinstance-class.yaml
+
         #provision the inventory RDS instance
         kubectl apply -f .config/data-services/inventory-rds-postgresql.yaml -n $appsNamespace
 
@@ -219,7 +221,8 @@
         tanzu service claim create inventory \
             --resource-name inventory-db \
             --resource-kind Secret \
-            --resource-api-version v1
+            --resource-api-version v1 \
+            --namespace $appsNamespace
     }
     
     #update-store-secrets

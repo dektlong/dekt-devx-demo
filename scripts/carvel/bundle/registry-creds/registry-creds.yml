@@ -4,10 +4,18 @@
 #@ load("@ytt:overlay", "overlay")
 
 #@ if hasattr(data.values, "secretgenController"):
-#@   ns = data.values.secretgenController.namespace
+#@   if hasattr(data.values.secretgenController, "namespace"):
+#@     ns = data.values.secretgenController.namespace
+#@   else:
+#@     ns = "secretgen-controller"
+#@   end
 #@ else:
-#@   load("/values.star", "kappNamespace")
-#@   ns = kappNamespace
+#@   # copied from /values.star
+#@   if hasattr(data.values.kappController, "namespace") and data.values.kappController.namespace:
+#@     ns = data.values.kappController.namespace
+#@   else:
+#@     ns = data.values.namespace
+#@   end
 #@ end
 
 #@ secret_name = ns + "-registry-creds"

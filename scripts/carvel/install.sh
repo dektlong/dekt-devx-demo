@@ -39,4 +39,4 @@ echo "## Deploying kapp-controller"
 ./kapp deploy -a kapp-controller -n $ns_name -f <(./ytt -f ./bundle/kapp-controller/config/ -f ./bundle/registry-creds/ --data-values-env YTT --data-value-yaml kappController.deployment.concurrency=10 | ./kbld -f- -f ./bundle/.imgpkg/images.yml) "$@"
 
 echo "## Deploying secretgen-controller"
-./kapp deploy -a secretgen-controller -n $ns_name -f <(./ytt -f ./bundle/secretgen-controller/config/ -f ./bundle/registry-creds-schema/ -f ./bundle/registry-creds/ --data-values-env YTT | ./kbld -f- -f ./bundle/.imgpkg/images.yml) "$@"
+./kapp deploy -a secretgen-controller -n $ns_name -f <(./ytt -f ./bundle/secretgen-controller/config/ -f ./bundle/registry-creds/ --data-values-env YTT | ./kbld -f- -f ./bundle/.imgpkg/images.yml) "$@"
