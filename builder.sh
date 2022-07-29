@@ -112,7 +112,9 @@
         kubectl apply -f .config/custom-sc/tekton-pipeline.yaml -n $STAGEPROD_NAMESPACE
         kubectl apply -f .config/custom-sc/scan-policy.yaml -n $STAGEPROD_NAMESPACE
 
-        install-rabbitmq $STAGEPROD_NAMESPACE "reading-rabbitmq-prod.yaml"
+        #add services-toolkit seperately as it's not part of the build profile
+        #tanzu package install services-toolkit -n tap-install -p services-toolkit.tanzu.vmware.com -v 0.7.1
+        #install-rabbitmq $STAGEPROD_NAMESPACE "reading-rabbitmq-prod.yaml"
 
     }
     
@@ -216,13 +218,6 @@
 
         #provision the inventory RDS instance
         kubectl apply -f .config/data-services/inventory-rds-postgresql.yaml -n $appsNamespace
-
-        #create a service claim
-        tanzu service claim create inventory \
-            --resource-name inventory-db \
-            --resource-kind Secret \
-            --resource-api-version v1 \
-            --namespace $appsNamespace
     }
     
     #update-store-secrets

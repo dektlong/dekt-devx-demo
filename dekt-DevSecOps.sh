@@ -111,6 +111,7 @@
             --label apps.tanzu.vmware.com/has-tests="true" \
             --label app.kubernetes.io/part-of=$SENSORS_WORKLOAD \
             --service-ref rabbitmq-claim=rabbitmq.com/v1beta1:RabbitmqCluster:reading \
+             --service-ref postgres-claim=services.apps.tanzu.vmware.com/v1alpha1:ResourceClaim:inventory-db \
             --yes \
             --namespace $TEAM_NAMESPACE
     }
@@ -139,9 +140,6 @@
             --service-ref rabbitmq-claim=rabbitmq.com/v1beta1:RabbitmqCluster:reading \
             --yes \
             --namespace $STAGEPROD_NAMESPACE
-        
-        #     --service-ref postgres-claim=services.apps.tanzu.vmware.com/v1alpha1:ResourceClaim:inventory \
-
     }
 
     #prod-roleout
@@ -185,7 +183,18 @@
 
     }
 
-    
+    #add-rds-binding
+    add-rds-binding() {
+
+        #create a service claim
+        tanzu service claim create postgres-claim -n myteam \
+            --resource-name inventory-db \
+            --resource-kind Secret \
+            --resource-api-version v1 
+
+        --service-ref postgres-claim=services.apps.tanzu.vmware.com/v1alpha1:ResourceClaim:inventory-db
+
+    }
     #supplychains
     supplychains () {
 
@@ -332,6 +341,8 @@
         echo
         echo "  info"
         echo
+        echo "  dev"
+        echo
         echo "  team"
         echo
         echo "  stage"
@@ -359,6 +370,9 @@
 case $1 in
 info)
     info
+    ;;
+dev)
+    create-dev-workload
     ;;
 team)
     create-team-workloads

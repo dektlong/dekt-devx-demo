@@ -5,7 +5,7 @@
 profile: run
 
 shared:
-  ingress_domain: "prod.[CHANGE_ME]"
+  ingress_domain: "run.[CHANGE_ME]"
 
 #==================================================================
 # Cloud Native Runtimes
