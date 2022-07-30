@@ -110,8 +110,8 @@
             --type dekt-backend \
             --label apps.tanzu.vmware.com/has-tests="true" \
             --label app.kubernetes.io/part-of=$SENSORS_WORKLOAD \
-            --service-ref rabbitmq-claim=rabbitmq.com/v1beta1:RabbitmqCluster:reading \
-             --service-ref postgres-claim=services.apps.tanzu.vmware.com/v1alpha1:ResourceClaim:inventory-db \
+            --service-ref reading-claim=rabbitmq.com/v1beta1:RabbitmqCluster:rabbitmq-reading \
+            --service-ref inventory-claim=services.apps.tanzu.vmware.com/v1alpha1:ResourceClaim:postgres-inventory \
             --yes \
             --namespace $TEAM_NAMESPACE
     }
@@ -137,7 +137,8 @@
             --type dekt-backend \
             --label apps.tanzu.vmware.com/has-tests="true" \
             --label app.kubernetes.io/part-of=$SENSORS_WORKLOAD \
-            --service-ref rabbitmq-claim=rabbitmq.com/v1beta1:RabbitmqCluster:reading \
+            --service-ref reading-claim=rabbitmq.com/v1beta1:RabbitmqCluster:rabbitmq-reading \
+            --service-ref inventory-claim=services.apps.tanzu.vmware.com/v1alpha1:ResourceClaim:postgres-inventory \
             --yes \
             --namespace $STAGEPROD_NAMESPACE
     }
@@ -183,18 +184,6 @@
 
     }
 
-    #add-rds-binding
-    add-rds-binding() {
-
-        #create a service claim
-        tanzu service claim create postgres-claim -n myteam \
-            --resource-name inventory-db \
-            --resource-kind Secret \
-            --resource-api-version v1 
-
-        --service-ref postgres-claim=services.apps.tanzu.vmware.com/v1alpha1:ResourceClaim:inventory-db
-
-    }
     #supplychains
     supplychains () {
 
@@ -217,7 +206,6 @@
 
         scripts/dektecho.sh cmd "tanzu apps workload get $SENSORS_WORKLOAD -n $appsNamespace"
         tanzu apps workload get $SENSORS_WORKLOAD -n $appsNamespace
-
         
         if [ "$2" == "logs" ]; then
             scripts/dektecho.sh cmd "tanzu apps workload tail $SENSORS_WORKLOAD --since 100m --timestamp  -n $appsNamespace"

@@ -86,6 +86,7 @@
         kubectl apply -f .config/custom-sc/tekton-pipeline.yaml -n $TEAM_NAMESPACE
 
         install-rabbitmq $TEAM_NAMESPACE "reading-rabbitmq-dev.yaml"
+        install-rds $TEAM_NAMESPACE
 
         scripts/ingress-handler.sh update-tap-dns $DEV_SUB_DOMAIN
     }
@@ -113,8 +114,10 @@
         kubectl apply -f .config/custom-sc/scan-policy.yaml -n $STAGEPROD_NAMESPACE
 
         #add services-toolkit seperately as it's not part of the build profile
-        #tanzu package install services-toolkit -n tap-install -p services-toolkit.tanzu.vmware.com -v 0.7.1
-        #install-rabbitmq $STAGEPROD_NAMESPACE "reading-rabbitmq-prod.yaml"
+        tanzu package install services-toolkit -n tap-install -p services-toolkit.tanzu.vmware.com -v 0.7.1
+        
+        install-rabbitmq $STAGEPROD_NAMESPACE "reading-rabbitmq-prod.yaml"
+        install-rds $STAGEPROD_NAMESPACE
 
     }
     
@@ -134,6 +137,7 @@
         kubectl apply -f .config/custom-sc/disable-scale2zero.yaml
 
         install-rabbitmq $STAGEPROD_NAMESPACE "reading-rabbitmq-prod.yaml"
+        install-rds-crossplane $STAGEPROD_NAMESPACE
 
         scripts/ingress-handler.sh update-tap-dns $RUN_SUB_DOMAIN
 
@@ -190,34 +194,47 @@
         kapp -y deploy --app rmq-operator --file https://github.com/rabbitmq/cluster-operator/releases/download/v1.9.0/cluster-operator.yml
         kubectl apply -f .config/data-services/rabbitmq-cluster-config.yaml -n $appsNamespace
         kubectl apply -f .config/data-services/$dataInstanceFile -n $appsNamespace
+
+        #create a service claim
+        tanzu service claim create reading-claim -n $appsNamespace \
+            --resource-name rabbitmq-reading \
+            --resource-kind RabbitmqCluster \
+            --resource-api-version rabbitmq.com/v1beta1
     }
 
-    #install-rds-crossplane
-    install-rds-crossplane() {
+    #install-rds
+    install-rds() {
 
         appsNamespace=$1
 
         #install cross plane
-        kubectl create namespace crossplane-system
-        helm repo add crossplane-stable https://charts.crossplane.io/stable
-        helm repo update
-        helm install crossplane --namespace crossplane-system crossplane-stable/crossplane \
-            --set 'args={--enable-external-secret-stores}'
+        #kubectl create namespace crossplane-system
+        #helm repo add crossplane-stable https://charts.crossplane.io/stable
+        #helm repo update
+        #helm install crossplane --namespace crossplane-system crossplane-stable/crossplane \
+        #    --set 'args={--enable-external-secret-stores}'
 
         #create acesss secrets
-        AWS_PROFILE=$RDS_PROFILE && echo -e "[$RDS_PROFILE]\naws_access_key_id = $(aws configure get aws_access_key_id --profile $AWS_PROFILE)\naws_secret_access_key = $(aws configure get aws_secret_access_key --profile $AWS_PROFILE)\naws_session_token = $(aws configure get aws_session_token --profile $AWS_PROFILE)" > creds.conf
-        kubectl create secret generic aws-provider-creds -n crossplane-system --from-file=creds=./creds.conf
+        #AWS_PROFILE=$RDS_PROFILE && echo -e "[$RDS_PROFILE]\naws_access_key_id = $(aws configure get aws_access_key_id --profile $AWS_PROFILE)\naws_secret_access_key = $(aws configure get aws_secret_access_key --profile $AWS_PROFILE)\naws_session_token = $(aws configure get aws_session_token --profile $AWS_PROFILE)" > creds.conf
+        #kubectl create secret generic aws-provider-creds -n crossplane-system --from-file=creds=./creds.conf
         #rm -f creds.conf
         
         #configure crossplane aws providers and service composition and service-toolkit class
-        kubectl apply -f .config/data-services/crossplane-aws-provider.yaml
-        kubectl apply -f .config/data-services/crossplane-aws-composition.yaml
+        #kubectl apply -f .config/data-services/crossplane-aws-provider.yaml
+        #kubectl apply -f .config/data-services/crossplane-aws-composition.yaml
 
         #create an taznu services toolkit RDS instance class
-        kubectl apply -f .config/data-services/rds-clusterinstance-class.yaml
+        #kubectl apply -f .config/data-services/rds-clusterinstance-class.yaml
 
         #provision the inventory RDS instance
-        kubectl apply -f .config/data-services/inventory-rds-postgresql.yaml -n $appsNamespace
+        #kubectl apply -f .config/data-services/inventory-rds-postgresql.yaml -n $appsNamespace
+
+        kubectl apply -f .config/data-services/inventory-dev-binding.yaml -n $appsNamespace
+        #create a service claim
+        tanzu service claim create inventory-claim -n $appsNamespace \
+            --resource-name postgres-inventory \
+            --resource-kind Secret \
+            --resource-api-version v1 
     }
     
     #update-store-secrets
