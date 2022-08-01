@@ -10,7 +10,7 @@ metadata:
   labels:
     kapp.k14s.io/app: "1657307330139182118"
     kapp.k14s.io/association: v1.8c64ddca205b2ba4c71428ca92333680
-  name: dekt-path2prod
+  name: dekt-src-to-api-with-scan
   resourceVersion: "711735"
   uid: 95f7e0d7-7ab6-4dbf-88ea-4d1451a18bd6
 spec:
@@ -57,6 +57,18 @@ spec:
     templateRef:
       kind: ClusterSourceTemplate
       name: testing-pipeline
+  - name: source-scanner
+    params:
+    - default: scan-policy
+      name: scanning_source_policy
+    - default: blob-source-scan-template
+      name: scanning_source_template
+    sources:
+    - name: source
+      resource: source-tester
+    templateRef:
+      kind: ClusterSourceTemplate
+      name: source-scanner-template
   - name: image-builder
     params:
     - name: serviceAccount
@@ -76,7 +88,7 @@ spec:
       name: docker_build_extra_args
     sources:
     - name: source
-      resource: source-tester
+      resource: source-scanner
     templateRef:
       kind: ClusterImageTemplate
       options:
@@ -93,6 +105,19 @@ spec:
   - images:
     - name: image
       resource: image-builder
+    name: image-scanner
+    params:
+    - default: scan-policy
+      name: scanning_image_policy
+    - default: snyk-private-image-scan-template
+    #-default: private-image-scan-template
+      name: scanning_image_template
+    templateRef:
+      kind: ClusterImageTemplate
+      name: image-scanner-template
+  - images:
+    - name: image
+      resource: image-scanner
     name: conventions
     params:
     - name: serviceAccount

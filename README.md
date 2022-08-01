@@ -49,12 +49,12 @@ This repo contains artifacts to run a demo illustrating the vision and capabilit
     - System ingress rule
   - Dev cluster
     - Carvel tools
-    - TAP full profile
+    - TAP iterate profile
     - Default supplychain configs for apps namespace 
-    - Grype scanning policy 
-    - Tekton pipeline run 
-    - Custom ```dekt-path2prod``` supplychain 
-    - RabbitMQ operator and instance
+    - Tekton pipeline 
+    - Custom ```dekt-src-to-api``` supplychain 
+    - RabbitMQ operator and single instance
+    - Service claim to Azure PostgresSQL
     - CNR dev ingress rule
 
 ### Install Outerloop demo components
@@ -62,8 +62,12 @@ This repo contains artifacts to run a demo illustrating the vision and capabilit
     - Carvel tools
     - TAP build profile
     - Default supplychain configs for apps namespace 
-    - Grype scanning policy 
+    - Snyk image scanner (out-of-the-box Grype for source scanning)
+    - Scanning policy 
     - Tekton pipeline run 
+    - Custom ```dekt-src-to-api-with-scan``` supplychain 
+    - RabbitMQ operator and HA instance
+    - Service claim to RDS PostgresSQL
   - Prod cluster 
     - Carvel tools
     - TAP run profile
@@ -74,7 +78,7 @@ This repo contains artifacts to run a demo illustrating the vision and capabilit
     - Brownfield APIs SCGW instances and routes in ```brownfield-apis``` ns
     - Add brownfield 'consumer' k8s services to TAP clusters in ```brownfield-apis``` ns
 
-### Manua config of TMC & TSM (optional)
+### Manual config of TMC & TSM (optional)
   - Attached clusters to TMC
   - Onboard clusteers to TSM
     - exclude TAP namespaces

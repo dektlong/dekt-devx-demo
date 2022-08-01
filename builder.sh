@@ -79,14 +79,15 @@
         
         add-tap-package "tap-iterate.yaml"
 
-        scripts/dektecho.sh status "Adding dekt-innerloop custom supply chain"
+        scripts/dektecho.sh status "Adding dekt-src-to-api custom supply chain"
         kubectl apply -f .config/custom-sc/disable-scale2zero.yaml
-        kubectl apply -f .config/custom-sc/dekt-innerloop-sc.yaml
+        kubectl apply -f .config/custom-sc/dekt-src-to-api.yaml
         kubectl apply -f .config/custom-sc/tekton-pipeline.yaml -n $DEV_NAMESPACE
         kubectl apply -f .config/custom-sc/tekton-pipeline.yaml -n $TEAM_NAMESPACE
 
-        install-rabbitmq $TEAM_NAMESPACE "reading-rabbitmq-dev.yaml"
-        install-rds $TEAM_NAMESPACE
+        scripts/dektecho.sh status "Adding RabbitMQ and Postgres in team configurations"
+        add-rabbitmq-team
+        add-postgres-team
 
         scripts/ingress-handler.sh update-tap-dns $DEV_SUB_DOMAIN
     }
@@ -108,16 +109,17 @@
 
         install-snyk
 
-        scripts/dektecho.sh status "Adding dekt-outerloop custom supply chain"
-        kubectl apply -f .config/custom-sc/dekt-outerloop-sc.yaml
+        scripts/dektecho.sh status "Adding dekt-src-to-api-with-scan custom supply chain"
+        kubectl apply -f .config/custom-sc/dekt-src-to-api-with-scan.yaml
         kubectl apply -f .config/custom-sc/tekton-pipeline.yaml -n $STAGEPROD_NAMESPACE
         kubectl apply -f .config/custom-sc/scan-policy.yaml -n $STAGEPROD_NAMESPACE
 
         #add services-toolkit seperately as it's not part of the build profile
         tanzu package install services-toolkit -n tap-install -p services-toolkit.tanzu.vmware.com -v 0.7.1
         
-        install-rabbitmq $STAGEPROD_NAMESPACE "reading-rabbitmq-prod.yaml"
-        install-rds $STAGEPROD_NAMESPACE
+        scripts/dektecho.sh status "Adding RabbitMQ and Postgres in stage/prod configurations"
+        add-rabbitmq-stageprod
+        add-postgres-stageprod
 
     }
     
@@ -136,8 +138,9 @@
 
         kubectl apply -f .config/custom-sc/disable-scale2zero.yaml
 
-        install-rabbitmq $STAGEPROD_NAMESPACE "reading-rabbitmq-prod.yaml"
-        install-rds-crossplane $STAGEPROD_NAMESPACE
+        scripts/dektecho.sh status "Adding RabbitMQ and Postgres in stage/prod configurations"
+        add-rabbitmq-stageprod
+        add-postgres-stageprod
 
         scripts/ingress-handler.sh update-tap-dns $RUN_SUB_DOMAIN
 
@@ -183,56 +186,87 @@
         kubectl apply -f .config/rbac/app-ns-rbac.yaml -n $appsNamespace
     }
 
-    #install-rabbitmq
-    install-rabbitmq() {
+    #add-rabbitmq-team
+    add-rabbitmq-team() {
 
-        appsNamespace=$1
-        dataInstanceFile=$2
-
-        scripts/dektecho.sh status "Provision rabbitMQ instance in $appsNamespace namespace with $dataInstanceFile configs"
-
+        #install RabbitMQ operator
         kapp -y deploy --app rmq-operator --file https://github.com/rabbitmq/cluster-operator/releases/download/v1.9.0/cluster-operator.yml
-        kubectl apply -f .config/data-services/rabbitmq-cluster-config.yaml -n $appsNamespace
-        kubectl apply -f .config/data-services/$dataInstanceFile -n $appsNamespace
+        
+        #configure taznu services toolkit for RabbitMQ
+        kubectl apply -f .config/data-services/rabbitmq-cluster-config.yaml -n $TEAM_NAMESPACE
+        
+        #provision a RabbitMQ single instance
+        kubectl apply -f .config/data-services/reading-queue-dev.yaml -n $TEAM_NAMESPACE
 
         #create a service claim
-        tanzu service claim create reading-claim -n $appsNamespace \
-            --resource-name rabbitmq-reading \
+        tanzu service claim create rabbitmq-claim -n $TEAM_NAMESPACE \
+            --resource-name reading-queue \
             --resource-kind RabbitmqCluster \
             --resource-api-version rabbitmq.com/v1beta1
     }
 
-    #install-rds
-    install-rds() {
+    #add-rabbitmq-stageprod
+    add-rabbitmq-stageprod() {
 
-        appsNamespace=$1
+        #install RabbitMQ operator
+        kapp -y deploy --app rmq-operator --file https://github.com/rabbitmq/cluster-operator/releases/download/v1.9.0/cluster-operator.yml
+        
+        #configure taznu services toolkit for RabbitMQ
+        kubectl apply -f .config/data-services/rabbitmq-cluster-config.yaml -n $STAGEPROD_NAMESPACE
+        
+        #provision a RabbitMQ HA instance
+        kubectl apply -f .config/data-services/reading-queue-prod.yaml -n $STAGEPROD_NAMESPACE
 
-        #install cross plane
+        #create a service claim
+        tanzu service claim create rabbitmq-claim -n $STAGEPROD_NAMESPACE \
+            --resource-name reading-queue \
+            --resource-kind RabbitmqCluster \
+            --resource-api-version rabbitmq.com/v1beta1
+    }
+
+    #add-posgtres-team
+    add-postgres-team() {
+
+        #Direct secret to a pre-provisioned Azure PostgresSQL named inventory-db
+        kubectl apply -f .config/data-services/inventory-db-dev.yaml -n $TEAM_NAMESPACE
+        
+        #create a service claim for inventory-db
+        tanzu service claim create postgres-claim -n $TEAM_NAMESPACE \
+            --resource-name inventory-db \
+            --resource-kind Secret \
+            --resource-api-version v1 
+    }
+
+    #add-posgtres-stageprod
+    add-postgres-stageprod() {
+
+        
+        #install crossplane 
         #kubectl create namespace crossplane-system
         #helm repo add crossplane-stable https://charts.crossplane.io/stable
         #helm repo update
         #helm install crossplane --namespace crossplane-system crossplane-stable/crossplane \
         #    --set 'args={--enable-external-secret-stores}'
-
-        #create acesss secrets
+        
+        #configure crossplan access to your RDS account
         #AWS_PROFILE=$RDS_PROFILE && echo -e "[$RDS_PROFILE]\naws_access_key_id = $(aws configure get aws_access_key_id --profile $AWS_PROFILE)\naws_secret_access_key = $(aws configure get aws_secret_access_key --profile $AWS_PROFILE)\naws_session_token = $(aws configure get aws_session_token --profile $AWS_PROFILE)" > creds.conf
         #kubectl create secret generic aws-provider-creds -n crossplane-system --from-file=creds=./creds.conf
         #rm -f creds.conf
         
-        #configure crossplane aws providers and service composition and service-toolkit class
-        #kubectl apply -f .config/data-services/crossplane-aws-provider.yaml
-        #kubectl apply -f .config/data-services/crossplane-aws-composition.yaml
+        #configure taznu services toolkit for RDS
+        #kubectl apply -f .config/data-services/postgres-cluster-config.yaml
+        
+        #provision the RDS postgres-inventory-db instance using crossplane
+        #kubectl apply -f .config/data-services/inventory-db-prod.yaml -n $TEAM_NAMESPACE
 
-        #create an taznu services toolkit RDS instance class
-        #kubectl apply -f .config/data-services/rds-clusterinstance-class.yaml
+        #scripts/dektecho.sh status "Waiting for RDS PostgreSQL instance named inventory-db to be create"
+        #kubectl wait --for=condition=Ready=true postgresqlinstances.bindable.database.example.org inventory-db
 
-        #provision the inventory RDS instance
-        #kubectl apply -f .config/data-services/inventory-rds-postgresql.yaml -n $appsNamespace
+        kubectl apply -f .config/data-services/inventory-db-dev.yaml -n $STAGEPROD_NAMESPACE
 
-        kubectl apply -f .config/data-services/inventory-dev-binding.yaml -n $appsNamespace
-        #create a service claim
-        tanzu service claim create inventory-claim -n $appsNamespace \
-            --resource-name postgres-inventory \
+        #create a service claim for inventory-db
+        tanzu service claim create postgres-claim -n $STAGEPROD_NAMESPACE \
+            --resource-name inventory-db \
             --resource-kind Secret \
             --resource-api-version v1 
     }

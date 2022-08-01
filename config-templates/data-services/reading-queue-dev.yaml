@@ -1,6 +1,6 @@
 apiVersion: rabbitmq.com/v1beta1
 kind: RabbitmqCluster
 metadata:
-  name: postgres-reading
+  name: reading-queue
 spec:
-  replicas: 2
+  replicas: 1

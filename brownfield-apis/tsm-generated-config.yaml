@@ -5,7 +5,7 @@ metadata:
 spec:
   count: 2
   api:
-    serverUrl: datacheck.dekt-brownfield.io
+    serverUrl: datacheck.gns.dekt.io
     title: User Verification Services
     description: External APIs to provide user verification services
     version: 0.5.0
@@ -30,7 +30,7 @@ metadata:
 spec:
   count: 2
   api:
-    serverUrl: donations.dekt-brownfield.io
+    serverUrl: donations.gns.dekt.io
     title: Donation Services
     description: External APIs to help with donations processing
     version: 0.5.0
@@ -55,7 +55,7 @@ metadata:
 spec:
   count: 1
   api:
-    serverUrl: insurance.dekt-brownfield.io
+    serverUrl: insurance.gns.dekt.io
     title: Insurance Services
     description: External APIs to help with insurance processing
     version: 0.5.0
@@ -80,7 +80,7 @@ metadata:
 spec:
   count: 1
   api:
-    serverUrl: location.tanzu-sm.io
+    serverUrl: location.gns.dekt.io
     title: Location Services
     description: External APIs to help with location processing
     version: 0.5.0
@@ -105,7 +105,7 @@ metadata:
 spec:
   count: 1
   api:
-    serverUrl: payment.tanzu-sm.io
+    serverUrl: payment.gns.dekt.io
     title: Payment Services
     description: External APIs to help with payment processing
     version: 0.5.0
@@ -130,7 +130,7 @@ metadata:
 spec:
   count: 2
   api:
-    serverUrl: sentiment.tanzu-sm.io
+    serverUrl: sentiment.gns.dekt.io
     title: Sentiment Services
     description: External APIs to help with sentiment processing
     version: 0.5.0
@@ -155,7 +155,7 @@ metadata:
 spec:
   count: 1
   api:
-    serverUrl: sms.tanzu-sm.io
+    serverUrl: sms.gns.dekt.io
     title: Messaging Services
     description: External APIs to help with sms processing
     version: 0.5.0

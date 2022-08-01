@@ -1,0 +1,86 @@
+apiVersion: carto.run/v1alpha1
+kind: ClusterSupplyChain
+metadata:
+  name: dekt-src-to-api-with-scan
+spec:
+  selector:
+    app.tanzu.vmware.com/workload-type: dekt-backend
+    apps.tanzu.vmware.com/has-tests: "true"
+  resources:
+  - name: SOURCE-PROVIDER
+    params:
+    - name: gitImplementation
+      value: go-git
+    templateRef:
+      kind: ClusterSourceTemplate
+      name: source-template
+  - name: SOURCE-TESTER
+    sources:
+    - name: source
+      resource: source-provider
+    templateRef:
+      kind: ClusterSourceTemplate
+      name: testing-pipeline
+  - name: SOURCE-SCANNER
+    sources:
+    - name: source
+      resource: source-tester
+    templateRef:
+      kind: ClusterSourceTemplate
+      name: source-scanner-template
+  - name: IMAGE-BUILDER
+    params:
+    - name: clusterBuilder
+      value: default
+    sources:
+    - name: source
+      resource: source-scanner
+    templateRef:
+      kind: ClusterImageTemplate
+      name: kpack-template
+  - name: IMAGE-SCANNER
+    images:
+    - name: image
+      resource: image-builder
+    templateRef:
+      kind: ClusterImageTemplate
+      name: image-scanner-template
+  - name: POD-CONVENTION
+    images:
+    - name: image
+      resource: image-scanner
+    templateRef:
+      kind: ClusterConfigTemplate
+      name: convention-template
+  - name: BINDING-TAP-CLUSTER-SERVICES
+    configs:
+    - name: config
+      resource: config-provider
+    templateRef:
+      kind: ClusterConfigTemplate
+      name: tap-binder
+  - name: BINDING-EXTERNAL-SERVICES
+    configs:
+    - name: config
+      resource: config-provider
+    templateRef:
+      kind: ClusterConfigTemplate
+      name: binder-rds
+  - name: CONFIG-WRITER
+    configs:
+    - name: config
+      resource: app-config
+    templateRef:
+      kind: ClusterTemplate
+      name: config-writer-template
+  params:
+  - default: main
+    name: gitops_branch
+  - default: supplychain
+    name: gitops_user_name
+  - default: supplychain
+    name: gitops_user_email
+  - default: supplychain@cluster.local
+    name: gitops_commit_message
+  - default: ""
+    name: gitops_ssh_secret

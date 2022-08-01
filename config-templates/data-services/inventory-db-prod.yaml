@@ -10,7 +10,7 @@ spec:
       provider: aws
       vpc: default
   publishConnectionDetailsTo:
-    name: inventory
+    name: inventory-db
     metadata:
       labels:
         services.apps.tanzu.vmware.com/class: rds-postgres

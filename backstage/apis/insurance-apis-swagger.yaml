@@ -4,7 +4,7 @@ info:
   description: "Swagger API definition for the insurance apis"
   version: "0.0.2"
   title: "APIs to interact with insurance external systems"
-host: insurance.dekt-brownfield.io
+host: insurance.gns.dekt.io
 basePath: "/v1"
 tags:
 - name: "Data collection"

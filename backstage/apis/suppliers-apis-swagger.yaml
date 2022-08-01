@@ -4,7 +4,7 @@ info:
   description: "Swagger API definition for the suppliers apis"
   version: "0.0.2"
   title: "APIs to interact with suppliers external systems"
-host: suppliers.dekt-brownfield.io
+host: suppliers.gns.dekt.io
 basePath: "/v1"
 tags:
 - name: "Data collection"

@@ -1,0 +1,25 @@
+apiVersion: carto.run/v1alpha1
+kind: Workload
+metadata:
+  name: mood-sensors
+  labels:
+    app.tanzu.vmware.com/workload-type: dekt-backend
+    apps.tanzu.vmware.com/has-tests: "true"
+    app.kubernetes.io/part-of: devx-mood
+spec:
+  source:
+    git:
+      url: https://github.com/dektlong/mood-sensors
+      ref:
+        branch: dev
+  serviceClaims:
+  - name: postgres-claim
+    ref:
+      apiVersion: services.apps.tanzu.vmware.com/v1alpha1
+      kind: ResourceClaim
+      name: inventory-db
+  - name: rabbitmq-claim
+    ref:
+      apiVersion: rabbitmq.com/v1beta1
+      kind: RabbitmqCluster
+      name: reading-queue

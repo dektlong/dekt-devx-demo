@@ -4,7 +4,7 @@ info:
   description: "Swagger API definition for the locations apis"
   version: "0.0.2"
   title: "APIs to interact with locations external systems"
-host: locations.dekt-brownfield.io
+host: locations.gns.dekt.io
 basePath: "/v1"
 tags:
 - name: "Data collection"

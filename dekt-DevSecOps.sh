@@ -84,7 +84,6 @@
             --type dekt-backend \
             --label apps.tanzu.vmware.com/has-tests="true" \
             --label app.kubernetes.io/part-of=$DEV_WORKLOAD \
-            --service-ref rabbitmq-claim=rabbitmq.com/v1beta1:RabbitmqCluster:reading \
             --yes \
             --namespace $DEV_NAMESPACE
     }
@@ -110,8 +109,8 @@
             --type dekt-backend \
             --label apps.tanzu.vmware.com/has-tests="true" \
             --label app.kubernetes.io/part-of=$SENSORS_WORKLOAD \
-            --service-ref reading-claim=rabbitmq.com/v1beta1:RabbitmqCluster:rabbitmq-reading \
-            --service-ref inventory-claim=services.apps.tanzu.vmware.com/v1alpha1:ResourceClaim:postgres-inventory \
+            --service-ref rabbitmq-claim=rabbitmq.com/v1beta1:RabbitmqCluster:reading-queue \
+            --service-ref postgres-claim=services.apps.tanzu.vmware.com/v1alpha1:ResourceClaim:inventory-db \
             --yes \
             --namespace $TEAM_NAMESPACE
     }
@@ -137,8 +136,8 @@
             --type dekt-backend \
             --label apps.tanzu.vmware.com/has-tests="true" \
             --label app.kubernetes.io/part-of=$SENSORS_WORKLOAD \
-            --service-ref reading-claim=rabbitmq.com/v1beta1:RabbitmqCluster:rabbitmq-reading \
-            --service-ref inventory-claim=services.apps.tanzu.vmware.com/v1alpha1:ResourceClaim:postgres-inventory \
+            --service-ref rabbitmq-claim=rabbitmq.com/v1beta1:RabbitmqCluster:reading-queue \
+            --service-ref postgres-claim=services.apps.tanzu.vmware.com/v1alpha1:ResourceClaim:inventory-db \
             --yes \
             --namespace $STAGEPROD_NAMESPACE
     }
@@ -230,23 +229,19 @@
     #brownfield
     brownfield () {
 
-        scripts/dektecho.sh info "Brownfield CONSUMERS services"
+        scripts/dektecho.sh info "Brownfield CONSUMER services"
 
-        scripts/dektecho.sh status "Global Namespace: $DEV_CLUSTER/brownfield-apis"
+        scripts/dektecho.sh cmd "kubectl get svc -n brownfield-apis"
         kubectl config use-context $DEV_CLUSTER
         kubectl get svc -n brownfield-apis
-
-        scripts/dektecho.sh status "Global Namespace: $STAGE_CLUSTER/brownfield-apis"
         kubectl config use-context $STAGE_CLUSTER
         kubectl get svc -n brownfield-apis
-
-        scripts/dektecho.sh status "Global Namespace: $PROD_CLUSTER/brownfield-apis"
         kubectl config use-context $PROD_CLUSTER
         kubectl get svc -n brownfield-apis
 
-        scripts/dektecho.sh info "Brownfield PROVIDERS services"
+        scripts/dektecho.sh info "Brownfield PROVIDER services"
 
-        scripts/dektecho.sh status "Global Namespace: $BROWNFIELD_CLUSTER/brownfield-apis"
+        scripts/dektecho.sh cmd "kubectl get svc -n brownfield-apis"
         kubectl config use-context $BROWNFIELD_CLUSTER 
         kubectl get svc -n brownfield-apis
 
