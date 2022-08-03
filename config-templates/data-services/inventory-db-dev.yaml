@@ -7,24 +7,8 @@ type: Opaque
 stringData:
   type: postgresql
   provider: azure
-  host: devx-mood.database.windows.net
+  host: "[CHANGE_ME].database.windows.net"
   port: "1433"
-  database: "[CHANGE_ME]"
+  database: "sensors-inventory"
   username: "[CHANGE_ME]"
   password: "[CHANGE_ME]"
----
-apiVersion: rbac.authorization.k8s.io/v1
-kind: ClusterRole
-metadata:
-  name: stk-secret-reader
-  labels:
-    servicebinding.io/controller: "true"
-rules:
-- apiGroups:
-  - ""
-  resources:
-  - secrets
-  verbs:
-  - get
-  - list
-  - watch

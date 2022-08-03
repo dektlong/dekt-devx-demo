@@ -6,12 +6,15 @@ metadata:
     app.tanzu.vmware.com/workload-type: dekt-backend
     apps.tanzu.vmware.com/has-tests: "true"
     app.kubernetes.io/part-of: devx-mood
+    apis.apps.tanzu.vmware.com/register-api: "true"
 spec:
+  #source code
   source:
     git:
       url: https://github.com/dektlong/mood-sensors
       ref:
         branch: dev
+  #data services
   serviceClaims:
   - name: postgres-claim
     ref:
@@ -23,3 +26,12 @@ spec:
       apiVersion: rabbitmq.com/v1beta1
       kind: RabbitmqCluster
       name: reading-queue
+  #api description
+  params:
+  - name: api_descriptor
+    value:
+      type: openapi
+      location:
+        path: /api-docs
+      owner: mood-sensors
+      description: A set of API endpoints to manage the resources within the mood-sensors app.
