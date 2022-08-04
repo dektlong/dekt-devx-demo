@@ -11,8 +11,10 @@
     #workloads
     PORTAL_WORKLOAD="mood-portal"
     SENSORS_WORKLOAD="mood-sensors"
+    LEGACY_WORKLOAD="legacy-mood"
     DEV_WORKLOAD="mysensors"
     PORTAL_DELIVERABLE=".gitops/portal_deliverable.yaml"
+    LEGACY_DELIVERABLE=".gitops/legacy_deliverable.yaml"
     SENSORS_DELIVERABLE=".gitops/sensors_deliverable.yaml"
     #tap
     TAP_VERSION=$(yq .tap.version .config/demo-values.yaml)
@@ -102,6 +104,16 @@
             --yes \
             --namespace $TEAM_NAMESPACE
 
+        scripts/dektecho.sh cmd "tanzu apps workload create $LEGACY_WORKLOAD -f workload.yaml -n $TEAM_NAMESPACE"
+        tanzu apps workload create $LEGACY_WORKLOAD \
+            --git-repo https://github.com/dektlong/legacy-mood \
+            --git-branch release-v2.0 \
+            --type dekt-processor \
+            --label app.kubernetes.io/part-of=$LEGACY_WORKLOAD \
+            --service-ref rabbitmq-claim=rabbitmq.com/v1beta1:RabbitmqCluster:reading-queue \
+            --yes \
+            --namespace $TEAM_NAMESPACE
+
         scripts/dektecho.sh cmd "tanzu apps workload create $SENSORS_WORKLOAD -f workload.yaml -n $TEAM_NAMESPACE"
         tanzu apps workload create $SENSORS_WORKLOAD \
             --git-repo https://github.com/dektlong/mood-sensors \
@@ -126,6 +138,16 @@
             --git-branch release-v1.0 \
             --type web \
             --label app.kubernetes.io/part-of=$PORTAL_WORKLOAD \
+            --yes \
+            --namespace $STAGEPROD_NAMESPACE
+
+        scripts/dektecho.sh cmd "tanzu apps workload create $LEGACY_WORKLOAD -f workload.yaml -n $STAGEPROD_NAMESPACE"
+        tanzu apps workload create $LEGACY_WORKLOAD \
+            --git-repo https://github.com/dektlong/legacy-mood \
+            --git-branch release-v2.0 \
+            --type dekt-processor \
+            --label app.kubernetes.io/part-of=$LEGACY_WORKLOAD \
+            --service-ref rabbitmq-claim=rabbitmq.com/v1beta1:RabbitmqCluster:reading-queue \
             --yes \
             --namespace $STAGEPROD_NAMESPACE
 
@@ -155,10 +177,14 @@
         yq e 'del(.metadata.ownerReferences)' $PORTAL_DELIVERABLE -i 
         echo "$(date): $PORTAL_DELIVERABLE generated." >> $PROD_AUDIT_FILE 
 
+        kubectl get deliverable $LEGACY_WORKLOAD -n $STAGEPROD_NAMESPACE -oyaml > $LEGACY_DELIVERABLE
+        yq e 'del(.status)' $LEGACY_DELIVERABLE -i 
+        yq e 'del(.metadata.ownerReferences)' $LEGACY_DELIVERABLE -i 
+        echo "$(date): $LEGACY_DELIVERABLE generated." >> $PROD_AUDIT_FILE 
+
         kubectl get deliverable $SENSORS_WORKLOAD -n $STAGEPROD_NAMESPACE -oyaml > $SENSORS_DELIVERABLE
         yq e 'del(.status)' $SENSORS_DELIVERABLE -i 
         yq e 'del(.metadata.ownerReferences)' $SENSORS_DELIVERABLE -i 
-              
         echo "$(date): $SENSORS_DELIVERABLE generated." >> $PROD_AUDIT_FILE 
         
         scripts/dektecho.sh status "Review Deliverables in gitops repo"
@@ -172,6 +198,9 @@
 
         echo "$(date): kubectl apply -f $PORTAL_DELIVERABLE -n $STAGEPROD_NAMESPACE" >> $PROD_AUDIT_FILE
         kubectl apply -f $PORTAL_DELIVERABLE -n $STAGEPROD_NAMESPACE >> $PROD_AUDIT_FILE
+
+        echo "$(date): kubectl apply -f $LEGACY_DELIVERABLE -n $STAGEPROD_NAMESPACE" >> $PROD_AUDIT_FILE
+        kubectl apply -f $LEGACY_DELIVERABLE -n $STAGEPROD_NAMESPACE >> $PROD_AUDIT_FILE
 
         echo "$(date): kubectl apply -f $SENSORS_DELIVERABLE -n $STAGEPROD_NAMESPACE" >> $PROD_AUDIT_FILE
         kubectl apply -f $SENSORS_DELIVERABLE -n $STAGEPROD_NAMESPACE >> $PROD_AUDIT_FILE
@@ -196,6 +225,7 @@
 
         tapCluster=$1
         appsNamespace=$2
+        showLogs=$3
         
 
         kubectl config use-context $tapCluster
@@ -203,27 +233,17 @@
         scripts/dektecho.sh cmd "tanzu apps workload get $PORTAL_WORKLOAD -n $appsNamespace"
         tanzu apps workload get $PORTAL_WORKLOAD -n $appsNamespace
 
+        scripts/dektecho.sh cmd "tanzu apps workload get $LEGACY_WORKLOAD -n $appsNamespace"
+        tanzu apps workload get $LEGACY_WORKLOAD -n $appsNamespace
+
         scripts/dektecho.sh cmd "tanzu apps workload get $SENSORS_WORKLOAD -n $appsNamespace"
         tanzu apps workload get $SENSORS_WORKLOAD -n $appsNamespace
         
-        if [ "$2" == "logs" ]; then
+        if [ "$showLogs" == "logs" ]; then
             scripts/dektecho.sh cmd "tanzu apps workload tail $SENSORS_WORKLOAD --since 100m --timestamp  -n $appsNamespace"
             
             tanzu apps workload tail $SENSORS_WORKLOAD --since 100m --timestamp  -n $appsNamespace
         fi
-    }
-
-    #tail-logs
-    tail-logs () {
-
-        tapCluster=$1
-        appsNamespace=$2
-
-        kubectl config use-context $tapCluster
-
-        scripts/dektecho.sh cmd "tanzu apps workload tail $SENSORS_WORKLOAD --since 100m --timestamp  -n $appsNamespace"
-            
-        tanzu apps workload tail $SENSORS_WORKLOAD --since 100m --timestamp  -n $appsNamespace
     }
 
     #brownfield
@@ -253,15 +273,18 @@
 
         kubectl config use-context $STAGE_CLUSTER
         tanzu apps workload delete $PORTAL_WORKLOAD -n $STAGEPROD_NAMESPACE -y
+        tanzu apps workload delete $LEGACY_WORKLOAD -n $STAGEPROD_NAMESPACE -y
         tanzu apps workload delete $SENSORS_WORKLOAD -n $STAGEPROD_NAMESPACE -y
 
         kubectl config use-context $PROD_CLUSTER
         kubectl delete deliverable $PORTAL_WORKLOAD -n $STAGEPROD_NAMESPACE
+        kubectl delete deliverable $LEGACY_WORKLOAD -n $STAGEPROD_NAMESPACE
         kubectl delete deliverable $SENSORS_WORKLOAD -n $STAGEPROD_NAMESPACE
 
         kubectl config use-context $DEV_CLUSTER
         tanzu apps workload delete $DEV_WORKLOAD -n $DEV_NAMESPACE -y
         tanzu apps workload delete $PORTAL_WORKLOAD -n $TEAM_NAMESPACE  -y
+        tanzu apps workload delete $LEGACY_WORKLOAD -n $TEAM_NAMESPACE  -y
         tanzu apps workload delete $SENSORS_WORKLOAD -n $TEAM_NAMESPACE -y
         
         kubectl config use-context $VIEW_CLUSTER
@@ -271,6 +294,7 @@
 
         toggle-dog sad
         rm -f $PORTAL_DELIVERABLE
+        rm -f $LEGACY_DELIVERABLE
         rm -f $SENSORS_DELIVERABLE
         rm -r .gitops
 
@@ -304,6 +328,7 @@
     cleanup-helper() {
         toggle-dog sad
         rm -f $PORTAL_DELIVERABLE
+        rm -f $LEGACY_DELIVERABLE
         rm -f $SENSORS_DELIVERABLE
     }
 
@@ -334,9 +359,7 @@
         echo
         echo "  supplychains"
         echo
-        echo "  track dev/stage"
-        echo
-        echo "  logs dev/stage"
+        echo "  track dev/stage [logs]"
         echo
         echo "  brownfield"
         echo
@@ -375,31 +398,15 @@ supplychains)
 track)
     case $2 in
     team)
-        track-workloads $DEV_CLUSTER $TEAM_NAMESPACE
+        track-workloads $DEV_CLUSTER $TEAM_NAMESPACE $3
         ;;
     stage)
-        track-workloads $STAGE_CLUSTER $STAGEPROD_NAMESPACE
+        track-workloads $STAGE_CLUSTER $STAGEPROD_NAMESPACE $3
         ;;
     *)
         incorrect-usage
         ;;
     esac
-    ;;
-logs)
-    case $2 in
-    dev)
-        tail-logs $DEV_CLUSTER $TEAM_NAMESPACE
-        ;;
-    stage)
-        tail-logs $STAGE_CLUSTER $STAGEPROD_NAMESPACE
-        ;;
-    *)
-        incorrect-usage
-        ;;
-    esac
-    ;;
-scan-results)
-    scan-results
     ;;
 brownfield)
     brownfield

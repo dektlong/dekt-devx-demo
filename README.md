@@ -98,6 +98,7 @@ This repo contains artifacts to run a demo illustrating the vision and capabilit
 - access tap gui accelerators via the ```cloud-native-devs``` tag
   - create ```mood-sensors``` workload using the web-backend accelerator 
   - create ```mood-portal```  workload using the web-function accelerator 
+  - create ```legacy-mood```  workload using the node.js accelerator 
   - use ```devx-mood```  as the parent application in both cases
 
 - access the api-portal and highlight how discovery of existing APIs prior to creating new ones is done
@@ -119,7 +120,7 @@ This repo contains artifacts to run a demo illustrating the vision and capabilit
   - ```./dekt-DevSecOps.sh track dev [logs]```
 
 - access tap gui accelerators using the ```cloud-native-devsecops``` tag
-  - create ```dekt-outerloop``` supplychain using the microservices-supplychain accelerator with ```web-backend``` workload type 
+  - create ```dekt-src-to-api-with-scan``` supplychain using the microservices-supplychain accelerator with ```web-backend``` workload type 
     - include testing, binding and scanning phases, leveraging the out of the box supply-chain templates
   - Explain that the ```mood-portal``` workload is using the out-of-the-box ```source-to-url``` supply chain as configured in ```tap-values``
 
@@ -138,7 +139,7 @@ This repo contains artifacts to run a demo illustrating the vision and capabilit
 
 ### Outer loop
 - 'promote' to Staging cluster (source code) ```./dekt-DevSecOps.sh stage```
-  - show the enhanced supply chain (dekt-outerloop with scanning) progress on multi-cluster Backstage
+  - show the enhanced supply chain (dekt-src-to-api-with-scan with scanning) progress on multi-cluster Backstage
  
 - 'promote' to Run cluster (Deliverable)  ```./dekt-DevSecOps.sh prod```
   - Review the Deliverables created in the ```.gitops``` directory

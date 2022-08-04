@@ -79,9 +79,10 @@
         
         add-tap-package "tap-iterate.yaml"
 
-        scripts/dektecho.sh status "Adding dekt-src-to-api custom supply chain"
+        scripts/dektecho.sh status "Adding dekt-src-to-api and processor custom supply chains"
         kubectl apply -f .config/custom-sc/disable-scale2zero.yaml
         kubectl apply -f .config/custom-sc/dekt-src-to-api.yaml
+        kubectl apply -f .config/custom-sc/processor
         kubectl apply -f .config/custom-sc/tekton-pipeline.yaml -n $DEV_NAMESPACE
         kubectl apply -f .config/custom-sc/tekton-pipeline.yaml -n $TEAM_NAMESPACE
 
@@ -109,8 +110,9 @@
 
         install-snyk
 
-        scripts/dektecho.sh status "Adding dekt-src-to-api-with-scan custom supply chain"
+        scripts/dektecho.sh status "Adding dekt-src-to-api-with-scan and processor custom supply chains"
         kubectl apply -f .config/custom-sc/dekt-src-to-api-with-scan.yaml
+        kubectl apply -f .config/custom-sc/processor
         kubectl apply -f .config/custom-sc/tekton-pipeline.yaml -n $STAGEPROD_NAMESPACE
         kubectl apply -f .config/custom-sc/scan-policy.yaml -n $STAGEPROD_NAMESPACE
 
@@ -262,7 +264,7 @@
         #scripts/dektecho.sh status "Waiting for RDS PostgreSQL instance named inventory-db to be create"
         #kubectl wait --for=condition=Ready=true postgresqlinstances.bindable.database.example.org inventory-db
 
-        kubectl apply -f .config/data-services/inventory-db-dev.yaml -n $STAGEPROD_NAMESPACE
+        kubectl apply -f .config/data-services/inventory-db-prod.yaml -n $STAGEPROD_NAMESPACE
 
         #create a service claim for inventory-db
         tanzu service claim create postgres-claim -n $STAGEPROD_NAMESPACE \
