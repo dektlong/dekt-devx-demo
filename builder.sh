@@ -558,8 +558,8 @@ init-all)
     outerloop-handler install-demo
     ;;
 init-innerloop)
-    innerlopp-handler create-clusters
-    innerlopp-handler install-demo
+    innerloop-handler create-clusters
+    innerloop-handler install-demo
     ;;
 delete-all)
     scripts/dektecho.sh prompt  "Are you sure you want to delete all clusters?" && [ $? -eq 0 ] || exit
