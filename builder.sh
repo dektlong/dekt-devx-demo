@@ -38,6 +38,7 @@
     #misc 
     RDS_PROFILE=$(yq .data-services.rdsProfile .config/demo-values.yaml)       
     GW_INSTALL_DIR=$(yq .apis.scgwInstallDirectory .config/demo-values.yaml)
+    MY_TMC_API_TOKEN=$(yq .tmc.apiToken .config/demo-values.yaml)
 
 #################### functions ################
 
@@ -419,6 +420,52 @@
         tanzu package repository add tanzu-data-services-repository --url $PRIVATE_REPO_SERVER/$SYSTEM_REPO/tds-packages:1.0.0 -n tap-install
     }
 
+    #attach TMC clusters
+    attach-tmc-clusters() {
+
+        export TMC_API_TOKEN=$MY_TMC_API_TOKEN
+        tmc login -n dekt-tmc-login -c
+
+        kubectl config use-context $VIEW_CLUSTER_NAME
+        tmc cluster attach -n $VIEW_CLUSTER_NAME -g dekt
+        kubectl apply -f k8s-attach-manifest.yaml
+        rm -f k8s-attach-manifest.yaml
+
+        kubectl config use-context $DEV_CLUSTER_NAME
+        tmc cluster attach -n $DEV_CLUSTER_NAME -g dekt
+        kubectl apply -f k8s-attach-manifest.yaml
+        rm -f k8s-attach-manifest.yaml
+
+        kubectl config use-context $STAGE_CLUSTER_NAME
+        tmc cluster attach -n $STAGE_CLUSTER_NAME -g dekt
+        kubectl apply -f k8s-attach-manifest.yaml
+        rm -f k8s-attach-manifest.yaml
+
+        kubectl config use-context $PROD_CLUSTER_NAME
+        tmc cluster attach -n $PROD_CLUSTER_NAME -g dekt
+        kubectl apply -f k8s-attach-manifest.yaml
+        rm -f k8s-attach-manifest.yaml
+
+        kubectl config use-context $BROWNFIELD_CLUSTER_NAME-public
+        tmc cluster attach -n $BROWNFIELD_CLUSTER_NAME-public -g dekt
+        kubectl apply -f k8s-attach-manifest.yaml
+        rm -f k8s-attach-manifest.yaml
+
+    }
+
+    #delete-tmc-cluster
+    delete-tmc-clusters() {
+
+        export TMC_API_TOKEN=$MY_TMC_API_TOKEN
+        tmc login -n dekt-tmc-login -c
+
+        tmc cluster delete $VIEW_CLUSTER_NAME -f -m attached -p attached
+        tmc cluster delete $DEV_CLUSTER_NAME -f -m attached -p attached
+        tmc cluster delete $STAGE_CLUSTER_NAME -f -m attached -p attached
+        tmc cluster delete $PROD_CLUSTER_NAME -f -m attached -p attached
+        tmc cluster delete $BROWNFIELD_CLUSTER_NAME-public -f -m attached -p attached
+    }
+
     #relocate-tap-images
     relocate-tap-images() {
 
@@ -533,11 +580,13 @@
             scripts/k8s-handler.sh delete $STAGE_CLUSTER_PROVIDER $STAGE_CLUSTER_NAME
             scripts/k8s-handler.sh delete $PROD_CLUSTER_PROVIDER $PROD_CLUSTER_NAME
             scripts/k8s-handler.sh delete $BROWNFIELD_CLUSTER_PROVIDER $BROWNFIELD_CLUSTER_NAME
+            delete-tmc-clusters
             ;;
         install-demo)
             install-stage-cluster
             install-prod-cluster
             add-brownfield-apis
+            attach-tmc-clusters
             ;;
         uninstall-demo)
             delete-tap "dekt-stage"

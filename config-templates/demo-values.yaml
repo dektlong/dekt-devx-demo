@@ -46,3 +46,5 @@ dns:
   godaddyApiSecret: "[CHANGE_ME]"
 apis:
   scgwInstallDirectory: "[CHANGE_ME]"
+tmc:
+  apiToken: "[CHANGE_ME]"
