@@ -423,6 +423,8 @@
     #attach TMC clusters
     attach-tmc-clusters() {
 
+        scripts/dektecho.sh info "Attaching TMC clusters"
+
         export TMC_API_TOKEN=$MY_TMC_API_TOKEN
         tmc login -n dekt-tmc-login -c
 
