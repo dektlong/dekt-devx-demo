@@ -446,7 +446,7 @@
         kubectl apply -f k8s-attach-manifest.yaml
         rm -f k8s-attach-manifest.yaml
 
-        kubectl config use-context $BROWNFIELD_CLUSTER_NAME-public
+        kubectl config use-context $BROWNFIELD_CLUSTER_NAME
         tmc cluster attach -n $BROWNFIELD_CLUSTER_NAME-public -g dekt
         kubectl apply -f k8s-attach-manifest.yaml
         rm -f k8s-attach-manifest.yaml
