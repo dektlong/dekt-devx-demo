@@ -153,6 +153,9 @@ delete)
 		;;
 	esac
 	;;
+test-cluster)
+	ctx $2 && kubectl get pods -A && kubectl get svc -A
+	;;
 *)
 	incorrect-usage
 	;;

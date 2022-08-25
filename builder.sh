@@ -435,7 +435,8 @@
 
         kubectl config use-context $DEV_CLUSTER_NAME
         tmc cluster attach -n $DEV_CLUSTER_NAME -g dekt
-        kubectl apply -f k8s-attach-manifest.yaml
+        kubectl apply -f k8s-attach-manifest.yamlHello,  
+
         rm -f k8s-attach-manifest.yaml
 
         kubectl config use-context $STAGE_CLUSTER_NAME
@@ -546,6 +547,19 @@
         exit
     }
 
+    #test-all-clusters
+    test-clusters() {
+        scripts/k8s-handler.sh test-cluster $VIEW_CLUSTER_NAME
+        scripts/dektecho.sh prompt  "Continue?" && [ $? -eq 0 ] || exit
+        scripts/k8s-handler.sh test-cluster $DEV_CLUSTER_NAME
+        scripts/dektecho.sh prompt  "Continue?" && [ $? -eq 0 ] || exit
+        scripts/k8s-handler.sh test-cluster $STAGE_CLUSTER_NAME
+        scripts/dektecho.sh prompt  "Continue?" && [ $? -eq 0 ] || exit
+        scripts/k8s-handler.sh test-cluster $PROD_CLUSTER_NAME
+        scripts/dektecho.sh prompt  "Continue?" && [ $? -eq 0 ] || exit
+        scripts/k8s-handler.sh test-cluster $BROWNFIELD_CLUSTER_NAME
+    }
+
     #innerloop-handler
     innerloop-handler() {
 
@@ -604,7 +618,8 @@ case $1 in
 init-all)    
     innerloop-handler create-clusters
     outerloop-handler create-clusters
-    scripts/dektecho.sh prompt  "Verify that all clusters are operational. Continue?" && [ $? -eq 0 ] || exit
+    test-clusters
+    scripts/dektecho.sh prompt  "Continue to install demo components" && [ $? -eq 0 ] || exit
     innerloop-handler install-demo
     outerloop-handler install-demo
     ;;
