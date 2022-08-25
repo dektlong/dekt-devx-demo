@@ -435,7 +435,7 @@
 
         kubectl config use-context $DEV_CLUSTER_NAME
         tmc cluster attach -n $DEV_CLUSTER_NAME -g dekt
-        kubectl apply -f k8s-attach-manifest.yamlHello,  
+        kubectl apply -f k8s-attach-manifest.yaml 
 
         rm -f k8s-attach-manifest.yaml
 
@@ -550,14 +550,19 @@
     #test-all-clusters
     test-all-clusters() {
         scripts/k8s-handler.sh test-cluster $VIEW_CLUSTER_NAME
+        echo
         scripts/dektecho.sh prompt  "Verify that cluster $VIEW_CLUSTER_NAME was created succefully. Continue?" && [ $? -eq 0 ] || exit
         scripts/k8s-handler.sh test-cluster $DEV_CLUSTER_NAME
+        echo
         scripts/dektecho.sh prompt  "Verify that cluster $DEV_CLUSTER_NAME was created succefully. Continue?" && [ $? -eq 0 ] || exit
         scripts/k8s-handler.sh test-cluster $STAGE_CLUSTER_NAME
+        echo
         scripts/dektecho.sh prompt  "Verify that cluster $STAGE_CLUSTER_NAME was created succefully. Continue?" && [ $? -eq 0 ] || exit
         scripts/k8s-handler.sh test-cluster $PROD_CLUSTER_NAME
+        echo
         scripts/dektecho.sh prompt  "Verify that cluster $PROD_CLUSTER_NAME was created succefully. Continue?" && [ $? -eq 0 ] || exit
         scripts/k8s-handler.sh test-cluster $BROWNFIELD_CLUSTER_NAME
+        echo
         scripts/dektecho.sh prompt  "Verify that cluster $BROWNFIELD_CLUSTER_NAME was created succefully. Continue?" && [ $? -eq 0 ] || exit
     }
 
