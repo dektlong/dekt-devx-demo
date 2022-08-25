@@ -548,16 +548,17 @@
     }
 
     #test-all-clusters
-    test-clusters() {
+    test-all-clusters() {
         scripts/k8s-handler.sh test-cluster $VIEW_CLUSTER_NAME
-        scripts/dektecho.sh prompt  "Continue?" && [ $? -eq 0 ] || exit
+        scripts/dektecho.sh prompt  "Verify that cluster $VIEW_CLUSTER_NAME was created succefully. Continue?" && [ $? -eq 0 ] || exit
         scripts/k8s-handler.sh test-cluster $DEV_CLUSTER_NAME
-        scripts/dektecho.sh prompt  "Continue?" && [ $? -eq 0 ] || exit
+        scripts/dektecho.sh prompt  "Verify that cluster $DEV_CLUSTER_NAME was created succefully. Continue?" && [ $? -eq 0 ] || exit
         scripts/k8s-handler.sh test-cluster $STAGE_CLUSTER_NAME
-        scripts/dektecho.sh prompt  "Continue?" && [ $? -eq 0 ] || exit
+        scripts/dektecho.sh prompt  "Verify that cluster $STAGE_CLUSTER_NAME was created succefully. Continue?" && [ $? -eq 0 ] || exit
         scripts/k8s-handler.sh test-cluster $PROD_CLUSTER_NAME
-        scripts/dektecho.sh prompt  "Continue?" && [ $? -eq 0 ] || exit
+        scripts/dektecho.sh prompt  "Verify that cluster $PROD_CLUSTER_NAME was created succefully. Continue?" && [ $? -eq 0 ] || exit
         scripts/k8s-handler.sh test-cluster $BROWNFIELD_CLUSTER_NAME
+        scripts/dektecho.sh prompt  "Verify that cluster $BROWNFIELD_CLUSTER_NAME was created succefully. Continue?" && [ $? -eq 0 ] || exit
     }
 
     #innerloop-handler
@@ -618,7 +619,7 @@ case $1 in
 init-all)    
     innerloop-handler create-clusters
     outerloop-handler create-clusters
-    test-clusters
+    test-all-clusters
     scripts/dektecho.sh prompt  "Continue to install demo components" && [ $? -eq 0 ] || exit
     innerloop-handler install-demo
     outerloop-handler install-demo
