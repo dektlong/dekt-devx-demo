@@ -319,22 +319,26 @@
         kubectl config use-context $DEV_CLUSTER_NAME
         kubectl apply -f .config/rbac/tap-gui-viewer-sa-rbac.yaml
         export devClusterUrl=$(kubectl config view --minify -o jsonpath='{.clusters[0].cluster.server}')
+        export devClusterName=$DEV_CLUSTER_NAME
         export devClusterToken=$(kubectl -n tap-gui get secret $(kubectl -n tap-gui get sa tap-gui-viewer -o=json \
         | jq -r '.secrets[0].name') -o=json \
         | jq -r '.data["token"]' \
         | base64 --decode)
         yq '.tap_gui.app_config.kubernetes.clusterLocatorMethods.[0].clusters.[0].url = env(devClusterUrl)' .config/profiles/tap-view.yaml -i
+        yq '.tap_gui.app_config.kubernetes.clusterLocatorMethods.[0].clusters.[0].name = env(devClusterName)' .config/profiles/tap-view.yaml -i
         yq '.tap_gui.app_config.kubernetes.clusterLocatorMethods.[0].clusters.[0].serviceAccountToken = env(devClusterToken)' .config/profiles/tap-view.yaml -i
 
         #configure GUI on view cluster to access stage cluster
         kubectl config use-context $STAGE_CLUSTER_NAME
         kubectl apply -f .config/rbac/tap-gui-viewer-sa-rbac.yaml
         export stageClusterUrl=$(kubectl config view --minify -o jsonpath='{.clusters[0].cluster.server}')
+        export stageClusterName=$STAGE_CLUSTER_NAME
         export stageClusterToken=$(kubectl -n tap-gui get secret $(kubectl -n tap-gui get sa tap-gui-viewer -o=json \
         | jq -r '.secrets[0].name') -o=json \
         | jq -r '.data["token"]' \
         | base64 --decode)
         yq '.tap_gui.app_config.kubernetes.clusterLocatorMethods.[0].clusters.[1].url = env(stageClusterUrl)' .config/profiles/tap-view.yaml -i
+        yq '.tap_gui.app_config.kubernetes.clusterLocatorMethods.[0].clusters.[1].name = env(stageClusterName)' .config/profiles/tap-view.yaml -i
         yq '.tap_gui.app_config.kubernetes.clusterLocatorMethods.[0].clusters.[1].serviceAccountToken = env(stageClusterToken)' .config/profiles/tap-view.yaml -i
 
 
@@ -342,11 +346,13 @@
         kubectl config use-context $PROD_CLUSTER_NAME
         kubectl apply -f .config/rbac/tap-gui-viewer-sa-rbac.yaml
         export prodClusterUrl=$(kubectl config view --minify -o jsonpath='{.clusters[0].cluster.server}')
+        export prodClusterName=$PROD_CLUSTER_NAME
         export prodClusterToken=$(kubectl -n tap-gui get secret $(kubectl -n tap-gui get sa tap-gui-viewer -o=json \
         | jq -r '.secrets[0].name') -o=json \
         | jq -r '.data["token"]' \
         | base64 --decode)
         yq '.tap_gui.app_config.kubernetes.clusterLocatorMethods.[0].clusters.[2].url = env(prodClusterUrl)' .config/profiles/tap-view.yaml -i
+        yq '.tap_gui.app_config.kubernetes.clusterLocatorMethods.[0].clusters.[2].name = env(prodClusterName)' .config/profiles/tap-view.yaml -i
         yq '.tap_gui.app_config.kubernetes.clusterLocatorMethods.[0].clusters.[2].serviceAccountToken = env(prodClusterToken)' .config/profiles/tap-view.yaml -i
 
         #update view cluster after config changes

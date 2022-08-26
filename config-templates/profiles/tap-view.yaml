@@ -44,17 +44,17 @@ tap_gui:
         - type: 'config'
           clusters:
             - url: "" #updated in runtime
-              name: dekt-dev
+              name: #updated in runtime
               authProvider: serviceAccount
               serviceAccountToken: "" #updated in runtime
               skipTLSVerify: true
             - url: "" #updated in runtime
-              name: dekt-stage
+              name: #updated in runtime
               authProvider: serviceAccount
               serviceAccountToken: "" #updated in runtime
               skipTLSVerify: true
             - url: "" #updated in runtime
-              name: dekt-prod
+              name: #updated in runtime
               authProvider: serviceAccount
               serviceAccountToken: "" #updated in runtime
               skipTLSVerify: true
