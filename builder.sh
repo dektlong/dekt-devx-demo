@@ -450,7 +450,7 @@
         rm -f k8s-attach-manifest.yaml
 
         kubectl config use-context $BROWNFIELD_CLUSTER_NAME
-        tmc cluster attach -n $BROWNFIELD_CLUSTER_NAME-public -g dekt
+        tmc cluster attach -n $BROWNFIELD_CLUSTER_NAME -g dekt
         kubectl apply -f k8s-attach-manifest.yaml
         rm -f k8s-attach-manifest.yaml
 
@@ -466,7 +466,7 @@
         tmc cluster delete $DEV_CLUSTER_NAME -f -m attached -p attached
         tmc cluster delete $STAGE_CLUSTER_NAME -f -m attached -p attached
         tmc cluster delete $PROD_CLUSTER_NAME -f -m attached -p attached
-        tmc cluster delete $BROWNFIELD_CLUSTER_NAME-public -f -m attached -p attached
+        tmc cluster delete $BROWNFIELD_CLUSTER_NAME -f -m attached -p attached
     }
 
     #relocate-tap-images
