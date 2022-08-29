@@ -649,7 +649,7 @@ delete-all)
 uninstall-demo)
     scripts/dektecho.sh prompt  "Are you sure you want to uninstall all demo components?" && [ $? -eq 0 ] || exit
     ./dekt-DevSecOps.sh cleanup-helper
-    innerlopp-handler uninstall-demo
+    innerloop-handler uninstall-demo
     outerloop-handler uninstall-demo
     ;;
 relocate-tap-images)
