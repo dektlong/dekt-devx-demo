@@ -589,8 +589,8 @@
             install-dev-cluster 
             ;;
         uninstall-demo)
-            delete-tap "dekt-view"
-            delete-tap "dekt-dev"
+            delete-tap $VIEW_CLUSTER_NAME
+            delete-tap $DEV_CLUSTER_NAME
             ;;
         esac
     }
@@ -617,8 +617,8 @@
             attach-tmc-clusters
             ;;
         uninstall-demo)
-            delete-tap "dekt-stage"
-            delete-tap "dekt-prod"
+            delete-tap $STAGE_CLUSTER_NAME
+            delete-tap $PROD_CLUSTER_NAME
             ;;
         esac
     }
