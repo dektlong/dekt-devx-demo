@@ -515,18 +515,25 @@
        
     }
 
-    #delete-tap
-    delete-tap() {
+    #delete-demo
+    delete-demo() {
 
         kubectl config use-context $1
 
         tanzu package installed delete tap -n tap-install -y
 
+        tanzu package installed delete snyk-scanner -n tap-install -y
+
+        tanzu package installed delete services-toolkit -n tap-install -y
+
+        kubectl delete -f .config/custom-sc -n $STAGEPROD_NAMESPACE
+        kubectl delete -f .config/custom-sc -n $TEAM_NAMESPACE
+
         kubectl delete ns tap-gui
         kubectl delete ns metadata-store-secrets
-        kubectl delete ns dekt-apps
-        kubectl delete ns mydev
-        kubectl delete ns myteam
+        kubectl delete ns $STAGEPROD_NAMESPACE
+        kubectl delete ns $DEV_NAMESPACE
+        kubectl delete ns $TEAM_NAMESPACE
         kubectl delete ns rabbitmq-system
         kubectl delete ns secretgen-controller
         kubectl delete ns tap-install
