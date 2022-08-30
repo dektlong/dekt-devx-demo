@@ -80,7 +80,7 @@
         kubectl config use-context $DEV_CLUSTER
 
         scripts/dektecho.sh cmd "tanzu apps workload create $DEV_WORKLOAD -f workload.yaml -n $DEV_NAMESPACE"
-        tanzu apps workload create $DEV_WORKLOAD-1 \
+        tanzu apps workload create $DEV_WORKLOAD \
             --git-repo https://github.com/dektlong/mood-sensors \
             --git-branch dev \
             --type dekt-backend \
