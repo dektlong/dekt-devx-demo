@@ -51,8 +51,6 @@ rules:
   - revisions
   - routes
   - services
-  - pods
-  - pods/log
   verbs: ['get', 'watch', 'list']
 - apiGroups: ['carto.run']
   resources:
