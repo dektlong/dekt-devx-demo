@@ -118,7 +118,7 @@
         kubectl apply -f .config/custom-sc/scan-policy.yaml -n $STAGEPROD_NAMESPACE
 
         #add services-toolkit seperately as it's not part of the build profile
-        tanzu package install services-toolkit -n tap-install -p services-toolkit.tanzu.vmware.com -v 0.7.1
+        tanzu package install services-toolkit -n tap-install -p services-toolkit.tanzu.vmware.com -v 0.8.0-rc.2 #0.7.1
         
         scripts/dektecho.sh status "Adding RabbitMQ and Postgres in stage/prod configurations"
         add-rabbitmq-stageprod
@@ -170,6 +170,7 @@
         tanzu package install tap -p tap.tanzu.vmware.com -v $TAP_VERSION \
             --values-file .config/profiles/$tap_values_file_name \
             --namespace tap-install
+
     }
 
     #setup-apps-namespace
@@ -305,9 +306,11 @@
 
         tanzu package install snyk-scanner \
             --package-name snyk.scanning.apps.tanzu.vmware.com \
-            --version 1.0.0-beta.2 \
+            --version 1.0.0-beta.4-build.1 \
             --namespace tap-install \
             --values-file .config/scanners/snyk-install.yaml
+
+            #1.0.0-beta.2
 
     }
     #set-multi-cluster-access

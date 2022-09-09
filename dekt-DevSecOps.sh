@@ -123,6 +123,7 @@
             --label app.kubernetes.io/part-of=$SENSORS_WORKLOAD \
             --service-ref rabbitmq-claim=rabbitmq.com/v1beta1:RabbitmqCluster:reading-queue \
             --service-ref postgres-claim=services.apps.tanzu.vmware.com/v1alpha1:ResourceClaim:inventory-db \
+            --param-yaml '{"api_descriptor": {"type": "openAPI", "location": {"path": "config/backstage/apis/mood-sensors-api-definition.yaml"}, "owner": "dekt-dev-team2", "system": "devx-mood"}}' \
             --yes \
             --namespace $TEAM_NAMESPACE
     }
@@ -286,11 +287,6 @@
         tanzu apps workload delete $PORTAL_WORKLOAD -n $TEAM_NAMESPACE  -y
         tanzu apps workload delete $LEGACY_WORKLOAD -n $TEAM_NAMESPACE  -y
         tanzu apps workload delete $SENSORS_WORKLOAD -n $TEAM_NAMESPACE -y
-        
-        kubectl config use-context $VIEW_CLUSTER
-        kubectl -n app-live-view delete pods -l=name=application-live-view-connector
-
-        tanzu package installed update tap --package-name tap.tanzu.vmware.com --version $TAP_VERSION -n tap-install -f .config/profiles/tap-view.yaml
 
         toggle-dog sad
         rm -f $PORTAL_DELIVERABLE
@@ -298,7 +294,8 @@
         rm -f $SENSORS_DELIVERABLE
         rm -r .gitops
 
-        kubectl config use-context $DEV_CLUSTER
+        kubectl config use-context $VIEW_CLUSTER
+        kubectl delete pod -l app=backstage -n tap-gui
     }
 
     #toggle the BYPASS_BACKEND flag in mood-portal
