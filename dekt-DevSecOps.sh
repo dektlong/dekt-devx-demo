@@ -8,11 +8,12 @@
     STAGE_CLUSTER=$(yq .stage-cluster.name .config/demo-values.yaml)
     PROD_CLUSTER=$(yq .prod-cluster.name .config/demo-values.yaml)
     BROWNFIELD_CLUSTER=$(yq .brownfield-cluster.name .config/demo-values.yaml)
-    #workloads
+    #workloads (must match the names in samples/workloads)
     PORTAL_WORKLOAD="mood-portal"
     SENSORS_WORKLOAD="mood-sensors"
     LEGACY_WORKLOAD="legacy-mood"
     DEV_WORKLOAD="mysensors"
+    #deliverables
     PORTAL_DELIVERABLE=".gitops/portal_deliverable.yaml"
     LEGACY_DELIVERABLE=".gitops/legacy_deliverable.yaml"
     SENSORS_DELIVERABLE=".gitops/sensors_deliverable.yaml"
@@ -95,37 +96,14 @@
 
         kubectl config use-context $DEV_CLUSTER
         
-        scripts/dektecho.sh cmd "tanzu apps workload create $PORTAL_WORKLOAD -f workload.yaml -n $TEAM_NAMESPACE"
-        tanzu apps workload create $PORTAL_WORKLOAD \
-            --git-repo https://github.com/dektlong/mood-portal \
-            --git-branch dev \
-            --type web \
-            --label app.kubernetes.io/part-of=$PORTAL_WORKLOAD \
-            --yes \
-            --namespace $TEAM_NAMESPACE
+        scripts/dektecho.sh cmd "tanzu apps workload create $PORTAL_WORKLOAD -f samples/workloads/mood-portal-dev.yaml -y -n $TEAM_NAMESPACE"
+        tanzu apps workload create $PORTAL_WORKLOAD -f samples/workloads/mood-portal-dev.yaml -y -n $TEAM_NAMESPACE
 
-        scripts/dektecho.sh cmd "tanzu apps workload create $LEGACY_WORKLOAD -f workload.yaml -n $TEAM_NAMESPACE"
-        tanzu apps workload create $LEGACY_WORKLOAD \
-            --git-repo https://github.com/dektlong/legacy-mood \
-            --git-branch release-v2.0 \
-            --type dekt-processor \
-            --label app.kubernetes.io/part-of=$LEGACY_WORKLOAD \
-            --service-ref rabbitmq-claim=rabbitmq.com/v1beta1:RabbitmqCluster:reading-queue \
-            --yes \
-            --namespace $TEAM_NAMESPACE
+        scripts/dektecho.sh cmd "tanzu apps workload create $SENSORS_WORKLOAD -f samples/workloads/mood-sensors-dev.yaml -y -n $TEAM_NAMESPACE"
+        tanzu apps workload create $SENSORS_WORKLOAD -f samples/workloads/mood-sensors-dev.yaml -y -n $TEAM_NAMESPACE
 
-        scripts/dektecho.sh cmd "tanzu apps workload create $SENSORS_WORKLOAD -f workload.yaml -n $TEAM_NAMESPACE"
-        tanzu apps workload create $SENSORS_WORKLOAD \
-            --git-repo https://github.com/dektlong/mood-sensors \
-            --git-branch dev \
-            --type dekt-backend \
-            --label apps.tanzu.vmware.com/has-tests="true" \
-            --label app.kubernetes.io/part-of=$SENSORS_WORKLOAD \
-            --service-ref rabbitmq-claim=rabbitmq.com/v1beta1:RabbitmqCluster:reading-queue \
-            --service-ref postgres-claim=services.apps.tanzu.vmware.com/v1alpha1:ResourceClaim:inventory-db \
-            --param-yaml '{"api_descriptor": {"type": "openAPI", "location": {"path": "config/backstage/apis/mood-sensors-api-definition.yaml"}, "owner": "dekt-dev-team2", "system": "devx-mood"}}' \
-            --yes \
-            --namespace $TEAM_NAMESPACE
+        scripts/dektecho.sh cmd "tanzu apps workload create $LEGACY_WORKLOAD -f samples/workloads/legacy-mood.yaml -y -n $TEAM_NAMESPACE"
+        tanzu apps workload create $LEGACY_WORKLOAD -f samples/workloads/legacy-mood.yaml -y -n $TEAM_NAMESPACE
     }
 
     #create-stage-workloads
@@ -133,36 +111,14 @@
 
         kubectl config use-context $STAGE_CLUSTER
         
-        scripts/dektecho.sh cmd "tanzu apps workload create $PORTAL_WORKLOAD -f workload.yaml -n $STAGEPROD_NAMESPACE"
-        tanzu apps workload create $PORTAL_WORKLOAD \
-            --git-repo https://github.com/dektlong/mood-portal \
-            --git-branch release-v1.0 \
-            --type web \
-            --label app.kubernetes.io/part-of=$PORTAL_WORKLOAD \
-            --yes \
-            --namespace $STAGEPROD_NAMESPACE
+        scripts/dektecho.sh cmd "tanzu apps workload create $PORTAL_WORKLOAD -f samples/workloads/mood-portal-stage.yaml -y -n $STAGEPROD_NAMESPACE"
+        tanzu apps workload create $PORTAL_WORKLOAD -f samples/workloads/mood-portal-stage.yaml -y -n $STAGEPROD_NAMESPACE
 
-        scripts/dektecho.sh cmd "tanzu apps workload create $LEGACY_WORKLOAD -f workload.yaml -n $STAGEPROD_NAMESPACE"
-        tanzu apps workload create $LEGACY_WORKLOAD \
-            --git-repo https://github.com/dektlong/legacy-mood \
-            --git-branch release-v2.0 \
-            --type dekt-processor \
-            --label app.kubernetes.io/part-of=$LEGACY_WORKLOAD \
-            --service-ref rabbitmq-claim=rabbitmq.com/v1beta1:RabbitmqCluster:reading-queue \
-            --yes \
-            --namespace $STAGEPROD_NAMESPACE
+        scripts/dektecho.sh cmd "tanzu apps workload create $SENSORS_WORKLOAD -f samples/workloads/mood-sensors-stage.yaml -y -n $STAGEPROD_NAMESPACE"
+        tanzu apps workload create $SENSORS_WORKLOAD -f samples/workloads/mood-sensors-stage.yaml -y -n $STAGEPROD_NAMESPACE
 
-        scripts/dektecho.sh cmd "tanzu apps workload create $SENSORS_WORKLOAD -f workload.yaml -n $STAGEPROD_NAMESPACE"
-        tanzu apps workload create $SENSORS_WORKLOAD \
-            --git-repo http://github.com/dektlong/mood-sensors \
-            --git-branch release-v1.0 \
-            --type dekt-backend \
-            --label apps.tanzu.vmware.com/has-tests="true" \
-            --label app.kubernetes.io/part-of=$SENSORS_WORKLOAD \
-            --service-ref rabbitmq-claim=rabbitmq.com/v1beta1:RabbitmqCluster:reading-queue \
-            --service-ref postgres-claim=services.apps.tanzu.vmware.com/v1alpha1:ResourceClaim:inventory-db \
-            --yes \
-            --namespace $STAGEPROD_NAMESPACE
+        scripts/dektecho.sh cmd "tanzu apps workload create $LEGACY_WORKLOAD -f samples/workloads/legacy-mood.yaml -y -n $STAGEPROD_NAMESPACE"
+        tanzu apps workload create $LEGACY_WORKLOAD -f samples/workloads/legacy-mood.yaml -y -n $STAGEPROD_NAMESPACE
     }
 
     #prod-roleout

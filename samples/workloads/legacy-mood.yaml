@@ -1,0 +1,21 @@
+apiVersion: carto.run/v1alpha1
+kind: Workload
+metadata:
+  name: legacy-mood
+  labels:
+    apps.tanzu.vmware.com/workload-type: dekt-processor
+    app.kubernetes.io/part-of: legacy-mood
+spec:
+  #source code
+  source:
+    git:
+      url: https://github.com/dektlong/legacy-mood 
+      ref:
+        branch: release-v2.0 
+  #data services
+  serviceClaims:
+  - name: rabbitmq-claim
+    ref:
+      apiVersion: rabbitmq.com/v1beta1
+      kind: RabbitmqCluster
+      name: reading-queue
