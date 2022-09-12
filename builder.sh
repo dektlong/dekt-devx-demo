@@ -158,13 +158,20 @@
 
         kubectl create ns tap-install
        
+        #tanzu secret registry add tap-registry \
+        #    --username ${TANZU_NETWORK_USER} --password ${TANZU_NETWORK_PASSWORD} \
+        #    --server "registry.tanzu.vmware.com" \
+        #    --export-to-all-namespaces --yes --namespace tap-install
         tanzu secret registry add tap-registry \
-            --username ${TANZU_NETWORK_USER} --password ${TANZU_NETWORK_PASSWORD} \
-            --server "registry.tanzu.vmware.com" \
+            --username ${PRIVATE_REPO_USER} --password ${PRIVATE_REPO_PASSWORD} \
+            --server $PRIVATE_REPO_SERVER \
             --export-to-all-namespaces --yes --namespace tap-install
 
+        #tanzu package repository add tanzu-tap-repository \
+        #    --url registry.tanzu.vmware.com/tanzu-application-platform/tap-packages:$TAP_VERSION \
+        #    --namespace tap-install
         tanzu package repository add tanzu-tap-repository \
-            --url registry.tanzu.vmware.com/tanzu-application-platform/tap-packages:$TAP_VERSION \
+            --url $PRIVATE_REPO_SERVER/tanzu-application-platform/tap-packages:$TAP_VERSION \
             --namespace tap-install
 
         tanzu package install tap -p tap.tanzu.vmware.com -v $TAP_VERSION \
@@ -481,12 +488,12 @@
     #relocate-tap-images
     relocate-tap-images() {
 
-        scripts/dektecho.sh err "Make sure docker deamon is running..."
-        read
+        #scripts/dektecho.sh prompt "Make sure docker deamon is running before proceeding"
+        #read
         
-        docker login $PRIVATE_REPO_SERVER -u $PRIVATE_REPO_USER -p $PRIVATE_REPO_PASSWORD
+        #docker login $PRIVATE_REPO_SERVER -u $PRIVATE_REPO_USER -p $PRIVATE_REPO_PASSWORD
 
-        docker login registry.tanzu.vmware.com -u $TANZU_NETWORK_USER -p $TANZU_NETWORK_PASSWORD
+        #docker login registry.tanzu.vmware.com -u $TANZU_NETWORK_USER -p $TANZU_NETWORK_PASSWORD
         
         export INSTALL_REGISTRY_USERNAME=$PRIVATE_REPO_USER
         export INSTALL_REGISTRY_PASSWORD=$PRIVATE_REPO_PASSWORD

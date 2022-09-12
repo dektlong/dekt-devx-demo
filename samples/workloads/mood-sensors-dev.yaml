@@ -30,7 +30,7 @@ spec:
   params:
   - name: api_descriptor
     value:
-      type: openAPI
+      type: openapi
       location:
         path: /samples/workloads/mood-sensors-openapi.yaml
       owner: dekt-dev-team2
