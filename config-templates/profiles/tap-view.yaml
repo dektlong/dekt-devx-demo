@@ -58,6 +58,8 @@ tap_gui:
               authProvider: serviceAccount
               serviceAccountToken: "" #updated in runtime
               skipTLSVerify: true
+api_auto_registration:
+  tap_gui_url: http://tap-gui.sys.[CHANGE_ME]
 contour:
   envoy:
     service:

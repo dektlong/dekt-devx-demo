@@ -28,6 +28,8 @@
     TANZU_NETWORK_PASSWORD=$(yq .buildservice.tanzunet_password .config/profiles/tap-iterate.yaml)
     TAP_VERSION=$(yq .tap.version .config/demo-values.yaml)
     CARVEL_BUNDLE=$(yq .tap.carvel_bundle .config/demo-values.yaml)
+    SNYK_VERSION=$(yq .tap.snyk_version .config/demo-values.yaml)
+    SERVICES_TOOLKIT_VERSION=$(yq .tap.services_toolkit_version .config/demo-values.yaml)
     #apps-namespaces
     DEV_NAMESPACE=$(yq .apps-namespaces.dev .config/demo-values.yaml)
     TEAM_NAMESPACE=$(yq .apps-namespaces.team .config/demo-values.yaml)
@@ -119,7 +121,7 @@
         kubectl apply -f .config/custom-sc/scan-policy.yaml -n $STAGEPROD_NAMESPACE
 
         #add services-toolkit seperately as it's not part of the build profile
-        tanzu package install services-toolkit -n tap-install -p services-toolkit.tanzu.vmware.com -v 0.8.0-rc.2 #0.7.1
+        tanzu package install services-toolkit -n tap-install -p services-toolkit.tanzu.vmware.com -v $SERVICES_TOOLKIT_VERSION
         
         scripts/dektecho.sh status "Adding RabbitMQ and Postgres in stage/prod configurations"
         add-rabbitmq-stageprod
@@ -159,21 +161,21 @@
 
         kubectl create ns tap-install
        
-        #tanzu secret registry add tap-registry \
-        #    --username ${TANZU_NETWORK_USER} --password ${TANZU_NETWORK_PASSWORD} \
-        #    --server "registry.tanzu.vmware.com" \
-        #    --export-to-all-namespaces --yes --namespace tap-install
         tanzu secret registry add tap-registry \
-            --username ${PRIVATE_REPO_USER} --password ${PRIVATE_REPO_PASSWORD} \
-            --server $PRIVATE_REPO_SERVER \
+            --username ${TANZU_NETWORK_USER} --password ${TANZU_NETWORK_PASSWORD} \
+            --server "registry.tanzu.vmware.com" \
             --export-to-all-namespaces --yes --namespace tap-install
+        #tanzu secret registry add tap-registry \
+        #    --username ${PRIVATE_REPO_USER} --password ${PRIVATE_REPO_PASSWORD} \
+        #    --server $PRIVATE_REPO_SERVER \
+        #    --export-to-all-namespaces --yes --namespace tap-install
 
-        #tanzu package repository add tanzu-tap-repository \
-        #    --url registry.tanzu.vmware.com/tanzu-application-platform/tap-packages:$TAP_VERSION \
-        #    --namespace tap-install
         tanzu package repository add tanzu-tap-repository \
-            --url $PRIVATE_REPO_SERVER/$SYSTEM_REPO/tap-packages:$TAP_VERSION \
+            --url registry.tanzu.vmware.com/tanzu-application-platform/tap-packages:$TAP_VERSION \
             --namespace tap-install
+        #tanzu package repository add tanzu-tap-repository \
+        #    --url $PRIVATE_REPO_SERVER/$SYSTEM_REPO/tap-packages:$TAP_VERSION \
+        #    --namespace tap-install
 
         tanzu package install tap -p tap.tanzu.vmware.com -v $TAP_VERSION \
             --values-file .config/profiles/$tap_values_file_name \
@@ -314,7 +316,7 @@
 
         tanzu package install snyk-scanner \
             --package-name snyk.scanning.apps.tanzu.vmware.com \
-            --version 1.0.0-beta.4-build.1 \
+            --version $SNYK_VERSION \
             --namespace tap-install \
             --values-file .config/scanners/snyk-install.yaml
 
