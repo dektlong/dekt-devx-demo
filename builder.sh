@@ -64,9 +64,6 @@
         scripts/ingress-handler.sh update-tap-dns $SYSTEM_SUB_DOMAIN
 
         update-store-secrets
-
-        set-multi-cluster-access
-
     }
 
     #install-dev-cluster
@@ -323,8 +320,8 @@
             #1.0.0-beta.2
 
     }
-    #set-multi-cluster-access
-    set-multi-cluster-access() {
+    #update-multi-cluster-access
+    update-multi-cluster-access() {
         
         scripts/dektecho.sh status "Setting Backstage access to dev,stage & prod clusters"
 
@@ -665,6 +662,7 @@
         install-demo)
             install-stage-cluster
             install-prod-cluster
+            update-multi-cluster-access
             add-brownfield-apis
             attach-tmc-clusters
             ;;
