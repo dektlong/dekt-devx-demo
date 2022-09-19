@@ -1,9 +1,10 @@
 #!/usr/bin/env bash
 
-export INSTALL_BUNDLE=registry.tanzu.vmware.com/tanzu-cluster-essentials/cluster-essentials-bundle@sha256:e00f33b92d418f49b1af79f42cb13d6765f1c8c731f4528dfff8343af042dc3e
-export INSTALL_REGISTRY_HOSTNAME=registry.tanzu.vmware.com
-export INSTALL_REGISTRY_USERNAME=$(yq .buildservice.tanzunet_username .config/profiles/tap-build.yaml)
-export INSTALL_REGISTRY_PASSWORD=$(yq .buildservice.tanzunet_password .config/profiles/tap-build.yaml)
+PRIVATE_REPO_SERVER=$(yq .ootb_supply_chain_basic.registry.server .config/profiles/tap-iterate.yaml)
+PRIVATE_REPO_USER=$(yq .buildservice.kp_default_repository_username .config/profiles/tap-iterate.yaml)
+PRIVATE_REPO_PASSWORD=$(yq .buildservice.kp_default_repository_password .config/profiles/tap-iterate.yaml)
+SYSTEM_REPO=$(yq .tap.systemRepo .config/demo-values.yaml)
+CARVEL_BUNDLE=$(yq .tap.carvel_bundle .config/demo-values.yaml)
 
 #add-carvel
 add-carvel () {
@@ -11,7 +12,11 @@ add-carvel () {
     scripts/dektecho.sh status "Add Carvel tools to cluster $(kubectl config current-context)"
 
     pushd scripts/carvel
-
+    
+    INSTALL_BUNDLE=$PRIVATE_REPO_SERVER/$SYSTEM_REPO/$CARVEL_BUNDLE \
+    INSTALL_REGISTRY_HOSTNAME=$PRIVATE_REPO_SERVER \
+    INSTALL_REGISTRY_USERNAME=$PRIVATE_REPO_USER \
+    INSTALL_REGISTRY_PASSWORD=$PRIVATE_REPO_PASSWORD \
     ./install.sh --yes
 
     pushd

@@ -64,6 +64,15 @@ create-eks-cluster () {
     kubectl config rename-context $(kubectl config current-context) $cluster_name
 }
 
+#scale-aks-nodes
+scale-aks-nodes () {
+
+    cluster_name=$1
+	number_of_nodes=$2
+
+	az aks nodepool scale --name nodepool1 --cluster-name $cluster_name --resource-group $AZURE_RESOURCE_GROUP  --node-count 0 #$number_of_nodes
+
+}
 
 #delete-eks-cluster
 delete-eks-cluster () {
@@ -116,7 +125,8 @@ incorrect-usage() {
 	
 	scripts/dektecho.sh err "Incorrect usage. Please specify:"
     echo "  create [aks/eks/gke cluster-name numbber-of-nodes]"
-    echo "  delete [aks/eks/gke cluster-name]"
+    echo "  scale-nodes [aks/eks/gke cluster-name numbber-of-nodes]"
+	echo "  delete [aks/eks/gke cluster-name]"
     exit
 }
 
@@ -131,6 +141,22 @@ create)
 		;;
 	gke)
 		create-gke-cluster $3 $4
+		;;
+	*)
+		incorrect-usage
+		;;
+	esac
+	;;
+scale-nodes)
+    case $2 in
+	aks)
+  		scale-aks-nodes $3 $4
+    	;;
+	eks)
+		scale-eks-nodes $3 $4
+		;;
+	gke)
+		scale-gke-nodes $3 $4
 		;;
 	*)
 		incorrect-usage
@@ -152,7 +178,7 @@ delete)
 		incorrect-usage
 		;;
 	esac
-	;;
+	;;	
 test-cluster)
 	ctx $2 && kubectl get pods -A && kubectl get svc -A
 	;;

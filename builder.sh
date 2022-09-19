@@ -27,6 +27,7 @@
     TANZU_NETWORK_USER=$(yq .buildservice.tanzunet_username .config/profiles/tap-iterate.yaml)
     TANZU_NETWORK_PASSWORD=$(yq .buildservice.tanzunet_password .config/profiles/tap-iterate.yaml)
     TAP_VERSION=$(yq .tap.version .config/demo-values.yaml)
+    CARVEL_BUNDLE=$(yq .tap.carvel_bundle .config/demo-values.yaml)
     #apps-namespaces
     DEV_NAMESPACE=$(yq .apps-namespaces.dev .config/demo-values.yaml)
     TEAM_NAMESPACE=$(yq .apps-namespaces.team .config/demo-values.yaml)
@@ -171,7 +172,7 @@
         #    --url registry.tanzu.vmware.com/tanzu-application-platform/tap-packages:$TAP_VERSION \
         #    --namespace tap-install
         tanzu package repository add tanzu-tap-repository \
-            --url $PRIVATE_REPO_SERVER/tanzu-application-platform/tap-packages:$TAP_VERSION \
+            --url $PRIVATE_REPO_SERVER/$SYSTEM_REPO/tap-packages:$TAP_VERSION \
             --namespace tap-install
 
         tanzu package install tap -p tap.tanzu.vmware.com -v $TAP_VERSION \
@@ -488,23 +489,55 @@
     #relocate-tap-images
     relocate-tap-images() {
 
-        #scripts/dektecho.sh prompt "Make sure docker deamon is running before proceeding"
-        #read
+        scripts/dektecho.sh prompt "Make sure docker deamon is running before proceeding"
         
-        #docker login $PRIVATE_REPO_SERVER -u $PRIVATE_REPO_USER -p $PRIVATE_REPO_PASSWORD
+        docker login $PRIVATE_REPO_SERVER -u $PRIVATE_REPO_USER -p $PRIVATE_REPO_PASSWORD
 
-        #docker login registry.tanzu.vmware.com -u $TANZU_NETWORK_USER -p $TANZU_NETWORK_PASSWORD
+        docker login registry.tanzu.vmware.com -u $TANZU_NETWORK_USER -p $TANZU_NETWORK_PASSWORD
         
-        export INSTALL_REGISTRY_USERNAME=$PRIVATE_REPO_USER
-        export INSTALL_REGISTRY_PASSWORD=$PRIVATE_REPO_PASSWORD
-        export INSTALL_REGISTRY_HOSTNAME=$PRIVATE_REPO_SERVER
+        export IMGPKG_REGISTRY_HOSTNAME=$PRIVATE_REPO_SERVER
+        export IMGPKG_REGISTRY_USERNAME=$PRIVATE_REPO_USER
+        export IMGPKG_REGISTRY_PASSWORD=$PRIVATE_REPO_PASSWORD
         export TAP_VERSION=$TAP_VERSION
+    
 
-        imgpkg copy -b registry.tanzu.vmware.com/tanzu-application-platform/tap-packages:$TAP_VERSION \
-            --to-repo ${INSTALL_REGISTRY_HOSTNAME}/$SYSTEM_REPO/tap-packages
+        imgpkg copy \
+            --bundle registry.tanzu.vmware.com/tanzu-application-platform/tap-packages:$TAP_VERSION \
+            --to-tar tap-packages-$TAP_VERSION.tar \
+            --include-non-distributable-layers
 
+        imgpkg copy \
+            --tar tap-packages-$TAP_VERSION.tar \
+            --to-repo $IMGPKG_REGISTRY_HOSTNAME/$SYSTEM_REPO/tap-packages \
+            --include-non-distributable-layers
+            
     }
     
+    #relocate-carvel-bundle
+    relocate-carvel-bundle() {
+
+        scripts/dektecho.sh prompt "Make sure docker deamon is running before proceeding"
+        
+        docker login $PRIVATE_REPO_SERVER -u $PRIVATE_REPO_USER -p $PRIVATE_REPO_PASSWORD
+
+        docker login registry.tanzu.vmware.com -u $TANZU_NETWORK_USER -p $TANZU_NETWORK_PASSWORD
+        
+        export IMGPKG_REGISTRY_HOSTNAME=$PRIVATE_REPO_SERVER
+        export IMGPKG_REGISTRY_USERNAME=$PRIVATE_REPO_USER
+        export IMGPKG_REGISTRY_PASSWORD=$PRIVATE_REPO_PASSWORD
+        export TAP_VERSION=$TAP_VERSION
+
+        imgpkg copy \
+            --bundle registry.tanzu.vmware.com/tanzu-cluster-essentials/$CARVEL_BUNDLE \
+            --to-tar carvel-bundle.tar \
+            --include-non-distributable-layers
+
+        imgpkg copy \
+            --tar carvel-bundle.tar \
+            --to-repo $IMGPKG_REGISTRY_HOSTNAME/$SYSTEM_REPO/cluster-essentials-bundle \
+            --include-non-distributable-layers
+    }
+
     #install-gui-dev
     install-gui-dev() {
 
@@ -606,8 +639,8 @@
             install-dev-cluster 
             ;;
         uninstall-demo)
-            delete-tap $VIEW_CLUSTER_NAME
-            delete-tap $DEV_CLUSTER_NAME
+            delete-demo $VIEW_CLUSTER_NAME
+            delete-demo $DEV_CLUSTER_NAME
             ;;
         esac
     }
@@ -634,8 +667,8 @@
             attach-tmc-clusters
             ;;
         uninstall-demo)
-            delete-tap $STAGE_CLUSTER_NAME
-            delete-tap $PROD_CLUSTER_NAME
+            delete-demo $STAGE_CLUSTER_NAME
+            delete-demo $PROD_CLUSTER_NAME
             ;;
         esac
     }
@@ -647,6 +680,8 @@ case $1 in
 init-all)    
     innerloop-handler create-clusters
     outerloop-handler create-clusters
+    #workaround
+    scripts/dektecho.sh prompt  "!!!Fix the docker to containerd bug" && [ $? -eq 0 ] || exit
     test-all-clusters
     scripts/dektecho.sh prompt  "Continue to install demo components" && [ $? -eq 0 ] || exit
     innerloop-handler install-demo

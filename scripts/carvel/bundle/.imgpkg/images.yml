@@ -7,12 +7,12 @@ images:
       - resolved:
           tag: v0.38.4_vmware.1
           url: projects-stg.registry.vmware.com/tkg/kapp-controller:v0.38.4_vmware.1
-  image: registry.tanzu.vmware.com/tanzu-cluster-essentials/cluster-essentials-bundle@sha256:a10114c848406a32f014b7809bcab92b5ab3042207693e9afdffc4026b16f363
+  image: harbor.registry.dekt.io/dekt-system/cluster-essentials-bundle@sha256:a10114c848406a32f014b7809bcab92b5ab3042207693e9afdffc4026b16f363
 - annotations:
     kbld.carvel.dev/id: ghcr.io/vmware-tanzu/carvel-secretgen-controller@sha256:1f842b9c3e0ee164b450c10486d7b08eee0eacb754af42549aa64906221f7966
     kbld.carvel.dev/origins: |
       - resolved:
           tag: v0.9.1_vmware.1
           url: projects-stg.registry.vmware.com/tkg/secretgen-controller:v0.9.1_vmware.1
-  image: registry.tanzu.vmware.com/tanzu-cluster-essentials/cluster-essentials-bundle@sha256:165f5e36529878fd9a6111f6b5aa96f06ee26d171ac139bc3183ca2c884937bf
+  image: harbor.registry.dekt.io/dekt-system/cluster-essentials-bundle@sha256:165f5e36529878fd9a6111f6b5aa96f06ee26d171ac139bc3183ca2c884937bf
 kind: ImagesLock

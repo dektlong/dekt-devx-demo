@@ -32,8 +32,8 @@ brownfield-cluster: #for bronwfield apis demo, SCGW and TSM, no TAP installed
 # Configs
 #==================================================================
 tap:
-  #version: "1.1.1"
-  version: "1.2.0"
+  tap_version: "1.2.0"
+  carvel_version: "cluster-essentials-bundle@sha256:e00f33b92d418f49b1af79f42cb13d6765f1c8c731f4528dfff8343af042dc3e"
   systemRepo: "dekt-system"
   prodAuditFile: "audit-prod.log"
 apps-namespaces:
