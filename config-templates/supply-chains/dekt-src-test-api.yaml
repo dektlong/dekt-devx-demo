@@ -1,11 +1,8 @@
 apiVersion: carto.run/v1alpha1
-kind: ClusterSupplyChain
+kind: ClusterSupplyChain 
 metadata:
-  name: dekt-src-to-api-with-scan
+  name: dekt-src-test-api
 spec:
-  selector:
-    apps.tanzu.vmware.com/has-tests: "true"
-    apps.tanzu.vmware.com/workload-type: dekt-backend
   params:
   - name: maven_repository_url
     value: https://repo.maven.apache.org/maven2
@@ -20,7 +17,7 @@ spec:
   - default: ""
     name: gitops_ssh_secret
   resources:
-  - name: get-source
+  - name: source-provider
     params:
     - name: serviceAccount
       value: default
@@ -29,43 +26,21 @@ spec:
     templateRef:
       kind: ClusterSourceTemplate
       name: source-template
-  - name: deliverable
-    params:
-    - name: registry
-      value:
-        ca_cert_data: ""
-        repository: [CHANGE_ME]
-        server: [CHANGE_ME]
-    templateRef:
-      kind: ClusterTemplate
-      name: deliverable-template
-  - name: test-source
+  - name: source-tester
     sources:
     - name: source
-      resource: get-source
+      resource: source-provider
     templateRef:
       kind: ClusterSourceTemplate
       name: testing-pipeline
-  - name: scan-source
-    params:
-    - default: scan-policy
-      name: scanning_source_policy
-    - default: blob-source-scan-template
-      name: scanning_source_template
-    sources:
-    - name: source
-      resource: test-source
-    templateRef:
-      kind: ClusterSourceTemplate
-      name: source-scanner-template
-  - name: build-image
+  - name: image-provider
     params:
     - name: serviceAccount
       value: default
     - name: registry
       value:
         ca_cert_data: ""
-        repository: [CHANGE_ME]
+        repository: dekt-dev
         server: [CHANGE_ME]
     - default: default
       name: clusterBuilder
@@ -77,7 +52,7 @@ spec:
       name: docker_build_extra_args
     sources:
     - name: source
-      resource: scan-source
+      resource: source-tester
     templateRef:
       kind: ClusterImageTemplate
       options:
@@ -91,55 +66,80 @@ spec:
           matchFields:
           - key: spec.params[?(@.name=="dockerfile")]
             operator: Exists
-  - name: scan-image
-    images:
+  - images:
     - name: image
-      resource: build-image
-    params:
-    - default: scan-policy
-      name: scanning_image_policy
-    - default: snyk-private-image-scan-template
-    #- default: private-image-scan-template
-      name: scanning_image_template
-    templateRef:
-      kind: ClusterImageTemplate
-      name: image-scanner-template
-  - name: apply-conventions
-    images:
-    - name: image
-      resource: scan-image
+      resource: image-provider
+    name: config-provider
     params:
     - name: serviceAccount
       value: default
     templateRef:
       kind: ClusterConfigTemplate
       name: convention-template
-  - name: bind-services
-    configs:
+  - configs:
     - name: config
-      resource: apply-conventions
+      resource: config-provider
+    name: app-config
     templateRef:
       kind: ClusterConfigTemplate
-      name: config-template
-  - name: process-apis
-    configs:
+      options:
+      - name: config-template
+        selector:
+          matchLabels:
+            apps.tanzu.vmware.com/workload-type: dekt-backend
+      - name: server-template
+        selector:
+          matchLabels:
+            apps.tanzu.vmware.com/workload-type: server
+      - name: worker-template
+        selector:
+          matchLabels:
+            apps.tanzu.vmware.com/workload-type: worker
+  - configs:
     - name: app_def
-      resource: bind-services
+      resource: app-config
+    name: service-bindings
+    templateRef:
+      kind: ClusterConfigTemplate
+      name: service-bindings
+  - configs:
+    - name: app_def
+      resource: service-bindings
+    name: api-descriptors
     templateRef:
       kind: ClusterConfigTemplate
       name: api-descriptors
-  - name: deploy-app
-    configs:
-    - name: app_def
-      resource: process-apis
+  - configs:
+    - name: config
+      resource: api-descriptors
+    name: config-writer
     params:
     - name: serviceAccount
       value: default
     - name: registry
       value:
         ca_cert_data: ""
-        repository: [CHANGE_ME]
+        repository: dekt-dev
         server: [CHANGE_ME]
     templateRef:
       kind: ClusterTemplate
       name: config-writer-template
+  - name: deliverable
+    params:
+    - name: registry
+      value:
+        ca_cert_data: ""
+        repository: dekt-dev
+        server: [CHANGE_ME]
+    templateRef:
+      kind: ClusterTemplate
+      name: deliverable-template
+  selector:
+    apps.tanzu.vmware.com/has-tests: "true"
+  selectorMatchExpressions:
+  - key: apps.tanzu.vmware.com/workload-type
+    operator: In
+    values:
+    - dekt-backend
+    - server
+    - worker

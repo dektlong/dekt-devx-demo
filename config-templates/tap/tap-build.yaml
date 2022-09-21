@@ -8,11 +8,11 @@ profile: build
 # Build Service
 #==================================================================
 buildservice:
-  kp_default_repository: "[CHANGE_ME]/build-service"
-  kp_default_repository_username: "[CHANGE_ME]"
-  kp_default_repository_password: "[CHANGE_ME]"
-  tanzunet_username: "[CHANGE_ME]"
-  tanzunet_password: "[CHANGE_ME]"
+  kp_default_repository: "[CHANGE_ME]/dekt-system/build-service"
+  kp_default_repository_username: ""
+  kp_default_repository_password: ""
+  tanzunet_username: ""
+  tanzunet_password: #"
   descriptor_name: "full"
   enable_automatic_dependency_updates: true
 
@@ -20,39 +20,32 @@ buildservice:
 # Supply Chains
 #   accepted values: basic , testing , testing_scanning
 #==================================================================
-supply_chain: basic #ootb is basic for mood-portal, the testing-scanning will be a customer supllychain
+supply_chain: basic #ootb is basic for mood-portal, the testing-scanning will be a custom supplychain
 
 ootb_supply_chain_basic:
   registry:
     server: "[CHANGE_ME]"
-    repository: "[CHANGE_ME]"
+    repository: "dekt-stage"
   gitops:
     ssh_secret: ""
 
 ootb_supply_chain_testing_scanning:
-  scanning:
-   image:
-     template: snyk-private-image-scan-template
-     policy: scan-policy
   registry:
     server: "[CHANGE_ME]"
-    repository: "[CHANGE_ME]"
-
-
+    repository: "dekt-stage"
   gitops:
     ssh_secret: ""
 
 scanning:
   metadataStore:
     url: ""
-    ns_for_export_app_cert: "dekt-apps"
 
 #source scanner (see scanners/snyk_image_scanner.yaml for Snyk image scanner install)
 grype:
   namespace: "dekt-apps"
   targetImagePullSecret: "registry-credentials"
   metadataStore:
-    url: https://metadata-store.sys.[CHANGE_ME]
+    url: https://metadata-store.sys.dekt.io
     caSecret:
       name: store-ca-cert
       importFromNamespace: metadata-store-secrets

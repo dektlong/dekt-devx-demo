@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 
-PRIVATE_REPO_SERVER=$(yq .ootb_supply_chain_basic.registry.server .config/profiles/tap-iterate.yaml)
-PRIVATE_REPO_USER=$(yq .buildservice.kp_default_repository_username .config/profiles/tap-iterate.yaml)
-PRIVATE_REPO_PASSWORD=$(yq .buildservice.kp_default_repository_password .config/profiles/tap-iterate.yaml)
+PRIVATE_REPO_SERVER=$(yq .ootb_supply_chain_basic.registry.server .config/tap/tap-iterate.yaml)
+PRIVATE_REPO_USER=$(yq .buildservice.kp_default_repository_username .config/tap/tap-iterate.yaml)
+PRIVATE_REPO_PASSWORD=$(yq .buildservice.kp_default_repository_password .config/tap/tap-iterate.yaml)
 SYSTEM_REPO=$(yq .tap.systemRepo .config/demo-values.yaml)
 CARVEL_BUNDLE=$(yq .tap.carvel_bundle .config/demo-values.yaml)
 

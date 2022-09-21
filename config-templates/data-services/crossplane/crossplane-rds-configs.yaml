@@ -45,7 +45,7 @@ kind: Composition
 metadata:
  labels:
    provider: "aws"
-   vpc: "[CHANGE_ME]"
+   vpc: "vpc-03756ba71e05cb2c9"
  name: xpostgresqlinstances.bindable.aws.database.example.org
 spec:
  compositeTypeRef:

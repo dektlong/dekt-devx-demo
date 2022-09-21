@@ -4,7 +4,7 @@ snyk:
   tokenSecret:
     name: snyk-token-secret
 metadataStore:
-  url: https://metadata-store.sys.[CHANGE_ME]
+  url: https://metadata-store.sys.dekt.io
   caSecret:
     name: store-ca-cert
     importFromNamespace: "" #since Grype is installed on the same namespace

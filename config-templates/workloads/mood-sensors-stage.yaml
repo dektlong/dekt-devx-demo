@@ -36,3 +36,6 @@ spec:
       owner: dekt-app-ops
       system: devx-mood
       description: A set of API endpoints to manage the resources within the my-web-backend app.
+  - name: annotations
+    value:
+      autoscaling.knative.dev/minScale: "1"

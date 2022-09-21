@@ -8,7 +8,7 @@
     STAGE_CLUSTER=$(yq .stage-cluster.name .config/demo-values.yaml)
     PROD_CLUSTER=$(yq .prod-cluster.name .config/demo-values.yaml)
     BROWNFIELD_CLUSTER=$(yq .brownfield-cluster.name .config/demo-values.yaml)
-    #workloads (must match the names in samples/workloads)
+    #workloads (must match the names in .config/workloads)
     PORTAL_WORKLOAD="mood-portal"
     SENSORS_WORKLOAD="mood-sensors"
     LEGACY_WORKLOAD="legacy-mood"
@@ -96,14 +96,14 @@
 
         kubectl config use-context $DEV_CLUSTER
         
-        scripts/dektecho.sh cmd "tanzu apps workload create $PORTAL_WORKLOAD -f samples/workloads/mood-portal-dev.yaml -y -n $TEAM_NAMESPACE"
-        tanzu apps workload create $PORTAL_WORKLOAD -f samples/workloads/mood-portal-dev.yaml -y -n $TEAM_NAMESPACE
+        scripts/dektecho.sh cmd "tanzu apps workload create $PORTAL_WORKLOAD -f .config/workloads/mood-portal-dev.yaml -y -n $TEAM_NAMESPACE"
+        tanzu apps workload create $PORTAL_WORKLOAD -f .config/workloads/mood-portal-dev.yaml -y -n $TEAM_NAMESPACE
 
-        scripts/dektecho.sh cmd "tanzu apps workload create $SENSORS_WORKLOAD -f samples/workloads/mood-sensors-dev.yaml -y -n $TEAM_NAMESPACE"
-        tanzu apps workload create $SENSORS_WORKLOAD -f samples/workloads/mood-sensors-dev.yaml -y -n $TEAM_NAMESPACE
+        scripts/dektecho.sh cmd "tanzu apps workload create $SENSORS_WORKLOAD -f .config/workloads/mood-sensors-dev.yaml -y -n $TEAM_NAMESPACE"
+        tanzu apps workload create $SENSORS_WORKLOAD -f .config/workloads/mood-sensors-dev.yaml -y -n $TEAM_NAMESPACE
 
-        scripts/dektecho.sh cmd "tanzu apps workload create $LEGACY_WORKLOAD -f samples/workloads/legacy-mood.yaml -y -n $TEAM_NAMESPACE"
-        tanzu apps workload create $LEGACY_WORKLOAD -f samples/workloads/legacy-mood.yaml -y -n $TEAM_NAMESPACE
+        scripts/dektecho.sh cmd "tanzu apps workload create $LEGACY_WORKLOAD -f .config/workloads/legacy-mood.yaml -y -n $TEAM_NAMESPACE"
+        tanzu apps workload create $LEGACY_WORKLOAD -f .config/workloads/legacy-mood.yaml -y -n $TEAM_NAMESPACE
     }
 
     #create-stage-workloads
@@ -111,14 +111,14 @@
 
         kubectl config use-context $STAGE_CLUSTER
         
-        scripts/dektecho.sh cmd "tanzu apps workload create $PORTAL_WORKLOAD -f samples/workloads/mood-portal-stage.yaml -y -n $STAGEPROD_NAMESPACE"
-        tanzu apps workload create $PORTAL_WORKLOAD -f samples/workloads/mood-portal-stage.yaml -y -n $STAGEPROD_NAMESPACE
+        scripts/dektecho.sh cmd "tanzu apps workload create $PORTAL_WORKLOAD -f .config/workloads/mood-portal-stage.yaml -y -n $STAGEPROD_NAMESPACE"
+        tanzu apps workload create $PORTAL_WORKLOAD -f .config/workloads/mood-portal-stage.yaml -y -n $STAGEPROD_NAMESPACE
 
-        scripts/dektecho.sh cmd "tanzu apps workload create $SENSORS_WORKLOAD -f samples/workloads/mood-sensors-stage.yaml -y -n $STAGEPROD_NAMESPACE"
-        tanzu apps workload create $SENSORS_WORKLOAD -f samples/workloads/mood-sensors-stage.yaml -y -n $STAGEPROD_NAMESPACE
+        scripts/dektecho.sh cmd "tanzu apps workload create $SENSORS_WORKLOAD -f .config/workloads/mood-sensors-stage.yaml -y -n $STAGEPROD_NAMESPACE"
+        tanzu apps workload create $SENSORS_WORKLOAD -f .config/workloads/mood-sensors-stage.yaml -y -n $STAGEPROD_NAMESPACE
 
-        scripts/dektecho.sh cmd "tanzu apps workload create $LEGACY_WORKLOAD -f samples/workloads/legacy-mood.yaml -y -n $STAGEPROD_NAMESPACE"
-        tanzu apps workload create $LEGACY_WORKLOAD -f samples/workloads/legacy-mood.yaml -y -n $STAGEPROD_NAMESPACE
+        scripts/dektecho.sh cmd "tanzu apps workload create $LEGACY_WORKLOAD -f .config/workloads/legacy-mood.yaml -y -n $STAGEPROD_NAMESPACE"
+        tanzu apps workload create $LEGACY_WORKLOAD -f .config/workloads/legacy-mood.yaml -y -n $STAGEPROD_NAMESPACE
     }
 
     #prod-roleout
@@ -250,8 +250,9 @@
         rm -f $SENSORS_DELIVERABLE
         rm -r .gitops
 
-        kubectl config use-context $VIEW_CLUSTER
-        kubectl delete pod -l app=backstage -n tap-gui
+        #kubectl config use-context $VIEW_CLUSTER
+        #kubectl delete pod -l app=backstage -n tap-gui
+        ./builder.sh runme update-multi-cluster-access
     }
 
     #toggle the BYPASS_BACKEND flag in mood-portal

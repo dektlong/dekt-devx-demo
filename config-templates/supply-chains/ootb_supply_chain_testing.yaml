@@ -1,0 +1,169 @@
+apiVersion: carto.run/v1alpha1
+kind: ClusterSupplyChain #TAP 1.3
+metadata:
+  annotations:
+    kapp.k14s.io/identity: v1;/carto.run/ClusterSupplyChain/source-test-to-url;carto.run/v1alpha1
+    kapp.k14s.io/original: '{"apiVersion":"carto.run/v1alpha1","kind":"ClusterSupplyChain","metadata":{"labels":{"kapp.k14s.io/app":"1663709044616308567","kapp.k14s.io/association":"v1.826ad3b3853ba296da3859c9691feae3"},"name":"source-test-to-url"},"spec":{"params":[{"name":"maven_repository_url","value":"https://repo.maven.apache.org/maven2"},{"default":"main","name":"gitops_branch"},{"default":"supplychain","name":"gitops_user_name"},{"default":"supplychain","name":"gitops_user_email"},{"default":"supplychain@cluster.local","name":"gitops_commit_message"},{"default":"","name":"gitops_ssh_secret"}],"resources":[{"name":"source-provider","params":[{"name":"serviceAccount","value":"default"},{"name":"gitImplementation","value":"go-git"}],"templateRef":{"kind":"ClusterSourceTemplate","name":"source-template"}},{"name":"source-tester","sources":[{"name":"source","resource":"source-provider"}],"templateRef":{"kind":"ClusterSourceTemplate","name":"testing-pipeline"}},{"name":"image-provider","params":[{"name":"serviceAccount","value":"default"},{"name":"registry","value":{"ca_cert_data":"","repository":"dekt-dev","server":"[CHANGE_ME]"}},{"default":"default","name":"clusterBuilder"},{"default":"./Dockerfile","name":"dockerfile"},{"default":"./","name":"docker_build_context"},{"default":[],"name":"docker_build_extra_args"}],"sources":[{"name":"source","resource":"source-tester"}],"templateRef":{"kind":"ClusterImageTemplate","options":[{"name":"kpack-template","selector":{"matchFields":[{"key":"spec.params[?(@.name==\"dockerfile\")]","operator":"DoesNotExist"}]}},{"name":"kaniko-template","selector":{"matchFields":[{"key":"spec.params[?(@.name==\"dockerfile\")]","operator":"Exists"}]}}]}},{"images":[{"name":"image","resource":"image-provider"}],"name":"config-provider","params":[{"name":"serviceAccount","value":"default"}],"templateRef":{"kind":"ClusterConfigTemplate","name":"convention-template"}},{"configs":[{"name":"config","resource":"config-provider"}],"name":"app-config","templateRef":{"kind":"ClusterConfigTemplate","options":[{"name":"config-template","selector":{"matchLabels":{"apps.tanzu.vmware.com/workload-type":"web"}}},{"name":"server-template","selector":{"matchLabels":{"apps.tanzu.vmware.com/workload-type":"server"}}},{"name":"worker-template","selector":{"matchLabels":{"apps.tanzu.vmware.com/workload-type":"worker"}}}]}},{"configs":[{"name":"app_def","resource":"app-config"}],"name":"service-bindings","templateRef":{"kind":"ClusterConfigTemplate","name":"service-bindings"}},{"configs":[{"name":"app_def","resource":"service-bindings"}],"name":"api-descriptors","templateRef":{"kind":"ClusterConfigTemplate","name":"api-descriptors"}},{"configs":[{"name":"config","resource":"api-descriptors"}],"name":"config-writer","params":[{"name":"serviceAccount","value":"default"},{"name":"registry","value":{"ca_cert_data":"","repository":"dekt-dev","server":"[CHANGE_ME]"}}],"templateRef":{"kind":"ClusterTemplate","name":"config-writer-template"}},{"name":"deliverable","params":[{"name":"registry","value":{"ca_cert_data":"","repository":"dekt-dev","server":"[CHANGE_ME]"}}],"templateRef":{"kind":"ClusterTemplate","name":"deliverable-template"}}],"selector":{"apps.tanzu.vmware.com/has-tests":"true"},"selectorMatchExpressions":[{"key":"apps.tanzu.vmware.com/workload-type","operator":"In","values":["web","server","worker"]}]}}'
+    kapp.k14s.io/original-diff-md5: c6e94dc94aed3401b5d0f26ed6c0bff3
+  creationTimestamp: "2022-09-20T21:24:04Z"
+  generation: 1
+  labels:
+    kapp.k14s.io/app: "1663709044616308567"
+    kapp.k14s.io/association: v1.826ad3b3853ba296da3859c9691feae3
+  name: source-test-to-url
+  resourceVersion: "2032602"
+  uid: f2acde27-6c44-4019-ad67-e4a9aa88f559
+spec:
+  params:
+  - name: maven_repository_url
+    value: https://repo.maven.apache.org/maven2
+  - default: main
+    name: gitops_branch
+  - default: supplychain
+    name: gitops_user_name
+  - default: supplychain
+    name: gitops_user_email
+  - default: supplychain@cluster.local
+    name: gitops_commit_message
+  - default: ""
+    name: gitops_ssh_secret
+  resources:
+  - name: source-provider
+    params:
+    - name: serviceAccount
+      value: default
+    - name: gitImplementation
+      value: go-git
+    templateRef:
+      kind: ClusterSourceTemplate
+      name: source-template
+  - name: source-tester
+    sources:
+    - name: source
+      resource: source-provider
+    templateRef:
+      kind: ClusterSourceTemplate
+      name: testing-pipeline
+  - name: image-provider
+    params:
+    - name: serviceAccount
+      value: default
+    - name: registry
+      value:
+        ca_cert_data: ""
+        repository: dekt-dev
+        server: [CHANGE_ME]
+    - default: default
+      name: clusterBuilder
+    - default: ./Dockerfile
+      name: dockerfile
+    - default: ./
+      name: docker_build_context
+    - default: []
+      name: docker_build_extra_args
+    sources:
+    - name: source
+      resource: source-tester
+    templateRef:
+      kind: ClusterImageTemplate
+      options:
+      - name: kpack-template
+        selector:
+          matchFields:
+          - key: spec.params[?(@.name=="dockerfile")]
+            operator: DoesNotExist
+      - name: kaniko-template
+        selector:
+          matchFields:
+          - key: spec.params[?(@.name=="dockerfile")]
+            operator: Exists
+  - images:
+    - name: image
+      resource: image-provider
+    name: config-provider
+    params:
+    - name: serviceAccount
+      value: default
+    templateRef:
+      kind: ClusterConfigTemplate
+      name: convention-template
+  - configs:
+    - name: config
+      resource: config-provider
+    name: app-config
+    templateRef:
+      kind: ClusterConfigTemplate
+      options:
+      - name: config-template
+        selector:
+          matchLabels:
+            apps.tanzu.vmware.com/workload-type: web
+      - name: server-template
+        selector:
+          matchLabels:
+            apps.tanzu.vmware.com/workload-type: server
+      - name: worker-template
+        selector:
+          matchLabels:
+            apps.tanzu.vmware.com/workload-type: worker
+  - configs:
+    - name: app_def
+      resource: app-config
+    name: service-bindings
+    templateRef:
+      kind: ClusterConfigTemplate
+      name: service-bindings
+  - configs:
+    - name: app_def
+      resource: service-bindings
+    name: api-descriptors
+    templateRef:
+      kind: ClusterConfigTemplate
+      name: api-descriptors
+  - configs:
+    - name: config
+      resource: api-descriptors
+    name: config-writer
+    params:
+    - name: serviceAccount
+      value: default
+    - name: registry
+      value:
+        ca_cert_data: ""
+        repository: dekt-dev
+        server: [CHANGE_ME]
+    templateRef:
+      kind: ClusterTemplate
+      name: config-writer-template
+  - name: deliverable
+    params:
+    - name: registry
+      value:
+        ca_cert_data: ""
+        repository: dekt-dev
+        server: [CHANGE_ME]
+    templateRef:
+      kind: ClusterTemplate
+      name: deliverable-template
+  selector:
+    apps.tanzu.vmware.com/has-tests: "true"
+  selectorMatchExpressions:
+  - key: apps.tanzu.vmware.com/workload-type
+    operator: In
+    values:
+    - web
+    - server
+    - worker
+status:
+  conditions:
+  - lastTransitionTime: "2022-09-20T21:24:04Z"
+    message: ""
+    reason: Ready
+    status: "True"
+    type: TemplatesReady
+  - lastTransitionTime: "2022-09-20T21:24:04Z"
+    message: ""
+    reason: Ready
+    status: "True"
+    type: Ready
+  observedGeneration: 1

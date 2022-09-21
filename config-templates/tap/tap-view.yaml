@@ -44,31 +44,28 @@ tap_gui:
         - type: 'config'
           clusters:
             - url: "" #updated in runtime
-              name: #updated in runtime
+              name: "" #updated in runtime
               authProvider: serviceAccount
               serviceAccountToken: "" #updated in runtime
               skipTLSVerify: true
             - url: "" #updated in runtime
-              name: #updated in runtime
+              name: "" #updated in runtime
               authProvider: serviceAccount
               serviceAccountToken: "" #updated in runtime
               skipTLSVerify: true
             - url: "" #updated in runtime
-              name: #updated in runtime
+              name: devxmood-prod #updated in runtime
               authProvider: serviceAccount
               serviceAccountToken: "" #updated in runtime
               skipTLSVerify: true
-api_auto_registration:
-  tap_gui_url: http://tap-gui.sys.[CHANGE_ME]
 contour:
   envoy:
     service:
       type: LoadBalancer
 metadata_store:
   app_service_type: ClusterIP
-accelerator:
-  server:
-    service_type: "ClusterIP"
+api_auto_registration:
+  tap_gui_url: http://tap-gui.sys.[CHANGE_ME]
 excluded_packages:
   - learningcenter.tanzu.vmware.com
   - workshops.learningcenter.tanzu.vmware.com

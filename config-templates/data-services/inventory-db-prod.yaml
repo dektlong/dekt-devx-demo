@@ -1,7 +1,9 @@
+---
+#crossplane
 apiVersion: bindable.database.example.org/v1alpha1
 kind: PostgreSQLInstance
 metadata:
-  name: inventory-db
+  name: inventory-db-crossplane
 spec:
   parameters:
     storageGB: 20
@@ -14,3 +16,18 @@ spec:
     metadata:
       labels:
         services.apps.tanzu.vmware.com/class: rds-postgres
+#k8s secret
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: inventory-db
+type: Opaque
+stringData:
+  type: postgresql
+  provider: aws
+  host: ""
+  port: "5432"
+  database: "inventory-db"
+  username: ""
+  password: ""
