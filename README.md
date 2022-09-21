@@ -12,7 +12,7 @@ This repo contains artifacts to run a demo illustrating the vision and capabilit
 
 - Clone the dekt-devx-demo repo ```git clone https://github.com/dektlong/dekt-devx-demo```
 
-- Rename the folder ```config-templates``` to ```.config```
+- Rename the folder ```config_CHANGEME``` to ```.config```
 
 - Replace ```[CHANGE_ME]``` with your values
   - Make sure your clusters support the required capacity you defined in ```.config/demo-values.yaml```
