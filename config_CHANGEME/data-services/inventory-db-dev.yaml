@@ -7,8 +7,8 @@ type: Opaque
 stringData:
   type: postgresql
   provider: azure
-  host: ""
+  host: CHANGE_ME
   port: "1433"
   database: "inventory-db"
-  username: ""
-  password: ""
+  username: "CHANGE_ME"
+  password: "CHANGE_ME"

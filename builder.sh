@@ -19,25 +19,25 @@
     BROWNFIELD_CLUSTER_NODES=$(yq .brownfield-cluster.nodes .config/demo-values.yaml)
 
     #image registry
-    PRIVATE_REPO_SERVER=$(yq .ootb_supply_chain_basic.registry.server .config/tap/tap-iterate.yaml)
-    PRIVATE_REPO_USER=$(yq .buildservice.kp_default_repository_username .config/tap/tap-iterate.yaml)
-    PRIVATE_REPO_PASSWORD=$(yq .buildservice.kp_default_repository_password .config/tap/tap-iterate.yaml)
+    PRIVATE_REPO_SERVER=$(yq .ootb_supply_chain_basic.registry.server .config/tap-profiles/tap-iterate.yaml)
+    PRIVATE_REPO_USER=$(yq .buildservice.kp_default_repository_username .config/tap-profiles/tap-iterate.yaml)
+    PRIVATE_REPO_PASSWORD=$(yq .buildservice.kp_default_repository_password .config/tap-profiles/tap-iterate.yaml)
     SYSTEM_REPO=$(yq .tap.systemRepo .config/demo-values.yaml)
     #tap
-    TANZU_NETWORK_USER=$(yq .buildservice.tanzunet_username .config/tap/tap-iterate.yaml)
-    TANZU_NETWORK_PASSWORD=$(yq .buildservice.tanzunet_password .config/tap/tap-iterate.yaml)
+    TANZU_NETWORK_USER=$(yq .buildservice.tanzunet_username .config/tap-profiles/tap-iterate.yaml)
+    TANZU_NETWORK_PASSWORD=$(yq .buildservice.tanzunet_password .config/tap-profiles/tap-iterate.yaml)
     TAP_VERSION=$(yq .tap.version .config/demo-values.yaml)
     CARVEL_BUNDLE=$(yq .tap.carvel_bundle .config/demo-values.yaml)
     SNYK_VERSION=$(yq .tap.snyk_version .config/demo-values.yaml)
-    SERVICES_TOOLKIT_VERSION=$(yq .tap.services_toolkit_version .config/demo-values.yaml)
+    SERVICE_BINDING_VERSION=$(yq .tap.service_binding_version .config/demo-values.yaml)
     #apps-namespaces
     DEV_NAMESPACE=$(yq .apps-namespaces.dev .config/demo-values.yaml)
     TEAM_NAMESPACE=$(yq .apps-namespaces.team .config/demo-values.yaml)
     STAGEPROD_NAMESPACE=$(yq .apps-namespaces.stageProd .config/demo-values.yaml)
     #domains
-    SYSTEM_SUB_DOMAIN=$(yq .shared.ingress_domain .config/tap/tap-view.yaml | cut -d'.' -f 1)
-    DEV_SUB_DOMAIN=$(yq .shared.ingress_domain .config/tap/tap-iterate.yaml | cut -d'.' -f 1)
-    RUN_SUB_DOMAIN=$(yq .shared.ingress_domain .config/tap/tap-run.yaml | cut -d'.' -f 1)
+    SYSTEM_SUB_DOMAIN=$(yq .shared.ingress_domain .config/tap-profiles/tap-view.yaml | cut -d'.' -f 1)
+    DEV_SUB_DOMAIN=$(yq .shared.ingress_domain .config/tap-profiles/tap-iterate.yaml | cut -d'.' -f 1)
+    RUN_SUB_DOMAIN=$(yq .shared.ingress_domain .config/tap-profiles/tap-run.yaml | cut -d'.' -f 1)
     #misc 
     RDS_PROFILE=$(yq .data-services.rdsProfile .config/demo-values.yaml)       
     GW_INSTALL_DIR=$(yq .apis.scgwInstallDirectory .config/demo-values.yaml)
@@ -56,8 +56,6 @@
         
         add-tap-package "tap-view.yaml"
 
-        sleep 20 #workaround! extra time for metadata-store to reconcile
-        
         scripts/dektecho.sh status "Adding custom accelerators"
         kustomize build accelerators | kubectl apply -f -
 
@@ -75,16 +73,17 @@
 
         scripts/tanzu-handler.sh add-carvel-tools
 
-        setup-apps-namespace $DEV_NAMESPACE
-        setup-apps-namespace $TEAM_NAMESPACE
-        
+        add-app-rbac $DEV_NAMESPACE
+        add-app-rbac $TEAM_NAMESPACE
+
         add-tap-package "tap-iterate.yaml"
 
-        scripts/dektecho.sh status "Adding dekt-src-test-api and dekt-processor custom supply chains"
+        scripts/dektecho.sh status "Adding custom supply chains"
+        kubectl apply -f .config/supply-chains/dekt-src-url.yaml
         kubectl apply -f .config/supply-chains/dekt-src-test-api.yaml
-        kubectl apply -f .config/supply-chains/processor
-        kubectl apply -f .config/testing/tekton-pipeline.yaml -n $DEV_NAMESPACE
-        kubectl apply -f .config/testing/tekton-pipeline.yaml -n $TEAM_NAMESPACE
+        kubectl apply -f .config/supply-chains/dekt-src-process.yaml
+        kubectl apply -f .config/supply-chains/tekton-pipeline.yaml -n $DEV_NAMESPACE
+        kubectl apply -f .config/supply-chains/tekton-pipeline.yaml -n $TEAM_NAMESPACE
 
         scripts/dektecho.sh status "Adding RabbitMQ and Postgres in team configurations"
         add-rabbitmq-team
@@ -102,23 +101,21 @@
 
         scripts/tanzu-handler.sh add-carvel-tools
     
-        setup-apps-namespace $STAGEPROD_NAMESPACE
- 
+        add-app-rbac $STAGEPROD_NAMESPACE
+
         add-metadata-store-secrets
 
         add-tap-package "tap-build.yaml"
 
         install-snyk
-
-        scripts/dektecho.sh status "Adding dekt-src-test-scan-api and dekt-processor custom supply chains"
-        kubectl apply -f .config/supply-chains/dekt-src-test-scan-api.yaml
-        kubectl apply -f .config/supply-chains/processor
-        kubectl apply -f .config/testing/tekton-pipeline.yaml -n $STAGEPROD_NAMESPACE
-        kubectl apply -f .config/scanners/scan-policy.yaml -n $STAGEPROD_NAMESPACE
-
-        #add services-toolkit seperately as it's not part of the build profile
-        tanzu package install services-toolkit -n tap-install -p services-toolkit.tanzu.vmware.com -v $SERVICES_TOOLKIT_VERSION
         
+        scripts/dektecho.sh status "Adding custom supply chains"
+        kubectl apply -f .config/supply-chains/dekt-src-scan-url.yaml
+        kubectl apply -f .config/supply-chains/dekt-src-test-scan-api.yaml
+        kubectl apply -f .config/supply-chains/dekt-src-process.yaml
+        kubectl apply -f .config/supply-chains/tekton-pipeline.yaml -n $STAGEPROD_NAMESPACE
+        kubectl apply -f .config/supply-chains/scan-policy.yaml -n $STAGEPROD_NAMESPACE
+
         scripts/dektecho.sh status "Adding RabbitMQ and Postgres in stage/prod configurations"
         add-rabbitmq-stageprod
         add-postgres-stageprod
@@ -134,7 +131,7 @@
 
         scripts/tanzu-handler.sh add-carvel-tools
         
-        setup-apps-namespace $STAGEPROD_NAMESPACE
+        add-app-rbac $STAGEPROD_NAMESPACE
         
         add-tap-package "tap-run.yaml"
 
@@ -161,8 +158,8 @@
             --export-to-all-namespaces --yes --namespace tap-install
         #tanzu secret registry add tap-registry \
         #    --username ${PRIVATE_REPO_USER} --password ${PRIVATE_REPO_PASSWORD} \
-        #    --server $PRIVATE_REPO_SERVER \
-        #    --export-to-all-namespaces --yes --namespace tap-install
+         #   --server $PRIVATE_REPO_SERVER \
+         #   --export-to-all-namespaces --yes --namespace tap-install
 
         tanzu package repository add tanzu-tap-repository \
             --url registry.tanzu.vmware.com/tanzu-application-platform/tap-packages:$TAP_VERSION \
@@ -172,13 +169,13 @@
         #    --namespace tap-install
 
         tanzu package install tap -p tap.tanzu.vmware.com -v $TAP_VERSION \
-            --values-file .config/tap/$tap_values_file_name \
+            --values-file .config/tap-profiles/$tap_values_file_name \
             --namespace tap-install
 
     }
 
-    #setup-apps-namespace
-    setup-apps-namespace() {
+    #add-app-rbac
+    add-app-rbac() {
         
         appsNamespace=$1
 
@@ -191,14 +188,15 @@
             --password $PRIVATE_REPO_PASSWORD \
             --namespace $appsNamespace    
 
-        kubectl apply -f .config/tap/app-ns-rbac.yaml -n $appsNamespace
+        kubectl apply -f .config/rbac/gitops-creds.yaml -n $appsNamespace
+        kubectl apply -f .config/rbac/single-user-access.yaml -n $appsNamespace
     }
 
     #add-rabbitmq-team
     add-rabbitmq-team() {
 
         #install RabbitMQ operator
-        kapp -y deploy --app rmq-operator --file https://github.com/rabbitmq/cluster-operator/releases/download/v1.9.0/cluster-operator.yml
+        kubectl apply -f "https://github.com/rabbitmq/cluster-operator/releases/latest/download/cluster-operator.yml"
         
         #configure taznu services toolkit for RabbitMQ
         kubectl apply -f .config/data-services/rabbitmq-cluster-config.yaml -n $TEAM_NAMESPACE
@@ -217,7 +215,7 @@
     add-rabbitmq-stageprod() {
 
         #install RabbitMQ operator
-        kapp -y deploy --app rmq-operator --file https://github.com/rabbitmq/cluster-operator/releases/download/v1.9.0/cluster-operator.yml
+        kubectl apply -f "https://github.com/rabbitmq/cluster-operator/releases/latest/download/cluster-operator.yml"
         
         #configure taznu services toolkit for RabbitMQ
         kubectl apply -f .config/data-services/rabbitmq-cluster-config.yaml -n $STAGEPROD_NAMESPACE
@@ -286,9 +284,9 @@
         export storeToken=$(kubectl get secrets metadata-store-read-write-client -n metadata-store -o jsonpath="{.data.token}" | base64 -d)
         export storeProxyAuthHeader="Bearer $storeToken"
 
-        yq '.data."ca.crt"= env(storeCert)' .config/scanners/store-ca-cert.yaml -i
-        yq '.stringData.auth_token= env(storeToken)' .config/scanners/store-auth-token.yaml -i
-        yq '.tap_gui.app_config.proxy."/metadata-store".headers.Authorization= env(storeProxyAuthHeader)' .config/tap/tap-view.yaml -i
+        yq '.data."ca.crt"= env(storeCert)' .config/rbac/store-ca-cert.yaml -i
+        yq '.stringData.auth_token= env(storeToken)' .config/rbac/store-auth-token.yaml -i
+        yq '.tap_gui.app_config.proxy."/metadata-store".headers.Authorization= env(storeProxyAuthHeader)' .config/tap-profiles/tap-view.yaml -i
     }
     
     #add-metadata-store-secrets 
@@ -296,9 +294,9 @@
 
         scripts/dektecho.sh status "Adding metadata-store-secrets to access remote Store"
         kubectl create ns metadata-store-secrets
-        kubectl apply -f .config/scanners/store-auth-token.yaml -n metadata-store-secrets
-        kubectl apply -f .config/scanners/store-ca-cert.yaml -n metadata-store-secrets
-        kubectl apply -f .config/scanners/store-secrets-export.yaml -n metadata-store-secrets
+        kubectl apply -f .config/rbac/store-auth-token.yaml -n metadata-store-secrets
+        kubectl apply -f .config/rbac/store-ca-cert.yaml -n metadata-store-secrets
+        kubectl apply -f .config/rbac/store-secrets-export.yaml -n metadata-store-secrets
     }
 
     #install-snyk
@@ -306,13 +304,13 @@
 
         scripts/dektecho.sh status "Add Snyk for image scanning "
         
-        kubectl apply -f .config/scanners/snyk-secret.yaml -n $STAGEPROD_NAMESPACE
+        kubectl apply -f .config/rbac/snyk-creds.yaml -n $STAGEPROD_NAMESPACE
 
         tanzu package install snyk-scanner \
             --package-name snyk.scanning.apps.tanzu.vmware.com \
             --version $SNYK_VERSION \
             --namespace tap-install \
-            --values-file .config/scanners/snyk-install.yaml
+            --values-file .config/supply-chains/snyk-values.yaml
 
             #1.0.0-beta.2
 
@@ -324,47 +322,47 @@
 
         #configure GUI on view cluster to access dev cluster
         kubectl config use-context $DEV_CLUSTER_NAME
-        kubectl apply -f .config/tap/tap-gui-viewer-sa-rbac.yaml
+        kubectl apply -f .config/rbac/reader-accounts.yaml
         export devClusterUrl=$(kubectl config view --minify -o jsonpath='{.clusters[0].cluster.server}')
         export devClusterName=$DEV_CLUSTER_NAME
         export devClusterToken=$(kubectl -n tap-gui get secret $(kubectl -n tap-gui get sa tap-gui-viewer -o=json \
         | jq -r '.secrets[0].name') -o=json \
         | jq -r '.data["token"]' \
         | base64 --decode)
-        yq '.tap_gui.app_config.kubernetes.clusterLocatorMethods.[0].clusters.[0].url = env(devClusterUrl)' .config/tap/tap-view.yaml -i
-        yq '.tap_gui.app_config.kubernetes.clusterLocatorMethods.[0].clusters.[0].name = env(devClusterName)' .config/tap/tap-view.yaml -i
-        yq '.tap_gui.app_config.kubernetes.clusterLocatorMethods.[0].clusters.[0].serviceAccountToken = env(devClusterToken)' .config/tap/tap-view.yaml -i
+        yq '.tap_gui.app_config.kubernetes.clusterLocatorMethods.[0].clusters.[0].url = env(devClusterUrl)' .config/tap-profiles/tap-view.yaml -i
+        yq '.tap_gui.app_config.kubernetes.clusterLocatorMethods.[0].clusters.[0].name = env(devClusterName)' .config/tap-profiles/tap-view.yaml -i
+        yq '.tap_gui.app_config.kubernetes.clusterLocatorMethods.[0].clusters.[0].serviceAccountToken = env(devClusterToken)' .config/tap-profiles/tap-view.yaml -i
 
         #configure GUI on view cluster to access stage cluster
         kubectl config use-context $STAGE_CLUSTER_NAME
-        kubectl apply -f .config/tap/tap-gui-viewer-sa-rbac.yaml
+        kubectl apply -f .config/rbac/reader-accounts.yaml
         export stageClusterUrl=$(kubectl config view --minify -o jsonpath='{.clusters[0].cluster.server}')
         export stageClusterName=$STAGE_CLUSTER_NAME
         export stageClusterToken=$(kubectl -n tap-gui get secret $(kubectl -n tap-gui get sa tap-gui-viewer -o=json \
         | jq -r '.secrets[0].name') -o=json \
         | jq -r '.data["token"]' \
         | base64 --decode)
-        yq '.tap_gui.app_config.kubernetes.clusterLocatorMethods.[0].clusters.[1].url = env(stageClusterUrl)' .config/tap/tap-view.yaml -i
-        yq '.tap_gui.app_config.kubernetes.clusterLocatorMethods.[0].clusters.[1].name = env(stageClusterName)' .config/tap/tap-view.yaml -i
-        yq '.tap_gui.app_config.kubernetes.clusterLocatorMethods.[0].clusters.[1].serviceAccountToken = env(stageClusterToken)' .config/tap/tap-view.yaml -i
+        yq '.tap_gui.app_config.kubernetes.clusterLocatorMethods.[0].clusters.[1].url = env(stageClusterUrl)' .config/tap-profiles/tap-view.yaml -i
+        yq '.tap_gui.app_config.kubernetes.clusterLocatorMethods.[0].clusters.[1].name = env(stageClusterName)' .config/tap-profiles/tap-view.yaml -i
+        yq '.tap_gui.app_config.kubernetes.clusterLocatorMethods.[0].clusters.[1].serviceAccountToken = env(stageClusterToken)' .config/tap-profiles/tap-view.yaml -i
 
 
         #configure GUI on view cluster to access prod cluster
         kubectl config use-context $PROD_CLUSTER_NAME
-        kubectl apply -f .config/tap/tap-gui-viewer-sa-rbac.yaml
+        kubectl apply -f .config/rbac/reader-accounts.yaml
         export prodClusterUrl=$(kubectl config view --minify -o jsonpath='{.clusters[0].cluster.server}')
         export prodClusterName=$PROD_CLUSTER_NAME
         export prodClusterToken=$(kubectl -n tap-gui get secret $(kubectl -n tap-gui get sa tap-gui-viewer -o=json \
         | jq -r '.secrets[0].name') -o=json \
         | jq -r '.data["token"]' \
         | base64 --decode)
-        yq '.tap_gui.app_config.kubernetes.clusterLocatorMethods.[0].clusters.[2].url = env(prodClusterUrl)' .config/tap/tap-view.yaml -i
-        yq '.tap_gui.app_config.kubernetes.clusterLocatorMethods.[0].clusters.[2].name = env(prodClusterName)' .config/tap/tap-view.yaml -i
-        yq '.tap_gui.app_config.kubernetes.clusterLocatorMethods.[0].clusters.[2].serviceAccountToken = env(prodClusterToken)' .config/tap/tap-view.yaml -i
+        yq '.tap_gui.app_config.kubernetes.clusterLocatorMethods.[0].clusters.[2].url = env(prodClusterUrl)' .config/tap-profiles/tap-view.yaml -i
+        yq '.tap_gui.app_config.kubernetes.clusterLocatorMethods.[0].clusters.[2].name = env(prodClusterName)' .config/tap-profiles/tap-view.yaml -i
+        yq '.tap_gui.app_config.kubernetes.clusterLocatorMethods.[0].clusters.[2].serviceAccountToken = env(prodClusterToken)' .config/tap-profiles/tap-view.yaml -i
 
         #update view cluster after config changes
         kubectl config use-context $VIEW_CLUSTER_NAME
-        tanzu package installed update tap --package-name tap.tanzu.vmware.com --version $TAP_VERSION -n tap-install -f .config/tap/tap-view.yaml
+        tanzu package installed update tap --package-name tap.tanzu.vmware.com --version $TAP_VERSION -n tap-install -f .config/tap-profiles/tap-view.yaml
         
 
     } 
@@ -508,32 +506,7 @@
             --include-non-distributable-layers
             
     }
-    
-    #relocate-carvel-bundle
-    relocate-carvel-bundle() {
-
-        scripts/dektecho.sh prompt "Make sure docker deamon is running before proceeding"
-        
-        docker login $PRIVATE_REPO_SERVER -u $PRIVATE_REPO_USER -p $PRIVATE_REPO_PASSWORD
-
-        docker login registry.tanzu.vmware.com -u $TANZU_NETWORK_USER -p $TANZU_NETWORK_PASSWORD
-        
-        export IMGPKG_REGISTRY_HOSTNAME=$PRIVATE_REPO_SERVER
-        export IMGPKG_REGISTRY_USERNAME=$PRIVATE_REPO_USER
-        export IMGPKG_REGISTRY_PASSWORD=$PRIVATE_REPO_PASSWORD
-        export TAP_VERSION=$TAP_VERSION
-
-        imgpkg copy \
-            --bundle registry.tanzu.vmware.com/tanzu-cluster-essentials/$CARVEL_BUNDLE \
-            --to-tar carvel-bundle.tar \
-            --include-non-distributable-layers
-
-        imgpkg copy \
-            --tar carvel-bundle.tar \
-            --to-repo $IMGPKG_REGISTRY_HOSTNAME/$SYSTEM_REPO/cluster-essentials-bundle \
-            --include-non-distributable-layers
-    }
-
+  
     #delete-demo
     delete-demo() {
 
@@ -543,10 +516,8 @@
 
         tanzu package installed delete snyk-scanner -n tap-install -y
 
-        tanzu package installed delete services-toolkit -n tap-install -y
-
-        kubectl delete -f .config/custom-sc -n $STAGEPROD_NAMESPACE
-        kubectl delete -f .config/custom-sc -n $TEAM_NAMESPACE
+        kubectl delete -f .config/supply-chains -n $STAGEPROD_NAMESPACE
+        kubectl delete -f .config/supply-chains -n $TEAM_NAMESPACE
 
         kubectl delete ns tap-gui
         kubectl delete ns metadata-store-secrets
@@ -555,6 +526,9 @@
         kubectl delete ns $TEAM_NAMESPACE
         kubectl delete ns rabbitmq-system
         kubectl delete ns secretgen-controller
+        kubectl delete ns tanzu-package-repo-global
+        kubectl delete ns tanzu-cluster-essentials
+        kubectl delete ns kapp-controller 
         kubectl delete ns tap-install
 
     }
@@ -566,8 +540,6 @@
         
         echo "  init-all"
         echo 
-        echo "  init-innerloop"
-        echo       
         echo "  uninstall-demo"
         echo
         echo "  delete-all"
@@ -664,20 +636,16 @@ init-all)
     innerloop-handler install-demo
     outerloop-handler install-demo
     ;;
-init-innerloop)
-    innerloop-handler create-clusters
-    innerloop-handler install-demo
-    ;;
 delete-all)
     scripts/dektecho.sh prompt  "Are you sure you want to delete all clusters?" && [ $? -eq 0 ] || exit
-    ./dekt-DevSecOps.sh cleanup-helper
+    ./dekt-DevSecOps.sh toggle-dog sad
     innerloop-handler delete-clusters
     outerloop-handler delete-clusters
     rm -f /Users/dekt/.kube/config
     ;;
 uninstall-demo)
     scripts/dektecho.sh prompt  "Are you sure you want to uninstall all demo components?" && [ $? -eq 0 ] || exit
-    ./dekt-DevSecOps.sh cleanup-helper
+    ./dekt-DevSecOps.sh toggle-dog sad
     innerloop-handler uninstall-demo
     outerloop-handler uninstall-demo
     ;;

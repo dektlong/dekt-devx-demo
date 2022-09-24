@@ -1,0 +1,54 @@
+profile: build
+
+buildservice:
+  kp_default_repository: "CHANGE_ME/dekt-system/build-service"
+  kp_default_repository_username: "CHANGE_ME"
+  kp_default_repository_password: "CHANGE_ME"
+  tanzunet_username: "CHANGE_ME"
+  tanzunet_password: "CHANGE_ME"
+  descriptor_name: "full"
+  enable_automatic_dependency_updates: true
+
+supply_chain: testing_scanning
+
+ootb_supply_chain_basic:
+  registry:
+    server: "CHANGE_ME"
+    repository: "dekt-stage"
+  gitops:
+    ssh_secret: gitops-credentials
+    server_address: https://github.com/
+    repository_owner: CHANGE_ME
+    repository_name: CHANGE_ME
+
+ootb_supply_chain_testing_scanning: #basis for dekt-src-test-scan-api & dekt-src-scan-url custom supply chains
+  registry:
+    server: "harbor.registry.CHANGE_ME"
+    repository: "dekt-stage"
+  gitops:
+    ssh_secret: gitops-credentials
+    server_address: https://github.com/
+    repository_owner: CHANGE_ME
+    repository_name: CHANGE_ME
+
+scanning:
+  metadataStore:
+    url: ""
+
+grype:
+  namespace: "dekt-apps"
+  targetImagePullSecret: "registry-credentials"
+  metadataStore:
+    url: https://metadata-store.sys.CHANGE_ME
+    caSecret:
+      name: store-ca-cert
+      importFromNamespace: metadata-store-secrets
+    authSecret:
+      name: store-auth-token
+      importFromNamespace: metadata-store-secrets
+
+ceip_policy_disclosed: true
+
+excluded_packages:
+  - learningcenter.tanzu.vmware.com 
+  - workshops.learningcenter.tanzu.vmware.com

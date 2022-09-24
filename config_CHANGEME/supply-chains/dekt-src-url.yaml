@@ -1,15 +1,13 @@
 apiVersion: carto.run/v1alpha1
 kind: ClusterSupplyChain
 metadata:
-  name: dekt-src-test-api
+  name: dekt-src-url
 spec:
-  selector:
-    apps.tanzu.vmware.com/has-tests: "true"
   selectorMatchExpressions:
   - key: apps.tanzu.vmware.com/workload-type
     operator: In
     values:
-    - dekt-backend
+    - dekt-frontend
     - server
     - worker
   params:
@@ -21,7 +19,7 @@ spec:
     name: gitops_user_name
   - default: supplychain
     name: gitops_user_email
-  - default: supplychain@dekt-src-test-api
+  - default: supplychain@dekt-src-url
     name: gitops_commit_message
   - default: gitops-credentials
     name: gitops_ssh_secret
@@ -41,13 +39,6 @@ spec:
     templateRef:
       kind: ClusterSourceTemplate
       name: source-template
-  - name: source-tester
-    sources:
-    - name: source
-      resource: source-provider
-    templateRef:
-      kind: ClusterSourceTemplate
-      name: testing-pipeline
   - name: image-provider
     params:
     - name: serviceAccount
@@ -67,7 +58,7 @@ spec:
       name: docker_build_extra_args
     sources:
     - name: source
-      resource: source-tester
+      resource: source-provider
     templateRef:
       kind: ClusterImageTemplate
       options:
@@ -101,7 +92,7 @@ spec:
       - name: config-template
         selector:
           matchLabels:
-            apps.tanzu.vmware.com/workload-type: dekt-backend
+            apps.tanzu.vmware.com/workload-type: dekt-frontend
       - name: server-template
         selector:
           matchLabels:

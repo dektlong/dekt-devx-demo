@@ -12,15 +12,15 @@ This repo contains artifacts to run a demo illustrating the vision and capabilit
 
 - Clone the dekt-devx-demo repo ```git clone https://github.com/dektlong/dekt-devx-demo```
 
-- Rename the folder ```config_CHANGEME``` to ```.config```
+- Rename the folder ```config_changeme``` to ```.config```
 
-- Replace ```[CHANGE_ME]``` with your values
+- Replace all ```CHANGE_ME``` with your values
   - Make sure your clusters support the required capacity you defined in ```.config/demo-values.yaml```
   - Modified the specific cloud info in ```scripts/k8s-hanlder.sh```
   - Make sure domain, system-repo and registry-host are identical across all configs
   - Since we are using custom supply chains, the registry values defined in the ootb supply chains are NOT applied automatically
-  - Review ```.config/custom-sc/scan-policy.yaml``` and customized if need 
-  - Review ```.config/custom-sc/tekton-pipeline.yaml``` and customized if need 
+  - Review ```.config/supply-chains/scan-policy.yaml``` and customized if need 
+  - Review ```.config/supply-chains/tekton-pipeline.yaml``` and customized if need 
 
 - The ingress setup is based on GoDaddy DNS, if you are using a different one, please modify ```scripts/ingress-handler.sh```
 

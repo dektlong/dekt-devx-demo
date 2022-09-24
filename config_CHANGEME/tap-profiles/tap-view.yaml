@@ -1,18 +1,11 @@
-#==================================================================
-# TAP Profiles
-#   accepted values: full, iterate, build, run, view
-#==================================================================
 profile: view
 shared:
-  ingress_domain: "sys.[CHANGE_ME]"
-#==================================================================
-# TAP GUI (Backstage)
-#==================================================================
+  ingress_domain: "sys.CHANGE_ME"
 tap_gui:
   service_type: ClusterIP
   app_config:
     app:
-      baseUrl: http://tap-gui.sys.[CHANGE_ME]
+      baseUrl: http://tap-gui.sys.CHANGE_ME
     catalog:
       locations:
         - type: url
@@ -22,13 +15,13 @@ tap_gui:
         - type: url
           target: https://github.com/krisapplegate/tap-gui-catalogs/blob/main/tap-gui/api-test.yaml
     backend:
-      baseUrl: http://tap-gui.sys.[CHANGE_ME]
+      baseUrl: http://tap-gui.sys.CHANGE_ME
       cors:
-        origin: http://tap-gui.sys.[CHANGE_ME]
+        origin: http://tap-gui.sys.CHANGE_ME
       reading:
         allow:
           - host: "petstore.swagger.io"
-          - host: "*.[CHANGE_ME]"
+          - host: "*.CHANGE_ME"
     proxy:
       /metadata-store:
         target: https://metadata-store-app.metadata-store:8443/api/v1
@@ -44,17 +37,17 @@ tap_gui:
         - type: 'config'
           clusters:
             - url: "" #updated in runtime
-              name: "" #updated in runtime
+              name:  #updated in runtime
               authProvider: serviceAccount
               serviceAccountToken: "" #updated in runtime
               skipTLSVerify: true
             - url: "" #updated in runtime
-              name: "" #updated in runtime
+              name:  #updated in runtime
               authProvider: serviceAccount
               serviceAccountToken: "" #updated in runtime
               skipTLSVerify: true
             - url: "" #updated in runtime
-              name: devxmood-prod #updated in runtime
+              name:  #updated in runtime
               authProvider: serviceAccount
               serviceAccountToken: "" #updated in runtime
               skipTLSVerify: true
@@ -65,7 +58,7 @@ contour:
 metadata_store:
   app_service_type: ClusterIP
 api_auto_registration:
-  tap_gui_url: http://tap-gui.sys.[CHANGE_ME]
+  tap_gui_url: http://tap-gui.sys.CHANGE_ME
 excluded_packages:
   - learningcenter.tanzu.vmware.com
   - workshops.learningcenter.tanzu.vmware.com

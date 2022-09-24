@@ -1,4 +1,146 @@
 apiVersion: carto.run/v1alpha1
+kind: ClusterSupplyChain
+metadata:
+  name: dekt-src-process
+spec:
+  selector:
+    apps.tanzu.vmware.com/workload-type: dekt-processor
+  params:
+  - name: maven_repository_url
+    value: https://repo.maven.apache.org/maven2
+  - default: main
+    name: gitops_branch
+  - default: supplychain
+    name: gitops_user_name
+  - default: supplychain
+    name: gitops_user_email
+  - default: supplychain@dekt-src-process
+    name: gitops_commit_message
+  - default: gitops-credentials
+    name: gitops_ssh_secret
+  - default: https://github.com/
+    name: gitops_server_address
+  - default: CHANGE_ME
+    name: gitops_repository_owner
+  - default: CHANGE_ME
+    name: gitops_repository_name
+  resources:
+  - name: source-provider
+    params:
+    - name: serviceAccount
+      value: default
+    - name: gitImplementation
+      value: go-git
+    templateRef:
+      kind: ClusterSourceTemplate
+      name: source-template
+  - name: deliverable
+    params:
+    - name: registry
+      value:
+        repository: dekt-stage
+        server: CHANGE_ME
+    templateRef:
+      kind: ClusterTemplate
+      name: deliverable-template
+  - name: image-builder
+    params:
+    - name: serviceAccount
+      value: default
+    - name: clusterBuilder
+      value: default
+    - name: registry
+      value:
+        repository: dekt-stage
+        server: CHANGE_ME
+    sources:
+    - name: source
+      resource: source-provider
+    templateRef:
+      kind: ClusterImageTemplate
+      name: kpack-template
+  - images:
+    - name: image
+      resource: image-builder
+    name: config-provider
+    params:
+    - name: serviceAccount
+      value: default
+    templateRef:
+      kind: ClusterConfigTemplate
+      name: convention-template
+  - configs:
+    - name: config
+      resource: config-provider
+    name: app-config
+    templateRef:
+      kind: ClusterConfigTemplate
+      name: deployment-template
+  - configs:
+    - name: app_def
+      resource: app-config
+    name: apply-bindings
+    templateRef:
+      kind: ClusterConfigTemplate
+      name: apply-bindings
+  - configs:
+    - name: config
+      resource: apply-bindings
+    name: config-writer
+    params:
+    - name: serviceAccount
+      value: default
+    - name: registry
+      value:
+        repository: dekt-stage
+        server: CHANGE_ME
+    templateRef:
+      kind: ClusterTemplate
+      name: config-writer-template
+---
+apiVersion: carto.run/v1alpha1
+kind: ClusterConfigTemplate
+metadata:
+  name: deployment-template
+spec:
+  configPath: .data
+  ytt: |
+    #@ load("@ytt:data", "data")
+    #@ load("@ytt:yaml", "yaml")
+
+    #@ def merge_labels(fixed_values):
+    #@   labels = {}
+    #@   if hasattr(data.values.workload.metadata, "labels"):
+    #@     labels.update(data.values.workload.metadata.labels)
+    #@   end
+    #@   labels.update(fixed_values)
+    #@   return labels
+    #@ end
+
+    #@ def delivery():
+    apiVersion: apps/v1
+    kind: Deployment
+    metadata:
+      name: #@ data.values.workload.metadata.name
+      annotations:
+        kapp.k14s.io/update-strategy: "fallback-on-replace"
+      labels: #@ merge_labels({ "app.kubernetes.io/component": "run", "carto.run/workload-name": data.values.workload.metadata.name })
+    spec:
+      selector:
+        matchLabels: #@ data.values.config.metadata.labels
+      template: #@ data.values.config
+    #@ end
+
+    ---
+    apiVersion: v1
+    kind: ConfigMap
+    metadata:
+      name: #@ data.values.workload.metadata.name + "-base"
+      labels: #@ merge_labels({ "app.kubernetes.io/component": "config" })
+    data:
+      delivery.yml: #@ yaml.encode(delivery())
+---
+apiVersion: carto.run/v1alpha1
 kind: ClusterConfigTemplate
 metadata:
   name: apply-bindings
@@ -134,3 +276,17 @@ spec:
       name: #@ data.values.workload.metadata.name + "-claims"
       labels: #@ merge_labels({ "app.kubernetes.io/component": "config" })
     data: #@ add_claims()
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: additional-k8s-deliverable
+  labels:
+    apps.tanzu.vmware.com/aggregate-to-deliverable: "true"
+rules:
+- apiGroups: [""]
+  resources: ["services"]
+  verbs: ["get", "list", "watch", "create", "patch", "update", "delete", "deletecollection"]
+- apiGroups: ["apps"]
+  resources: ["deployments"]
+  verbs: ["get", "list", "watch", "create", "patch", "update", "delete", "deletecollection"]

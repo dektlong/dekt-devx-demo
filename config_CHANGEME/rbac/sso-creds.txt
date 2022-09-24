@@ -1,0 +1,4 @@
+client-id=CHANGE_ME
+client-secret=CHANGE_ME
+scope=openid,profile,email
+issuer-uri=CHANGE_ME

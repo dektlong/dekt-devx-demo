@@ -26,8 +26,8 @@ type: Opaque
 stringData:
   type: postgresql
   provider: aws
-  host: ""
+  host: CHANGE_ME
   port: "5432"
   database: "inventory-db"
-  username: ""
-  password: ""
+  username: "CHANGE_ME"
+  password: "CHANGE_ME"

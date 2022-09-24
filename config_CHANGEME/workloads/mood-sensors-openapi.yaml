@@ -1,7 +1,7 @@
 openapi: 3.0.1
 servers:
-  - url: http://mood-sensors.dev.[CHANGE_ME]
-  - url: http://mood-sensors.prod.[CHANGE_ME]
+  - url: http://mood-sensors.dev.CHANGE_ME
+  - url: http://mood-sensors.prod.CHANGE_ME
 info:
   title: API definition for mood-sensors
   version: 0.0.8

@@ -3,6 +3,15 @@ kind: ClusterSupplyChain
 metadata:
   name: dekt-src-test-scan-api
 spec:
+  selector:
+    apps.tanzu.vmware.com/has-tests: "true"
+  selectorMatchExpressions:
+  - key: apps.tanzu.vmware.com/workload-type
+    operator: In
+    values:
+    - dekt-backend
+    - server
+    - worker
   params:
   - name: maven_repository_url
     value: https://repo.maven.apache.org/maven2
@@ -12,10 +21,16 @@ spec:
     name: gitops_user_name
   - default: supplychain
     name: gitops_user_email
-  - default: supplychain@cluster.local
+  - default: supplychain@dekt-src-test-scan-api
     name: gitops_commit_message
-  - default: ""
+  - default: gitops-credentials
     name: gitops_ssh_secret
+  - default: https://github.com/
+    name: gitops_server_address
+  - default: CHANGE_ME
+    name: gitops_repository_owner
+  - default: CHANGE_ME
+    name: gitops_repository_name
   resources:
   - name: source-provider
     params:
@@ -53,7 +68,7 @@ spec:
       value:
         ca_cert_data: ""
         repository: dekt-stage
-        server: [CHANGE_ME]
+        server: CHANGE_ME
     - default: default
       name: clusterBuilder
     - default: ./Dockerfile
@@ -144,7 +159,7 @@ spec:
       value:
         ca_cert_data: ""
         repository: dekt-stage
-        server: [CHANGE_ME]
+        server: CHANGE_ME
     templateRef:
       kind: ClusterTemplate
       name: config-writer-template
@@ -154,16 +169,7 @@ spec:
       value:
         ca_cert_data: ""
         repository: dekt-stage
-        server: [CHANGE_ME]
+        server: CHANGE_ME
     templateRef:
       kind: ClusterTemplate
       name: deliverable-template
-  selector:
-    apps.tanzu.vmware.com/has-tests: "true"
-  selectorMatchExpressions:
-  - key: apps.tanzu.vmware.com/workload-type
-    operator: In
-    values:
-    - dekt-backend
-    - server
-    - worker

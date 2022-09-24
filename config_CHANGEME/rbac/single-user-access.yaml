@@ -14,6 +14,7 @@ metadata:
   name: default
 secrets:
   - name: registry-credentials
+  - name: gitops-credentials
 imagePullSecrets:
   - name: registry-credentials
   - name: tap-registry

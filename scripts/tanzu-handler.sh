@@ -1,10 +1,37 @@
 #!/usr/bin/env bash
 
-PRIVATE_REPO_SERVER=$(yq .ootb_supply_chain_basic.registry.server .config/tap/tap-iterate.yaml)
-PRIVATE_REPO_USER=$(yq .buildservice.kp_default_repository_username .config/tap/tap-iterate.yaml)
-PRIVATE_REPO_PASSWORD=$(yq .buildservice.kp_default_repository_password .config/tap/tap-iterate.yaml)
+PRIVATE_REPO_SERVER=$(yq .ootb_supply_chain_basic.registry.server .config/tap-profiles/tap-iterate.yaml)
+PRIVATE_REPO_USER=$(yq .buildservice.kp_default_repository_username .config/tap-profiles//tap-iterate.yaml)
+PRIVATE_REPO_PASSWORD=$(yq .buildservice.kp_default_repository_password .config/tap-profiles//tap-iterate.yaml)
 SYSTEM_REPO=$(yq .tap.systemRepo .config/demo-values.yaml)
 CARVEL_BUNDLE=$(yq .tap.carvel_bundle .config/demo-values.yaml)
+TANZU_NETWORK_USER=$(yq .buildservice.tanzunet_username .config/tap-profiles/tap-iterate.yaml)
+TANZU_NETWORK_PASSWORD=$(yq .buildservice.tanzunet_password .config/tap-profiles/tap-iterate.yaml)
+
+#relocate-carvel-bundle
+relocate-carvel-bundle() {
+
+    scripts/dektecho.sh prompt "Make sure docker deamon is running before proceeding"
+        
+    docker login $PRIVATE_REPO_SERVER -u $PRIVATE_REPO_USER -p $PRIVATE_REPO_PASSWORD
+
+    docker login registry.tanzu.vmware.com -u $TANZU_NETWORK_USER -p $TANZU_NETWORK_PASSWORD
+        
+    export IMGPKG_REGISTRY_HOSTNAME=$PRIVATE_REPO_SERVER
+    export IMGPKG_REGISTRY_USERNAME=$PRIVATE_REPO_USER
+    export IMGPKG_REGISTRY_PASSWORD=$PRIVATE_REPO_PASSWORD
+    export TAP_VERSION=$TAP_VERSION
+
+    imgpkg copy \
+        --bundle registry.tanzu.vmware.com/tanzu-cluster-essentials/$CARVEL_BUNDLE \
+        --to-tar carvel-bundle.tar \
+        --include-non-distributable-layers
+
+    imgpkg copy \
+        --tar carvel-bundle.tar \
+        --to-repo $IMGPKG_REGISTRY_HOSTNAME/$SYSTEM_REPO/cluster-essentials-bundle \
+        --include-non-distributable-layers
+    }
 
 #add-carvel
 add-carvel () {
@@ -59,6 +86,9 @@ incorrect-usage() {
 }
 
 case $1 in
+relocate-carvel-bundle)
+    relocate-carvel-bundle
+    ;;
 add-carvel-tools )
   	add-carvel
     ;;

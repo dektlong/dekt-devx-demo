@@ -3,7 +3,7 @@ kind: Workload
 metadata:
   name: mood-portal
   labels:
-    apps.tanzu.vmware.com/workload-type: web
+    apps.tanzu.vmware.com/workload-type: dekt-frontend
     app.kubernetes.io/part-of: mood-portal
 spec:
   #source code
@@ -11,8 +11,8 @@ spec:
     git:
       url: https://github.com/dektlong/mood-portal
       ref:
-        branch: dev
+        branch: dev #updated in runtime
   params:
-  - name: annotations
-    value:
-      autoscaling.knative.dev/minScale: "1"
+    - name: annotations
+      value:
+        autoscaling.knative.dev/minScale: "1"

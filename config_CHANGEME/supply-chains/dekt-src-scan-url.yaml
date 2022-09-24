@@ -1,15 +1,13 @@
 apiVersion: carto.run/v1alpha1
 kind: ClusterSupplyChain
 metadata:
-  name: dekt-src-test-api
+  name: dekt-src-scan-url
 spec:
-  selector:
-    apps.tanzu.vmware.com/has-tests: "true"
   selectorMatchExpressions:
   - key: apps.tanzu.vmware.com/workload-type
     operator: In
     values:
-    - dekt-backend
+    - dekt-frontend
     - server
     - worker
   params:
@@ -21,7 +19,7 @@ spec:
     name: gitops_user_name
   - default: supplychain
     name: gitops_user_email
-  - default: supplychain@dekt-src-test-api
+  - default: supplychain@dekt-src-scan-url
     name: gitops_commit_message
   - default: gitops-credentials
     name: gitops_ssh_secret
@@ -41,13 +39,18 @@ spec:
     templateRef:
       kind: ClusterSourceTemplate
       name: source-template
-  - name: source-tester
+  - name: source-scanner
+    params:
+    - default: scan-policy
+      name: scanning_source_policy
+    - default: blob-source-scan-template
+      name: scanning_source_template
     sources:
     - name: source
       resource: source-provider
     templateRef:
       kind: ClusterSourceTemplate
-      name: testing-pipeline
+      name: source-scanner-template
   - name: image-provider
     params:
     - name: serviceAccount
@@ -55,7 +58,7 @@ spec:
     - name: registry
       value:
         ca_cert_data: ""
-        repository: dekt-dev
+        repository: dekt-stage
         server: CHANGE_ME
     - default: default
       name: clusterBuilder
@@ -67,7 +70,7 @@ spec:
       name: docker_build_extra_args
     sources:
     - name: source
-      resource: source-tester
+      resource: source-scanner
     templateRef:
       kind: ClusterImageTemplate
       options:
@@ -84,6 +87,18 @@ spec:
   - images:
     - name: image
       resource: image-provider
+    name: image-scanner
+    params:
+    - default: scan-policy
+      name: scanning_image_policy
+    - default: private-image-scan-template
+      name: scanning_image_template
+    templateRef:
+      kind: ClusterImageTemplate
+      name: image-scanner-template
+  - images:
+    - name: image
+      resource: image-scanner
     name: config-provider
     params:
     - name: serviceAccount
@@ -101,7 +116,7 @@ spec:
       - name: config-template
         selector:
           matchLabels:
-            apps.tanzu.vmware.com/workload-type: dekt-backend
+            apps.tanzu.vmware.com/workload-type: dekt-frontend
       - name: server-template
         selector:
           matchLabels:
@@ -134,7 +149,7 @@ spec:
     - name: registry
       value:
         ca_cert_data: ""
-        repository: dekt-dev
+        repository: dekt-stage
         server: CHANGE_ME
     templateRef:
       kind: ClusterTemplate
@@ -144,7 +159,7 @@ spec:
     - name: registry
       value:
         ca_cert_data: ""
-        repository: dekt-dev
+        repository: dekt-stage
         server: CHANGE_ME
     templateRef:
       kind: ClusterTemplate

@@ -1,2 +1,0 @@
-wavefront.api-token=
-wavefront.uri=https://vmware.wavefront.com
