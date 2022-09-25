@@ -1,7 +1,7 @@
 apiVersion: carto.run/v1alpha1
 kind: ClusterSupplyChain
 metadata:
-  name: dekt-src-test-scan-api
+  name: dekt-src-test-scan-api-config
 spec:
   selector:
     apps.tanzu.vmware.com/has-tests: "true"
@@ -9,9 +9,8 @@ spec:
   - key: apps.tanzu.vmware.com/workload-type
     operator: In
     values:
-    - dekt-backend
-    - server
-    - worker
+    - dekt-api
+    - dekt-server
   params:
   - name: maven_repository_url
     value: https://repo.maven.apache.org/maven2
@@ -21,7 +20,7 @@ spec:
     name: gitops_user_name
   - default: supplychain
     name: gitops_user_email
-  - default: supplychain@dekt-src-test-scan-api
+  - default: supplychain@dekt-src-ptest-scan-api-config
     name: gitops_commit_message
   - default: gitops-credentials
     name: gitops_ssh_secret
@@ -29,7 +28,7 @@ spec:
     name: gitops_server_address
   - default: CHANGE_ME
     name: gitops_repository_owner
-  - default: CHANGE_ME
+  - default: gitops-stage
     name: gitops_repository_name
   resources:
   - name: source-provider
@@ -125,15 +124,11 @@ spec:
       - name: config-template
         selector:
           matchLabels:
-            apps.tanzu.vmware.com/workload-type: dekt-backend
+            apps.tanzu.vmware.com/workload-type: dekt-api
       - name: server-template
         selector:
           matchLabels:
-            apps.tanzu.vmware.com/workload-type: server
-      - name: worker-template
-        selector:
-          matchLabels:
-            apps.tanzu.vmware.com/workload-type: worker
+            apps.tanzu.vmware.com/workload-type: dekt-server
   - configs:
     - name: app_def
       resource: app-config
