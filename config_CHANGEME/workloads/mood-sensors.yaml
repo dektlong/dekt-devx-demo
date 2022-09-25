@@ -3,7 +3,7 @@ kind: Workload
 metadata:
   name: mood-sensors
   labels:
-    apps.tanzu.vmware.com/workload-type: dekt-backend
+    apps.tanzu.vmware.com/workload-type: dekt-api
     apps.tanzu.vmware.com/has-tests: "true"
     app.kubernetes.io/part-of: mood-sensors
     apis.apps.tanzu.vmware.com/register-api: "true"
