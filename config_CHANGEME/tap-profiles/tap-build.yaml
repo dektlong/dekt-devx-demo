@@ -19,9 +19,9 @@ ootb_supply_chain_basic:
     ssh_secret: gitops-credentials
     server_address: https://github.com/
     repository_owner: CHANGE_ME
-    repository_name: CHANGE_ME
+    repository_name: gitops-stage
 
-ootb_supply_chain_testing_scanning: #basis for dekt-src-test-scan-api & dekt-src-scan-url custom supply chains
+ootb_supply_chain_testing_scanning: #basis for dekt-src-test-build-scan-api-config & dekt-src-build-scan-config custom supply chains
   registry:
     server: "harbor.registry.CHANGE_ME"
     repository: "dekt-stage"
@@ -29,7 +29,7 @@ ootb_supply_chain_testing_scanning: #basis for dekt-src-test-scan-api & dekt-src
     ssh_secret: gitops-credentials
     server_address: https://github.com/
     repository_owner: CHANGE_ME
-    repository_name: CHANGE_ME
+    repository_name: gitops-stage
 
 scanning:
   metadataStore:
