@@ -3,7 +3,7 @@ kind: Workload
 metadata:
   name: mood-portal
   labels:
-    apps.tanzu.vmware.com/workload-type: dekt-frontend
+    apps.tanzu.vmware.com/workload-type: dekt-url
     app.kubernetes.io/part-of: mood-portal
 spec:
   #source code
