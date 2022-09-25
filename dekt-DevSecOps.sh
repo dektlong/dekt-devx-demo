@@ -15,6 +15,8 @@
     DEV_WORKLOAD="mysensors"
     DEV_BRANCH="dev"
     STAGE_BRANCH="release-v1.0"
+    GITOPS_DEV_REPO="dekt-gitops-dev"
+    GITOPS_STAGE_REPO="dekt-gitops-stage"
     #tap
     TAP_VERSION=$(yq .tap.version .config/demo-values.yaml)
     SYSTEM_REPO=$(yq .tap.systemRepo .config/demo-values.yaml)
@@ -117,18 +119,18 @@
 
         scripts/dektecho.sh prompt  "Are you sure you want deploy to production?" && [ $? -eq 0 ] || exit
         
-        scripts/dektecho.sh info "Pulling stage deliverables from gitops repo"
+        scripts/dektecho.sh info "Pulling stage deliverables from $GITOPS_STAGE_REPO repo"
 
-        pushd ../dekt-gitops
+        pushd ../$GITOPS_STAGE_REPO
         git pull 
         pushd
 
         scripts/dektecho.sh info "Applying deliverables to $PROD_CLUSTER cluster..."
 
         kubectl config use-context $PROD_CLUSTER
-        kubectl apply -f ../dekt-gitops/config/dekt-apps/legacy-mood -n $STAGEPROD_NAMESPACE
-        kubectl apply -f ../dekt-gitops/config/dekt-apps/mood-portal -n $STAGEPROD_NAMESPACE
-        kubectl apply -f ../dekt-gitops/config/dekt-apps/mood-sensors -n $STAGEPROD_NAMESPACE
+        kubectl apply -f ../$GITOPS_STAGE_REPO/config/dekt-apps/legacy-mood -n $STAGEPROD_NAMESPACE
+        kubectl apply -f ../$GITOPS_STAGE_REPO/config/dekt-apps/mood-portal -n $STAGEPROD_NAMESPACE
+        kubectl apply -f ../$GITOPS_STAGE_REPO/config/dekt-apps/mood-sensors -n $STAGEPROD_NAMESPACE
         
         watch kubectl get pods -n $STAGEPROD_NAMESPACE
 
@@ -210,8 +212,15 @@
         
 
         toggle-dog sad
+
+        pushd ../$GITOPS_DEV_REPO
+        git pull 
+        git rm -rf config 
+        git commit -m "reset" 
+        git push 
+        pushd
         
-        pushd ../dekt-gitops
+        pushd ../$GITOPS_STAGE_REPO
         git pull 
         git rm -rf config 
         git commit -m "reset" 
@@ -269,8 +278,6 @@
         echo "  brownfield"
         echo
         echo "  behappy / besad"
-        echo
-        echo "  pre-deploy"
         echo
         echo "  reset"
         exit
