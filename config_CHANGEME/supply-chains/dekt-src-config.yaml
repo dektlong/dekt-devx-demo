@@ -1,7 +1,7 @@
 apiVersion: carto.run/v1alpha1
 kind: ClusterSupplyChain
 metadata:
-  name: dekt-src-build-config
+  name: dekt-src-config
 spec:
   selectorMatchExpressions:
   - key: apps.tanzu.vmware.com/workload-type
@@ -18,7 +18,7 @@ spec:
     name: gitops_user_name
   - default: supplychain
     name: gitops_user_email
-  - default: supplychain@dekt-src-build-config
+  - default: supplychain@dekt-src-config
     name: gitops_commit_message
   - default: gitops-credentials
     name: gitops_ssh_secret
