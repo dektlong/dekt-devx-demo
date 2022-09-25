@@ -79,9 +79,8 @@
         add-tap-package "tap-iterate.yaml"
 
         scripts/dektecho.sh status "Adding custom supply chains"
-        kubectl apply -f .config/supply-chains/dekt-src-url.yaml
-        kubectl apply -f .config/supply-chains/dekt-src-test-api.yaml
-        kubectl apply -f .config/supply-chains/dekt-src-process.yaml
+        kubectl apply -f .config/supply-chains/dekt-src-config.yaml
+        kubectl apply -f .config/supply-chains/dekt-src-test-api-config.yaml
         kubectl apply -f .config/supply-chains/tekton-pipeline.yaml -n $DEV_NAMESPACE
         kubectl apply -f .config/supply-chains/tekton-pipeline.yaml -n $TEAM_NAMESPACE
 
@@ -110,9 +109,8 @@
         install-snyk
         
         scripts/dektecho.sh status "Adding custom supply chains"
-        kubectl apply -f .config/supply-chains/dekt-src-scan-url.yaml
-        kubectl apply -f .config/supply-chains/dekt-src-test-scan-api.yaml
-        kubectl apply -f .config/supply-chains/dekt-src-process.yaml
+        kubectl apply -f .config/supply-chains/dekt-src-scan-config.yaml
+        kubectl apply -f .config/supply-chains/dekt-src-test-scan-api-config.yaml
         kubectl apply -f .config/supply-chains/tekton-pipeline.yaml -n $STAGEPROD_NAMESPACE
         kubectl apply -f .config/supply-chains/scan-policy.yaml -n $STAGEPROD_NAMESPACE
 
