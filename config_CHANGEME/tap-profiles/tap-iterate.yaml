@@ -22,7 +22,7 @@ ootb_supply_chain_basic: #basis for dekt-src-url custom supply chain
     ssh_secret: gitops-credentials
     server_address: https://github.com/
     repository_owner: CHANGE_ME
-    repository_name: CHANGE_ME
+    repository_name: gitops-dev
 
 ootb_supply_chain_testing: #basis for dekt-src-test-api supply chain
   registry:
@@ -32,7 +32,7 @@ ootb_supply_chain_testing: #basis for dekt-src-test-api supply chain
     ssh_secret: gitops-credentials
     server_address: https://github.com/
     repository_owner: CHANGE_ME
-    repository_name: CHANGE_ME
+    repository_name: gitops-dev
 
 cnrs:
   domain_template: "{{.Name}}.{{.Domain}}"
