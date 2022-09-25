@@ -3,7 +3,7 @@ kind: Workload
 metadata:
   name: legacy-mood
   labels:
-    apps.tanzu.vmware.com/workload-type: dekt-processor
+    apps.tanzu.vmware.com/workload-type: dekt-worker
     app.kubernetes.io/part-of: legacy-mood
 spec:
   #source code
