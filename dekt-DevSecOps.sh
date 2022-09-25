@@ -15,8 +15,8 @@
     DEV_WORKLOAD="mysensors"
     DEV_BRANCH="dev"
     STAGE_BRANCH="release-v1.0"
-    GITOPS_DEV_REPO="dekt-gitops-dev"
-    GITOPS_STAGE_REPO="dekt-gitops-stage"
+    GITOPS_DEV_REPO="gitops-dev"
+    GITOPS_STAGE_REPO="gitops-stage"
     #tap
     TAP_VERSION=$(yq .tap.version .config/demo-values.yaml)
     SYSTEM_REPO=$(yq .tap.systemRepo .config/demo-values.yaml)
