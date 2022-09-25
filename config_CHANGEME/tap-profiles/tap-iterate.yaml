@@ -14,7 +14,7 @@ buildservice:
 
 supply_chain: basic
 
-ootb_supply_chain_basic: #basis for dekt-src-build-config custom supply chain
+ootb_supply_chain_basic: #basis for dekt-src-config custom supply chain
   registry:
     server: "CHANGE_ME"
     repository: "dekt-dev"
@@ -24,7 +24,7 @@ ootb_supply_chain_basic: #basis for dekt-src-build-config custom supply chain
     repository_owner: CHANGE_ME
     repository_name: gitops-dev
 
-ootb_supply_chain_testing: #basis for dekt-src-build-test-api-config supply chain
+ootb_supply_chain_testing: #basis for dekt-src-test-api-config supply chain
   registry:
     server: "harbor.registry.CHANGE_ME"
     repository: "dekt-dev"
