@@ -1,15 +1,14 @@
 apiVersion: carto.run/v1alpha1
 kind: ClusterSupplyChain
 metadata:
-  name: dekt-src-scan-url
+  name: dekt-src-build-scan-config
 spec:
   selectorMatchExpressions:
   - key: apps.tanzu.vmware.com/workload-type
     operator: In
     values:
-    - dekt-frontend
-    - server
-    - worker
+    - dekt-url
+    - dekt-worker
   params:
   - name: maven_repository_url
     value: https://repo.maven.apache.org/maven2
@@ -19,7 +18,7 @@ spec:
     name: gitops_user_name
   - default: supplychain
     name: gitops_user_email
-  - default: supplychain@dekt-src-scan-url
+  - default: supplychain@dekt-src-build-scan-config
     name: gitops_commit_message
   - default: gitops-credentials
     name: gitops_ssh_secret
@@ -27,7 +26,7 @@ spec:
     name: gitops_server_address
   - default: CHANGE_ME
     name: gitops_repository_owner
-  - default: CHANGE_ME
+  - default: gitops-stage
     name: gitops_repository_name
   resources:
   - name: source-provider
@@ -116,15 +115,11 @@ spec:
       - name: config-template
         selector:
           matchLabels:
-            apps.tanzu.vmware.com/workload-type: dekt-frontend
-      - name: server-template
-        selector:
-          matchLabels:
-            apps.tanzu.vmware.com/workload-type: server
+            apps.tanzu.vmware.com/workload-type: dekt-url
       - name: worker-template
         selector:
           matchLabels:
-            apps.tanzu.vmware.com/workload-type: worker
+            apps.tanzu.vmware.com/workload-type: dekt-worker
   - configs:
     - name: app_def
       resource: app-config
@@ -133,15 +128,8 @@ spec:
       kind: ClusterConfigTemplate
       name: service-bindings
   - configs:
-    - name: app_def
-      resource: service-bindings
-    name: api-descriptors
-    templateRef:
-      kind: ClusterConfigTemplate
-      name: api-descriptors
-  - configs:
     - name: config
-      resource: api-descriptors
+      resource: service-bindings
     name: config-writer
     params:
     - name: serviceAccount
