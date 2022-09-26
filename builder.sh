@@ -57,7 +57,7 @@
         add-tap-package "tap-view.yaml"
 
         scripts/dektecho.sh status "Adding custom accelerators"
-        kustomize build accelerators | kubectl apply -f -
+        kubectl apply -f accelerators -n accelerator-system
 
         scripts/ingress-handler.sh update-tap-dns $SYSTEM_SUB_DOMAIN
 

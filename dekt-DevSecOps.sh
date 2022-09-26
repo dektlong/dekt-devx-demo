@@ -115,26 +115,24 @@
     #prod-roleout
     prod-roleout () {
 
-        scripts/dektecho.sh status "Review Deliverables and ServiceBindings in gitops repo"
+        scripts/dektecho.sh info "Review Deliverables and ServiceBindings in gitops repo"
 
         scripts/dektecho.sh prompt  "Are you sure you want deploy to production?" && [ $? -eq 0 ] || exit
         
-        scripts/dektecho.sh info "Pulling stage deliverables from $GITOPS_STAGE_REPO repo"
+        scripts/dektecho.sh status "Pulling stage Deliverables and ServiceBindings from $GITOPS_STAGE_REPO repo"
 
         pushd ../$GITOPS_STAGE_REPO
         git pull 
         pushd
 
-        scripts/dektecho.sh info "Applying deliverables to $PROD_CLUSTER cluster..."
+        scripts/dektecho.sh status "Applying Deliverables and ServiceBindings to $PROD_CLUSTER cluster..."
 
         kubectl config use-context $PROD_CLUSTER
         kubectl apply -f ../$GITOPS_STAGE_REPO/config/dekt-apps/legacy-mood -n $STAGEPROD_NAMESPACE
         kubectl apply -f ../$GITOPS_STAGE_REPO/config/dekt-apps/mood-portal -n $STAGEPROD_NAMESPACE
         kubectl apply -f ../$GITOPS_STAGE_REPO/config/dekt-apps/mood-sensors -n $STAGEPROD_NAMESPACE
-        
-        watch kubectl get pods -n $STAGEPROD_NAMESPACE
 
-        scripts/dektecho.sh status "Congratulations. Your DevX-Mood application is in production"
+        scripts/dektecho.sh status "Your DevX-Mood application is being deployed to production"
 
     }
 

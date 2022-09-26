@@ -96,7 +96,7 @@ This repo contains artifacts to run a demo illustrating the vision and capabilit
 ### Inner loop
 
 - access tap gui accelerators via the ```cloud-native-devs``` tag
-  - create ```mood-sensors``` workload using the web-backend accelerator 
+  - create ```mood-sensors``` workload using the api-microservice accelerator 
   - create ```mood-portal```  workload using the web-function accelerator 
   - create ```legacy-mood```  workload using the node.js accelerator 
   - use ```devx-mood```  as the parent application in both cases
@@ -120,7 +120,7 @@ This repo contains artifacts to run a demo illustrating the vision and capabilit
   - ```./dekt-DevSecOps.sh track dev [logs]```
 
 - access tap gui accelerators using the ```cloud-native-devsecops``` tag
-  - create ```dekt-src-to-api-with-scan``` supplychain using the microservices-supplychain accelerator with ```web-backend``` workload type 
+  - create ```dekt-src-to-api-with-scan``` supplychain using the microservices-supplychain accelerator with ```dekt-api``` workload type 
     - include testing, binding and scanning phases, leveraging the out of the box supply-chain templates
   - Explain that the ```mood-portal``` workload is using the out-of-the-box ```source-to-url``` supply chain as configured in ```tap-values``
 
