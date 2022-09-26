@@ -636,7 +636,7 @@ init-all)
     ;;
 delete-all)
     scripts/dektecho.sh prompt  "Are you sure you want to delete all clusters?" && [ $? -eq 0 ] || exit
-    ./dekt-DevSecOps.sh toggle-dog sad
+    ./dekt-DevSecOps.sh besad
     innerloop-handler delete-clusters
     outerloop-handler delete-clusters
     rm -f /Users/dekt/.kube/config

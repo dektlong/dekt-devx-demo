@@ -106,7 +106,7 @@
         tanzu apps workload create $DEV_WORKLOAD \
             --git-repo https://github.com/dektlong/mood-sensors \
             --git-branch dev \
-            --type dekt-backend \
+            --type dekt-api \
             --label apps.tanzu.vmware.com/has-tests="true" \
             --label app.kubernetes.io/part-of=$DEV_WORKLOAD \
             --yes \
@@ -303,6 +303,9 @@ prod)
     ;;
 behappy)
     toggle-dog happy
+    ;;   
+besad)
+    toggle-dog sad
     ;;   
 supplychains)
     supplychains

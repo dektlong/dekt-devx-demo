@@ -53,7 +53,7 @@ This repo contains artifacts to run a demo illustrating the vision and capabilit
     - TAP iterate profile
     - Default supplychain configs for apps namespace 
     - Tekton pipeline 
-    - Custom ```dekt-src-to-api``` supplychain 
+    - ```dekt-src-config``` and ```dekt-stc-test-api-config`` custom supply chains 
     - RabbitMQ operator and single instance
     - Service claim to Azure PostgresSQL
     - CNR dev ingress rule
@@ -66,13 +66,12 @@ This repo contains artifacts to run a demo illustrating the vision and capabilit
     - Snyk image scanner (out-of-the-box Grype for source scanning)
     - Scanning policy 
     - Tekton pipeline run 
-    - Custom ```dekt-src-to-api-with-scan``` supplychain 
+    - ```dekt-src-scan-config``` and ```dekt-src-test-scan-api-config``` custom supply chains 
     - RabbitMQ operator and HA instance
     - Service claim to RDS PostgresSQL
   - Prod cluster 
     - Carvel tools
     - TAP run profile
-    - Default supplychain configs for apps namespace 
     - CNR run ingress rule
   - Brownfieldcluster
     - Spring Cloud Gateway operator
