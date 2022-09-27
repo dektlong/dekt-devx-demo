@@ -11,7 +11,7 @@
     #workloads (must match the info in .config/workloads)
     PORTAL_WORKLOAD="mood-portal"
     SENSORS_WORKLOAD="mood-sensors"
-    LEGACY_WORKLOAD="legacy-mood"
+    ANALYZER_WORKLOAD="mood-analyzer"
     DEV_WORKLOAD="mysensors"
     DEV_BRANCH="dev"
     STAGE_BRANCH="release-v1.0"
@@ -93,8 +93,8 @@
         scripts/dektecho.sh cmd "tanzu apps workload create $SENSORS_WORKLOAD -f .config/workloads/mood-sensors.yaml -y -n $appNamespace"
         tanzu apps workload create $SENSORS_WORKLOAD -f .config/workloads/mood-sensors.yaml -y -n $appNamespace
 
-        scripts/dektecho.sh cmd "tanzu apps workload create $LEGACY_WORKLOAD -f .config/workloads/legacy-mood.yaml -y -n $appNamespace"
-        tanzu apps workload create $LEGACY_WORKLOAD -f .config/workloads/legacy-mood.yaml -y -n $appNamespace
+        scripts/dektecho.sh cmd "tanzu apps workload create $ANALYZER_WORKLOAD -f .config/workloads/mood-analyzer.yaml -y -n $appNamespace"
+        tanzu apps workload create $ANALYZER_WORKLOAD -f .config/workloads/mood-analyzer.yaml -y -n $appNamespace
     }
 
     #single-dev-workload
@@ -128,9 +128,9 @@
         scripts/dektecho.sh status "Applying Deliverables and ServiceBindings to $PROD_CLUSTER cluster..."
 
         kubectl config use-context $PROD_CLUSTER
-        kubectl apply -f ../$GITOPS_STAGE_REPO/config/dekt-apps/legacy-mood -n $STAGEPROD_NAMESPACE
-        kubectl apply -f ../$GITOPS_STAGE_REPO/config/dekt-apps/mood-portal -n $STAGEPROD_NAMESPACE
-        kubectl apply -f ../$GITOPS_STAGE_REPO/config/dekt-apps/mood-sensors -n $STAGEPROD_NAMESPACE
+        kubectl apply -f ../$GITOPS_STAGE_REPO/config/dekt-apps/$ANALYZER_WORKLOAD -n $STAGEPROD_NAMESPACE
+        kubectl apply -f ../$GITOPS_STAGE_REPO/config/dekt-apps/$PORTAL_WORKLOAD -n $STAGEPROD_NAMESPACE
+        kubectl apply -f ../$GITOPS_STAGE_REPO/config/dekt-apps/$SENSORS_WORKLOAD -n $STAGEPROD_NAMESPACE
 
         scripts/dektecho.sh status "Your DevX-Mood application is being deployed to production"
 
@@ -157,8 +157,8 @@
         scripts/dektecho.sh cmd "tanzu apps workload get $PORTAL_WORKLOAD -n $appsNamespace"
         tanzu apps workload get $PORTAL_WORKLOAD -n $appsNamespace
 
-        scripts/dektecho.sh cmd "tanzu apps workload get $LEGACY_WORKLOAD -n $appsNamespace"
-        tanzu apps workload get $LEGACY_WORKLOAD -n $appsNamespace
+        scripts/dektecho.sh cmd "tanzu apps workload get $ANALYZER_WORKLOAD -n $appsNamespace"
+        tanzu apps workload get $ANALYZER_WORKLOAD -n $appsNamespace
 
         scripts/dektecho.sh cmd "tanzu apps workload get $SENSORS_WORKLOAD -n $appsNamespace"
         tanzu apps workload get $SENSORS_WORKLOAD -n $appsNamespace
@@ -199,9 +199,9 @@
         tanzu apps workload delete --all -n $STAGEPROD_NAMESPACE -y
 
         kubectl config use-context $PROD_CLUSTER
-        kubectl delete -f ../dekt-gitops/config/dekt-apps/legacy-mood -n $STAGEPROD_NAMESPACE
-        kubectl delete -f ../dekt-gitops/config/dekt-apps/mood-portal -n $STAGEPROD_NAMESPACE
-        kubectl delete -f ../dekt-gitops/config/dekt-apps/mood-sensors -n $STAGEPROD_NAMESPACE
+        kubectl delete -f ../dekt-gitops/config/dekt-apps/$ANALYZER_WORKLOAD -n $STAGEPROD_NAMESPACE
+        kubectl delete -f ../dekt-gitops/config/dekt-apps/$PORTAL_WORKLOAD -n $STAGEPROD_NAMESPACE
+        kubectl delete -f ../dekt-gitops/config/dekt-apps/$SENSORS_WORKLOAD -n $STAGEPROD_NAMESPACE
        
         
         kubectl config use-context $DEV_CLUSTER
