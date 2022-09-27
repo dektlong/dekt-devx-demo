@@ -38,18 +38,6 @@ spec:
     templateRef:
       kind: ClusterSourceTemplate
       name: source-template
-  - name: source-scanner
-    params:
-    - default: scan-policy
-      name: scanning_source_policy
-    - default: blob-source-scan-template
-      name: scanning_source_template
-    sources:
-    - name: source
-      resource: source-provider
-    templateRef:
-      kind: ClusterSourceTemplate
-      name: source-scanner-template
   - name: image-provider
     params:
     - name: serviceAccount
@@ -69,7 +57,7 @@ spec:
       name: docker_build_extra_args
     sources:
     - name: source
-      resource: source-scanner
+      resource: source-provider
     templateRef:
       kind: ClusterImageTemplate
       options:
