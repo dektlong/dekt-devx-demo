@@ -49,8 +49,11 @@ create-eks-cluster () {
 
     #must run after setting access via 'aws configure'
 
-    cluster_name=$1
+    export cluster_name=$1
 	number_of_nodes=$2
+
+    #set branch in workloads
+    yq '.spec.source.git.ref.branch = env(branch)' .config/workloads/mood-portal.yaml -i
 
 	scripts/dektecho.sh info "Creating EKS cluster $cluster_name with $number_of_nodes nodes"
 
@@ -58,8 +61,7 @@ create-eks-cluster () {
 		--name $cluster_name \
 		--region $AWS_REGION \
 		--version 1.22 \
-		--nodes $number_of_nodes \
-		--node-type t3.xlarge # 4 vCPU , 16GB memory, 80GB temp disk 
+		--without-nodegroup #containerd to docker bug
 
     kubectl config rename-context $(kubectl config current-context) $cluster_name
 }

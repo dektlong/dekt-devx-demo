@@ -201,9 +201,9 @@
         tanzu apps workload delete $SENSORS_WORKLOAD -n $STAGEPROD_NAMESPACE -y
 
         kubectl config use-context $PROD_CLUSTER
-        kubectl delete -f ../dekt-gitops/config/dekt-apps/$ANALYZER_WORKLOAD -n $STAGEPROD_NAMESPACE
-        kubectl delete -f ../dekt-gitops/config/dekt-apps/$PORTAL_WORKLOAD -n $STAGEPROD_NAMESPACE
-        kubectl delete -f ../dekt-gitops/config/dekt-apps/$SENSORS_WORKLOAD -n $STAGEPROD_NAMESPACE
+        kubectl delete -f ../$GITOPS_STAGE_REPO/config/dekt-apps/$ANALYZER_WORKLOAD -n $STAGEPROD_NAMESPACE
+        kubectl delete -f ../$GITOPS_STAGE_REPO/config/dekt-apps/$PORTAL_WORKLOAD -n $STAGEPROD_NAMESPACE
+        kubectl delete -f ../$GITOPS_STAGE_REPO/config/dekt-apps/$SENSORS_WORKLOAD -n $STAGEPROD_NAMESPACE
        
         
         kubectl config use-context $DEV_CLUSTER

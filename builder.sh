@@ -608,7 +608,13 @@
             ;;
         install-demo)
             install-stage-cluster
+                #workaround if stage cluster is EKS
+                kubectl apply -f scripts/stage-docker-to-containerd-bug.yaml
+                eksctl scale nodegroup --cluster=devxmood-stage --nodes=5 --name=containerd-ng --nodes-min=5 --nodes-max=5 
             install-prod-cluster
+                #workaround if prod cluster is EKS
+                kubectl apply -f scripts/prod-docker-to-containerd-bug.yaml
+                eksctl scale nodegroup --cluster=devxmood-prod --nodes=3 --name=containerd-ng --nodes-min=3 --nodes-max=3
             update-multi-cluster-access
             add-brownfield-apis
             attach-tmc-clusters
@@ -627,8 +633,6 @@ case $1 in
 init-all)    
     innerloop-handler create-clusters
     outerloop-handler create-clusters
-    #workaround
-    scripts/dektecho.sh prompt  "!!!Fix the docker to containerd bug" && [ $? -eq 0 ] || exit
     test-all-clusters
     scripts/dektecho.sh prompt  "Continue to install demo components" && [ $? -eq 0 ] || exit
     innerloop-handler install-demo
