@@ -196,7 +196,9 @@
     reset() {
 
         kubectl config use-context $STAGE_CLUSTER
-        tanzu apps workload delete --all -n $STAGEPROD_NAMESPACE -y
+        tanzu apps workload delete $ANALYZER_WORKLOAD -n $STAGEPROD_NAMESPACE -y
+        tanzu apps workload delete $PORTAL_WORKLOAD -n $STAGEPROD_NAMESPACE -y
+        tanzu apps workload delete $SENSORS_WORKLOAD -n $STAGEPROD_NAMESPACE -y
 
         kubectl config use-context $PROD_CLUSTER
         kubectl delete -f ../dekt-gitops/config/dekt-apps/$ANALYZER_WORKLOAD -n $STAGEPROD_NAMESPACE
@@ -205,8 +207,10 @@
        
         
         kubectl config use-context $DEV_CLUSTER
-        tanzu apps workload delete --all -n $DEV_NAMESPACE -y
-        tanzu apps workload delete --all -n $TEAM_NAMESPACE -y
+        tanzu apps workload delete $ANALYZER_WORKLOAD -n $TEAM_NAMESPACE -y
+        tanzu apps workload delete $PORTAL_WORKLOAD -n $TEAM_NAMESPACE -y
+        tanzu apps workload delete $SENSORS_WORKLOAD -n $TEAM_NAMESPACE -y
+        tanzu apps workload delete $DEV_WORKLOAD -n $DEV_NAMESPACE -y
         
 
         toggle-dog sad

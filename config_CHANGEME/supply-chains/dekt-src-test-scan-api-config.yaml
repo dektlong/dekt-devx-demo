@@ -20,7 +20,7 @@ spec:
     name: gitops_user_name
   - default: supplychain
     name: gitops_user_email
-  - default: supplychain@dekt-src-ptest-scan-api-config
+  - default: supplychain@dekt-src-test-scan-api-config
     name: gitops_commit_message
   - default: gitops-credentials
     name: gitops_ssh_secret
