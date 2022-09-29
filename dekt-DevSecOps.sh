@@ -111,7 +111,17 @@
             --label app.kubernetes.io/part-of=$DEV_WORKLOAD \
             --yes \
             --namespace $DEV_NAMESPACE
+
+        #default sample app
+        tanzu apps workload create tanzu-java-web-app \
+            --git-repo https://github.com/sample-accelerators/tanzu-java-web-app \
+            --git-branch main \
+            --type web \
+            --label app.kubernetes.io/part-of=tanzu-java-web-app \
+            --yes \
+            --namespace $DEV_NAMESPACE
     }
+    
     #prod-roleout
     prod-roleout () {
 
