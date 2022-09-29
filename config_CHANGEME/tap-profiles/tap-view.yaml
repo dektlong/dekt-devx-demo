@@ -59,6 +59,9 @@ contour:
       type: LoadBalancer
 metadata_store:
   app_service_type: ClusterIP
+appliveview:
+  ingressEnabled: true
+  sslDisabled: true
 api_auto_registration:
   tap_gui_url: http://tap-gui.sys.CHANGE_ME
 excluded_packages:

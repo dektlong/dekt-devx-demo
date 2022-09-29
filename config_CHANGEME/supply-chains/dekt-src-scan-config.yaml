@@ -38,6 +38,18 @@ spec:
     templateRef:
       kind: ClusterSourceTemplate
       name: source-template
+  - name: source-scanner
+    params:
+    - default: scan-policy
+      name: scanning_source_policy
+    - default: blob-source-scan-template
+      name: scanning_source_template
+    sources:
+    - name: source
+      resource: source-provider
+    templateRef:
+      kind: ClusterSourceTemplate
+      name: source-scanner-template
   - name: image-provider
     params:
     - name: serviceAccount
@@ -57,7 +69,7 @@ spec:
       name: docker_build_extra_args
     sources:
     - name: source
-      resource: source-provider
+      resource: source-scanner
     templateRef:
       kind: ClusterImageTemplate
       options:
@@ -78,7 +90,7 @@ spec:
     params:
     - default: scan-policy
       name: scanning_image_policy
-    - default: private-image-scan-template
+    - default: snyk-private-image-scan-template
       name: scanning_image_template
     templateRef:
       kind: ClusterImageTemplate
@@ -117,7 +129,7 @@ spec:
       name: service-bindings
   - configs:
     - name: config
-      resource: service-bindings
+      resource: app-config
     name: config-writer
     params:
     - name: serviceAccount
