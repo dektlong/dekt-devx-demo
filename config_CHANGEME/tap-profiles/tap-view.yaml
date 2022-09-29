@@ -14,8 +14,6 @@ tap_gui:
           target: https://github.com/dektlong/dekt-devx-demo/blob/main/backstage/catalog-info.yaml
         - type: url
           target: https://github.com/krisapplegate/tap-gui-catalogs/blob/main/tap-gui/api-test.yaml
-        - type: url
-          target: https://github.com/sample-accelerators/tanzu-java-web-app/blob/main/catalog/catalog-info.yaml
     backend:
       baseUrl: http://tap-gui.sys.CHANGE_ME
       cors:
