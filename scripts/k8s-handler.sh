@@ -52,9 +52,6 @@ create-eks-cluster () {
     export cluster_name=$1
 	number_of_nodes=$2
 
-    #set branch in workloads
-    yq '.spec.source.git.ref.branch = env(branch)' .config/workloads/mood-portal.yaml -i
-
 	scripts/dektecho.sh info "Creating EKS cluster $cluster_name with $number_of_nodes nodes"
 
     eksctl create cluster \
@@ -62,6 +59,15 @@ create-eks-cluster () {
 		--region $AWS_REGION \
 		--version 1.22 \
 		--without-nodegroup #containerd to docker bug
+
+	#containerd to docker bug
+    kubectl apply -f scripts/containerd-bug-$cluster_name.yaml
+    eksctl scale nodegroup \
+		--cluster=$cluster_name \
+		--nodes=$number_of_nodes \
+		--name=containerd-ng \
+		--nodes-min=$number_of_nodes \
+		--nodes-max=$number_of_nodes
 
     kubectl config rename-context $(kubectl config current-context) $cluster_name
 }

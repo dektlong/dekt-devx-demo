@@ -596,9 +596,8 @@
 
         case $1 in
         create-clusters) 
-            scripts/k8s-handler.sh create $STAGE_CLUSTER_PROVIDER $STAGE_CLUSTER_NAME $STAGE_CLUSTER_NODES  
-            scripts/k8s-handler.sh create $PROD_CLUSTER_PROVIDER $PROD_CLUSTER_NAME $PROD_CLUSTER_NODES
-            scripts/k8s-handler.sh create $BROWNFIELD_CLUSTER_PROVIDER $BROWNFIELD_CLUSTER_NAME $BROWNFIELD_CLUSTER_NODES    
+            scripts/k8s-handler.sh create $STAGE_CLUSTER_PROVIDER $STAGE_CLUSTER_NAME $STAGE_CLUSTER_NODES          
+            scripts/k8s-handler.sh create $PROD_CLUSTER_PROVIDER $PROD_CLUSTER_NAME $PROD_CLUSTER_NODES                  
             ;;
         delete-clusters)
             scripts/k8s-handler.sh delete $STAGE_CLUSTER_PROVIDER $STAGE_CLUSTER_NAME
@@ -608,13 +607,7 @@
             ;;
         install-demo)
             install-stage-cluster
-                #workaround if stage cluster is EKS
-                kubectl apply -f scripts/stage-docker-to-containerd-bug.yaml
-                eksctl scale nodegroup --cluster=devxmood-stage --nodes=5 --name=containerd-ng --nodes-min=5 --nodes-max=5 
             install-prod-cluster
-                #workaround if prod cluster is EKS
-                kubectl apply -f scripts/prod-docker-to-containerd-bug.yaml
-                eksctl scale nodegroup --cluster=devxmood-prod --nodes=3 --name=containerd-ng --nodes-min=3 --nodes-max=3
             update-multi-cluster-access
             add-brownfield-apis
             attach-tmc-clusters

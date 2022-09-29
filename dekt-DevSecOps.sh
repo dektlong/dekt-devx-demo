@@ -111,17 +111,8 @@
             --label app.kubernetes.io/part-of=$DEV_WORKLOAD \
             --yes \
             --namespace $DEV_NAMESPACE
-
-        #default sample app
-        tanzu apps workload create tanzu-java-web-app \
-            --git-repo https://github.com/sample-accelerators/tanzu-java-web-app \
-            --git-branch main \
-            --type web \
-            --label app.kubernetes.io/part-of=tanzu-java-web-app \
-            --yes \
-            --namespace $DEV_NAMESPACE
     }
-    
+
     #prod-roleout
     prod-roleout () {
 
@@ -221,7 +212,6 @@
         tanzu apps workload delete $PORTAL_WORKLOAD -n $TEAM_NAMESPACE -y
         tanzu apps workload delete $SENSORS_WORKLOAD -n $TEAM_NAMESPACE -y
         tanzu apps workload delete $DEV_WORKLOAD -n $DEV_NAMESPACE -y
-        
 
         toggle-dog sad
 
