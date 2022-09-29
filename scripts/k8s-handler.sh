@@ -49,7 +49,7 @@ create-eks-cluster () {
 
     #must run after setting access via 'aws configure'
 
-    export cluster_name=$1
+    cluster_name=$1
 	number_of_nodes=$2
 
 	scripts/dektecho.sh info "Creating EKS cluster $cluster_name with $number_of_nodes nodes"
@@ -59,17 +59,19 @@ create-eks-cluster () {
 		--region $AWS_REGION \
 		--version 1.22 \
 		--without-nodegroup #containerd to docker bug
-
+	
 	#containerd to docker bug
-    kubectl apply -f scripts/containerd-bug-$cluster_name.yaml
+    eksctl create ng -f scripts/containerd-bug-$cluster_name.yaml
     eksctl scale nodegroup \
 		--cluster=$cluster_name \
 		--nodes=$number_of_nodes \
 		--name=containerd-ng \
 		--nodes-min=$number_of_nodes \
 		--nodes-max=$number_of_nodes
+	
+	kubectl config rename-context $(kubectl config current-context) $cluster_name
 
-    kubectl config rename-context $(kubectl config current-context) $cluster_name
+
 }
 
 #scale-aks-nodes
