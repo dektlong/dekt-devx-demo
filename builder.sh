@@ -150,21 +150,21 @@
 
         kubectl create ns tap-install
        
-        tanzu secret registry add tap-registry \
-            --username ${TANZU_NETWORK_USER} --password ${TANZU_NETWORK_PASSWORD} \
-            --server "registry.tanzu.vmware.com" \
-            --export-to-all-namespaces --yes --namespace tap-install
         #tanzu secret registry add tap-registry \
-        #    --username ${PRIVATE_REPO_USER} --password ${PRIVATE_REPO_PASSWORD} \
-         #   --server $PRIVATE_REPO_SERVER \
-         #   --export-to-all-namespaces --yes --namespace tap-install
+        #    --username ${TANZU_NETWORK_USER} --password ${TANZU_NETWORK_PASSWORD} \
+        #    --server "registry.tanzu.vmware.com" \
+        #    --export-to-all-namespaces --yes --namespace tap-install
+        tanzu secret registry add tap-registry \
+            --username ${PRIVATE_REPO_USER} --password ${PRIVATE_REPO_PASSWORD} \
+           --server $PRIVATE_REPO_SERVER \
+           --export-to-all-namespaces --yes --namespace tap-install
 
-        tanzu package repository add tanzu-tap-repository \
-            --url registry.tanzu.vmware.com/tanzu-application-platform/tap-packages:$TAP_VERSION \
-            --namespace tap-install
         #tanzu package repository add tanzu-tap-repository \
-        #    --url $PRIVATE_REPO_SERVER/$SYSTEM_REPO/tap-packages:$TAP_VERSION \
+        #    --url registry.tanzu.vmware.com/tanzu-application-platform/tap-packages:$TAP_VERSION \
         #    --namespace tap-install
+        tanzu package repository add tanzu-tap-repository \
+            --url $PRIVATE_REPO_SERVER/$SYSTEM_REPO/tap-packages:$TAP_VERSION \
+            --namespace tap-install
 
         tanzu package install tap -p tap.tanzu.vmware.com -v $TAP_VERSION \
             --values-file .config/tap-profiles/$tap_values_file_name \
@@ -597,7 +597,8 @@
         case $1 in
         create-clusters) 
             scripts/k8s-handler.sh create $STAGE_CLUSTER_PROVIDER $STAGE_CLUSTER_NAME $STAGE_CLUSTER_NODES          
-            scripts/k8s-handler.sh create $PROD_CLUSTER_PROVIDER $PROD_CLUSTER_NAME $PROD_CLUSTER_NODES                  
+            scripts/k8s-handler.sh create $PROD_CLUSTER_PROVIDER $PROD_CLUSTER_NAME $PROD_CLUSTER_NODES 
+            scripts/k8s-handler.sh create $BROWNFIELD_CLUSTER_PROVIDER $BROWNFIELD_CLUSTER_NAME $BROWNFIELD_CLUSTER_NODES                  
             ;;
         delete-clusters)
             scripts/k8s-handler.sh delete $STAGE_CLUSTER_PROVIDER $STAGE_CLUSTER_NAME
