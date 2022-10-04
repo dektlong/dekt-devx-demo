@@ -50,6 +50,7 @@ create-eks-cluster () {
     #must run after setting access via 'aws configure'
 
     export cluster_name=$1
+	export aws_region=$AWS_REGION
 	number_of_nodes=$2
 	export bootstrap_cmd="/etc/eks/bootstrap.sh $cluster_name --container-runtime containerd"
 
@@ -63,6 +64,7 @@ create-eks-cluster () {
 	
 	#containerd to docker bug
 	yq '.metadata.name = env(cluster_name)' scripts/containerd-ng.yaml -i
+	yq '.metadata.region = env(aws_region)' scripts/containerd-ng.yaml -i
 	yq '.managedNodeGroups[0].overrideBootstrapCommand = env(bootstrap_cmd)' scripts/containerd-ng.yaml -i
 	
     eksctl create ng -f scripts/containerd-ng.yaml
