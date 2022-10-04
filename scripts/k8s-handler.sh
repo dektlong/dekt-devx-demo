@@ -49,8 +49,9 @@ create-eks-cluster () {
 
     #must run after setting access via 'aws configure'
 
-    cluster_name=$1
+    export cluster_name=$1
 	number_of_nodes=$2
+	export bootstrap_cmd="/etc/eks/bootstrap.sh $cluster_name --container-runtime containerd"
 
 	scripts/dektecho.sh info "Creating EKS cluster $cluster_name with $number_of_nodes nodes"
 
@@ -61,7 +62,10 @@ create-eks-cluster () {
 		--without-nodegroup #containerd to docker bug
 	
 	#containerd to docker bug
-    eksctl create ng -f scripts/containerd-bug-$cluster_name.yaml
+	yq '.metadata.name = env(cluster_name)' scripts/containerd-ng.yaml -i
+	yq '.managedNodeGroups[0].overrideBootstrapCommand = env(bootstrap_cmd)' scripts/containerd-ng.yaml -i
+	
+    eksctl create ng -f scripts/containerd-ng.yaml
     eksctl scale nodegroup \
 		--cluster=$cluster_name \
 		--nodes=$number_of_nodes \

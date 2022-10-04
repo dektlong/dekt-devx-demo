@@ -1,12 +1,10 @@
 apiVersion: eksctl.io/v1alpha5
 kind: ClusterConfig
 metadata:
-  name: devxmood-prod
+  name: dekt-test #updated in runtime
   region: us-west-1
 managedNodeGroups:
   - name: containerd-ng
     ami: ami-0d82cc82431a571ca
     instanceType: t3.xlarge
-    overrideBootstrapCommand: |
-      #!/bin/bash
-      /etc/eks/bootstrap.sh devxmood-prod --container-runtime containerd
+    overrideBootstrapCommand: /etc/eks/bootstrap.sh dekt-test --container-runtime containerd #updated in runtime

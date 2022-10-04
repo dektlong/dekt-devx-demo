@@ -1,10 +1,9 @@
 # Ignore Mac system files
 .DS_store
 
-# Ignore the secrets folder
+# Ignore the config folder
 .config
-.gitops
-# Ignore files related to config values and credentials
-.env
 
+# ignore carvel bundle
+scripts/carvel/bundle/.imgpkg/images.yml
 
