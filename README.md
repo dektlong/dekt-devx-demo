@@ -29,7 +29,7 @@ _ Login with your cloud credentials for each cloud you plan to deploy on
 
 - Relocate TAP images (optional to avoid dependencies on Tanzu Network uptime)
 ```
-./builder relocate-tap-images
+./builder.sh relocate-tap-images
 ```
 
 - If running local, the script assumes the TAP VSCode plugin and Tilt are installed

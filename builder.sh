@@ -646,6 +646,7 @@ uninstall-demo)
     outerloop-handler uninstall-demo
     ;;
 relocate-tap-images)
+    scripts/tanzu-handler.sh relocate-carvel-bundle
     relocate-tap-images
     ;;
 runme)
