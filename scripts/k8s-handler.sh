@@ -1,14 +1,16 @@
 #!/usr/bin/env bash
 
-AZURE_LOCATION="westus" #increase quota only available in us region
-AZURE_RESOURCE_GROUP="tap-aks"
-
-#aws ec2 describe-regions --output table
-AWS_REGION="us-west-1"
-
-#gcloud compute regions list --project fe-asaikali
-GKE_REGION="us-central1" 
-GCP_PROJECT_ID="fe-asaikali"
+#azure configs
+AZURE_LOCATION=$(yq .clouds.azureLocation .config/demo-values.yaml)
+AZURE_RESOURCE_GROUP=$(yq .clouds.azureResourceGroup .config/demo-values.yaml)
+AZURE_NODE_TYPE=$(yq .clouds.azureNodeType .config/demo-values.yaml)
+#aws configs
+AWS_REGION=$(yq .clouds.awsRegion .config/demo-values.yaml)
+AWS_INSTANCE_TYPE=$(yq .clouds.awsRegion .config/demo-values.yaml)
+#gcp configs
+GCP_REGION=$(yq .clouds.gcpRegion .config/demo-values.yaml)
+GCP_PROJECT_ID=$(yq .clouds.gcpProjectID .config/demo-values.yaml)
+GCP_MACHINE_TYPE=$(yq .clouds.gcpMachineType .config/demo-values.yaml)
 
 
 #create-aks-cluster
@@ -25,9 +27,8 @@ create-aks-cluster() {
 
 	az aks create --name $cluster_name \
 		--resource-group $AZURE_RESOURCE_GROUP \
-		--kubernetes-version "1.22.6" \
 		--node-count $number_of_nodes \
-		--node-vm-size "Standard_DS3_v2" # 4 vCPU, 14GB memory, 28GB temp disk 
+		--node-vm-size $AZURE_NODE_TYPE 
 
 	az aks get-credentials --overwrite-existing --resource-group $AZURE_RESOURCE_GROUP --name $cluster_name
 
@@ -51,6 +52,7 @@ create-eks-cluster () {
 
     export cluster_name=$1
 	export aws_region=$AWS_REGION
+	export aws_instance_type=$AWS_INSTANCE_TYPE
 	number_of_nodes=$2
 	export bootstrap_cmd="/etc/eks/bootstrap.sh $cluster_name --container-runtime containerd"
 
@@ -59,12 +61,12 @@ create-eks-cluster () {
     eksctl create cluster \
 		--name $cluster_name \
 		--region $AWS_REGION \
-		--version 1.22 \
 		--without-nodegroup #containerd to docker bug
 	
 	#containerd to docker bug
-	yq '.metadata.name = env(cluster_name)' scripts/containerd-ng.yaml -i
-	yq '.metadata.region = env(aws_region)' scripts/containerd-ng.yaml -i
+	yq '.metadata.name = env(cluster_name)' .config/rbac//containerd-ng.yaml -i
+	yq '.metadata.region = env(aws_region)' .config/rbac/containerd-ng.yaml -i
+	yq '.managedNodeGroups.instanceType = env(aws_instance_type)' .config/rbac/containerd-ng.yaml -i
 	yq '.managedNodeGroups[0].overrideBootstrapCommand = env(bootstrap_cmd)' scripts/containerd-ng.yaml -i
 	
     eksctl create ng -f scripts/containerd-ng.yaml
@@ -109,12 +111,12 @@ create-gke-cluster () {
 	scripts/dektecho.sh info "Creating GKE cluster $cluster_name with $number_of_nodes nodes"
 	
 	gcloud container clusters create $cluster_name \
-		--region $GKE_REGION \
+		--region $GCP_REGION \
 		--project $GCP_PROJECT_ID \
 		--num-nodes $number_of_nodes \
-		--machine-type "e2-standard-4"
+		--machine-type $GCP_MACHINE_TYPE
 
-	gcloud container clusters get-credentials $cluster_name --region $GKE_REGION --project $GCP_PROJECT_ID
+	gcloud container clusters get-credentials $cluster_name --region $GCP_REGION --project $GCP_PROJECT_ID
 
 	kubectl config rename-context $(kubectl config current-context) $cluster_name
 
@@ -128,7 +130,7 @@ delete-gke-cluster () {
 	scripts/dektecho.sh status "Starting deleting resources of GKE cluster $cluster_name"
 	
     gcloud container clusters delete $cluster_name \
-		--region $GKE_REGION \
+		--region $GCP_REGION \
 		--project $GCP_PROJECT_ID \
 		--quiet
 

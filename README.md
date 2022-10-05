@@ -5,10 +5,12 @@ This repo contains artifacts to run a demo illustrating the vision and capabilit
 
 ## Preparations 
 
-- Install public cloud k8s command line tools
+- Install public cloud k8s command line tools for the clouds you plan to use
   - az (with AKS plugin)
   - eksclt 
   - gcloud
+
+_ Login with your cloud credentials for each cloud you plan to deploy on
 
 - Clone the dekt-devx-demo repo ```git clone https://github.com/dektlong/dekt-devx-demo```
 
