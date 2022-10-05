@@ -6,7 +6,7 @@ AZURE_RESOURCE_GROUP=$(yq .clouds.azureResourceGroup .config/demo-values.yaml)
 AZURE_NODE_TYPE=$(yq .clouds.azureNodeType .config/demo-values.yaml)
 #aws configs
 AWS_REGION=$(yq .clouds.awsRegion .config/demo-values.yaml)
-AWS_INSTANCE_TYPE=$(yq .clouds.awsRegion .config/demo-values.yaml)
+AWS_INSTANCE_TYPE=$(yq .clouds.awsInstanceType .config/demo-values.yaml)
 #gcp configs
 GCP_REGION=$(yq .clouds.gcpRegion .config/demo-values.yaml)
 GCP_PROJECT_ID=$(yq .clouds.gcpProjectID .config/demo-values.yaml)
@@ -66,10 +66,10 @@ create-eks-cluster () {
 	#containerd to docker bug
 	yq '.metadata.name = env(cluster_name)' .config/rbac//containerd-ng.yaml -i
 	yq '.metadata.region = env(aws_region)' .config/rbac/containerd-ng.yaml -i
-	yq '.managedNodeGroups.instanceType = env(aws_instance_type)' .config/rbac/containerd-ng.yaml -i
-	yq '.managedNodeGroups[0].overrideBootstrapCommand = env(bootstrap_cmd)' scripts/containerd-ng.yaml -i
+	yq '.managedNodeGroups[0].instanceType = env(aws_instance_type)' .config/rbac/containerd-ng.yaml -i
+	yq '.managedNodeGroups[0].overrideBootstrapCommand = env(bootstrap_cmd)' .config/rbac/containerd-ng.yaml -i
 	
-    eksctl create ng -f scripts/containerd-ng.yaml
+    eksctl create ng -f .config/rbac/containerd-ng.yaml
     eksctl scale nodegroup \
 		--cluster=$cluster_name \
 		--nodes=$number_of_nodes \
