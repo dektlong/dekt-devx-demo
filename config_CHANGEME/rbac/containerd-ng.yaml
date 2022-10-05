@@ -6,5 +6,5 @@ metadata:
 managedNodeGroups:
   - name: containerd-ng
     ami: ami-0d82cc82431a571ca
-    instanceType: t3.xlarge
+    instanceType: #update in runtime
     overrideBootstrapCommand: #updated in runtime
