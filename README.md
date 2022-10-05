@@ -18,7 +18,6 @@ _ Login with your cloud credentials for each cloud you plan to deploy on
 
 - Replace all ```CHANGE_ME``` with your values
   - Make sure your clusters support the required capacity you defined in ```.config/demo-values.yaml```
-  - Modified the specific cloud info in ```scripts/k8s-hanlder.sh```
   - Make sure domain, system-repo and registry-host are identical across all configs
   - Since we are using custom supply chains, the registry values defined in the ootb supply chains are NOT applied automatically
   - Review ```.config/supply-chains/scan-policy.yaml``` and customized if need 
@@ -27,7 +26,7 @@ _ Login with your cloud credentials for each cloud you plan to deploy on
 - create public git repos named ```gitops-dev ``` and ```gitops-stage ```
 - The ingress setup is based on GoDaddy DNS, if you are using a different one, please modify ```scripts/ingress-handler.sh```
 
-- Relocate TAP images (optional to avoid dependencies on Tanzu Network uptime)
+- Relocate Carvel and TAP images (to avoid dependencies on Tanzu Network uptime)
 ```
 ./builder.sh relocate-tap-images
 ```
