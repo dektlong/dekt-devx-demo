@@ -538,6 +538,10 @@
         
         echo "  init-all"
         echo 
+        echo "  create-clusters"
+        echo 
+        echo "  install-demo"
+        echo 
         echo "  uninstall-demo"
         echo
         echo "  delete-all"
@@ -627,8 +631,15 @@ case $1 in
 init-all)    
     innerloop-handler create-clusters
     outerloop-handler create-clusters
+    innerloop-handler install-demo
+    outerloop-handler install-demo
+    ;;
+create-clusters)    
+    innerloop-handler create-clusters
+    outerloop-handler create-clusters
     test-all-clusters
-    scripts/dektecho.sh prompt  "Continue to install demo components" && [ $? -eq 0 ] || exit
+    ;;
+install-demo)    
     innerloop-handler install-demo
     outerloop-handler install-demo
     ;;
