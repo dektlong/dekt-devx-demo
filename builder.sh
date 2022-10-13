@@ -531,6 +531,9 @@
 
         tanzu package installed delete snyk-scanner -n tap-install -y
 
+        tanzu package installed delete carbonblack-scanner -n tap-install -y
+        
+
         kubectl delete -f .config/supply-chains -n $STAGEPROD_NAMESPACE
         kubectl delete -f .config/supply-chains -n $TEAM_NAMESPACE
 
