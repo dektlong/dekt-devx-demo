@@ -5,6 +5,11 @@ metadata:
   region: #updated in runtime
 managedNodeGroups:
   - name: containerd-ng
-    ami: CHANGE_ME # according to the region you are deploying to - https://docs.aws.amazon.com/AmazonECS/latest/developerguide/ecs-optimized_AMI.html
+    ami: CHANGE_ME # according to the region you are deploying to via this command
+      # aws ssm get-parameter \
+      # --name /aws/service/eks/optimized-ami/1.21/amazon-linux-2/recommended/image_id \
+      # --region CHANGE_ME \ 
+      # --query "Parameter.Value" 
+      # --output text
     instanceType: #update in runtime
     overrideBootstrapCommand: #updated in runtime
