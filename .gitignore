@@ -5,5 +5,5 @@
 .config
 
 # ignore carvel bundle
-scripts/carvel/bundle/.imgpkg/images.yml
+scripts/carvel/bundle
 
