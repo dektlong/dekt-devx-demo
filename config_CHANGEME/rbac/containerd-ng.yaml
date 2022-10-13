@@ -5,6 +5,6 @@ metadata:
   region: #updated in runtime
 managedNodeGroups:
   - name: containerd-ng
-    ami: ami-0d82cc82431a571ca
+    ami: CHANGE_ME # according to the region you are deploying to - https://docs.aws.amazon.com/AmazonECS/latest/developerguide/ecs-optimized_AMI.html
     instanceType: #update in runtime
     overrideBootstrapCommand: #updated in runtime
