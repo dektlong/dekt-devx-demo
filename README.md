@@ -23,7 +23,10 @@ _ Login with your cloud credentials for each cloud you plan to deploy on
   - Review ```.config/supply-chains/scan-policy.yaml``` and customized if need 
   - Review ```.config/supply-chains/tekton-pipeline.yaml``` and customized if need 
 
-- create public git repos named ```gitops-dev ``` and ```gitops-stage ```
+- create public git repos named ```gitops-dev ``` and ```gitops-stage ``` 
+
+- clone the repos above to the same root directory as dekt-devx-demo
+
 - The ingress setup is based on GoDaddy DNS, if you are using a different one, please modify ```scripts/ingress-handler.sh```
 
 - Relocate Carvel and TAP images (to avoid dependencies on Tanzu Network uptime)
