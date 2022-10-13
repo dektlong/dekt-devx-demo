@@ -500,8 +500,6 @@
     #relocate-tap-images
     relocate-tap-images() {
 
-        scripts/dektecho.sh prompt "Make sure docker deamon is running before proceeding"
-        
         docker login $PRIVATE_REPO_SERVER -u $PRIVATE_REPO_USER -p $PRIVATE_REPO_PASSWORD
 
         docker login registry.tanzu.vmware.com -u $TANZU_NETWORK_USER -p $TANZU_NETWORK_PASSWORD
@@ -676,6 +674,7 @@ uninstall-demo)
     outerloop-handler uninstall-demo
     ;;
 relocate-tap-images)
+    scripts/dektecho.sh prompt "Make sure docker deamon is running before proceeding"
     scripts/tanzu-handler.sh relocate-carvel-bundle
     relocate-tap-images
     ;;

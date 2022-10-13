@@ -11,8 +11,6 @@ TANZU_NETWORK_PASSWORD=$(yq .buildservice.tanzunet_password .config/tap-profiles
 #relocate-carvel-bundle
 relocate-carvel-bundle() {
 
-    scripts/dektecho.sh prompt "Make sure docker deamon is running before proceeding"
-        
     docker login $PRIVATE_REPO_SERVER -u $PRIVATE_REPO_USER -p $PRIVATE_REPO_PASSWORD
 
     docker login registry.tanzu.vmware.com -u $TANZU_NETWORK_USER -p $TANZU_NETWORK_PASSWORD
