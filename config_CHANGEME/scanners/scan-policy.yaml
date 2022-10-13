@@ -10,7 +10,7 @@ spec:
     package main
 
     # Accepted Values: "Critical", "High", "Medium", "Low", "Negligible", "UnknownSeverity"
-    notAllowedSeverities := ["Critical","High"]
+    notAllowedSeverities := ["Critical"]
     ignoreCves := ["CVE-2016-1000027","GHSA-3mc7-4q67-w48m","GHSA-36p3-wjmg-h94x"]
 
     contains(array, elem) = true {

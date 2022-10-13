@@ -1,0 +1,9 @@
+apiVersion: v1
+kind: Secret
+metadata:
+  name: carbonblack-config-secret
+stringData:
+  cbc_api_id: CHANGE_ME
+  cbc_api_key: CHANGE_ME
+  cbc_org_key: CHANGE_ME
+  cbc_saas_url: CHANGE_ME

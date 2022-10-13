@@ -29,6 +29,7 @@
     TAP_VERSION=$(yq .tap.version .config/demo-values.yaml)
     CARVEL_BUNDLE=$(yq .tap.carvel_bundle .config/demo-values.yaml)
     SNYK_VERSION=$(yq .tap.snyk_version .config/demo-values.yaml)
+    CARBONBLACK_VERSION=$(yq .tap.carbonblack_version .config/demo-values.yaml)
     SERVICE_BINDING_VERSION=$(yq .tap.service_binding_version .config/demo-values.yaml)
     #apps-namespaces
     DEV_NAMESPACE=$(yq .apps-namespaces.dev .config/demo-values.yaml)
@@ -107,12 +108,14 @@
         add-tap-package "tap-build.yaml"
 
         install-snyk
+
+        install-carbonblack
         
         scripts/dektecho.sh status "Adding custom supply chains"
         kubectl apply -f .config/supply-chains/dekt-src-scan-config.yaml
         kubectl apply -f .config/supply-chains/dekt-src-test-scan-api-config.yaml
         kubectl apply -f .config/supply-chains/tekton-pipeline.yaml -n $STAGEPROD_NAMESPACE
-        kubectl apply -f .config/supply-chains/scan-policy.yaml -n $STAGEPROD_NAMESPACE
+        kubectl apply -f .config/scanners/scan-policy.yaml -n $STAGEPROD_NAMESPACE #for all scanners
 
         scripts/dektecho.sh status "Adding RabbitMQ and Postgres in stage/prod configurations"
         add-rabbitmq-stageprod
@@ -302,15 +305,31 @@
 
         scripts/dektecho.sh status "Add Snyk for image scanning "
         
-        kubectl apply -f .config/rbac/snyk-creds.yaml -n $STAGEPROD_NAMESPACE
+        kubectl apply -f .config/scanners/snyk-creds.yaml -n $STAGEPROD_NAMESPACE
 
         tanzu package install snyk-scanner \
             --package-name snyk.scanning.apps.tanzu.vmware.com \
             --version $SNYK_VERSION \
             --namespace tap-install \
-            --values-file .config/supply-chains/snyk-values.yaml
+            --values-file .config/scanners/snyk-values.yaml
 
-            #1.0.0-beta.2
+        #kubectl apply -f .config/scanners/snyk-scan-policy.yaml -n $STAGEPROD_NAMESPACE
+    }
+
+     #install-carbonblack
+    install-carbonblack() {
+
+        scripts/dektecho.sh status "Add CarbonBlack for image scanning "
+        
+        kubectl apply -f .config/scanners/carbonblack-creds.yaml -n $STAGEPROD_NAMESPACE
+
+        tanzu package install carbonblack-scanner \
+            --package-name carbonblack.scanning.apps.tanzu.vmware.com \
+            --version $CARBONBLACK_VERSION \
+            --namespace tap-install \
+            --values-file .config/scanners/carbonblack-values.yaml
+        
+        #kubectl apply -f .config/scanners/carbonblack-scan-policy.yaml -n $STAGEPROD_NAMESPACE
 
     }
     #update-multi-cluster-access

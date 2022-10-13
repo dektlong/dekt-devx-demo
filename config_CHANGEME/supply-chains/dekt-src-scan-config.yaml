@@ -90,7 +90,7 @@ spec:
     params:
     - default: scan-policy
       name: scanning_image_policy
-    - default: snyk-private-image-scan-template
+    - default: CHANGE_ME-private-image-scan-template
       name: scanning_image_template
     templateRef:
       kind: ClusterImageTemplate
