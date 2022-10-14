@@ -1,7 +1,9 @@
+#@ load("@ytt:data", "data")
+---
 profile: run
 
 shared:
-  ingress_domain: "run.CHANGE_ME"
+  ingress_domain: #@ "{}.{}".format(data.values.dns.prodSubDomain, data.values.dns.domain)
 
 cnrs:
   domain_template: "{{.Name}}.{{.Domain}}"
@@ -13,7 +15,7 @@ contour:
 
 appliveview_connector:
   backend:
-    host: appliveview.sys.CHANGE_ME
+    host: #@ "{}.{}.{}".format("appliveview", data.values.dns.sysSubDomain, data.values.dns.domain)
     ingressEnabled: true
     sslDisabled: true
 

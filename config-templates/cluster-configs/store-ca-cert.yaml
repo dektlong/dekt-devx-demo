@@ -4,6 +4,6 @@ type: kubernetes.io/tls
 metadata:
   name: store-ca-cert
 data:
-  ca.crt: "" #updated in runtime
+  ca.crt: UPDATED_IN_RUNTIME
   tls.crt: ""
   tls.key: ""

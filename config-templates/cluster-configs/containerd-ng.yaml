@@ -1,0 +1,12 @@
+#@ load("@ytt:data", "data")
+---
+apiVersion: eksctl.io/v1alpha5
+kind: ClusterConfig
+metadata:
+  name: UPDATED_IN_RUNTIME
+  region: #@ data.values.clouds.awsRegion
+managedNodeGroups:
+  - name: containerd-ng
+    ami: #@ data.values.clouds.awsContainerdAMI
+    instanceType: #@ data.values.clouds.awsInstaceType
+    overrideBootstrapCommand: UPDATED_IN_RUNTIME

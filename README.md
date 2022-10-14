@@ -3,43 +3,35 @@
 
 This repo contains artifacts to run a demo illustrating the vision and capabilities of Tanzu for Dev, AppOps and Platform Ops
 
-## Preparations 
+## Preparations (one time setup)
 
-- Install public cloud k8s command line tools for the clouds you plan to use
+- Install the following tools
   - az (with AKS plugin)
   - eksclt 
   - gcloud
+  - ytt
+  - TAP VSCode plugin 
+  - Tilt 
 
-_ Login with your cloud credentials for each cloud you plan to deploy on
+- Login with your cloud credentials for each cloud you plan to deploy on
 
 - Clone the dekt-devx-demo repo ```git clone https://github.com/dektlong/dekt-devx-demo```
 
-- Rename the folder ```config_changeme``` to ```.config```
+- Create a folder named```.config``` in the ```dekt-devx-demo``` directory
 
-- Replace all ```CHANGE_ME``` with your values
-  - Make sure your clusters support the required capacity you defined in ```.config/demo-values.yaml```
-  - Make sure domain, system-repo and registry-host are identical across all configs
-  - Since we are using custom supply chains, the registry values defined in the ootb supply chains are NOT applied automatically
-  - Review ```.config/supply-chains/scan-policy.yaml``` and customized if need 
-  - Review ```.config/supply-chains/tekton-pipeline.yaml``` and customized if need 
+- copy ```config-templates/demo-values.yaml``` to ```.config/demo-values.yaml```
 
-- create public git repos named ```gitops-dev ``` and ```gitops-stage ``` 
-
-- clone the repos above to the same root directory as dekt-devx-demo
-
-- The ingress setup is based on GoDaddy DNS, if you are using a different one, please modify ```scripts/ingress-handler.sh```
+- update all values in ```.config/demo-values.yaml```
 
 - Relocate Carvel and TAP images (to avoid dependencies on Tanzu Network uptime)
 ```
 ./builder.sh relocate-tap-images
 ```
 
-- If running local, the script assumes the TAP VSCode plugin and Tilt are installed
-
 ## Installation
 
 ```
-./builder.sh init-all     or    ./builder.sh init-innerloop
+./builder.sh init-all 
 ```
 
 ### Create clusters

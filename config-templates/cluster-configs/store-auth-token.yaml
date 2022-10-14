@@ -3,4 +3,4 @@ kind: Secret
 metadata:
   name: store-auth-token
 stringData:
-  auth_token: "" #updated in runtime
+  auth_token: UPDATED_IN_RUNTIME

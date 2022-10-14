@@ -1,3 +1,5 @@
+#@ load("@ytt:data", "data")
+---
 apiVersion: carto.run/v1alpha1
 kind: ClusterSupplyChain
 metadata:
@@ -24,11 +26,11 @@ spec:
     name: gitops_commit_message
   - default: gitops-credentials
     name: gitops_ssh_secret
-  - default: https://github.com/
+  - default: #@ data.values.gitops.server
     name: gitops_server_address
-  - default: CHANGE_ME
+  - default: #@ data.values.gitops.owner
     name: gitops_repository_owner
-  - default: gitops-stage
+  - default: #@ data.values.gitops.stage
     name: gitops_repository_name
   resources:
   - name: source-provider
@@ -66,8 +68,8 @@ spec:
     - name: registry
       value:
         ca_cert_data: ""
-        repository: dekt-stage
-        server: CHANGE_ME
+        server: #@ data.values.private_registry.host
+        repository: #@ data.values.repositories.stage
     - default: default
       name: clusterBuilder
     - default: ./Dockerfile
@@ -99,7 +101,7 @@ spec:
     params:
     - default: scan-policy
       name: scanning_image_policy
-    - default: CHANGE_ME-private-image-scan-template
+    - default: #@ data.values.tap.imageScanTemplate
       name: scanning_image_template
     templateRef:
       kind: ClusterImageTemplate
@@ -153,8 +155,8 @@ spec:
     - name: registry
       value:
         ca_cert_data: ""
-        repository: dekt-stage
-        server: CHANGE_ME
+        server: #@ data.values.private_registry.host
+        repository: #@ data.values.repositories.stage
     templateRef:
       kind: ClusterTemplate
       name: config-writer-template
@@ -163,8 +165,8 @@ spec:
     - name: registry
       value:
         ca_cert_data: ""
-        repository: dekt-stage
-        server: CHANGE_ME
+        server: #@ data.values.private_registry.host
+        repository: #@ data.values.repositories.stage
     templateRef:
       kind: ClusterTemplate
       name: deliverable-template

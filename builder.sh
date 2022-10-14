@@ -19,26 +19,26 @@
     BROWNFIELD_CLUSTER_NODES=$(yq .brownfield-cluster.nodes .config/demo-values.yaml)
 
     #image registry
-    PRIVATE_REPO_SERVER=$(yq .ootb_supply_chain_basic.registry.server .config/tap-profiles/tap-iterate.yaml)
-    PRIVATE_REPO_USER=$(yq .buildservice.kp_default_repository_username .config/tap-profiles/tap-iterate.yaml)
-    PRIVATE_REPO_PASSWORD=$(yq .buildservice.kp_default_repository_password .config/tap-profiles/tap-iterate.yaml)
-    SYSTEM_REPO=$(yq .tap.systemRepo .config/demo-values.yaml)
+    PRIVATE_REPO_SERVER=$(yq .private_registry.host .config/demo-values.yaml)
+    PRIVATE_REPO_USER=$(yq .private_registry.username .config/demo-values.yaml)
+    PRIVATE_REPO_PASSWORD=$(yq .private_registry.password .config/demo-values.yaml)
+    SYSTEM_REPO=$(yq .repositories.system .config/demo-values.yaml)
     #tap
-    TANZU_NETWORK_USER=$(yq .buildservice.tanzunet_username .config/tap-profiles/tap-iterate.yaml)
-    TANZU_NETWORK_PASSWORD=$(yq .buildservice.tanzunet_password .config/tap-profiles/tap-iterate.yaml)
+    TANZU_NETWORK_USER=$(yq .tanzu_network.username .config/demo-values.yaml)
+    TANZU_NETWORK_PASSWORD=$(yq .tanzu_network.password .config/demo-values.yaml)
     TAP_VERSION=$(yq .tap.version .config/demo-values.yaml)
     CARVEL_BUNDLE=$(yq .tap.carvel_bundle .config/demo-values.yaml)
-    SNYK_VERSION=$(yq .tap.snyk_version .config/demo-values.yaml)
-    CARBONBLACK_VERSION=$(yq .tap.carbonblack_version .config/demo-values.yaml)
+    SNYK_VERSION=$(yq .snyk.version .config/demo-values.yaml)
+    CARBONBLACK_VERSION=$(yq .carbonblack.version .config/demo-values.yaml)
     SERVICE_BINDING_VERSION=$(yq .tap.service_binding_version .config/demo-values.yaml)
     #apps-namespaces
     DEV_NAMESPACE=$(yq .apps-namespaces.dev .config/demo-values.yaml)
     TEAM_NAMESPACE=$(yq .apps-namespaces.team .config/demo-values.yaml)
     STAGEPROD_NAMESPACE=$(yq .apps-namespaces.stageProd .config/demo-values.yaml)
     #domains
-    SYSTEM_SUB_DOMAIN=$(yq .shared.ingress_domain .config/tap-profiles/tap-view.yaml | cut -d'.' -f 1)
-    DEV_SUB_DOMAIN=$(yq .shared.ingress_domain .config/tap-profiles/tap-iterate.yaml | cut -d'.' -f 1)
-    RUN_SUB_DOMAIN=$(yq .shared.ingress_domain .config/tap-profiles/tap-run.yaml | cut -d'.' -f 1)
+    SYSTEM_SUB_DOMAIN=$(yq .dns.sysSubDomain .config/demo-values.yaml)
+    DEV_SUB_DOMAIN=$(yq .dns.devSubDomain .config/demo-values.yaml)
+    RUN_SUB_DOMAIN=$(yq .dns.prodSubDomain .config/demo-values.yaml)
     #misc 
     RDS_PROFILE=$(yq .data-services.rdsProfile .config/demo-values.yaml)       
     GW_INSTALL_DIR=$(yq .apis.scgwInstallDirectory .config/demo-values.yaml)
@@ -649,6 +649,7 @@
 
 case $1 in
 init-all)    
+    ./scripts/tanzu-handler.sh update-demo-values
     innerloop-handler create-clusters
     outerloop-handler create-clusters
     innerloop-handler install-demo
@@ -659,7 +660,8 @@ create-clusters)
     outerloop-handler create-clusters
     test-all-clusters
     ;;
-install-demo)    
+install-demo)
+    ./scripts/tanzu-handler.sh update-demo-values    
     innerloop-handler install-demo
     outerloop-handler install-demo
     ;;

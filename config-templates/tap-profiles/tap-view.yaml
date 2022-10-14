@@ -1,11 +1,13 @@
+#@ load("@ytt:data", "data")
+---
 profile: view
 shared:
-  ingress_domain: "sys.CHANGE_ME"
+  ingress_domain: #@ "{}.{}".format(data.values.dns.sysSubDomain, data.values.dns.domain)
 tap_gui:
   service_type: ClusterIP
   app_config:
     app:
-      baseUrl: http://tap-gui.sys.CHANGE_ME
+      baseUrl: #@ "{}.{}.{}".format("http://tap-gui", data.values.dns.sysSubDomain, data.values.dns.domain)
     catalog:
       locations:
         - type: url
@@ -15,20 +17,20 @@ tap_gui:
         - type: url
           target: https://github.com/krisapplegate/tap-gui-catalogs/blob/main/tap-gui/api-test.yaml
     backend:
-      baseUrl: http://tap-gui.sys.CHANGE_ME
+      baseUrl: #@ "{}.{}.{}".format("http://tap-gui", data.values.dns.sysSubDomain, data.values.dns.domain)
       cors:
-        origin: http://tap-gui.sys.CHANGE_ME
+        origin: #@ "{}.{}.{}".format("http://tap-gui", data.values.dns.sysSubDomain, data.values.dns.domain)
       reading:
         allow:
           - host: "petstore.swagger.io"
-          - host: "*.CHANGE_ME"
+          - host: #@ "{}.{}".format("*", data.values.dns.domain)
     proxy:
       /metadata-store:
         target: https://metadata-store-app.metadata-store:8443/api/v1
         changeOrigin: true
         secure: false
         headers:
-          Authorization: "" #updated in runtime
+          Authorization: UPDATED_IN_RUNTIME
           X-Custom-Source: project-star
     kubernetes:
       serviceLocatorMethod:
@@ -36,20 +38,20 @@ tap_gui:
       clusterLocatorMethods:
         - type: 'config'
           clusters:
-            - url: "" #updated in runtime
-              name:  #updated in runtime
+            - url: UPDATED_IN_RUNTIME
+              name: UPDATED_IN_RUNTIME
               authProvider: serviceAccount
-              serviceAccountToken: "" #updated in runtime
+              serviceAccountToken: UPDATED_IN_RUNTIME
               skipTLSVerify: true
-            - url: "" #updated in runtime
-              name:  #updated in runtime
+            - url: UPDATED_IN_RUNTIME
+              name: UPDATED_IN_RUNTIME
               authProvider: serviceAccount
-              serviceAccountToken: "" #updated in runtime
+              serviceAccountToken: UPDATED_IN_RUNTIME
               skipTLSVerify: true
-            - url: "" #updated in runtime
-              name:  #updated in runtime
+            - url: UPDATED_IN_RUNTIME
+              name: UPDATED_IN_RUNTIME
               authProvider: serviceAccount
-              serviceAccountToken: "" #updated in runtime
+              serviceAccountToken: UPDATED_IN_RUNTIME
               skipTLSVerify: true
 contour:
   envoy:
@@ -61,7 +63,7 @@ appliveview:
   ingressEnabled: true
   sslDisabled: true
 api_auto_registration:
-  tap_gui_url: http://tap-gui.sys.CHANGE_ME
+  tap_gui_url: #@ "{}.{}.{}".format("http://tap-gui", data.values.dns.sysSubDomain, data.values.dns.domain)
 excluded_packages:
   - learningcenter.tanzu.vmware.com
   - workshops.learningcenter.tanzu.vmware.com

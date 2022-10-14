@@ -1,14 +1,18 @@
+#@ load("@ytt:data", "data")
+---
 apiVersion: carto.run/v1alpha1
 kind: ClusterSupplyChain
 metadata:
-  name: dekt-src-config
+  name: dekt-src-test-api-config
 spec:
+  selector:
+    apps.tanzu.vmware.com/has-tests: "true"
   selectorMatchExpressions:
   - key: apps.tanzu.vmware.com/workload-type
     operator: In
     values:
-    - dekt-url
-    - dekt-worker
+    - dekt-api
+    - dekt-server
   params:
   - name: maven_repository_url
     value: https://repo.maven.apache.org/maven2
@@ -18,15 +22,15 @@ spec:
     name: gitops_user_name
   - default: supplychain
     name: gitops_user_email
-  - default: supplychain@dekt-src-config
+  - default: supplychain@dekt-src-test-api-config
     name: gitops_commit_message
   - default: gitops-credentials
     name: gitops_ssh_secret
-  - default: https://github.com/
+  - default: #@ data.values.gitops.server
     name: gitops_server_address
-  - default: CHANGE_ME
+  - default: #@ data.values.gitops.owner
     name: gitops_repository_owner
-  - default: gitops-dev
+  - default: #@ data.values.gitops.dev
     name: gitops_repository_name
   resources:
   - name: source-provider
@@ -38,6 +42,13 @@ spec:
     templateRef:
       kind: ClusterSourceTemplate
       name: source-template
+  - name: source-tester
+    sources:
+    - name: source
+      resource: source-provider
+    templateRef:
+      kind: ClusterSourceTemplate
+      name: testing-pipeline
   - name: image-provider
     params:
     - name: serviceAccount
@@ -45,8 +56,8 @@ spec:
     - name: registry
       value:
         ca_cert_data: ""
-        repository: dekt-dev
-        server: CHANGE_ME
+        server: #@ data.values.private_registry.host
+        repository: #@ data.values.repositories.dev
     - default: default
       name: clusterBuilder
     - default: ./Dockerfile
@@ -57,7 +68,7 @@ spec:
       name: docker_build_extra_args
     sources:
     - name: source
-      resource: source-provider
+      resource: source-tester
     templateRef:
       kind: ClusterImageTemplate
       options:
@@ -91,11 +102,11 @@ spec:
       - name: config-template
         selector:
           matchLabels:
-            apps.tanzu.vmware.com/workload-type: dekt-url
-      - name: worker-template
+            apps.tanzu.vmware.com/workload-type: dekt-api
+      - name: server-template
         selector:
           matchLabels:
-            apps.tanzu.vmware.com/workload-type: dekt-worker
+            apps.tanzu.vmware.com/workload-type: dekt-server
   - configs:
     - name: app_def
       resource: app-config
@@ -104,8 +115,15 @@ spec:
       kind: ClusterConfigTemplate
       name: service-bindings
   - configs:
+    - name: app_def
+      resource: service-bindings
+    name: api-descriptors
+    templateRef:
+      kind: ClusterConfigTemplate
+      name: api-descriptors
+  - configs:
     - name: config
-      resource: app-config
+      resource: api-descriptors
     name: config-writer
     params:
     - name: serviceAccount
@@ -113,8 +131,8 @@ spec:
     - name: registry
       value:
         ca_cert_data: ""
-        repository: dekt-dev
-        server: CHANGE_ME
+        server: #@ data.values.private_registry.host
+        repository: #@ data.values.repositories.dev
     templateRef:
       kind: ClusterTemplate
       name: config-writer-template
@@ -123,8 +141,8 @@ spec:
     - name: registry
       value:
         ca_cert_data: ""
-        repository: dekt-dev
-        server: CHANGE_ME
+        server: #@ data.values.private_registry.host
+        repository: #@ data.values.repositories.dev
     templateRef:
       kind: ClusterTemplate
       name: deliverable-template

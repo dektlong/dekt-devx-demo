@@ -1,3 +1,5 @@
+#@ load("@ytt:data", "data")
+---
 apiVersion: v1
 kind: Secret
 metadata:
@@ -6,5 +8,5 @@ metadata:
   tekton.dev/git-0: https://github.com
 type: kubernetes.io/basic-auth
 stringData:
- password: CHANGE_ME
- username: CHANGE_ME
+ password: #@ data.values.gitops.apiKey
+ username: #@ data.values.gitops.owner

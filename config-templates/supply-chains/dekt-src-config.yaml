@@ -1,7 +1,9 @@
+#@ load("@ytt:data", "data")
+---
 apiVersion: carto.run/v1alpha1
 kind: ClusterSupplyChain
 metadata:
-  name: dekt-src-scan-config
+  name: dekt-src-config
 spec:
   selectorMatchExpressions:
   - key: apps.tanzu.vmware.com/workload-type
@@ -18,15 +20,15 @@ spec:
     name: gitops_user_name
   - default: supplychain
     name: gitops_user_email
-  - default: supplychain@dekt-src-scan-config
+  - default: supplychain@dekt-src-config
     name: gitops_commit_message
   - default: gitops-credentials
     name: gitops_ssh_secret
-  - default: https://github.com/
+  - default: #@ data.values.gitops.server
     name: gitops_server_address
-  - default: CHANGE_ME
+  - default: #@ data.values.gitops.owner
     name: gitops_repository_owner
-  - default: gitops-stage
+  - default: #@ data.values.gitops.dev
     name: gitops_repository_name
   resources:
   - name: source-provider
@@ -38,18 +40,6 @@ spec:
     templateRef:
       kind: ClusterSourceTemplate
       name: source-template
-  - name: source-scanner
-    params:
-    - default: scan-policy
-      name: scanning_source_policy
-    - default: blob-source-scan-template
-      name: scanning_source_template
-    sources:
-    - name: source
-      resource: source-provider
-    templateRef:
-      kind: ClusterSourceTemplate
-      name: source-scanner-template
   - name: image-provider
     params:
     - name: serviceAccount
@@ -57,8 +47,8 @@ spec:
     - name: registry
       value:
         ca_cert_data: ""
-        repository: dekt-stage
-        server: CHANGE_ME
+        server: #@ data.values.private_registry.host
+        repository: #@ data.values.repositories.dev
     - default: default
       name: clusterBuilder
     - default: ./Dockerfile
@@ -69,7 +59,7 @@ spec:
       name: docker_build_extra_args
     sources:
     - name: source
-      resource: source-scanner
+      resource: source-provider
     templateRef:
       kind: ClusterImageTemplate
       options:
@@ -86,18 +76,6 @@ spec:
   - images:
     - name: image
       resource: image-provider
-    name: image-scanner
-    params:
-    - default: scan-policy
-      name: scanning_image_policy
-    - default: CHANGE_ME-private-image-scan-template
-      name: scanning_image_template
-    templateRef:
-      kind: ClusterImageTemplate
-      name: image-scanner-template
-  - images:
-    - name: image
-      resource: image-scanner
     name: config-provider
     params:
     - name: serviceAccount
@@ -137,8 +115,8 @@ spec:
     - name: registry
       value:
         ca_cert_data: ""
-        repository: dekt-stage
-        server: CHANGE_ME
+        server: #@ data.values.private_registry.host
+        repository: #@ data.values.repositories.dev
     templateRef:
       kind: ClusterTemplate
       name: config-writer-template
@@ -147,8 +125,8 @@ spec:
     - name: registry
       value:
         ca_cert_data: ""
-        repository: dekt-stage
-        server: CHANGE_ME
+        server: #@ data.values.private_registry.host
+        repository: #@ data.values.repositories.dev
     templateRef:
       kind: ClusterTemplate
       name: deliverable-template

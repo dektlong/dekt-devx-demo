@@ -1,0 +1,97 @@
+view-cluster: # TAP view profile installed
+  name: 
+  provider: #accepted values: aks,eks,gke
+  nodes: 4 
+dev-cluster: # TAP interate profile installed
+  name: 
+  provider: #accepted values: aks,eks,gke
+  nodes: 5 
+stage-cluster: #TAP build profile installed
+  name:
+  provider: #accepted values: aks,eks,gke
+  nodes: 5 
+prod-cluster: # TAP run profile installed
+  name: 
+  provider: #accepted values: aks,eks,gke
+  nodes: 3 
+brownfield-cluster: #for bronwfield apis demo, SCGW and TSM, no TAP installed
+  name: 
+  provider: #accepted values: aks,eks,gke
+  nodes: 3 
+
+clouds:
+  azureLocation: 
+  azureResourceGroup: 
+  azureNodeType: Standard_DS3_v2 # recommended: 4 vCPU, 14GB memory, 28GB temp disk 
+  awsRegion: 
+  awsContainerdAMI: #according to the region you are deploying to via this command
+      # aws ssm get-parameter \
+      # --name /aws/service/eks/optimized-ami/1.21/amazon-linux-2/recommended/image_id \
+      # --region CHANGE_ME \ 
+      # --query "Parameter.Value" \
+      # --output text
+  awsInstaceType: t3.xlarge # recommended: 4 vCPU, 16GB memory, 28GB temp disk 
+  gcpRegion: 
+  gcpProjectID: 
+  gcpMachineType: 
+
+private_registry:
+  host: 
+  username: 
+  password: 
+
+repositories:
+  buildservice: build-service
+  system: 
+  dev: 
+  stage: 
+
+tanzu_network:
+  username: 
+  password: 
+
+tap:
+  version: "1.3.0"
+  carvelBundle: "cluster-essentials-bundle@sha256:54bf611711923dccd7c7f10603c846782b90644d48f1cb570b43a082d18e23b9"
+  imageScanTemplate: #accepted values: carbonblack-private-image-scan-template snyk-private-image-scan-template, private-image-scan-template
+  serviceBindingVersion: "0.8.0"
+
+snyk: 
+  version: "1.0.0-beta.4"
+  token: 
+
+carbonblack:
+  version: "1.0.0-beta.2"
+  cbc_api_id: 
+  cbc_api_key: 
+  cbc_org_key: 
+  cbc_saas_url: 
+
+apps_namespaces:
+  dev: 
+  team: 
+  stageProd: 
+
+gitops:
+  server: "https://github.com/"
+  apiKey: 
+  owner: 
+  dev: #repo needs to be created manually and clone at the same folder level as the demo repo
+  stage: #repo needs to be created manually and clone at the same folder level as the demo repo
+
+dns:
+  domain: 
+  sysSubDomain: 
+  devSubDomain: 
+  prodSubDomain: 
+  godaddyApiKey: 
+  godaddyApiSecret: 
+
+data-services:
+  rdsProfile: #pre-configured named profile for an AWS account that has permissions to manage RDS databases
+
+apis:
+  scgwInstallDirectory:
+
+tmc:
+  apiToken: 

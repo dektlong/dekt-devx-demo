@@ -7,7 +7,7 @@ AZURE_NODE_TYPE=$(yq .clouds.azureNodeType .config/demo-values.yaml)
 #aws configs
 export AWS_REGION=$(yq .clouds.awsRegion .config/demo-values.yaml)
 export AWS_CONTAINERD_AMI=$(yq .clouds.awsContainerdAMI .config/demo-values.yaml)
-export AWS_INSTANCE_TYPE=$(yq .clouds.awsInstaceType .config/demo-values.yaml)
+export AWS_INSTANCE_TYPE=$(yq .clouds.awsInstanceType .config/demo-values.yaml)
 #gcp configs
 GCP_REGION=$(yq .clouds.gcpRegion .config/demo-values.yaml)
 GCP_PROJECT_ID=$(yq .clouds.gcpProjectID .config/demo-values.yaml)
@@ -64,9 +64,6 @@ create-eks-cluster () {
 	
 	#containerd to docker bug
 	yq '.metadata.name = env(cluster_name)' .config/cluster-configs/containerd-ng.yaml -i
-	yq '.metadata.region = env(AWS_REGION)' .config/cluster-configs/containerd-ng.yaml -i
-	yq '.managedNodeGroups[0].ami = env(AWS_CONTAINERD_AMI)' .config/cluster-configs/containerd-ng.yaml -i
-	yq '.managedNodeGroups[0].instanceType = env(AWS_INSTANCE_TYPE)' .config/cluster-configs/containerd-ng.yaml -i
 	yq '.managedNodeGroups[0].overrideBootstrapCommand = env(bootstrap_cmd)' .config/cluster-configs/containerd-ng.yaml -i
 	
     eksctl create ng -f .config/cluster-configs/containerd-ng.yaml

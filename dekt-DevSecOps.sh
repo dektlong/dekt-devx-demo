@@ -19,7 +19,6 @@
     GITOPS_STAGE_REPO="gitops-stage"
     #tap
     TAP_VERSION=$(yq .tap.version .config/demo-values.yaml)
-    SYSTEM_REPO=$(yq .tap.systemRepo .config/demo-values.yaml)
     #apps-namespaces
     DEV_NAMESPACE=$(yq .apps-namespaces.dev .config/demo-values.yaml)
     TEAM_NAMESPACE=$(yq .apps-namespaces.team .config/demo-values.yaml)
