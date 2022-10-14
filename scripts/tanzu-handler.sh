@@ -107,14 +107,14 @@ update-demo-values() {
     scripts/dektecho.sh status "Generating demo configuration files"
 
     #tap-profiles
-    mkdir .config/tap-profiles
+    mkdir -p .config/tap-profiles
     ytt -f config-templates/tap-profiles/tap-view.yaml --data-values-file=.config/demo-values.yaml > .config/tap-profiles/tap-view.yaml
     ytt -f config-templates/tap-profiles/tap-iterate.yaml --data-values-file=.config/demo-values.yaml > .config/tap-profiles/tap-iterate.yaml
     ytt -f config-templates/tap-profiles/tap-build.yaml --data-values-file=.config/demo-values.yaml > .config/tap-profiles/tap-build.yaml
     ytt -f config-templates/tap-profiles/tap-run.yaml --data-values-file=.config/demo-values.yaml > .config/tap-profiles/tap-run.yaml
 
     #supply-chains
-    mkdir .config/supply-chains
+    mkdir -p .config/supply-chains
     ytt -f config-templates/supply-chains/dekt-src-config.yaml --data-values-file=.config/demo-values.yaml > .config/supply-chains/dekt-src-config.yaml
     ytt -f config-templates/supply-chains/dekt-src-scan-config.yaml --data-values-file=.config/demo-values.yaml > .config/supply-chains/dekt-src-scan-config.yaml
     ytt -f config-templates/supply-chains/dekt-src-test-api-config.yaml --data-values-file=.config/demo-values.yaml > .config/supply-chains/dekt-src-test-api-config.yaml
@@ -124,7 +124,7 @@ update-demo-values() {
     cp config-templates/supply-chains/tekton-pipeline.yaml .config/supply-chains/tekton-pipeline.yaml
 
     #scanners
-    mkdir .config/scanners
+    mkdir -p .config/scanners
     ytt -f config-templates/scanners/carbonblack-creds.yaml --data-values-file=.config/demo-values.yaml > .config/scanners/carbonblack-creds.yaml
     ytt -f config-templates/scanners/carbonblack-values.yaml --data-values-file=.config/demo-values.yaml > .config/scanners/carbonblack-values.yaml
     ytt -f config-templates/scanners/snyk-creds.yaml --data-values-file=.config/demo-values.yaml > .config/scanners/snyk-creds.yaml
@@ -132,7 +132,7 @@ update-demo-values() {
     cp config-templates/scanners/scan-policy.yaml .config/scanners/scan-policy.yaml
 
     #cluster-configs
-    mkdir .config/cluster-configs
+    mkdir -p .config/cluster-configs
     ytt -f config-templates/cluster-configs/containerd-ng.yaml --data-values-file=.config/demo-values.yaml > .config/cluster-configs/containerd-ng.yaml
     cp config-templates/cluster-configs/reader-accounts.yaml .config/cluster-configs/reader-accounts.yaml
     cp config-templates/cluster-configs/single-user-access.yaml .config/cluster-configs/single-user-access.yaml
@@ -144,7 +144,7 @@ update-demo-values() {
     cp -R config-templates/data-services .config
 
     #workloads
-    mkdir .config/workloads
+    mkdir -p .config/workloads
     cp config-templates/workloads/mood-analyzer.yaml .config/workloads/mood-analyzer.yaml
     cp config-templates/workloads/mood-portal.yaml .config/workloads/mood-portal.yaml
     cp config-templates/workloads/mood-sensors-openapi.yaml .config/workloads/mood-sensors-openapi.yaml
