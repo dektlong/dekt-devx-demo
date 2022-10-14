@@ -1,23 +1,24 @@
-view-cluster: # TAP view profile installed
-  name: 
-  provider: #accepted values: aks,eks,gke
-  nodes: 4 
-dev-cluster: # TAP interate profile installed
-  name: 
-  provider: #accepted values: aks,eks,gke
-  nodes: 5 
-stage-cluster: #TAP build profile installed
-  name:
-  provider: #accepted values: aks,eks,gke
-  nodes: 5 
-prod-cluster: # TAP run profile installed
-  name: 
-  provider: #accepted values: aks,eks,gke
-  nodes: 3 
-brownfield-cluster: #for bronwfield apis demo, SCGW and TSM, no TAP installed
-  name: 
-  provider: #accepted values: aks,eks,gke
-  nodes: 3 
+clusters:
+  view: # TAP view profile installed
+    name: 
+    provider: #accepted values: aks,eks,gke
+    nodes: 4
+  dev: # TAP interate profile installed
+    name: 
+    provider: #accepted values: aks,eks,gke 
+    nodes: 5 
+  stage: #TAP build profile installed
+    name: 
+    provider: #accepted values: aks,eks,gke
+    nodes: 5 
+  prod: # TAP run profile installed
+    name: 
+    provider: #accepted values: aks,eks,gke
+    nodes: 3 
+  brownfield: #for bronwfield apis demo, SCGW and TSM, no TAP installed
+    name: 
+    provider: #accepted values: aks,eks,gke
+    nodes: 3 
 
 clouds:
   azureLocation: 
