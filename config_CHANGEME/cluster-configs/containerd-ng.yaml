@@ -1,0 +1,10 @@
+apiVersion: eksctl.io/v1alpha5
+kind: ClusterConfig
+metadata:
+  name: #updated in runtime
+  region: #updated in runtime
+managedNodeGroups:
+  - name: containerd-ng
+    ami: #update in runtime
+    instanceType: #update in runtime
+    overrideBootstrapCommand: #updated in runtime

@@ -189,8 +189,8 @@
             --password $PRIVATE_REPO_PASSWORD \
             --namespace $appsNamespace    
 
-        kubectl apply -f .config/rbac/gitops-creds.yaml -n $appsNamespace
-        kubectl apply -f .config/rbac/single-user-access.yaml -n $appsNamespace
+        kubectl apply -f .config/supply-chains/gitops-creds.yaml -n $appsNamespace
+        kubectl apply -f .config/cluster-configs/single-user-access.yaml -n $appsNamespace
     }
 
     #add-rabbitmq-team
@@ -285,8 +285,8 @@
         export storeToken=$(kubectl get secrets metadata-store-read-write-client -n metadata-store -o jsonpath="{.data.token}" | base64 -d)
         export storeProxyAuthHeader="Bearer $storeToken"
 
-        yq '.data."ca.crt"= env(storeCert)' .config/rbac/store-ca-cert.yaml -i
-        yq '.stringData.auth_token= env(storeToken)' .config/rbac/store-auth-token.yaml -i
+        yq '.data."ca.crt"= env(storeCert)' .config/cluster-configs/store-ca-cert.yaml -i
+        yq '.stringData.auth_token= env(storeToken)' .config/cluster-configs/store-auth-token.yaml -i
         yq '.tap_gui.app_config.proxy."/metadata-store".headers.Authorization= env(storeProxyAuthHeader)' .config/tap-profiles/tap-view.yaml -i
     }
     
@@ -295,9 +295,9 @@
 
         scripts/dektecho.sh status "Adding metadata-store-secrets to access remote Store"
         kubectl create ns metadata-store-secrets
-        kubectl apply -f .config/rbac/store-auth-token.yaml -n metadata-store-secrets
-        kubectl apply -f .config/rbac/store-ca-cert.yaml -n metadata-store-secrets
-        kubectl apply -f .config/rbac/store-secrets-export.yaml -n metadata-store-secrets
+        kubectl apply -f .config/cluster-configs/store-auth-token.yaml -n metadata-store-secrets
+        kubectl apply -f .config/cluster-configs/store-ca-cert.yaml -n metadata-store-secrets
+        kubectl apply -f .config/cluster-configs/store-secrets-export.yaml -n metadata-store-secrets
     }
 
     #install-snyk
@@ -339,7 +339,7 @@
 
         #configure GUI on view cluster to access dev cluster
         kubectl config use-context $DEV_CLUSTER_NAME
-        kubectl apply -f .config/rbac/reader-accounts.yaml
+        kubectl apply -f .config/cluster-configs/reader-accounts.yaml
         export devClusterUrl=$(kubectl config view --minify -o jsonpath='{.clusters[0].cluster.server}')
         export devClusterName=$DEV_CLUSTER_NAME
         export devClusterToken=$(kubectl -n tap-gui get secret $(kubectl -n tap-gui get sa tap-gui-viewer -o=json \
@@ -352,7 +352,7 @@
 
         #configure GUI on view cluster to access stage cluster
         kubectl config use-context $STAGE_CLUSTER_NAME
-        kubectl apply -f .config/rbac/reader-accounts.yaml
+        kubectl apply -f .config/cluster-configs/reader-accounts.yaml
         export stageClusterUrl=$(kubectl config view --minify -o jsonpath='{.clusters[0].cluster.server}')
         export stageClusterName=$STAGE_CLUSTER_NAME
         export stageClusterToken=$(kubectl -n tap-gui get secret $(kubectl -n tap-gui get sa tap-gui-viewer -o=json \
@@ -366,7 +366,7 @@
 
         #configure GUI on view cluster to access prod cluster
         kubectl config use-context $PROD_CLUSTER_NAME
-        kubectl apply -f .config/rbac/reader-accounts.yaml
+        kubectl apply -f .config/cluster-configs/reader-accounts.yaml
         export prodClusterUrl=$(kubectl config view --minify -o jsonpath='{.clusters[0].cluster.server}')
         export prodClusterName=$PROD_CLUSTER_NAME
         export prodClusterToken=$(kubectl -n tap-gui get secret $(kubectl -n tap-gui get sa tap-gui-viewer -o=json \
@@ -532,7 +532,7 @@
         tanzu package installed delete snyk-scanner -n tap-install -y
 
         tanzu package installed delete carbonblack-scanner -n tap-install -y
-        
+
 
         kubectl delete -f .config/supply-chains -n $STAGEPROD_NAMESPACE
         kubectl delete -f .config/supply-chains -n $TEAM_NAMESPACE

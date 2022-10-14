@@ -5,8 +5,9 @@ AZURE_LOCATION=$(yq .clouds.azureLocation .config/demo-values.yaml)
 AZURE_RESOURCE_GROUP=$(yq .clouds.azureResourceGroup .config/demo-values.yaml)
 AZURE_NODE_TYPE=$(yq .clouds.azureNodeType .config/demo-values.yaml)
 #aws configs
-AWS_REGION=$(yq .clouds.awsRegion .config/demo-values.yaml)
-AWS_INSTANCE_TYPE=$(yq .clouds.awsInstanceType .config/demo-values.yaml)
+export AWS_REGION=$(yq .clouds.awsRegion .config/demo-values.yaml)
+export AWS_CONTAINERD_AMI=$(yq .clouds.awsContainerdAMI .config/demo-values.yaml)
+export AWS_INSTANCE_TYPE=$(yq .clouds.awsInstaceType .config/demo-values.yaml)
 #gcp configs
 GCP_REGION=$(yq .clouds.gcpRegion .config/demo-values.yaml)
 GCP_PROJECT_ID=$(yq .clouds.gcpProjectID .config/demo-values.yaml)
@@ -51,25 +52,24 @@ create-eks-cluster () {
     #must run after setting access via 'aws configure'
 
     export cluster_name=$1
-	export aws_region=$AWS_REGION
-	export aws_instance_type=$AWS_INSTANCE_TYPE
 	number_of_nodes=$2
 	export bootstrap_cmd="/etc/eks/bootstrap.sh $cluster_name --container-runtime containerd"
 
 	scripts/dektecho.sh info "Creating EKS cluster $cluster_name with $number_of_nodes nodes"
 
-    eksctl create cluster \
-		--name $cluster_name \
-		--region $AWS_REGION \
-		--without-nodegroup #containerd to docker bug
+    #eksctl create cluster \
+#		--name $cluster_name \
+	#	--region $AWS_REGION \
+#		--without-nodegroup #containerd to docker bug
 	
 	#containerd to docker bug
-	yq '.metadata.name = env(cluster_name)' .config/rbac//containerd-ng.yaml -i
-	yq '.metadata.region = env(aws_region)' .config/rbac/containerd-ng.yaml -i
-	yq '.managedNodeGroups[0].instanceType = env(aws_instance_type)' .config/rbac/containerd-ng.yaml -i
-	yq '.managedNodeGroups[0].overrideBootstrapCommand = env(bootstrap_cmd)' .config/rbac/containerd-ng.yaml -i
+	yq '.metadata.name = env(cluster_name)' .config/cluster-configs/containerd-ng.yaml -i
+	yq '.metadata.region = env(AWS_REGION)' .config/cluster-configs/containerd-ng.yaml -i
+	yq '.managedNodeGroups[0].ami = env(AWS_CONTAINERD_AMI)' .config/cluster-configs/containerd-ng.yaml -i
+	yq '.managedNodeGroups[0].instanceType = env(AWS_INSTANCE_TYPE)' .config/cluster-configs/containerd-ng.yaml -i
+	yq '.managedNodeGroups[0].overrideBootstrapCommand = env(bootstrap_cmd)' .config/cluster-configs/containerd-ng.yaml -i
 	
-    eksctl create ng -f .config/rbac/containerd-ng.yaml
+    eksctl create ng -f .config/cluster-configs/containerd-ng.yaml
     eksctl scale nodegroup \
 		--cluster=$cluster_name \
 		--nodes=$number_of_nodes \
