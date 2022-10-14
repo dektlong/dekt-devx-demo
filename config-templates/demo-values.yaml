@@ -24,7 +24,7 @@ clouds:
   azureResourceGroup: 
   azureNodeType: Standard_DS3_v2 # recommended: 4 vCPU, 14GB memory, 28GB temp disk 
   awsRegion: 
-  awsContainerdAMI: #according to the region you are deploying to via this command
+  awsContainerdAMI: #workaround for the docker demon EKS bug, obtain via this command
       # aws ssm get-parameter \
       # --name /aws/service/eks/optimized-ami/1.21/amazon-linux-2/recommended/image_id \
       # --region CHANGE_ME \ 
