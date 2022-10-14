@@ -3,11 +3,11 @@
 #################### load configs from values yaml  ################
 
     #clusters
-    VIEW_CLUSTER=$(yq ..clusters.view.name .config/demo-values.yaml)
+    VIEW_CLUSTER=$(yq .clusters.view.name .config/demo-values.yaml)
     DEV_CLUSTER=$(yq .dev-cluster.name .config/demo-values.yaml)
-    STAGE_CLUSTER=$(yq ..clusters.stage.name .config/demo-values.yaml)
+    STAGE_CLUSTER=$(yq .clusters.stage.name .config/demo-values.yaml)
     PROD_CLUSTER=$(yq .prod-cluster.name .config/demo-values.yaml)
-    BROWNFIELD_CLUSTER=$(yq ..clusters.brownfield.name .config/demo-values.yaml)
+    BROWNFIELD_CLUSTER=$(yq .clusters.brownfield.name .config/demo-values.yaml)
     #workloads (must match the info in .config/workloads)
     PORTAL_WORKLOAD="mood-portal"
     SENSORS_WORKLOAD="mood-sensors"
