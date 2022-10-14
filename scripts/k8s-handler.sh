@@ -57,10 +57,10 @@ create-eks-cluster () {
 
 	scripts/dektecho.sh info "Creating EKS cluster $cluster_name with $number_of_nodes nodes"
 
-    #eksctl create cluster \
-#		--name $cluster_name \
-	#	--region $AWS_REGION \
-#		--without-nodegroup #containerd to docker bug
+    eksctl create cluster \
+		--name $cluster_name \
+		--region $AWS_REGION \
+		--without-nodegroup #containerd to docker bug
 	
 	#containerd to docker bug
 	yq '.metadata.name = env(cluster_name)' .config/cluster-configs/containerd-ng.yaml -i

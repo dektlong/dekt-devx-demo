@@ -425,29 +425,6 @@
 
     }
 
-    #relocate-images
-    relocate-gw-images() {
-
-        echo "Make sure docker deamon is running..."
-        read
-        
-        docker login $PRIVATE_REPO_SERVER -u $PRIVATE_REPO_USER -p $PRIVATE_REPO_PASSWORD
-        
-        $GW_INSTALL_DIR/scripts/relocate-images.sh $PRIVATE_REPO_SERVER/$SYSTEM_REPO
-    }
-
-    #relocate-tds-images
-    relocate-tds-images() {
-
-        #docker login $PRIVATE_REPO_SERVER -u $PRIVATE_REPO_USER -p $PRIVATE_REPO_PASSWORD
-        #docker login registry.tanzu.vmware.com -u $TANZU_NETWORK_USER -p $TANZU_NETWORK_PASSWORD
-        
-        #imgpkg copy -b registry.tanzu.vmware.com/packages-for-vmware-tanzu-data-services/tds-packages:1.0.0 \
-        #    --to-repo $PRIVATE_REPO_SERVER/$SYSTEM_REPO/tds-packages
-
-        tanzu package repository add tanzu-data-services-repository --url $PRIVATE_REPO_SERVER/$SYSTEM_REPO/tds-packages:1.0.0 -n tap-install
-    }
-
     #attach TMC clusters
     attach-tmc-clusters() {
 
@@ -497,31 +474,6 @@
         tmc cluster delete $BROWNFIELD_CLUSTER_NAME -f -m attached -p attached
     }
 
-    #relocate-tap-images
-    relocate-tap-images() {
-
-        docker login $PRIVATE_REPO_SERVER -u $PRIVATE_REPO_USER -p $PRIVATE_REPO_PASSWORD
-
-        docker login registry.tanzu.vmware.com -u $TANZU_NETWORK_USER -p $TANZU_NETWORK_PASSWORD
-        
-        export IMGPKG_REGISTRY_HOSTNAME=$PRIVATE_REPO_SERVER
-        export IMGPKG_REGISTRY_USERNAME=$PRIVATE_REPO_USER
-        export IMGPKG_REGISTRY_PASSWORD=$PRIVATE_REPO_PASSWORD
-        export TAP_VERSION=$TAP_VERSION
-    
-
-        imgpkg copy \
-            --bundle registry.tanzu.vmware.com/tanzu-application-platform/tap-packages:$TAP_VERSION \
-            --to-tar tap-packages-$TAP_VERSION.tar \
-            --include-non-distributable-layers
-
-        imgpkg copy \
-            --tar tap-packages-$TAP_VERSION.tar \
-            --to-repo $IMGPKG_REGISTRY_HOSTNAME/$SYSTEM_REPO/tap-packages \
-            --include-non-distributable-layers
-            
-    }
-  
     #delete-demo
     delete-demo() {
 
@@ -681,7 +633,7 @@ uninstall-demo)
 relocate-tap-images)
     scripts/dektecho.sh prompt "Make sure docker deamon is running before proceeding"
     scripts/tanzu-handler.sh relocate-carvel-bundle
-    relocate-tap-images
+    scripts/tanzu-handler.sh relocate-tap-images
     ;;
 runme)
     $2 $3 $4

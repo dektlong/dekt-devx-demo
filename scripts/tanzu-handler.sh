@@ -7,6 +7,31 @@ SYSTEM_REPO=$(yq .repositories.system .config/demo-values.yaml)
 CARVEL_BUNDLE=$(yq .tap.carvelBundle .config/demo-values.yaml)
 TANZU_NETWORK_USER=$(yq .tanzu_network.username .config/demo-values.yaml)
 TANZU_NETWORK_PASSWORD=$(yq .tanzu_network.password .config/demo-values.yaml)
+export TAP_VERSION=$(yq .tap.version .config/demo-values.yaml)
+GW_INSTALL_DIR=$(yq .apis.scgwInstallDirectory .config/demo-values.yaml)
+
+#relocate-tap-images
+relocate-tap-images() {
+
+    docker login $PRIVATE_REPO_SERVER -u $PRIVATE_REPO_USER -p $PRIVATE_REPO_PASSWORD
+
+    docker login registry.tanzu.vmware.com -u $TANZU_NETWORK_USER -p $TANZU_NETWORK_PASSWORD
+        
+    export IMGPKG_REGISTRY_HOSTNAME=$PRIVATE_REPO_SERVER
+    export IMGPKG_REGISTRY_USERNAME=$PRIVATE_REPO_USER
+    export IMGPKG_REGISTRY_PASSWORD=$PRIVATE_REPO_PASSWORD
+
+    imgpkg copy \
+        --bundle registry.tanzu.vmware.com/tanzu-application-platform/tap-packages:$TAP_VERSION \
+        --to-tar tap-packages-$TAP_VERSION.tar \
+        --include-non-distributable-layers
+
+    imgpkg copy \
+        --tar tap-packages-$TAP_VERSION.tar \
+        --to-repo $IMGPKG_REGISTRY_HOSTNAME/$SYSTEM_REPO/tap-packages \
+        --include-non-distributable-layers
+            
+}
 
 #relocate-carvel-bundle
 relocate-carvel-bundle() {
@@ -29,8 +54,27 @@ relocate-carvel-bundle() {
         --tar carvel-bundle.tar \
         --to-repo $IMGPKG_REGISTRY_HOSTNAME/$SYSTEM_REPO/cluster-essentials-bundle \
         --include-non-distributable-layers
-    }
+}
 
+#relocate-gw-images
+relocate-gw-images() {
+
+    docker login $PRIVATE_REPO_SERVER -u $PRIVATE_REPO_USER -p $PRIVATE_REPO_PASSWORD
+        
+    $GW_INSTALL_DIR/scripts/relocate-images.sh $PRIVATE_REPO_SERVER/$SYSTEM_REPO
+}
+
+#relocate-tds-images
+relocate-tds-images() {
+
+        #docker login $PRIVATE_REPO_SERVER -u $PRIVATE_REPO_USER -p $PRIVATE_REPO_PASSWORD
+        #docker login registry.tanzu.vmware.com -u $TANZU_NETWORK_USER -p $TANZU_NETWORK_PASSWORD
+        
+        #imgpkg copy -b registry.tanzu.vmware.com/packages-for-vmware-tanzu-data-services/tds-packages:1.0.0 \
+        #    --to-repo $PRIVATE_REPO_SERVER/$SYSTEM_REPO/tds-packages
+
+        tanzu package repository add tanzu-data-services-repository --url $PRIVATE_REPO_SERVER/$SYSTEM_REPO/tds-packages:1.0.0 -n tap-install
+}
 #add-carvel
 add-carvel () {
 
@@ -135,6 +179,9 @@ incorrect-usage() {
 case $1 in
 relocate-carvel-bundle)
     relocate-carvel-bundle
+    ;;
+relocate-tap-images)
+    relocate-tap-images
     ;;
 add-carvel-tools )
   	add-carvel
