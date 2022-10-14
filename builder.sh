@@ -32,9 +32,9 @@
     CARBONBLACK_VERSION=$(yq .carbonblack.version .config/demo-values.yaml)
     SERVICE_BINDING_VERSION=$(yq .tap.service_binding_version .config/demo-values.yaml)
     #apps-namespaces
-    DEV_NAMESPACE=$(yq .apps-namespaces.dev .config/demo-values.yaml)
-    TEAM_NAMESPACE=$(yq .apps-namespaces.team .config/demo-values.yaml)
-    STAGEPROD_NAMESPACE=$(yq .apps-namespaces.stageProd .config/demo-values.yaml)
+    DEV_NAMESPACE=$(yq .apps_namespaces.dev .config/demo-values.yaml)
+    TEAM_NAMESPACE=$(yq .apps_namespaces.team .config/demo-values.yaml)
+    STAGEPROD_NAMESPACE=$(yq .apps_namespaces.stageProd .config/demo-values.yaml)
     #domains
     SYSTEM_SUB_DOMAIN=$(yq .dns.sysSubDomain .config/demo-values.yaml)
     DEV_SUB_DOMAIN=$(yq .dns.devSubDomain .config/demo-values.yaml)

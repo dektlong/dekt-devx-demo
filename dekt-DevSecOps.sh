@@ -20,9 +20,9 @@
     #tap
     TAP_VERSION=$(yq .tap.version .config/demo-values.yaml)
     #apps-namespaces
-    DEV_NAMESPACE=$(yq .apps-namespaces.dev .config/demo-values.yaml)
-    TEAM_NAMESPACE=$(yq .apps-namespaces.team .config/demo-values.yaml)
-    STAGEPROD_NAMESPACE=$(yq .apps-namespaces.stageProd .config/demo-values.yaml)
+    DEV_NAMESPACE=$(yq .apps_namespaces.dev .config/demo-values.yaml)
+    TEAM_NAMESPACE=$(yq .apps_namespaces.team .config/demo-values.yaml)
+    STAGEPROD_NAMESPACE=$(yq .apps_namespaces.stageProd .config/demo-values.yaml)
    
     
 
