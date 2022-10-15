@@ -42,7 +42,11 @@
     #misc 
     RDS_PROFILE=$(yq .data-services.rdsProfile .config/demo-values.yaml)       
     GW_INSTALL_DIR=$(yq .apis.scgwInstallDirectory .config/demo-values.yaml)
-    MY_TMC_API_TOKEN=$(yq .tmc.apiToken .config/demo-values.yaml)
+    export TMC_API_TOKEN=$(yq .tmc.apiToken .config/demo-values.yaml)
+    TMC_CLUSTER_GROUP=$(yq .tmc.clusterGroup .config/demo-values.yaml)
+
+    ./scripts/tanzu-handler.sh update-demo-values
+
 
 #################### functions ################
 
@@ -430,11 +434,11 @@
 
         scripts/dektecho.sh info "Attaching TMC clusters"
 
-        export TMC_API_TOKEN=$MY_TMC_API_TOKEN
-        tmc login -n dekt-tmc-login -c
+        tmc system context create -n devxdemo-tmc -c
+        tmc login -n tmc-login -c
 
         kubectl config use-context $VIEW_CLUSTER_NAME
-        tmc cluster attach -n $VIEW_CLUSTER_NAME -g dekt
+        tmc cluster attach -n $VIEW_CLUSTER_NAME -g $TMC_CLUSTER_GROUP
         kubectl apply -f k8s-attach-manifest.yaml
         rm -f k8s-attach-manifest.yaml
 
@@ -464,8 +468,7 @@
     #delete-tmc-cluster
     delete-tmc-clusters() {
 
-        export TMC_API_TOKEN=$MY_TMC_API_TOKEN
-        tmc login -n dekt-tmc-login -c
+        tmc login -n devxdemo-tmc -c
 
         tmc cluster delete $VIEW_CLUSTER_NAME -f -m attached -p attached
         tmc cluster delete $DEV_CLUSTER_NAME -f -m attached -p attached
@@ -599,22 +602,20 @@
 
 #################### main ##########################
 
+
 case $1 in
 init-all)    
-    ./scripts/tanzu-handler.sh update-demo-values
     innerloop-handler create-clusters
     outerloop-handler create-clusters
     innerloop-handler install-demo
     outerloop-handler install-demo
     ;;
 create-clusters)
-    ./scripts/tanzu-handler.sh update-demo-values    
     innerloop-handler create-clusters
     outerloop-handler create-clusters
     test-all-clusters
     ;;
 install-demo)
-    ./scripts/tanzu-handler.sh update-demo-values    
     innerloop-handler install-demo
     outerloop-handler install-demo
     ;;
