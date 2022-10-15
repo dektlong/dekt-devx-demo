@@ -607,7 +607,8 @@ init-all)
     innerloop-handler install-demo
     outerloop-handler install-demo
     ;;
-create-clusters)    
+create-clusters)
+    ./scripts/tanzu-handler.sh update-demo-values    
     innerloop-handler create-clusters
     outerloop-handler create-clusters
     test-all-clusters
