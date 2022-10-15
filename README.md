@@ -106,7 +106,7 @@ This repo contains artifacts to run a demo illustrating the vision and capabilit
 - innerloop teams (shared dev work) ```./dekt-DevSecOps.sh team```
 
 - follow workloads and supply chain progress via Backstage and/or
-  - ```./dekt-DevSecOps.sh track dev [logs]```
+  - ```./dekt-DevSecOps.sh track team [logs]```
 
 - access the live url at mood-portal.```dns.devSubdomain```.```dns.domain``` and show the call back to the mood-sensors APIs and the mood-analyzer outputs in ()
 
