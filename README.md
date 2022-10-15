@@ -34,35 +34,16 @@ This repo contains artifacts to run a demo illustrating the vision and capabilit
 ./builder.sh init-all 
 ```
 
-### Create clusters
-  - Innerloop: View cluster, Dev cluster
-  - Outerloop: Stage cluster, Prod cluster, Brownfield cluster
+### Script automate the following
 
-  Note: this process make take 15-20min, depends on your k8s providers of choice
-
-### Install Innerloop components
-  - View cluster
-    - Carvel tools
-    - TAP view profile
-    - Custom app accelerators 
-    - System ingress rule
-  - Dev cluster
-    - Carvel tools
-    - TAP iterate profile
-    - Default supplychain configs for apps namespace 
-    - Tekton pipeline 
-    - ```dekt-src-config``` and ```dekt-src-test-api-config``` custom supply chains 
-    - RabbitMQ operator and single instance
-    - Service claim to Azure PostgresSQL
-    - CNR dev ingress rule
-
-### Install Outerloop demo components
-  - Stage cluster 
-    - Carvel tools
-    - TAP build profile
-    - Default supplychain configs for apps namespace 
-    - CarbonBlack & Snyk image scanner (out-of-the-box Grype for source scanning)
-    - Scanning policy 
+  - Demo config yamls created via ytt in the ```.config``` folder based on ```demo-values.yaml```
+  - Create view, dev, stage, prod and brownfield clusters
+    -  Note: this process make take 15-20min, depends on your k8s providers of choice
+  - Install Innerloop components
+    - View cluster: Carvel tools, TAP ```view``` profile, Custom app accelerators, System ingress rule
+    - Dev cluster: Carvel tools, TAP ```iterate``` profile, ```dekt-src-config``` and ```dekt-src-test-api-config``` custom supply chains, Tekton pipeline, RabbitMQ operator and single instance, Service claim to Azure PostgresSQL, CNR dev ingress rule
+  - Install Outerloop demo components
+    - Stage cluster: Carvel tools, TAP ```build`` profile, CarbonBlack & Snyk image scanner (out-of-the-box Grype for source scanning), Scanning policy 
     - Tekton pipeline run 
     - ```dekt-src-scan-config``` and ```dekt-src-test-scan-api-config``` custom supply chains 
     - RabbitMQ operator and HA instance
