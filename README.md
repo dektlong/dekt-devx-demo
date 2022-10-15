@@ -69,11 +69,11 @@ Script automate the following:
     - TAP based on ```.config/tap-profiles/tap-run.yaml``` values
     - Metadata store config on provider cluster
     - CNR run ingress rule
+  - TAP-gui multi cluster configuration
   - Brownfield cluster demo components
     - Spring Cloud Gateway operator
     - Brownfield APIs SCGW instances and routes in ```brownfield-apis``` ns
     - Add brownfield 'consumer' k8s services to TAP clusters in ```brownfield-apis``` ns
-  - TAP-gui multi cluster configuration
   - Attach clusters to TMC via the TMC API
     - view, dev, stage, prod and brownfield clusters
 
