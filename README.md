@@ -51,7 +51,7 @@ This repo contains artifacts to run a demo illustrating the vision and capabilit
     - TAP iterate profile
     - Default supplychain configs for apps namespace 
     - Tekton pipeline 
-    - ```dekt-src-config``` and ```dekt-stc-test-api-config`` custom supply chains 
+    - ```dekt-src-config``` and ```dekt-src-test-api-config``` custom supply chains 
     - RabbitMQ operator and single instance
     - Service claim to Azure PostgresSQL
     - CNR dev ingress rule
