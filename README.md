@@ -38,6 +38,8 @@ This repo contains artifacts to run a demo illustrating the vision and capabilit
   - Innerloop: View cluster, Dev cluster
   - Outerloop: Stage cluster, Prod cluster, Brownfield cluster
 
+  Note: this process make take 15-20min, depends on your k8s providers of choice
+
 ### Install Innerloop components
   - View cluster
     - Carvel tools
