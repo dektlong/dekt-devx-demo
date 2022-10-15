@@ -124,6 +124,7 @@ This repo contains artifacts to run a demo illustrating the vision and capabilit
   - show Deliverables created in your gitops.stage repo, but NO runtime artifacts deployed
  
 - 'promote' to Run cluster (Deliverable)  ```./dekt-DevSecOps.sh prod```
+  - show deliverables deployed to ```app-namespaces.stageProd``` without building source/scanning
   - show that the new Deliverable is deployed on the production domain - mood-portal.```dns.prodSubdomain```.```dns.domain```
 
 ### Brownfield APIs (optional)
