@@ -41,34 +41,39 @@ Script automate the following:
     -  Note: this process make take 15-20min, depends on your k8s providers of choice
   - View cluster demo components
     - Carvel tools
-    - TAP ```view``` profile
+    - TAP based on ```.config/tap-profiles/tap-view.yaml``` values
     - Custom app accelerators
+    - Metadata store config on consumer cluster
     - System ingress rule
   - Dev cluster demo components
     - Carvel tools
-    - TAP ```iterate``` profile
+    - TAP based on ```.config/tap-profiles/tap-itereate.yaml``` values
     - ```dekt-src-config``` and ```dekt-src-test-api-config``` custom supply chains
     - Tekton pipeline
+    - Metadata store config on provider cluster
     - RabbitMQ operator and single instance
     - Service claim to Azure PostgresSQL
     - CNR dev ingress rule
   - Stage cluster demo components
     - Carvel tools
-    - TAP ```build`` profile
+    - TAP based on ```.config/tap-profiles/tap-build.yaml``` values
     - CarbonBlack & Snyk image scanner (out-of-the-box Grype for source scanning)
     - Scanning policy 
+    - Metadata store config on provider cluster
     - Tekton pipeline
     - ```dekt-src-scan-config``` and ```dekt-src-test-scan-api-config``` custom supply chains 
     - RabbitMQ operator and HA instance
     - Service claim to RDS PostgresSQL
   - Prod cluster demo components
     - Carvel tools
-    - TAP run profile
+    - TAP based on ```.config/tap-profiles/tap-run.yaml``` values
+    - Metadata store config on provider cluster
     - CNR run ingress rule
   - Brownfield cluster demo components
     - Spring Cloud Gateway operator
     - Brownfield APIs SCGW instances and routes in ```brownfield-apis``` ns
     - Add brownfield 'consumer' k8s services to TAP clusters in ```brownfield-apis``` ns
+  - TAP-gui multi cluster configuration
   - Attach clusters to TMC via the TMC API
     - view, dev, stage, prod and brownfield clusters
 
