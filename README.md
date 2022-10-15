@@ -71,11 +71,12 @@ This repo contains artifacts to run a demo illustrating the vision and capabilit
     - Carvel tools
     - TAP run profile
     - CNR run ingress rule
-  - Brownfiel dcluster
+  - Brownfield cluster
     - Spring Cloud Gateway operator
     - Brownfield APIs SCGW instances and routes in ```brownfield-apis``` ns
     - Add brownfield 'consumer' k8s services to TAP clusters in ```brownfield-apis``` ns
-  - TMC cluster attachments for view, dev, stage, prod and brownfield clusters
+  - Attach clusters to TMC via the TMC API
+    - view, dev, stage, prod and brownfield clusters
 
 ### Manual config TSM (if planning to demo global namespaces)
   - Onboard ```clusters.prod.name``` and ```clusters.brownfield.name``` to TSM
