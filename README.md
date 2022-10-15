@@ -34,7 +34,7 @@ This repo contains artifacts to run a demo illustrating the vision and capabilit
 ./builder.sh init-all 
 ```
 
-### Script automate the following
+Script automate the following:
 
   - Demo config yamls created via ytt in the ```.config``` folder based on ```demo-values.yaml```
   - Create view, dev, stage, prod and brownfield clusters
