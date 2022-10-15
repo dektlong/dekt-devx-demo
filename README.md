@@ -39,20 +39,33 @@ Script automate the following:
   - Demo config yamls created via ytt in the ```.config``` folder based on ```demo-values.yaml```
   - Create view, dev, stage, prod and brownfield clusters
     -  Note: this process make take 15-20min, depends on your k8s providers of choice
-  - Install Innerloop components
-    - View cluster: Carvel tools, TAP ```view``` profile, Custom app accelerators, System ingress rule
-    - Dev cluster: Carvel tools, TAP ```iterate``` profile, ```dekt-src-config``` and ```dekt-src-test-api-config``` custom supply chains, Tekton pipeline, RabbitMQ operator and single instance, Service claim to Azure PostgresSQL, CNR dev ingress rule
-  - Install Outerloop demo components
-    - Stage cluster: Carvel tools, TAP ```build`` profile, CarbonBlack & Snyk image scanner (out-of-the-box Grype for source scanning), Scanning policy 
-    - Tekton pipeline run 
+  - View cluster demo components
+    - Carvel tools
+    - TAP ```view``` profile
+    - Custom app accelerators
+    - System ingress rule
+  - Dev cluster demo components
+    - Carvel tools
+    - TAP ```iterate``` profile
+    - ```dekt-src-config``` and ```dekt-src-test-api-config``` custom supply chains
+    - Tekton pipeline
+    - RabbitMQ operator and single instance
+    - Service claim to Azure PostgresSQL
+    - CNR dev ingress rule
+  - Stage cluster demo components
+    - Carvel tools
+    - TAP ```build`` profile
+    - CarbonBlack & Snyk image scanner (out-of-the-box Grype for source scanning)
+    - Scanning policy 
+    - Tekton pipeline
     - ```dekt-src-scan-config``` and ```dekt-src-test-scan-api-config``` custom supply chains 
     - RabbitMQ operator and HA instance
     - Service claim to RDS PostgresSQL
-  - Prod cluster 
+  - Prod cluster demo components
     - Carvel tools
     - TAP run profile
     - CNR run ingress rule
-  - Brownfield cluster
+  - Brownfield cluster demo components
     - Spring Cloud Gateway operator
     - Brownfield APIs SCGW instances and routes in ```brownfield-apis``` ns
     - Add brownfield 'consumer' k8s services to TAP clusters in ```brownfield-apis``` ns
@@ -61,8 +74,8 @@ Script automate the following:
 
 ### Manual config TSM (if planning to demo global namespaces)
   - Onboard ```clusters.prod.name``` and ```clusters.brownfield.name``` to TSM
-    - exclude TAP namespaces
-    - Do not use the option to install Spring Cloud Gateway
+  - exclude TAP namespaces
+  - Do not use the option to install Spring Cloud Gateway
     
 ## Running the demo 
 
