@@ -118,7 +118,8 @@ This repo contains artifacts to run a demo illustrating the vision and capabilit
   - show how the ```dekt-src-test-api-config``` supplychain re-builds and deploy a new revision with a happy dog
 
 ### Outer loop
-- 'promote' to Staging cluster (source code) ```./dekt-DevSecOps.sh stage```
+- 'promote' to Staging cluster ```./dekt-DevSecOps.sh stage```
+  - show workload created pointing to ```release``` branch instead of ```dev``` branch
   - show the enhanced supply chain (dekt-src-to-api-with-scan with scanning) progress on multi-cluster Backstage
   - show Deliverables created in your gitops.stage repo, but NO runtime artifacts deployed
  
