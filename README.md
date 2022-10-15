@@ -77,7 +77,7 @@ Script automate the following:
   - Attach clusters to TMC via the TMC API
     - view, dev, stage, prod and brownfield clusters
 
-### Manual config TSM (if planning to demo global namespaces)
+### Manual config of TSM (if planning to demo global namespaces)
   - Onboard ```clusters.prod.name``` and ```clusters.brownfield.name``` to TSM
   - exclude TAP namespaces
   - Do not use the option to install Spring Cloud Gateway
