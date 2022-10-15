@@ -136,10 +136,9 @@ This repo contains artifacts to run a demo illustrating the vision and capabilit
 ### Outer loop
 - 'promote' to Staging cluster (source code) ```./dekt-DevSecOps.sh stage```
   - show the enhanced supply chain (dekt-src-to-api-with-scan with scanning) progress on multi-cluster Backstage
+  - show Deliverables created in your gitops.stage repo, but NO runtime artifacts deployed
  
 - 'promote' to Run cluster (Deliverable)  ```./dekt-DevSecOps.sh prod```
-  - Review the Deliverables created in the ```.gitops``` directory
-  - Review the events added to the ```.gitops/YOUR-prodAuditFile```
   - show that the new Deliverable is deployed on the production domain - run.dekt.io
 
 ### Brownfield APIs
