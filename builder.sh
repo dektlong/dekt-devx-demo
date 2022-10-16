@@ -45,9 +45,6 @@
     export TMC_API_TOKEN=$(yq .tmc.apiToken .config/demo-values.yaml)
     TMC_CLUSTER_GROUP=$(yq .tmc.clusterGroup .config/demo-values.yaml)
 
-    ./scripts/tanzu-handler.sh update-demo-values
-
-
 #################### functions ################
 
     #install-view-cluster
@@ -604,18 +601,21 @@
 
 
 case $1 in
-init-all)    
+init-all)
+    ./scripts/tanzu-handler.sh update-demo-values    
     innerloop-handler create-clusters
     outerloop-handler create-clusters
     innerloop-handler install-demo
     outerloop-handler install-demo
     ;;
 create-clusters)
+    ./scripts/tanzu-handler.sh update-demo-values
     innerloop-handler create-clusters
     outerloop-handler create-clusters
     test-all-clusters
     ;;
 install-demo)
+    ./scripts/tanzu-handler.sh update-demo-values
     innerloop-handler install-demo
     outerloop-handler install-demo
     ;;
