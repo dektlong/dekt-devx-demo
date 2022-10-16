@@ -87,10 +87,12 @@ Script automate the following:
 ### Inner loop
 
 - access tap gui accelerators via the ```cloud-native-devs``` tag
-  - create ```mood-sensors``` workload using the api-microservice accelerator 
-  - create ```mood-portal```  workload using the web-function accelerator 
-  - create ```mood-analyzer```  workload using the node.js accelerator 
-  - use ```devx-mood```  as the parent application in both cases
+  - create ```mood-sensors``` workload using the api-microservice accelerator
+    - use ```devx-mood```  as the parent application
+    - show service claims abstraction
+  - (optional) create ```mood-portal```  workload using the web-function accelerator 
+  - (optional) create ```mood-analyzer```  workload using the node.js accelerator 
+  
 
 - access the api-portal and highlight how discovery of existing APIs prior to creating new ones is done
   - if planning to show Brownfield API (see below), highlight how a developer can simply access an off platform external service by calling the 'brownfield URL' directly,  e.g. ```sentiment.tanzu-sm.io/v1/check-sentiment```
