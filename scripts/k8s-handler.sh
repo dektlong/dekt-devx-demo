@@ -41,6 +41,8 @@ delete-aks-cluster() {
 	cluster_name=$1
 
 	scripts/dektecho.sh status "Starting deleting resources of AKS cluster $cluster_name"
+
+	kubectl config delete-context $clusterName
 	
 	az aks delete --name $cluster_name --resource-group $AZURE_RESOURCE_GROUP --yes
 }
@@ -79,16 +81,6 @@ create-eks-cluster () {
 
 }
 
-#scale-aks-nodes
-scale-aks-nodes () {
-
-    cluster_name=$1
-	number_of_nodes=$2
-
-	az aks nodepool scale --name nodepool1 --cluster-name $cluster_name --resource-group $AZURE_RESOURCE_GROUP  --node-count 0 #$number_of_nodes
-
-}
-
 #delete-eks-cluster
 delete-eks-cluster () {
 
@@ -96,7 +88,9 @@ delete-eks-cluster () {
 
 	scripts/dektecho.sh status "Starting deleting resources of EKS cluster $cluster_name ..."
 	
-    eksctl delete cluster --name $cluster_name --force
+    kubectl config delete-context $clusterName
+
+	eksctl delete cluster --name $cluster_name --force
 }
 
 #create-gke-cluster
@@ -126,7 +120,9 @@ delete-gke-cluster () {
 
 	scripts/dektecho.sh status "Starting deleting resources of GKE cluster $cluster_name"
 	
-    gcloud container clusters delete $cluster_name \
+    kubectl config delete-context $clusterName
+
+	gcloud container clusters delete $cluster_name \
 		--region $GCP_REGION \
 		--project $GCP_PROJECT_ID \
 		--quiet
@@ -140,38 +136,26 @@ incorrect-usage() {
 	
 	scripts/dektecho.sh err "Incorrect usage. Please specify:"
     echo "  create [aks/eks/gke cluster-name numbber-of-nodes]"
-    echo "  scale-nodes [aks/eks/gke cluster-name numbber-of-nodes]"
-	echo "  delete [aks/eks/gke cluster-name]"
+    echo "  delete [aks/eks/gke cluster-name]"
+	echo "  verify [aks/eks/gke cluster-name]"
     exit
 }
 
-case $1 in
+operation=$1
+clusterProvider=$2
+clusterName=$3
+numOfNodes=$4
+case $operation in
 create)
-	case $2 in
+	case $clusterProvider in
 	aks)
-  		create-aks-cluster $3 $4
+  		create-aks-cluster $clusterName $numOfNodes
     	;;
 	eks)
-		create-eks-cluster $3 $4
+		create-eks-cluster $clusterName $numOfNodes
 		;;
 	gke)
-		create-gke-cluster $3 $4
-		;;
-	*)
-		incorrect-usage
-		;;
-	esac
-	;;
-scale-nodes)
-    case $2 in
-	aks)
-  		scale-aks-nodes $3 $4
-    	;;
-	eks)
-		scale-eks-nodes $3 $4
-		;;
-	gke)
-		scale-gke-nodes $3 $4
+		create-gke-cluster $clusterName $numOfNodes
 		;;
 	*)
 		incorrect-usage
@@ -179,23 +163,23 @@ scale-nodes)
 	esac
 	;;
 delete)
-    case $2 in
+	case $clusterProvider in
 	aks)
-  		delete-aks-cluster $3
+  		delete-aks-cluster $clusterName
     	;;
 	eks)
-		delete-eks-cluster $3
+		delete-eks-cluster $clusterName
 		;;
 	gke)
-		delete-gke-cluster $3
+		delete-gke-cluster $clusterName
 		;;
 	*)
 		incorrect-usage
 		;;
 	esac
 	;;	
-test-cluster)
-	ctx $2 && kubectl get pods -A && kubectl get svc -A
+verify)
+	ctx $clusterName && kubectl get pods -A && kubectl get svc -A
 	;;
 *)
 	incorrect-usage

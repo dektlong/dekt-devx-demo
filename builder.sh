@@ -527,19 +527,23 @@
 
     #test-all-clusters
     test-all-clusters() {
-        scripts/k8s-handler.sh test-cluster $VIEW_CLUSTER_NAME
+        scripts/k8s-handler.sh verify $VIEW_CLUSTER_PROVIDER $VIEW_CLUSTER_NAME
         echo
         scripts/dektecho.sh prompt  "Verify that cluster $VIEW_CLUSTER_NAME was created succefully. Continue?" && [ $? -eq 0 ] || exit
-        scripts/k8s-handler.sh test-cluster $DEV_CLUSTER_NAME
+        
+        scripts/k8s-handler.sh verify $DEV_CLUSTER_PROVIDER $DEV_CLUSTER_NAME
         echo
         scripts/dektecho.sh prompt  "Verify that cluster $DEV_CLUSTER_NAME was created succefully. Continue?" && [ $? -eq 0 ] || exit
-        scripts/k8s-handler.sh test-cluster $STAGE_CLUSTER_NAME
+        
+        scripts/k8s-handler.sh verify $STAGE_CLUSTER_PROVIDER $STAGE_CLUSTER_NAME
         echo
         scripts/dektecho.sh prompt  "Verify that cluster $STAGE_CLUSTER_NAME was created succefully. Continue?" && [ $? -eq 0 ] || exit
-        scripts/k8s-handler.sh test-cluster $PROD_CLUSTER_NAME
+        
+        scripts/k8s-handler.sh verify $PROD_CLUSTER_PROVIDER $PROD_CLUSTER_NAME
         echo
         scripts/dektecho.sh prompt  "Verify that cluster $PROD_CLUSTER_NAME was created succefully. Continue?" && [ $? -eq 0 ] || exit
-        scripts/k8s-handler.sh test-cluster $BROWNFIELD_CLUSTER_NAME
+        
+        scripts/k8s-handler.sh verify $BROWNFIELD_CLUSTER_PROVIDER $BROWNFIELD_CLUSTER_NAME
         echo
         scripts/dektecho.sh prompt  "Verify that cluster $BROWNFIELD_CLUSTER_NAME was created succefully. Continue?" && [ $? -eq 0 ] || exit
     }
@@ -624,7 +628,6 @@ delete-all)
     ./dekt-DevSecOps.sh besad
     innerloop-handler delete-clusters
     outerloop-handler delete-clusters
-    rm -f /Users/dekt/.kube/config
     ;;
 uninstall-demo)
     scripts/dektecho.sh prompt  "Are you sure you want to uninstall all demo components?" && [ $? -eq 0 ] || exit
