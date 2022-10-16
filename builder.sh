@@ -30,7 +30,7 @@
     CARVEL_BUNDLE=$(yq .tap.carvel_bundle .config/demo-values.yaml)
     SNYK_VERSION=$(yq .snyk.version .config/demo-values.yaml)
     CARBONBLACK_VERSION=$(yq .carbonblack.version .config/demo-values.yaml)
-    SERVICE_BINDING_VERSION=$(yq .tap.service_binding_version .config/demo-values.yaml)
+    SERVICES_TOOLKIT_VERSION=$(yq .tap.serviceToolkitVersion .config/demo-values.yaml)
     #apps-namespaces
     DEV_NAMESPACE=$(yq .apps_namespaces.dev .config/demo-values.yaml)
     TEAM_NAMESPACE=$(yq .apps_namespaces.team .config/demo-values.yaml)
@@ -202,6 +202,8 @@
             add-tanzu-rabbitmq 1 $TEAM_NAMESPACE
             ;;
         prod)
+            #temp until service binding will be included in the build and run profiles
+            tanzu package install services-toolkit -n tap-install -p services-toolkit.tanzu.vmware.com -v $SERVICES_TOOLKIT_VERSION
             add-rds-postgres $STAGEPROD_NAMESPACE
             add-tanzu-rabbitmq 2 $STAGEPROD_NAMESPACE
             ;;
@@ -214,17 +216,17 @@
         export numReplicas=$1
         appNamespace=$2
 
-        scripts/dektecho.sh status "Adding Tanzu RabbitMQ with $numReplicas replicas"
+        scripts/dektecho.sh status "Adding Tanzu RabbitMQ with $numReplicas replicas in namespace $appNamespace"
 
         #install RabbitMQ operator
         kubectl apply -f "https://github.com/rabbitmq/cluster-operator/releases/latest/download/cluster-operator.yml"
         
         #configure taznu services toolkit for RabbitMQ
-        kubectl apply -f .config/data-services/tanzu/rabbitmq-cluster-config.yaml -n $TEAM_NAMESPACE
+        kubectl apply -f .config/data-services/tanzu/rabbitmq-cluster-config.yaml -n $appNamespace
         
         #provision the RabbitMQ 'reading' instance(s)
         yq '.spec.replicas = env(numReplicas)' .config/data-services/tanzu/reading-instance-tanzu_rabbitmq.yaml -i
-        kubectl apply -f .config/data-services/tanzu/reading-instance-tanzu_rabbitmq.yaml -n $TEAM_NAMESPACE
+        kubectl apply -f .config/data-services/tanzu/reading-instance-tanzu_rabbitmq.yaml -n $appNamespace
 
         #create a service claim
         tanzu service claim create rabbitmq-claim -n $appNamespace \
