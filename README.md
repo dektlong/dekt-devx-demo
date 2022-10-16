@@ -38,7 +38,7 @@ Script automate the following:
 
   - Demo config yamls created via ytt in the ```.config``` folder based on ```demo-values.yaml```
   - Create view, dev, stage, prod and brownfield clusters
-    -  Note: this process make take 15-20min, depends on your k8s providers of choice
+    *Note: this process make take 15-20min, depends on your k8s providers of choice*
   - View cluster demo components
     - Carvel tools
     - TAP based on ```.config/tap-profiles/tap-view.yaml``` values
@@ -77,10 +77,17 @@ Script automate the following:
   - Attach clusters to TMC via the TMC API
     - view, dev, stage, prod and brownfield clusters
 
-### Manual config of TSM (if planning to demo global namespaces)
-  - Onboard ```clusters.prod.name``` and ```clusters.brownfield.name``` to TSM
-  - exclude TAP namespaces
-  - Do not use the option to install Spring Cloud Gateway
+### Optional manual configuration
+  - TSM
+    - Add TSM integration via TMC dashboard for ```clusters.prod.name``` and ```clusters.brownfield.name```
+    - exclude TAP namespaces
+    - Do not use the option to install Spring Cloud Gateway
+  - CarbonBlack
+    - Inventory->Clusters->Add Cluster
+    - Onbaord ```clusters.prod.name``` and ```clusters.stage.name```
+  - Cloud Health SecureState
+    - Settings->Cloud Accounts->Add accout
+    - Register the AWS/Azure/GCP account used for ```clusters.prod.name``` and ```clusters.stage.name```
     
 ## Running the demo 
 
@@ -127,6 +134,15 @@ Script automate the following:
 - 'promote' to Run cluster (Deliverable)  ```./dekt-DevSecOps.sh prod```
   - show deliverables deployed to ```app-namespaces.stageProd``` without building source/scanning
   - show that the new Deliverable is deployed on the production domain - mood-portal.```dns.prodSubdomain```.```dns.domain```
+
+- The Secured Platform Team
+  - Showcase how Tanzu helps a secured platform team role along the **4Cs of cloud native security**  (https://kubernetes.io/docs/concepts/security/overview)
+  - **Code** (TAP SupplyChain: source scan, build service, pod conventions)
+  - **Container** (Carbon Black: k8s runtime, app image scanning)
+  - **Clusters** (TMC OPA, TSM secure connectivity)
+  - **Clouds** (CSPM with SecureState , Aria Graph showing the 'devx-mood' app security guardrails) 
+
+
 
 ### Brownfield APIs (optional)
 
