@@ -120,7 +120,7 @@
         kubectl apply -f .config/supply-chains/tekton-pipeline.yaml -n $STAGEPROD_NAMESPACE
         kubectl apply -f .config/scanners/scan-policy.yaml -n $STAGEPROD_NAMESPACE #for all scanners
 
-        add-data-services "prod"
+        add-data-services "stage"
 
     }
     
@@ -201,9 +201,13 @@
             add-tanzu-postgres $TEAM_NAMESPACE
             add-tanzu-rabbitmq 1 $TEAM_NAMESPACE
             ;;
-        prod)
+        stage)
             #temp until service binding will be included in the build and run profiles
             tanzu package install services-toolkit -n tap-install -p services-toolkit.tanzu.vmware.com -v $SERVICES_TOOLKIT_VERSION
+            add-rds-postgres $STAGEPROD_NAMESPACE
+            add-tanzu-rabbitmq 2 $STAGEPROD_NAMESPACE
+            ;;
+        prod)
             add-rds-postgres $STAGEPROD_NAMESPACE
             add-tanzu-rabbitmq 2 $STAGEPROD_NAMESPACE
             ;;

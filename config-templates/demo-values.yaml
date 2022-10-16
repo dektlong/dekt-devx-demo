@@ -55,7 +55,7 @@ tap:
   version: "1.3.0"
   carvelBundle: "cluster-essentials-bundle@sha256:54bf611711923dccd7c7f10603c846782b90644d48f1cb570b43a082d18e23b9"
   imageScanTemplate: #accepted values: carbonblack-private-image-scan-template snyk-private-image-scan-template, private-image-scan-template
-  serviceToolkitVersion: "0.8.0" #temp until service binding package will be included in the build and run profiles
+  serviceToolkitVersion: "0.8.0" #temp until service toolkit package will be included in the build profile
 
 snyk: 
   version: "1.0.0-beta.4"
