@@ -180,6 +180,7 @@ delete)
 	;;	
 verify)
 	ctx $clusterName && kubectl get pods -A && kubectl get svc -A
+	scripts/dektecho.sh prompt  "Verify that cluster $clusterName was created succefully. Continue?" && [ $? -eq 0 ] || exit
 	;;
 *)
 	incorrect-usage

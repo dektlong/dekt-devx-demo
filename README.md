@@ -23,9 +23,15 @@ This repo contains artifacts to run a demo illustrating the vision and capabilit
 
 - update all values in ```.config/demo-values.yaml```
 
-- Relocate Carvel and TAP images (to avoid dependencies on Tanzu Network uptime)
+- Generate demo config yamls
 ```
-./builder.sh relocate-tap-images
+scripts/tanzu-handler.sh generate-config-yamls
+```
+- verify all yamls create succefully in the ```.config``` folder
+
+- Relocate Tanzu images to your private registry 
+```
+scripts/tanzu-handler.sh relocate-tanzu-images
 ```
 
 ## Installation

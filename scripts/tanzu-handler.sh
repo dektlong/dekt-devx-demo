@@ -1,25 +1,20 @@
 #!/usr/bin/env bash
 
-PRIVATE_REPO_SERVER=$(yq .private_registry.host .config/demo-values.yaml)
-PRIVATE_REPO_USER=$(yq .private_registry.username .config/demo-values.yaml)
-PRIVATE_REPO_PASSWORD=$(yq .private_registry.password .config/demo-values.yaml)
+export IMGPKG_REGISTRY_HOSTNAME=$(yq .private_registry.host .config/demo-values.yaml)
+export IMGPKG_REGISTRY_USERNAME=$(yq .private_registry.username .config/demo-values.yaml)
+export IMGPKG_REGISTRY_PASSWORD=$(yq .private_registry.password .config/demo-values.yaml)
 SYSTEM_REPO=$(yq .repositories.system .config/demo-values.yaml)
 CARVEL_BUNDLE=$(yq .tap.carvelBundle .config/demo-values.yaml)
 TANZU_NETWORK_USER=$(yq .tanzu_network.username .config/demo-values.yaml)
 TANZU_NETWORK_PASSWORD=$(yq .tanzu_network.password .config/demo-values.yaml)
 export TAP_VERSION=$(yq .tap.version .config/demo-values.yaml)
+TDS_VERSION=$(yq .data_services.tdsVersion .config/demo-values.yaml)
 GW_INSTALL_DIR=$(yq .apis.scgwInstallDirectory .config/demo-values.yaml)
 
 #relocate-tap-images
 relocate-tap-images() {
 
-    docker login $PRIVATE_REPO_SERVER -u $PRIVATE_REPO_USER -p $PRIVATE_REPO_PASSWORD
-
-    docker login registry.tanzu.vmware.com -u $TANZU_NETWORK_USER -p $TANZU_NETWORK_PASSWORD
-        
-    export IMGPKG_REGISTRY_HOSTNAME=$PRIVATE_REPO_SERVER
-    export IMGPKG_REGISTRY_USERNAME=$PRIVATE_REPO_USER
-    export IMGPKG_REGISTRY_PASSWORD=$PRIVATE_REPO_PASSWORD
+    scripts/dektecho.sh status "relocating TAP $TAP_VERSION images to $IMGPKG_REGISTRY_HOSTNAME/$SYSTEM_REPO/tap-packages"
 
     imgpkg copy \
         --bundle registry.tanzu.vmware.com/tanzu-application-platform/tap-packages:$TAP_VERSION \
@@ -30,20 +25,15 @@ relocate-tap-images() {
         --tar tap-packages-$TAP_VERSION.tar \
         --to-repo $IMGPKG_REGISTRY_HOSTNAME/$SYSTEM_REPO/tap-packages \
         --include-non-distributable-layers
+
+    rm -f tap-packages-$TAP_VERSION.tar
             
 }
 
 #relocate-carvel-bundle
 relocate-carvel-bundle() {
 
-    docker login $PRIVATE_REPO_SERVER -u $PRIVATE_REPO_USER -p $PRIVATE_REPO_PASSWORD
-
-    docker login registry.tanzu.vmware.com -u $TANZU_NETWORK_USER -p $TANZU_NETWORK_PASSWORD
-        
-    export IMGPKG_REGISTRY_HOSTNAME=$PRIVATE_REPO_SERVER
-    export IMGPKG_REGISTRY_USERNAME=$PRIVATE_REPO_USER
-    export IMGPKG_REGISTRY_PASSWORD=$PRIVATE_REPO_PASSWORD
-    export TAP_VERSION=$TAP_VERSION
+    scripts/dektecho.sh status "relocating Carvel Bundle to $IMGPKG_REGISTRY_HOSTNAME/$SYSTEM_REPO/cluster-essentials-bundle"
 
     imgpkg copy \
         --bundle registry.tanzu.vmware.com/tanzu-cluster-essentials/$CARVEL_BUNDLE \
@@ -54,26 +44,26 @@ relocate-carvel-bundle() {
         --tar carvel-bundle.tar \
         --to-repo $IMGPKG_REGISTRY_HOSTNAME/$SYSTEM_REPO/cluster-essentials-bundle \
         --include-non-distributable-layers
+
+    rm -f carvel-bundle.tar
 }
 
 #relocate-gw-images
-relocate-gw-images() {
+relocate-scgw-images() {
 
-    docker login $PRIVATE_REPO_SERVER -u $PRIVATE_REPO_USER -p $PRIVATE_REPO_PASSWORD
-        
-    $GW_INSTALL_DIR/scripts/relocate-images.sh $PRIVATE_REPO_SERVER/$SYSTEM_REPO
+    scripts/dektecho.sh status "relocating Spring Cloud Gateway images $IMGPKG_REGISTRY_HOSTNAME/$SYSTEM_REPO"
+
+    $GW_INSTALL_DIR/scripts/relocate-images.sh $IMGPKG_REGISTRY_HOSTNAME/$SYSTEM_REPO
 }
 
 #relocate-tds-images
 relocate-tds-images() {
 
-        #docker login $PRIVATE_REPO_SERVER -u $PRIVATE_REPO_USER -p $PRIVATE_REPO_PASSWORD
-        #docker login registry.tanzu.vmware.com -u $TANZU_NETWORK_USER -p $TANZU_NETWORK_PASSWORD
+    scripts/dektecho.sh status "relocating Tanzu Data Services $TDS_VERSION to $IMGPKG_REGISTRY_HOSTNAME/$SYSTEM_REPO/tds-packages"
         
-        #imgpkg copy -b registry.tanzu.vmware.com/packages-for-vmware-tanzu-data-services/tds-packages:1.0.0 \
-        #    --to-repo $PRIVATE_REPO_SERVER/$SYSTEM_REPO/tds-packages
-
-        tanzu package repository add tanzu-data-services-repository --url $PRIVATE_REPO_SERVER/$SYSTEM_REPO/tds-packages:1.0.0 -n tap-install
+    imgpkg copy \
+        --bundle registry.tanzu.vmware.com/packages-for-vmware-tanzu-data-services/tds-packages:$TDS_VERSION \
+        --to-repo $IMGPKG_REGISTRY_HOSTNAME/$SYSTEM_REPO/tds-packages
 }
 #add-carvel
 add-carvel () {
@@ -82,10 +72,10 @@ add-carvel () {
 
     pushd scripts/carvel
     
-    INSTALL_BUNDLE=$PRIVATE_REPO_SERVER/$SYSTEM_REPO/$CARVEL_BUNDLE \
-    INSTALL_REGISTRY_HOSTNAME=$PRIVATE_REPO_SERVER \
-    INSTALL_REGISTRY_USERNAME=$PRIVATE_REPO_USER \
-    INSTALL_REGISTRY_PASSWORD=$PRIVATE_REPO_PASSWORD \
+    INSTALL_BUNDLE=$IMGPKG_REGISTRY_HOSTNAME/$SYSTEM_REPO/$CARVEL_BUNDLE \
+    INSTALL_REGISTRY_HOSTNAME=$IMGPKG_REGISTRY_HOSTNAME \
+    INSTALL_REGISTRY_USERNAME=$IMGPKG_REGISTRY_USERNAME \
+    INSTALL_REGISTRY_PASSWORD=$IMGPKG_REGISTRY_PASSWORD \
     ./install.sh --yes
 
     pushd
@@ -101,10 +91,10 @@ remove-carvel () {
     pushd
 }
 
-#update-demo-values
-update-demo-values() {
+#generate-config-yamls
+generate-config-yamls() {
 
-    scripts/dektecho.sh status "Generating demo configuration files"
+    scripts/dektecho.sh status "Generating demo configuration yamls"
 
     #tap-profiles
     mkdir -p .config/tap-profiles
@@ -172,16 +162,19 @@ install-nginx ()
 
 #incorrect-usage
 incorrect-usage() {
-    scripts/dektecho.sh err "Incorrect usage. Please specify: add-carvel-tools / remove-carvel-tools / add-nginx"
+    scripts/dektecho.sh err "Incorrect usage."
     exit
 }
 
 case $1 in
-relocate-carvel-bundle)
+relocate-tanzu-images)
+    scripts/dektecho.sh prompt "Make sure docker deamon is running before proceeding"
+    docker login $IMGPKG_REGISTRY_HOSTNAME -u $IMGPKG_REGISTRY_USERNAME -p $IMGPKG_REGISTRY_PASSWORD
+    docker login registry.tanzu.vmware.com -u $TANZU_NETWORK_USER -p $TANZU_NETWORK_PASSWORD
     relocate-carvel-bundle
-    ;;
-relocate-tap-images)
     relocate-tap-images
+    relocate-tds-images
+    relocate-scgw-images
     ;;
 add-carvel-tools )
   	add-carvel
@@ -189,8 +182,8 @@ add-carvel-tools )
 remove-carvel-tools)
     remove-carvel
     ;;
-update-demo-values)
-    update-demo-values
+generate-config-yamls)
+    generate-config-yamls
     ;;
 add-nginx)
     install-nginx

@@ -39,9 +39,13 @@
     SYSTEM_SUB_DOMAIN=$(yq .dns.sysSubDomain .config/demo-values.yaml)
     DEV_SUB_DOMAIN=$(yq .dns.devSubDomain .config/demo-values.yaml)
     RUN_SUB_DOMAIN=$(yq .dns.prodSubDomain .config/demo-values.yaml)
-    #misc 
-    RDS_PROFILE=$(yq .data-services.rdsProfile .config/demo-values.yaml)       
+    #data-services
+    RDS_PROFILE=$(yq .data-services.rdsProfile .config/demo-values.yaml)
+    TDS_VERSION=$(yq .data_services.tdsVersion .config/demo-values.yaml)       
+    TANZU_POSTGRES_VERSION=$(yq .data_services.tanzuPostgresVersion .config/demo-values.yaml)
+    #apis
     GW_INSTALL_DIR=$(yq .apis.scgwInstallDirectory .config/demo-values.yaml)
+    #tmc
     export TMC_API_TOKEN=$(yq .tmc.apiToken .config/demo-values.yaml)
     TMC_CLUSTER_GROUP=$(yq .tmc.clusterGroup .config/demo-values.yaml)
 
@@ -86,9 +90,7 @@
         kubectl apply -f .config/supply-chains/tekton-pipeline.yaml -n $DEV_NAMESPACE
         kubectl apply -f .config/supply-chains/tekton-pipeline.yaml -n $TEAM_NAMESPACE
 
-        scripts/dektecho.sh status "Adding RabbitMQ and Postgres in team configurations"
-        add-rabbitmq-team
-        add-postgres-team
+        add-data-services "dev"
 
         scripts/ingress-handler.sh update-tap-dns $DEV_SUB_DOMAIN
     }
@@ -118,9 +120,7 @@
         kubectl apply -f .config/supply-chains/tekton-pipeline.yaml -n $STAGEPROD_NAMESPACE
         kubectl apply -f .config/scanners/scan-policy.yaml -n $STAGEPROD_NAMESPACE #for all scanners
 
-        scripts/dektecho.sh status "Adding RabbitMQ and Postgres in stage/prod configurations"
-        add-rabbitmq-stageprod
-        add-postgres-stageprod
+        add-data-services "prod"
 
     }
     
@@ -137,9 +137,7 @@
         
         add-tap-package "tap-run.yaml"
 
-        scripts/dektecho.sh status "Adding RabbitMQ and Postgres in stage/prod configurations"
-        add-rabbitmq-stageprod
-        add-postgres-stageprod
+        add-data-services "prod"
 
         scripts/ingress-handler.sh update-tap-dns $RUN_SUB_DOMAIN
 
@@ -154,18 +152,11 @@
 
         kubectl create ns tap-install
        
-        #tanzu secret registry add tap-registry \
-        #    --username ${TANZU_NETWORK_USER} --password ${TANZU_NETWORK_PASSWORD} \
-        #    --server "registry.tanzu.vmware.com" \
-        #    --export-to-all-namespaces --yes --namespace tap-install
         tanzu secret registry add tap-registry \
             --username ${PRIVATE_REPO_USER} --password ${PRIVATE_REPO_PASSWORD} \
            --server $PRIVATE_REPO_SERVER \
            --export-to-all-namespaces --yes --namespace tap-install
 
-        #tanzu package repository add tanzu-tap-repository \
-        #    --url registry.tanzu.vmware.com/tanzu-application-platform/tap-packages:$TAP_VERSION \
-        #    --namespace tap-install
         tanzu package repository add tanzu-tap-repository \
             --url $PRIVATE_REPO_SERVER/$SYSTEM_REPO/tap-packages:$TAP_VERSION \
             --namespace tap-install
@@ -194,61 +185,88 @@
         kubectl apply -f .config/cluster-configs/single-user-access.yaml -n $appsNamespace
     }
 
-    #add-rabbitmq-team
-    add-rabbitmq-team() {
+    #add-data-services
+    add-data-services() {
+
+        mode=$1
+
+        scripts/dektecho.sh status "Adding data services in $mode configuration"
+
+        tanzu package repository add tanzu-data-services-repository \
+        --url $PRIVATE_REPO_SERVER/$SYSTEM_REPO/tds-packages:$TDS_VERSION \
+        --namespace tap-install
+
+        case $mode in
+        dev)
+            add-tanzu-postgres $TEAM_NAMESPACE
+            add-tanzu-rabbitmq 1 $TEAM_NAMESPACE
+            ;;
+        prod)
+            add-rds-postgres $STAGEPROD_NAMESPACE
+            add-tanzu-rabbitmq 2 $STAGEPROD_NAMESPACE
+            ;;
+        esac
+
+    }
+    #add-tanzu-rabbitmq
+    add-tanzu-rabbitmq() {
+
+        export numReplicas=$1
+        appNamespace=$2
+
+        scripts/dektecho.sh status "Adding Tanzu RabbitMQ with $numReplicas replicas"
 
         #install RabbitMQ operator
         kubectl apply -f "https://github.com/rabbitmq/cluster-operator/releases/latest/download/cluster-operator.yml"
         
         #configure taznu services toolkit for RabbitMQ
-        kubectl apply -f .config/data-services/rabbitmq-cluster-config.yaml -n $TEAM_NAMESPACE
+        kubectl apply -f .config/data-services/tanzu/rabbitmq-cluster-config.yaml -n $TEAM_NAMESPACE
         
-        #provision a RabbitMQ single instance
-        kubectl apply -f .config/data-services/reading-queue-dev.yaml -n $TEAM_NAMESPACE
+        #provision the RabbitMQ 'reading' instance(s)
+        yq '.spec.replicas = env(numReplicas)' .config/data-services/tanzu/reading-instance-tanzu_rabbitmq.yaml -i
+        kubectl apply -f .config/data-services/tanzu/reading-instance-tanzu_rabbitmq.yaml -n $TEAM_NAMESPACE
 
         #create a service claim
-        tanzu service claim create rabbitmq-claim -n $TEAM_NAMESPACE \
+        tanzu service claim create rabbitmq-claim -n $appNamespace \
             --resource-name reading-queue \
             --resource-kind RabbitmqCluster \
             --resource-api-version rabbitmq.com/v1beta1
     }
 
-    #add-rabbitmq-stageprod
-    add-rabbitmq-stageprod() {
+    #add tanzu postgres operator (on cluster)
+    add-tanzu-postgres() {
 
-        #install RabbitMQ operator
-        kubectl apply -f "https://github.com/rabbitmq/cluster-operator/releases/latest/download/cluster-operator.yml"
+        appNamespace=$1
+
+        scripts/dektecho.sh status "Install Tanzu Postgres in $appNamespace namespace"
+
+        tanzu package install tanzu-postgres \
+            --package-name postgres-operator.sql.tanzu.vmware.com \
+            --version $TANZU_POSTGRES_VERSION \
+            --namespace tap-install
+
+        kubectl apply -f .config/data-services/tanzu/cluster-intance-class-postgres.yaml
+        kubectl apply -f .config/data-services/tanzu/resource-claims-postgres.yaml
         
-        #configure taznu services toolkit for RabbitMQ
-        kubectl apply -f .config/data-services/rabbitmq-cluster-config.yaml -n $STAGEPROD_NAMESPACE
-        
-        #provision a RabbitMQ HA instance
-        kubectl apply -f .config/data-services/reading-queue-prod.yaml -n $STAGEPROD_NAMESPACE
 
-        #create a service claim
-        tanzu service claim create rabbitmq-claim -n $STAGEPROD_NAMESPACE \
-            --resource-name reading-queue \
-            --resource-kind RabbitmqCluster \
-            --resource-api-version rabbitmq.com/v1beta1
-    }
+        #provision inventory-db instance 
+        kubectl apply -f .config/data-services/tanzu/inventory-instance-tanzu_postgres.yaml -n $appNamespace
 
-    #add-posgtres-team
-    add-postgres-team() {
-
-        #Direct secret to a pre-provisioned Azure PostgresSQL named inventory-db
-        kubectl apply -f .config/data-services/inventory-db-dev.yaml -n $TEAM_NAMESPACE
-        
-        #create a service claim for inventory-db
-        tanzu service claim create postgres-claim -n $TEAM_NAMESPACE \
+        #create inventory-db resource claim
+        tanzu service claim create postgres-claim \
             --resource-name inventory-db \
-            --resource-kind Secret \
-            --resource-api-version v1 
+            --resource-kind Postgres \
+            --resource-api-version sql.tanzu.vmware.com/v1 \
+            --resource-namespace $appNamespace \
+            --namespace $appNamespace
     }
 
-    #add-posgtres-stageprod
-    add-postgres-stageprod() {
+    #add-rds-postgres
+    add-rds-postgres() { #WIP
 
-        
+        appNamespace=$1
+
+        scripts/dektecho.sh status "Install Crossplane connector to RDS Postgres in $appNamespace namespace"
         #install crossplane 
         #kubectl create namespace crossplane-system
         #helm repo add crossplane-stable https://charts.crossplane.io/stable
@@ -270,10 +288,10 @@
         #scripts/dektecho.sh status "Waiting for RDS PostgreSQL instance named inventory-db to be create"
         #kubectl wait --for=condition=Ready=true postgresqlinstances.bindable.database.example.org inventory-db
 
-        kubectl apply -f .config/data-services/inventory-db-prod.yaml -n $STAGEPROD_NAMESPACE
+        kubectl apply -f .config/data-services/aws/inventory-instance-rds_postgresql.yaml -n $appNamespace
 
         #create a service claim for inventory-db
-        tanzu service claim create postgres-claim -n $STAGEPROD_NAMESPACE \
+        tanzu service claim create postgres-claim -n $appNamespace \
             --resource-name inventory-db \
             --resource-kind Secret \
             --resource-api-version v1 
@@ -528,24 +546,10 @@
     #test-all-clusters
     test-all-clusters() {
         scripts/k8s-handler.sh verify $VIEW_CLUSTER_PROVIDER $VIEW_CLUSTER_NAME
-        echo
-        scripts/dektecho.sh prompt  "Verify that cluster $VIEW_CLUSTER_NAME was created succefully. Continue?" && [ $? -eq 0 ] || exit
-        
         scripts/k8s-handler.sh verify $DEV_CLUSTER_PROVIDER $DEV_CLUSTER_NAME
-        echo
-        scripts/dektecho.sh prompt  "Verify that cluster $DEV_CLUSTER_NAME was created succefully. Continue?" && [ $? -eq 0 ] || exit
-        
         scripts/k8s-handler.sh verify $STAGE_CLUSTER_PROVIDER $STAGE_CLUSTER_NAME
-        echo
-        scripts/dektecho.sh prompt  "Verify that cluster $STAGE_CLUSTER_NAME was created succefully. Continue?" && [ $? -eq 0 ] || exit
-        
         scripts/k8s-handler.sh verify $PROD_CLUSTER_PROVIDER $PROD_CLUSTER_NAME
-        echo
-        scripts/dektecho.sh prompt  "Verify that cluster $PROD_CLUSTER_NAME was created succefully. Continue?" && [ $? -eq 0 ] || exit
-        
         scripts/k8s-handler.sh verify $BROWNFIELD_CLUSTER_PROVIDER $BROWNFIELD_CLUSTER_NAME
-        echo
-        scripts/dektecho.sh prompt  "Verify that cluster $BROWNFIELD_CLUSTER_NAME was created succefully. Continue?" && [ $? -eq 0 ] || exit
     }
 
     #innerloop-handler
@@ -606,20 +610,17 @@
 
 case $1 in
 init-all)
-    ./scripts/tanzu-handler.sh update-demo-values    
     innerloop-handler create-clusters
     outerloop-handler create-clusters
     innerloop-handler install-demo
     outerloop-handler install-demo
     ;;
 create-clusters)
-    ./scripts/tanzu-handler.sh update-demo-values
     innerloop-handler create-clusters
     outerloop-handler create-clusters
     test-all-clusters
     ;;
 install-demo)
-    ./scripts/tanzu-handler.sh update-demo-values
     innerloop-handler install-demo
     outerloop-handler install-demo
     ;;
@@ -634,11 +635,6 @@ uninstall-demo)
     ./dekt-DevSecOps.sh toggle-dog sad
     innerloop-handler uninstall-demo
     outerloop-handler uninstall-demo
-    ;;
-relocate-tap-images)
-    scripts/dektecho.sh prompt "Make sure docker deamon is running before proceeding"
-    scripts/tanzu-handler.sh relocate-carvel-bundle
-    scripts/tanzu-handler.sh relocate-tap-images
     ;;
 runme)
     $2 $3 $4

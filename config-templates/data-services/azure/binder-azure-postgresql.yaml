@@ -7,12 +7,12 @@ spec:
     #@ load("@ytt:data", "data")
     #@ load("@ytt:yaml", "yaml")
 
-    !@ Binding to Azure SQL instance using Crossplane
+    !@ Binding to Azure PostgresQL instance using Crossplane
     !@
     !@ Assumptions
     !@ 1. Crossplane installed
-    !@ 2. ProviderConfig configured to Azure SQL
-    !@ 3. Azure SQL Instance instance provisioned
+    !@ 2. ProviderConfig configured to Azure PostgresQL
+    !@ 3. Azure PostgresQL Instance instance provisioned
     !@
     apiVersion: apiextensions.crossplane.io/v1
     kind: Composition

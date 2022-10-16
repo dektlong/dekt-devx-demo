@@ -88,7 +88,9 @@ dns:
   godaddyApiKey: 
   godaddyApiSecret: 
 
-data-services: #WIP
+data_services: #WIP
+  tdsVersion:
+  tanzuPostgresVersion:
   rdsProfile: #pre-configured named profile for an AWS account that has permissions to manage RDS databases
 
 apis:
