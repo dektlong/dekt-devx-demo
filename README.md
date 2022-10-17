@@ -115,12 +115,12 @@ Script automate the following:
 - Show the single dev experiece from VSCode via tilt 
   - The single dev deploy will run on ```apps_namespaces.dev``` namespaces in the ```clusters.dev.name```
   
-- show cluster topology ```./dekt-DevSecOps.sh info```
+- show cluster topology ```./demo.sh info```
 
-- innerloop teams (shared dev work) ```./dekt-DevSecOps.sh team```
+- innerloop teams (shared dev work) ```./demo.sh team```
 
 - follow workloads and supply chain progress via Backstage and/or
-  - ```./dekt-DevSecOps.sh track team [logs]```
+  - ```./demo.sh track team [logs]```
 
 - access the live url at mood-portal.```dns.devSubdomain```.```dns.domain``` and show the call back to the mood-sensors APIs and the mood-analyzer outputs in ()
 
@@ -128,16 +128,16 @@ Script automate the following:
 - click down on ```mood-sensors``` to show application live view
 
 - make a code change in ```mood-portal``` app to change the 'mood-sniffing algorythem' to 'mild' (this bypass the backend api calls)
-  - ```./dekt-DevSecOps.sh behappy```
+  - ```./demo.sh behappy```
   - show how the ```dekt-src-test-api-config``` supplychain re-builds and deploy a new revision with a happy dog
 
 ### Outer loop
-- 'promote' to Staging cluster ```./dekt-DevSecOps.sh stage```
+- 'promote' to Staging cluster ```./demo.sh stage```
   - show workload created pointing to ```release``` branch instead of ```dev``` branch
   - show the enhanced supply chain (dekt-src-to-api-with-scan with scanning) progress on multi-cluster Backstage
   - show Deliverables created in your gitops.stage repo, but NO runtime artifacts deployed
  
-- 'promote' to Run cluster (Deliverable)  ```./dekt-DevSecOps.sh prod```
+- 'promote' to Run cluster (Deliverable)  ```./demo.sh prod```
   - show deliverables deployed to ```app-namespaces.stageProd``` without building source/scanning
   - show that the new Deliverable is deployed on the production domain - mood-portal.```dns.prodSubdomain```.```dns.domain```
 
@@ -166,11 +166,11 @@ Script automate the following:
   
 - highlight the separation of concerns between supplychain (AppOps) and supplychain-templates (Platform Ops)
 
-- show applied supply chains using ```./dekt-DevSecOps.sh supplychains```
+- show applied supply chains using ```./demo.sh supplychains```
 
 ## Cleanup
 
-- partial cleanup to remove workloads and reset configs ```./dekt-DevSecOps.sh reset```
+- partial cleanup to remove workloads and reset configs ```./demo.sh reset```
 
 - partial cleanup to uninstall TAP and demo components from all clusters ```./builder.sh uninstall-demo```
 
