@@ -172,9 +172,7 @@ Script automate the following:
 
 ## Cleanup
 
-- partial cleanup to remove workloads and reset configs ```./demo.sh reset```
-
-- partial cleanup to uninstall TAP and demo components from all clusters ```./builder.sh uninstall-demo```
+- partial cleanup to remove workloads and reset configs ```./demo.sh uninstall```
 
 - full cleanup to delete all clusters  ```./builder.sh delete-all```
 

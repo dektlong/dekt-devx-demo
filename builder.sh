@@ -627,7 +627,6 @@ init-all)
 create-clusters)
     innerloop-handler create-clusters
     outerloop-handler create-clusters
-    test-all-clusters
     ;;
 install-demo)
     innerloop-handler install-demo
@@ -638,12 +637,6 @@ delete-all)
     ./dekt-DevSecOps.sh besad
     innerloop-handler delete-clusters
     outerloop-handler delete-clusters
-    ;;
-uninstall-demo)
-    scripts/dektecho.sh prompt  "Are you sure you want to uninstall all demo components?" && [ $? -eq 0 ] || exit
-    ./dekt-DevSecOps.sh toggle-dog sad
-    innerloop-handler uninstall-demo
-    outerloop-handler uninstall-demo
     ;;
 runme)
     $2 $3 $4
