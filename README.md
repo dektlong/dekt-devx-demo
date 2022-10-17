@@ -172,7 +172,7 @@ Script automate the following:
 
 ## Cleanup
 
-- partial cleanup to remove workloads and reset configs ```./demo.sh uninstall```
+- partial cleanup to remove workloads and reset configs ```./demo.sh reset```
 
 - full cleanup to delete all clusters  ```./builder.sh delete-all```
 

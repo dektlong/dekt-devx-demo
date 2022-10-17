@@ -198,7 +198,7 @@
     }
 
     #soft reset of all clusters configurations
-    uninstall() {
+    reset() {
 
         kubectl config use-context $STAGE_CLUSTER
         tanzu apps workload delete $ANALYZER_WORKLOAD -n $STAGEPROD_NAMESPACE -y
@@ -338,8 +338,8 @@ behappy)
 besad)
     toggle-dog sad
     ;;
-uninstall)
-    uninstall
+reset)
+    reset
     ;;
 cleanup-helper)
     cleanup-helper
