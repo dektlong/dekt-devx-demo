@@ -3,6 +3,8 @@ kind: Postgres
 metadata:
   name: inventory-db
 spec:
+  imagePullSecret: 
+    name: registry-credentials 
   memory: 800Mi
   cpu: "0.8"
   storageClassName: default
