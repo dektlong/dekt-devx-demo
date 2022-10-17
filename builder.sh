@@ -17,6 +17,7 @@
     BROWNFIELD_CLUSTER_NAME=$(yq .clusters.brownfield.name .config/demo-values.yaml)
     BROWNFIELD_CLUSTER_PROVIDER=$(yq .clusters.brownfield.provider .config/demo-values.yaml)
     BROWNFIELD_CLUSTER_NODES=$(yq .clusters.brownfield.nodes .config/demo-values.yaml)
+    PRIVATE_CLUSTER_NAME=$(yq .brownfield_apis.privateClusterContext .config/demo-values.yaml)
 
     #image registry
     PRIVATE_REPO_SERVER=$(yq .private_registry.host .config/demo-values.yaml)
@@ -44,7 +45,7 @@
     TDS_VERSION=$(yq .data_services.tdsVersion .config/demo-values.yaml)       
     TANZU_POSTGRES_VERSION=$(yq .data_services.tanzuPostgresVersion .config/demo-values.yaml)
     #apis
-    GW_INSTALL_DIR=$(yq .apis.scgwInstallDirectory .config/demo-values.yaml)
+    GW_INSTALL_DIR=$(yq .brownfield_apis.scgwInstallDirectory .config/demo-values.yaml)
     #tmc
     export TMC_API_TOKEN=$(yq .tmc.apiToken .config/demo-values.yaml)
     TMC_CLUSTER_GROUP=$(yq .tmc.clusterGroup .config/demo-values.yaml)
@@ -418,18 +419,20 @@
 
         scripts/dektecho.sh status "adding 'provider' components on $BROWNFIELD_CLUSTER_NAME cluster"
         kubectl config use-context $BROWNFIELD_CLUSTER_NAME
-        
         kubectl create ns scgw-system
-        kubectl create secret docker-registry spring-cloud-gateway-image-pull-secret \
-            --docker-server=$PRIVATE_REPO_SERVER \
-            --docker-username=$PRIVATE_REPO_USER \
-            --docker-password=$PRIVATE_REPO_PASSWORD \
-            --namespace scgw-system
+        kubectl create secret docker-registry spring-cloud-gateway-image-pull-secret --docker-server=$PRIVATE_REPO_SERVER --docker-username=$PRIVATE_REPO_USER --docker-password=$PRIVATE_REPO_PASSWORD --namespace scgw-system
         $GW_INSTALL_DIR/scripts/install-spring-cloud-gateway.sh --namespace scgw-system
-        
         kubectl create ns $brownfield_apis_ns
-        kustomize build brownfield-apis | kubectl apply -f -
+        kubectl apply -f brownfield-apis/sentiment.yaml -n $brownfield_apis_ns
 
+        scripts/dektecho.sh status "adding 'provider' components on $PRIVATE_CLUSTER_NAME cluster"
+        kubectl config use-context $PRIVATE_CLUSTER_NAME
+        kubectl create ns scgw-system
+        kubectl create secret docker-registry spring-cloud-gateway-image-pull-secret --docker-server=$PRIVATE_REPO_SERVER --docker-username=$PRIVATE_REPO_USER --docker-password=$PRIVATE_REPO_PASSWORD --namespace scgw-system
+        $GW_INSTALL_DIR/scripts/install-spring-cloud-gateway.sh --namespace scgw-system
+        kubectl create ns $brownfield_apis_ns
+        kubectl apply -f brownfield-apis/datacheck.yaml -n $brownfield_apis_ns
+    
         scripts/dektecho.sh status "adding'consumer' components on $DEV_CLUSTER_NAME cluster"
         kubectl config use-context $DEV_CLUSTER_NAME
         kubectl create ns $brownfield_apis_ns

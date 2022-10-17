@@ -8,6 +8,7 @@
     STAGE_CLUSTER=$(yq .clusters.stage.name .config/demo-values.yaml)
     PROD_CLUSTER=$(yq .clusters.prod.name .config/demo-values.yaml)
     BROWNFIELD_CLUSTER=$(yq .clusters.brownfield.name .config/demo-values.yaml)
+    PRIVATE_CLUSTER=$(yq .brownfield_apis.privateClusterContext .config/demo-values.yaml)
     #workloads (must match the info in .config/workloads)
     PORTAL_WORKLOAD="mood-portal"
     SENSORS_WORKLOAD="mood-sensors"
@@ -64,8 +65,12 @@
         then
             echo ""
         else
-            scripts/dektecho.sh info "Brownfield cluster (Tanzu Service Mesh)"
+            scripts/dektecho.sh info "Social cluster (access via tanzu service mesh)"
             kubectl config use-context $BROWNFIELD_CLUSTER 
+            kubectl cluster-info | grep 'control plane' --color=never
+
+            scripts/dektecho.sh info "Private cluster (access via tanzu service mesh)"
+            kubectl config use-context $PRIVATE_CLUSTER
             kubectl cluster-info | grep 'control plane' --color=never
         fi
 
@@ -128,9 +133,9 @@
         scripts/dektecho.sh status "Applying Deliverables and ServiceBindings to $PROD_CLUSTER cluster..."
 
         kubectl config use-context $PROD_CLUSTER
-        kubectl apply -f ../$GITOPS_STAGE_REPO/config/dekt-apps/$ANALYZER_WORKLOAD -n $STAGEPROD_NAMESPACE
-        kubectl apply -f ../$GITOPS_STAGE_REPO/config/dekt-apps/$PORTAL_WORKLOAD -n $STAGEPROD_NAMESPACE
-        kubectl apply -f ../$GITOPS_STAGE_REPO/config/dekt-apps/$SENSORS_WORKLOAD -n $STAGEPROD_NAMESPACE
+        kubectl apply -f ../$GITOPS_STAGE_REPO/config/$STAGEPROD_NAMESPACE/$ANALYZER_WORKLOAD -n $STAGEPROD_NAMESPACE
+        kubectl apply -f ../$GITOPS_STAGE_REPO/config/$STAGEPROD_NAMESPACE/$PORTAL_WORKLOAD -n $STAGEPROD_NAMESPACE
+        kubectl apply -f ../$GITOPS_STAGE_REPO/config/$STAGEPROD_NAMESPACE/$SENSORS_WORKLOAD -n $STAGEPROD_NAMESPACE
 
         scripts/dektecho.sh status "Your DevX-Mood application is being deployed to production"
 
@@ -183,10 +188,10 @@
         kubectl config use-context $PROD_CLUSTER
         kubectl get svc -n brownfield-apis
 
-        scripts/dektecho.sh info "Brownfield PROVIDER services"
-
-        scripts/dektecho.sh cmd "kubectl get svc -n brownfield-apis"
+        scripts/dektecho.sh info "Brownfield PROVIDERS services"
         kubectl config use-context $BROWNFIELD_CLUSTER 
+        kubectl get svc -n brownfield-apis
+        kubectl config use-context $PRIVATE_CLUSTER
         kubectl get svc -n brownfield-apis
 
         

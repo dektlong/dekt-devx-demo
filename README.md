@@ -17,6 +17,8 @@ This repo contains artifacts to run a demo illustrating the vision and capabilit
 
 - Clone the dekt-devx-demo repo ```git clone https://github.com/dektlong/dekt-devx-demo```
 
+- Clone the mood-portal repo ```https://github.com/dektlong/mood-portal.git```
+
 - Create a folder named```.config``` in the ```dekt-devx-demo``` directory
 
 - copy ```config-templates/demo-values.yaml``` to ```.config/demo-values.yaml```

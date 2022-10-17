@@ -15,7 +15,7 @@ clusters:
     name: 
     provider: #accepted values: aks,eks,gke
     nodes: 3 
-  brownfield: #for bronwfield apis demo, SCGW and TSM, no TAP installed
+  brownfield: #optional, needed for bronwfield apis demo, SCGW and TSM, no TAP installed
     name: 
     provider: #accepted values: aks,eks,gke
     nodes: 3 
@@ -77,8 +77,8 @@ gitops:
   server: "https://github.com/"
   apiKey: 
   owner: 
-  dev: #repo needs to be created manually and clone at the same folder level as the demo repo
-  stage: #repo needs to be created manually and clone at the same folder level as the demo repo
+  dev: #repo needs to be created manually and clone at the same folder level as the demo repo, make sure git pull works
+  stage: #repo needs to be created manually and clone at the same folder level as the demo repo, make sure git pull works
 
 dns:
   domain: 
@@ -93,8 +93,9 @@ data_services: #WIP
   tanzuPostgresVersion:
   rdsProfile: #pre-configured named profile for an AWS account that has permissions to manage RDS databases
 
-apis:
+brownfield_apis: #optional, needed if you want to demo 'brownfield apis'
   scgwInstallDirectory:
+  privateClusterContext: #setup this cluster (e.g. on vSphere) seperatly, and put the kubectl context name here
 
 tmc:
   apiToken: 
