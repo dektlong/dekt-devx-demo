@@ -501,34 +501,6 @@
         tmc cluster delete $BROWNFIELD_CLUSTER_NAME -f -m attached -p attached
     }
 
-    #delete-demo
-    delete-demo() {
-
-        kubectl config use-context $1
-
-        tanzu package installed delete tap -n tap-install -y
-
-        tanzu package installed delete snyk-scanner -n tap-install -y
-
-        tanzu package installed delete carbonblack-scanner -n tap-install -y
-
-
-        kubectl delete -f .config/supply-chains -n $STAGEPROD_NAMESPACE
-        kubectl delete -f .config/supply-chains -n $TEAM_NAMESPACE
-
-        kubectl delete ns tap-gui
-        kubectl delete ns metadata-store-secrets
-        kubectl delete ns $STAGEPROD_NAMESPACE
-        kubectl delete ns $DEV_NAMESPACE
-        kubectl delete ns $TEAM_NAMESPACE
-        kubectl delete ns rabbitmq-system
-        kubectl delete ns secretgen-controller
-        kubectl delete ns tanzu-package-repo-global
-        kubectl delete ns tanzu-cluster-essentials
-        kubectl delete ns kapp-controller 
-        kubectl delete ns tap-install
-
-    }
     
     #incorrect usage
     incorrect-usage() {
