@@ -453,8 +453,17 @@
 
     }
 
-    #attach TMC clusters
+     #attach TMC clusters
     attach-tmc-clusters() {
+
+        attach-tmc-cluster $VIEW_CLUSTER_NAME
+        attach-tmc-cluster $DEV_CLUSTER_NAME
+        attach-tmc-cluster $STAGE_CLUSTER_NAME
+        attach-tmc-cluster $PROD_CLUSTER_NAME
+
+    }
+    #attach TMC cluster
+    attach-tmc-cluster() {
 
         scripts/dektecho.sh info "Attaching TMC clusters"
 
@@ -513,8 +522,6 @@
         echo 
         echo "  install-demo"
         echo 
-        echo "  uninstall-demo"
-        echo
         echo "  delete-all"
         echo
         echo "  relocate-tap-images"
@@ -522,15 +529,6 @@
         echo "  runme [ function-name ]"
         echo
         exit
-    }
-
-    #test-all-clusters
-    test-all-clusters() {
-        scripts/k8s-handler.sh verify $VIEW_CLUSTER_PROVIDER $VIEW_CLUSTER_NAME
-        scripts/k8s-handler.sh verify $DEV_CLUSTER_PROVIDER $DEV_CLUSTER_NAME
-        scripts/k8s-handler.sh verify $STAGE_CLUSTER_PROVIDER $STAGE_CLUSTER_NAME
-        scripts/k8s-handler.sh verify $PROD_CLUSTER_PROVIDER $PROD_CLUSTER_NAME
-        scripts/k8s-handler.sh verify $BROWNFIELD_CLUSTER_PROVIDER $BROWNFIELD_CLUSTER_NAME
     }
 
     #innerloop-handler
@@ -548,10 +546,6 @@
         install-demo)
             install-view-cluster
             install-dev-cluster 
-            ;;
-        uninstall-demo)
-            delete-demo $VIEW_CLUSTER_NAME
-            delete-demo $DEV_CLUSTER_NAME
             ;;
         esac
     }
@@ -577,10 +571,6 @@
             update-multi-cluster-access
             add-brownfield-apis
             attach-tmc-clusters
-            ;;
-        uninstall-demo)
-            delete-demo $STAGE_CLUSTER_NAME
-            delete-demo $PROD_CLUSTER_NAME
             ;;
         esac
     }

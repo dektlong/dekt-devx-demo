@@ -6,6 +6,7 @@ This repo contains artifacts to run a demo illustrating the vision and capabilit
 ## Preparations (one time setup)
 
 - Install the following tools
+  - Taznu CLI with apps, services and insight plugins
   - az (with AKS plugin)
   - eksclt 
   - gcloud
