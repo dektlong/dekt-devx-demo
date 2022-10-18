@@ -6,12 +6,16 @@ metadata:
     apps.tanzu.vmware.com/workload-type: dekt-url
     app.kubernetes.io/part-of: mood-portal
 spec:
-  #source code
   source:
     git:
       url: https://github.com/dektlong/mood-portal
       ref:
-        branch: UPDATED_IN_RUNTIME
+        branch: dev
+  env:
+    - name: SENSORS_ACTIVATE_API
+      value: UPDATED_IN_RUNTIME
+    - name: SENSORS_MEASURE_API
+      value: UPDATED_IN_RUNTIME
   params:
     - name: annotations
       value:

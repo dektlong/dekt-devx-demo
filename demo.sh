@@ -2,14 +2,12 @@
 
 #################### load configs from values yaml  ################
 
-    #clusters
     VIEW_CLUSTER=$(yq .clusters.view.name .config/demo-values.yaml)
     DEV_CLUSTER=$(yq .clusters.dev.name .config/demo-values.yaml)
     STAGE_CLUSTER=$(yq .clusters.stage.name .config/demo-values.yaml)
     PROD_CLUSTER=$(yq .clusters.prod.name .config/demo-values.yaml)
     BROWNFIELD_CLUSTER=$(yq .clusters.brownfield.name .config/demo-values.yaml)
     PRIVATE_CLUSTER=$(yq .brownfield_apis.privateClusterContext .config/demo-values.yaml)
-    #workloads (must match the info in .config/workloads)
     PORTAL_WORKLOAD="mood-portal"
     SENSORS_WORKLOAD="mood-sensors"
     ANALYZER_WORKLOAD="mood-analyzer"
@@ -18,9 +16,10 @@
     STAGE_BRANCH="release-v1.0"
     GITOPS_DEV_REPO="gitops-dev"
     GITOPS_STAGE_REPO="gitops-stage"
-    #tap
+    DEV_SUB_DOMAIN=$(yq .dns.devSubDomain .config/demo-values.yaml)
+    RUN_SUB_DOMAIN=$(yq .dns.prodSubDomain .config/demo-values.yaml)
+    DOMAIN=$(yq .dns.domain .config/demo-values.yaml)
     TAP_VERSION=$(yq .tap.version .config/demo-values.yaml)
-    #apps-namespaces
     DEV_NAMESPACE=$(yq .apps_namespaces.dev .config/demo-values.yaml)
     TEAM_NAMESPACE=$(yq .apps_namespaces.team .config/demo-values.yaml)
     STAGEPROD_NAMESPACE=$(yq .apps_namespaces.stageProd .config/demo-values.yaml)
@@ -84,13 +83,19 @@
         clusterName=$1
         appNamespace=$2
         export branch=$3
+        subDomain=$4
         
         kubectl config use-context $clusterName
         
         #set branch in workloads
         yq '.spec.source.git.ref.branch = env(branch)' .config/workloads/mood-portal.yaml -i
         yq '.spec.source.git.ref.branch = env(branch)' .config/workloads/mood-sensors.yaml -i
-        
+        #set subdomain for api calls in mood-portal
+        export sensorsActivateAPI="http://mood-sensors.$subDomain.$DOMAIN/activate"
+        export sensorsMeasureAPI="http://mood-sensors.$subDomain.$DOMAIN/measure"
+        yq '.spec.env[0].value = env(sensorsActivateAPI)' .config/workloads/mood-portal.yaml -i
+        yq '.spec.env[1].value = env(sensorsMeasureAPI)' .config/workloads/mood-portal.yaml -i
+
         scripts/dektecho.sh cmd "tanzu apps workload create $PORTAL_WORKLOAD -f .config/workloads/mood-portal.yaml -y -n $appNamespace"
         tanzu apps workload create $PORTAL_WORKLOAD -f .config/workloads/mood-portal.yaml -y -n $appNamespace
 
@@ -299,10 +304,10 @@ dev)
     single-dev-workload
     ;;
 team)
-    create-workloads $DEV_CLUSTER $TEAM_NAMESPACE $DEV_BRANCH
+    create-workloads $DEV_CLUSTER $TEAM_NAMESPACE $DEV_BRANCH $DEV_SUB_DOMAIN
     ;;
 stage)
-    create-workloads $STAGE_CLUSTER $STAGEPROD_NAMESPACE $STAGE_BRANCH
+    create-workloads $STAGE_CLUSTER $STAGEPROD_NAMESPACE $STAGE_BRANCH $RUN_SUB_DOMAIN
     ;;
 prod)
     prod-roleout
