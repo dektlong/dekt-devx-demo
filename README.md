@@ -45,7 +45,6 @@ scripts/tanzu-handler.sh relocate-tanzu-images
 
 Script automate the following:
 
-  - Demo config yamls created via ytt in the ```.config``` folder based on ```demo-values.yaml```
   - Create view, dev, stage, prod and brownfield clusters
     *Note: this process make take 15-20min, depends on your k8s providers of choice*
   - View cluster demo components
