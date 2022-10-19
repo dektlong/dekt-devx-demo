@@ -596,7 +596,7 @@ install-demo)
     ;;
 delete-all)
     scripts/dektecho.sh prompt  "Are you sure you want to delete all clusters?" && [ $? -eq 0 ] || exit
-    ./dekt-DevSecOps.sh besad
+    ./demo.sh besad
     innerloop-handler delete-clusters
     outerloop-handler delete-clusters
     ;;
