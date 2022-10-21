@@ -10,6 +10,7 @@ This repo contains artifacts to run a demo illustrating the vision and capabilit
   - az (with AKS plugin)
   - eksclt 
   - gcloud
+  - yq
   - ytt
   - TAP VSCode plugin 
   - Tilt 
