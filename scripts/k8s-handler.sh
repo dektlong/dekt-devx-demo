@@ -29,7 +29,8 @@ create-aks-cluster() {
 	az aks create --name $cluster_name \
 		--resource-group $AZURE_RESOURCE_GROUP \
 		--node-count $number_of_nodes \
-		--node-vm-size $AZURE_NODE_TYPE 
+		--node-vm-size $AZURE_NODE_TYPE \
+		--generate-ssh-keys
 
 	az aks get-credentials --overwrite-existing --resource-group $AZURE_RESOURCE_GROUP --name $cluster_name
 
