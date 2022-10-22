@@ -43,8 +43,6 @@ delete-aks-cluster() {
 
 	scripts/dektecho.sh status "Starting deleting resources of AKS cluster $cluster_name"
 
-	kubectl config delete-context $clusterName
-	
 	az aks delete --name $cluster_name --resource-group $AZURE_RESOURCE_GROUP --yes
 }
 
@@ -77,8 +75,6 @@ delete-eks-cluster () {
     cluster_name=$1
 
 	scripts/dektecho.sh status "Starting deleting resources of EKS cluster $cluster_name ..."
-	
-    kubectl config delete-context $clusterName
 
 	eksctl delete cluster --name $cluster_name --force
 }
@@ -110,8 +106,6 @@ delete-gke-cluster () {
 
 	scripts/dektecho.sh status "Starting deleting resources of GKE cluster $cluster_name"
 	
-    kubectl config delete-context $clusterName
-
 	gcloud container clusters delete $cluster_name \
 		--region $GCP_REGION \
 		--project $GCP_PROJECT_ID \
