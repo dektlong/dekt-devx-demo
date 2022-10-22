@@ -465,37 +465,17 @@
     #attach TMC cluster
     attach-tmc-cluster() {
 
-        scripts/dektecho.sh info "Attaching TMC clusters"
+        cluster_name=$1
+
+        scripts/dektecho.sh info "Attaching $cluster_name cluster to TMC"
 
         tmc system context create -n devxdemo-tmc -c
         tmc login -n tmc-login -c
 
-        kubectl config use-context $VIEW_CLUSTER_NAME
-        tmc cluster attach -n $VIEW_CLUSTER_NAME -g $TMC_CLUSTER_GROUP
+        kubectl config use-context $cluster_name
+        tmc cluster attach -n $cluster_name -g $TMC_CLUSTER_GROUP
         kubectl apply -f k8s-attach-manifest.yaml
         rm -f k8s-attach-manifest.yaml
-
-        kubectl config use-context $DEV_CLUSTER_NAME
-        tmc cluster attach -n $DEV_CLUSTER_NAME -g $TMC_CLUSTER_GROUP
-        kubectl apply -f k8s-attach-manifest.yaml 
-
-        rm -f k8s-attach-manifest.yaml
-
-        kubectl config use-context $STAGE_CLUSTER_NAME
-        tmc cluster attach -n $STAGE_CLUSTER_NAME -g $TMC_CLUSTER_GROUP
-        kubectl apply -f k8s-attach-manifest.yaml
-        rm -f k8s-attach-manifest.yaml
-
-        kubectl config use-context $PROD_CLUSTER_NAME
-        tmc cluster attach -n $PROD_CLUSTER_NAME -g $TMC_CLUSTER_GROUP
-        kubectl apply -f k8s-attach-manifest.yaml
-        rm -f k8s-attach-manifest.yaml
-
-        kubectl config use-context $BROWNFIELD_CLUSTER_NAME
-        tmc cluster attach -n $BROWNFIELD_CLUSTER_NAME -g $TMC_CLUSTER_GROUP
-        kubectl apply -f k8s-attach-manifest.yaml
-        rm -f k8s-attach-manifest.yaml
-
     }
 
     #delete-tmc-cluster
