@@ -59,10 +59,7 @@ create-eks-cluster () {
 
     eksctl create cluster \
 		--name $cluster_name \
-		--managed \
 		--region $AWS_REGION \
-		--version 1.23 \
-		--with-oidc \
 		--nodes $number_of_nodes \
 		--node-type $AWS_INSTANCE_TYPE 
 
