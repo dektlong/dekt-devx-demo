@@ -544,8 +544,8 @@
             scripts/k8s-handler.sh verify $DEV_CLUSTER_NAME
             ;;
         delete-clusters)
-            scripts/k8s-handler.sh delete $VIEW_CLUSTER_NAME $VIEW_CLUSTER_PROVIDER \
-            & scripts/k8s-handler.sh delete $DEV_CLUSTER_NAME $DEV_CLUSTER_PROVIDER 
+            scripts/k8s-handler.sh delete $VIEW_CLUSTER_NAME $VIEW_CLUSTER_PROVIDER
+            scripts/k8s-handler.sh delete $DEV_CLUSTER_NAME $DEV_CLUSTER_PROVIDER 
             ;;
         install-demo)
             install-view-cluster
@@ -569,9 +569,9 @@
             scripts/k8s-handler.sh verify $BROWNFIELD_CLUSTER_NAME
             ;;
         delete-clusters)
-            scripts/k8s-handler.sh delete $STAGE_CLUSTER_NAME $STAGE_CLUSTER_PROVIDER \
-            & scripts/k8s-handler.sh delete $PROD_CLUSTER_NAME $PROD_CLUSTER_PROVIDER \
-            & scripts/k8s-handler.sh delete $BROWNFIELD_CLUSTER_NAME $BROWNFIELD_CLUSTER_PROVIDER
+            scripts/k8s-handler.sh delete $STAGE_CLUSTER_NAME $STAGE_CLUSTER_PROVIDER
+            scripts/k8s-handler.sh delete $PROD_CLUSTER_NAME $PROD_CLUSTER_PROVIDER
+            scripts/k8s-handler.sh delete $BROWNFIELD_CLUSTER_NAME $BROWNFIELD_CLUSTER_PROVIDER
             delete-tmc-clusters
             ;;
         install-demo)
@@ -605,7 +605,8 @@ install-demo)
 delete-all)
     scripts/dektecho.sh prompt  "Are you sure you want to delete all clusters?" && [ $? -eq 0 ] || exit
     ./demo.sh besad
-    innerloop-handler delete-clusters & outerloop-handler delete-clusters
+    innerloop-handler delete-clusters
+    outerloop-handler delete-clusters
     ;;
 runme)
     $2 $3 $4
