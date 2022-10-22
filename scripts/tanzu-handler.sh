@@ -123,7 +123,6 @@ generate-config-yamls() {
 
     #cluster-configs
     mkdir -p .config/cluster-configs
-    ytt -f config-templates/cluster-configs/containerd-ng.yaml --data-values-file=.config/demo-values.yaml > .config/cluster-configs/containerd-ng.yaml
     cp config-templates/cluster-configs/reader-accounts.yaml .config/cluster-configs/reader-accounts.yaml
     cp config-templates/cluster-configs/single-user-access.yaml .config/cluster-configs/single-user-access.yaml
     cp config-templates/cluster-configs/store-auth-token.yaml .config/cluster-configs/store-auth-token.yaml

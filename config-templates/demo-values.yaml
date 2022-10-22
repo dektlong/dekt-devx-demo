@@ -24,14 +24,9 @@ clouds:
   azureLocation: 
   azureResourceGroup: 
   azureNodeType: Standard_DS3_v2 # recommended: 4 vCPU, 14GB memory, 28GB temp disk 
+  awsIAMuser:
   awsRegion: 
-  awsContainerdAMI: #workaround for the docker demon EKS bug, obtain via this command
-      # aws ssm get-parameter \
-      # --name /aws/service/eks/optimized-ami/1.21/amazon-linux-2/recommended/image_id \
-      # --region CHANGE_ME \ 
-      # --query "Parameter.Value" \
-      # --output text
-  awsInstaceType: t3.xlarge # recommended: 4 vCPU, 16GB memory, 28GB temp disk 
+  awsInstanceType: t3.xlarge # recommended: 4 vCPU, 16GB memory, 28GB temp disk 
   gcpRegion: 
   gcpProjectID: 
   gcpMachineType: 

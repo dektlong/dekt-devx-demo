@@ -10,6 +10,7 @@ This repo contains artifacts to run a demo illustrating the vision and capabilit
   - az (with AKS plugin)
   - eksclt 
   - gcloud
+  - jq
   - yq
   - ytt
   - TAP VSCode plugin 
@@ -40,51 +41,52 @@ scripts/tanzu-handler.sh relocate-tanzu-images
 
 ## Installation
 
+### Create clusters 
 ```
-./builder.sh init-all 
+./builder.sh create-clusters
 ```
+  *Note: this process make take 15-20min, depends on your k8s providers of choice*
 
-Script automate the following:
-
-  - Create view, dev, stage, prod and brownfield clusters
-    *Note: this process make take 15-20min, depends on your k8s providers of choice*
-  - View cluster demo components
-    - Carvel tools
-    - TAP based on ```.config/tap-profiles/tap-view.yaml``` values
-    - Custom app accelerators
-    - Metadata store config on consumer cluster
-    - System ingress rule
-  - Dev cluster demo components
-    - Carvel tools
-    - TAP based on ```.config/tap-profiles/tap-itereate.yaml``` values
-    - ```dekt-src-config``` and ```dekt-src-test-api-config``` custom supply chains
-    - Tekton pipeline
-    - Metadata store config on provider cluster
-    - RabbitMQ operator and single instance
-    - Service claim to Azure PostgresSQL
-    - CNR dev ingress rule
-  - Stage cluster demo components
-    - Carvel tools
-    - TAP based on ```.config/tap-profiles/tap-build.yaml``` values
-    - CarbonBlack & Snyk image scanner (out-of-the-box Grype for source scanning)
-    - Scanning policy 
-    - Metadata store config on provider cluster
-    - Tekton pipeline
-    - ```dekt-src-scan-config``` and ```dekt-src-test-scan-api-config``` custom supply chains 
-    - RabbitMQ operator and HA instance
-    - Service claim to RDS PostgresSQL
-  - Prod cluster demo components
-    - Carvel tools
-    - TAP based on ```.config/tap-profiles/tap-run.yaml``` values
-    - Metadata store config on provider cluster
-    - CNR run ingress rule
-  - TAP-gui multi cluster configuration
-  - Brownfield cluster demo components
-    - Spring Cloud Gateway operator
-    - Brownfield APIs SCGW instances and routes in ```brownfield-apis``` ns
-    - Add brownfield 'consumer' k8s services to TAP clusters in ```brownfield-apis``` ns
-  - Attach clusters to TMC via the TMC API
-    - view, dev, stage, prod and brownfield clusters
+### Install demo components
+```
+./builder.sh install-demo
+```
+- Components installed on View cluster
+  - Carvel tools
+  - TAP based on ```.config/tap-profiles/tap-view.yaml``` values
+  - Custom app accelerators
+  - Metadata store config on consumer cluster
+  - System ingress rule
+- Components installed on Dev clusters
+  - Carvel tools
+  - TAP based on ```.config/tap-profiles/tap-itereate.yaml``` values
+  - ```dekt-src-config``` and ```dekt-src-test-api-config``` custom supply chains
+  - Tekton pipeline
+  - Metadata store config on provider cluster
+  - RabbitMQ operator and single instance
+  - Service claim to Azure PostgresSQL
+  - CNR dev ingress rule
+- Components installed on Stage cluster
+  - Carvel tools
+  - TAP based on ```.config/tap-profiles/tap-build.yaml``` values
+  - CarbonBlack & Snyk image scanner (out-of-the-box Grype for source scanning)
+  - Scanning policy 
+  - Metadata store config on provider cluster
+  - Tekton pipeline
+  - ```dekt-src-scan-config``` and ```dekt-src-test-scan-api-config``` custom supply chains 
+  - RabbitMQ operator and HA instance
+  - Service claim to RDS PostgresSQL
+- Components installed on Prod cluster
+  - Carvel tools
+  - TAP based on ```.config/tap-profiles/tap-run.yaml``` values
+  - Metadata store config on provider cluster
+  - CNR run ingress rule
+- TAP-gui multi cluster configuration
+- Components installed on Brownfield cluster
+  - Spring Cloud Gateway operator
+  - Brownfield APIs SCGW instances and routes in ```brownfield-apis``` ns
+  - Add brownfield 'consumer' k8s services to TAP clusters in ```brownfield-apis``` ns
+- Attach all clusters to TMC via the TMC API
 
 ### Optional manual configuration
   - TSM

@@ -5,9 +5,9 @@ AZURE_LOCATION=$(yq .clouds.azureLocation .config/demo-values.yaml)
 AZURE_RESOURCE_GROUP=$(yq .clouds.azureResourceGroup .config/demo-values.yaml)
 AZURE_NODE_TYPE=$(yq .clouds.azureNodeType .config/demo-values.yaml)
 #aws configs
-export AWS_REGION=$(yq .clouds.awsRegion .config/demo-values.yaml)
-export AWS_CONTAINERD_AMI=$(yq .clouds.awsContainerdAMI .config/demo-values.yaml)
-export AWS_INSTANCE_TYPE=$(yq .clouds.awsInstanceType .config/demo-values.yaml)
+AWS_IAM_USER=$(yq .clouds.awsIAMuser .config/demo-values.yaml)
+AWS_REGION=$(yq .clouds.awsRegion .config/demo-values.yaml)
+AWS_INSTANCE_TYPE=$(yq .clouds.awsInstanceType .config/demo-values.yaml)
 #gcp configs
 GCP_REGION=$(yq .clouds.gcpRegion .config/demo-values.yaml)
 GCP_PROJECT_ID=$(yq .clouds.gcpProjectID .config/demo-values.yaml)
@@ -54,32 +54,21 @@ create-eks-cluster () {
 
     #must run after setting access via 'aws configure'
 
-    export cluster_name=$1
+    cluster_name=$1
 	number_of_nodes=$2
-	export bootstrap_cmd="/etc/eks/bootstrap.sh $cluster_name --container-runtime containerd"
 
 	scripts/dektecho.sh info "Creating EKS cluster $cluster_name with $number_of_nodes nodes"
 
     eksctl create cluster \
 		--name $cluster_name \
+		--managed \
 		--region $AWS_REGION \
-		--without-nodegroup #containerd to docker bug
-	
-	#containerd to docker bug
-	yq '.metadata.name = env(cluster_name)' .config/cluster-configs/containerd-ng.yaml -i
-	yq '.managedNodeGroups[0].overrideBootstrapCommand = env(bootstrap_cmd)' .config/cluster-configs/containerd-ng.yaml -i
-	
-    eksctl create ng -f .config/cluster-configs/containerd-ng.yaml
-    eksctl scale nodegroup \
-		--cluster=$cluster_name \
-		--nodes=$number_of_nodes \
-		--name=containerd-ng \
-		--nodes-min=$number_of_nodes \
-		--nodes-max=$number_of_nodes
-	
-	kubectl config rename-context $(kubectl config current-context) $cluster_name
+		--version 1.23 \
+		--with-oidc \
+		--nodes $number_of_nodes \
+		--node-type $AWS_INSTANCE_TYPE 
 
-
+	kubectl config rename-context $AWS_IAM_USER@$cluster_name.$AWS_REGION.eksctl.io $cluster_name
 }
 
 #delete-eks-cluster
@@ -108,9 +97,9 @@ create-gke-cluster () {
 		--num-nodes $number_of_nodes \
 		--machine-type $GCP_MACHINE_TYPE
 
-	gcloud container clusters get-credentials $cluster_name --region $GCP_REGION --project $GCP_PROJECT_ID
+	gcloud container clusters get-credentials $cluster_name --region $GCP_REGION 
 
-	kubectl config rename-context $(kubectl config current-context) $cluster_name
+	kubectl config rename-context gke_$GCP_PROJECT_ID"_"$GCP_REGION"_"$cluster_name $cluster_name
 
 }
 
@@ -143,8 +132,8 @@ incorrect-usage() {
 }
 
 operation=$1
-clusterProvider=$2
-clusterName=$3
+clusterName=$2
+clusterProvider=$3
 numOfNodes=$4
 case $operation in
 create)
@@ -180,8 +169,10 @@ delete)
 	esac
 	;;	
 verify)
-	ctx $clusterName && kubectl get pods -A && kubectl get svc -A
-	scripts/dektecho.sh prompt  "Verify that cluster $clusterName was created succefully. Continue?" && [ $? -eq 0 ] || exit
+	scripts/dektecho.sh status "Core components of $clusterName cluster"
+	kubectl config use-context $clusterName 
+	kubectl get pods -A
+	kubectl get svc -A
 	;;
 *)
 	incorrect-usage
