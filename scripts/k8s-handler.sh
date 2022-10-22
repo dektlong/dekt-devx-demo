@@ -31,9 +31,6 @@ create-aks-cluster() {
 		--node-count $number_of_nodes \
 		--node-vm-size $AZURE_NODE_TYPE \
 		--generate-ssh-keys
-
-	az aks get-credentials --overwrite-existing --resource-group $AZURE_RESOURCE_GROUP --name $cluster_name
-
 }
 
 #delete-aks-cluster
@@ -62,8 +59,6 @@ create-eks-cluster () {
 		--region $AWS_REGION \
 		--nodes $number_of_nodes \
 		--node-type $AWS_INSTANCE_TYPE 
-
-	kubectl config rename-context $AWS_IAM_USER@$cluster_name.$AWS_REGION.eksctl.io $cluster_name
 }
 
 #delete-eks-cluster
@@ -91,9 +86,6 @@ create-gke-cluster () {
 		--machine-type $GCP_MACHINE_TYPE
 
 	gcloud container clusters get-credentials $cluster_name --region $GCP_REGION 
-
-	kubectl config rename-context gke_$GCP_PROJECT_ID"_"$GCP_REGION"_"$cluster_name $cluster_name
-
 }
 
 #delete-eks-cluster
@@ -110,6 +102,17 @@ delete-gke-cluster () {
 
 }
 
+#verify cluster
+verify () {
+
+	cluster_name=$1
+
+	kubectl config use-context $cluster_name 
+	kubectl get pods -A
+	kubectl get svc -A
+	scripts/dektecho.sh prompt  "Verfiy core components of $cluster_name have been created succefully. Continue?" && [ $? -eq 0 ] || exit
+}
+
 #################### main #######################
 
 #incorrect-usage
@@ -118,13 +121,13 @@ incorrect-usage() {
 	scripts/dektecho.sh err "Incorrect usage. Please specify:"
     echo "  create [aks/eks/gke cluster-name numbber-of-nodes]"
     echo "  delete [aks/eks/gke cluster-name]"
-	echo "  verify [aks/eks/gke cluster-name]"
+	echo "  set-context [aks/eks/gke cluster-name]"
     exit
 }
 
 operation=$1
-clusterName=$2
-clusterProvider=$3
+clusterProvider=$2
+clusterName=$3
 numOfNodes=$4
 case $operation in
 create)
@@ -159,12 +162,25 @@ delete)
 		;;
 	esac
 	;;	
-verify)
-	scripts/dektecho.sh status "Core components of $clusterName cluster"
-	kubectl config use-context $clusterName 
-	kubectl get pods -A
-	kubectl get svc -A
-	;;
+set-context)
+	case $clusterProvider in
+	aks)
+  		az aks get-credentials --overwrite-existing --resource-group $AZURE_RESOURCE_GROUP --name $clusterName
+		verify $clusterName
+    	;;
+	eks)
+		kubectl config rename-context $AWS_IAM_USER@$clusterName.$AWS_REGION.eksctl.io $clusterName
+		verify $clusterName
+		;;
+	gke)
+		kubectl config rename-context gke_$GCP_PROJECT_ID"_"$GCP_REGION"_"$clusterName $clusterName
+		verify $clusterName
+		;;
+	*)
+		incorrect-usage
+		;;
+	esac
+	;;	
 *)
 	incorrect-usage
 	;;

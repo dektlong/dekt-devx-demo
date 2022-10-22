@@ -536,12 +536,12 @@
 
         case $1 in
         create-clusters) 
-            scripts/k8s-handler.sh create $VIEW_CLUSTER_NAME $VIEW_CLUSTER_PROVIDER $VIEW_CLUSTER_NODES \
-            & scripts/k8s-handler.sh create $DEV_CLUSTER_NAME $DEV_CLUSTER_PROVIDER $DEV_CLUSTER_NODES
+            scripts/k8s-handler.sh create $VIEW_CLUSTER_PROVIDER $VIEW_CLUSTER_NAME $VIEW_CLUSTER_NODES \
+            & scripts/k8s-handler.sh create $DEV_CLUSTER_PROVIDER $DEV_CLUSTER_NAME $DEV_CLUSTER_NODES
             ;;
-        verify-clusters)
-            scripts/k8s-handler.sh verify $VIEW_CLUSTER_NAME
-            scripts/k8s-handler.sh verify $DEV_CLUSTER_NAME
+      set-contexts)
+            scripts/k8s-handler.sh set-context $VIEW_CLUSTER_PROVIDER $VIEW_CLUSTER_NAME
+            scripts/k8s-handler.sh set-context $DEV_CLUSTER_PROVIDER $DEV_CLUSTER_NAME
             ;;
         delete-clusters)
             scripts/k8s-handler.sh delete $VIEW_CLUSTER_NAME $VIEW_CLUSTER_PROVIDER \
@@ -559,14 +559,14 @@
 
         case $1 in
         create-clusters) 
-            scripts/k8s-handler.sh create $STAGE_CLUSTER_NAME $STAGE_CLUSTER_PROVIDER $STAGE_CLUSTER_NODES \
-            & scripts/k8s-handler.sh create $PROD_CLUSTER_NAME $PROD_CLUSTER_PROVIDER $PROD_CLUSTER_NODES \
-            & scripts/k8s-handler.sh create $BROWNFIELD_CLUSTER_NAME $BROWNFIELD_CLUSTER_PROVIDER $BROWNFIELD_CLUSTER_NODES                  
+            scripts/k8s-handler.sh create $STAGE_CLUSTER_PROVIDER $STAGE_CLUSTER_NAME $STAGE_CLUSTER_NODES \
+            & scripts/k8s-handler.sh create $PROD_CLUSTER_PROVIDER $PROD_CLUSTER_NAME $PROD_CLUSTER_NODES \
+            & scripts/k8s-handler.sh create $BROWNFIELD_CLUSTER_PROVIDER $BROWNFIELD_CLUSTER_NAME $BROWNFIELD_CLUSTER_NODES                  
             ;;
-        verify-clusters)
-            scripts/k8s-handler.sh verify $STAGE_CLUSTER_NAME
-            scripts/k8s-handler.sh verify $PROD_CLUSTER_NAME
-            scripts/k8s-handler.sh verify $BROWNFIELD_CLUSTER_NAME
+        set-contexts)
+            scripts/k8s-handler.sh set-context $STAGE_CLUSTER_PROVIDER $STAGE_CLUSTER_NAME
+            scripts/k8s-handler.sh set-context $PROD_CLUSTER_PROVIDER $PROD_CLUSTER_NAME
+            scripts/k8s-handler.sh set-context $BROWNFIELD_CLUSTER_PROVIDER $BROWNFIELD_CLUSTER_NAME
             ;;
         delete-clusters)
             scripts/k8s-handler.sh delete $STAGE_CLUSTER_NAME $STAGE_CLUSTER_PROVIDER \
@@ -593,9 +593,8 @@ create-clusters)
     innerloop-handler create-clusters & outerloop-handler create-clusters
     ;;
 install-demo)
-    innerloop-handler verify-clusters
-    outerloop-handler verify-clusters
-    scripts/dektecho.sh prompt  "Verfiy all clusters have been created succefully before progressing to demo install. Continue?" && [ $? -eq 0 ] || exit
+    innerloop-handler set-contexts
+    outerloop-handler set-contexts
     innerloop-handler install-demo
     outerloop-handler install-demo
     ;;
