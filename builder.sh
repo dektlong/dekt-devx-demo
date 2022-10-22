@@ -544,8 +544,8 @@
             scripts/k8s-handler.sh set-context $DEV_CLUSTER_PROVIDER $DEV_CLUSTER_NAME
             ;;
         delete-clusters)
-            scripts/k8s-handler.sh delete $VIEW_CLUSTER_NAME $VIEW_CLUSTER_PROVIDER \
-            & scripts/k8s-handler.sh delete $DEV_CLUSTER_NAME $DEV_CLUSTER_PROVIDER 
+            scripts/k8s-handler.sh delete $VIEW_CLUSTER_PROVIDER $VIEW_CLUSTER_NAME \
+            & scripts/k8s-handler.sh delete $DEV_CLUSTER_PROVIDER $DEV_CLUSTER_NAME
             ;;
         install-demo)
             install-view-cluster
@@ -553,7 +553,7 @@
             ;;
         esac
     }
-
+    
     #outerloop-handler
     outerloop-handler() {
 
@@ -569,9 +569,9 @@
             scripts/k8s-handler.sh set-context $BROWNFIELD_CLUSTER_PROVIDER $BROWNFIELD_CLUSTER_NAME
             ;;
         delete-clusters)
-            scripts/k8s-handler.sh delete $STAGE_CLUSTER_NAME $STAGE_CLUSTER_PROVIDER \
-            & scripts/k8s-handler.sh delete $PROD_CLUSTER_NAME $PROD_CLUSTER_PROVIDER \
-            & scripts/k8s-handler.sh delete $BROWNFIELD_CLUSTER_NAME $BROWNFIELD_CLUSTER_PROVIDER
+            scripts/k8s-handler.sh delete $STAGE_CLUSTER_PROVIDER $STAGE_CLUSTER_NAME \
+            & scripts/k8s-handler.sh delete $PROD_CLUSTER_PROVIDER $PROD_CLUSTER_NAME \
+            & scripts/k8s-handler.sh delete $BROWNFIELD_CLUSTER_PROVIDER $BROWNFIELD_CLUSTER_NAME
             delete-tmc-clusters
             ;;
         install-demo)
