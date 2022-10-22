@@ -135,10 +135,6 @@ This scripts automated the following:
 - show system view diagram via ```devx-mood```
 - click down on ```mood-sensors``` to show application live view
 
-- make a code change in ```mood-portal``` app to change the 'mood-sniffing algorythem' to 'mild' (this bypass the backend api calls)
-  - ```./demo.sh behappy```
-  - show how the ```dekt-src-test-api-config``` supplychain re-builds and deploy a new revision with a happy dog
-
 ### Outer loop
 - 'promote' to Staging cluster ```./demo.sh stage```
   - show workload created pointing to ```release``` branch instead of ```dev``` branch
