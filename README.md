@@ -51,13 +51,16 @@ scripts/tanzu-handler.sh relocate-tanzu-images
 ```
 ./builder.sh install-demo
 ```
-- Components installed on View cluster
+This scripts automated the following:
+
+- Set k8s contexts and verify clusters created succefully
+- Install demo components on View cluster
   - Carvel tools
   - TAP based on ```.config/tap-profiles/tap-view.yaml``` values
   - Custom app accelerators
   - Metadata store config on consumer cluster
   - System ingress rule
-- Components installed on Dev clusters
+- Install demo components on Dev cluster
   - Carvel tools
   - TAP based on ```.config/tap-profiles/tap-itereate.yaml``` values
   - ```dekt-src-config``` and ```dekt-src-test-api-config``` custom supply chains
@@ -66,7 +69,7 @@ scripts/tanzu-handler.sh relocate-tanzu-images
   - RabbitMQ operator and single instance
   - Service claim to Azure PostgresSQL
   - CNR dev ingress rule
-- Components installed on Stage cluster
+- Install demo components on Stage cluster
   - Carvel tools
   - TAP based on ```.config/tap-profiles/tap-build.yaml``` values
   - CarbonBlack & Snyk image scanner (out-of-the-box Grype for source scanning)
@@ -76,13 +79,13 @@ scripts/tanzu-handler.sh relocate-tanzu-images
   - ```dekt-src-scan-config``` and ```dekt-src-test-scan-api-config``` custom supply chains 
   - RabbitMQ operator and HA instance
   - Service claim to RDS PostgresSQL
-- Components installed on Prod cluster
+- Install demo components on Prod cluster
   - Carvel tools
   - TAP based on ```.config/tap-profiles/tap-run.yaml``` values
   - Metadata store config on provider cluster
   - CNR run ingress rule
-- TAP-gui multi cluster configuration
-- Components installed on Brownfield cluster
+- Configre TAP-gui multi clusters access
+- Install demo components on Brownfield cluster
   - Spring Cloud Gateway operator
   - Brownfield APIs SCGW instances and routes in ```brownfield-apis``` ns
   - Add brownfield 'consumer' k8s services to TAP clusters in ```brownfield-apis``` ns
