@@ -21,8 +21,6 @@ This repo contains artifacts to run a demo illustrating the vision and capabilit
 
 - Clone the dekt-devx-demo repo ```git clone https://github.com/dektlong/dekt-devx-demo```
 
-- Clone the mood-portal repo ```https://github.com/dektlong/mood-portal.git```
-
 - Create a folder named```.config``` in the ```dekt-devx-demo``` directory
 
 - copy ```config-templates/demo-values.yaml``` to ```.config/demo-values.yaml```
@@ -33,7 +31,7 @@ This repo contains artifacts to run a demo illustrating the vision and capabilit
 ```
 scripts/tanzu-handler.sh generate-config-yamls
 ```
-- verify all yamls create succefully in the ```.config``` folder
+- verify all yamls created successfully in the ```.config``` folder
 
 - Relocate Tanzu images to your private registry 
 ```
@@ -42,7 +40,7 @@ scripts/tanzu-handler.sh relocate-tanzu-images
 - Packages relocated: 
   - carvel
   - taznu-app-platform
-  - tanzu-build-service (full dependecies)
+  - tanzu-build-service (full dependencies)
   - tanzu-data-services
   - spring-cloud-gateway
 
@@ -74,7 +72,7 @@ This scripts automated the following:
   - Tekton pipeline
   - Metadata store config on provider cluster
   - RabbitMQ operator and single instance
-  - Service claim to Azure PostgresSQL
+  - Service claim to Azure PostgreSQL
   - CNR dev ingress rule
 - Install demo components on Stage cluster
   - Carvel tools
@@ -91,7 +89,7 @@ This scripts automated the following:
   - TAP based on ```.config/tap-profiles/tap-run.yaml``` values
   - Metadata store config on provider cluster
   - CNR run ingress rule
-- Configre TAP-gui multi clusters access
+- Configure TAP-gui multi clusters access
 - Install demo components on Brownfield cluster
   - Spring Cloud Gateway operator
   - Brownfield APIs SCGW instances and routes in ```brownfield-apis``` ns
@@ -105,9 +103,9 @@ This scripts automated the following:
     - Do not use the option to install Spring Cloud Gateway
   - CarbonBlack
     - Inventory->Clusters->Add Cluster
-    - Onbaord ```clusters.prod.name``` and ```clusters.stage.name```
+    - Onboard ```clusters.prod.name``` and ```clusters.stage.name```
   - Cloud Health SecureState
-    - Settings->Cloud Accounts->Add accout
+    - Settings->Cloud Accounts->Add account
     - Register the AWS/Azure/GCP account used for ```clusters.prod.name``` and ```clusters.stage.name```
     
 ## Running the demo 
@@ -127,7 +125,7 @@ This scripts automated the following:
 
 - highlight the simplicity of the ```workload.yaml```
 
-- Show the single dev experiece from VSCode via tilt 
+- Show the single dev experience from VSCode via tilt 
   - The single dev deploy will run on ```apps_namespaces.dev``` namespaces in the ```clusters.dev.name```
   
 - show cluster topology ```./demo.sh info```
@@ -139,8 +137,8 @@ This scripts automated the following:
 
 - access the live url at mood-portal.```dns.devSubdomain```.```dns.domain``` and show the call back to the mood-sensors APIs and the mood-analyzer outputs in ()
 
-- show system view diagram via ```devx-mood```
-- click down on ```mood-sensors``` to show application live view
+- show system components ```devx-mood```
+- click on ```mood-sensors``` to show application live view
 
 ### Outer loop
 - 'promote' to Staging cluster ```./demo.sh stage```
@@ -169,7 +167,7 @@ This scripts automated the following:
   - Map ```brownfield-provider``` ns in ```dekt-brownfield``` cluster to ```brownfield-consumer``` ns in ```dekt-stage``` cluster
   - Skip the option to add gateway instances (they are already created), but highlight that functionality
 
-### Create custome supply chains via Accelerators (optional)
+### Create custom supply chains via Accelerators (optional)
 
 - access tap gui accelerators using the ```cloud-native-devsecops``` tag
   - create ```dekt-src-to-api-with-scan``` supplychain using the microservices-supplychain accelerator with ```dekt-api``` workload type 
