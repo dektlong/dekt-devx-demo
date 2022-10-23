@@ -460,6 +460,7 @@
         attach-tmc-cluster $DEV_CLUSTER_NAME
         attach-tmc-cluster $STAGE_CLUSTER_NAME
         attach-tmc-cluster $PROD_CLUSTER_NAME
+        attach-tmc-cluster $BROWNFIELD_CLUSTER_NAME
 
     }
     #attach TMC cluster
