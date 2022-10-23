@@ -519,82 +519,43 @@
         exit
     }
 
-    #innerloop-handler
-    innerloop-handler() {
-
-        case $1 in
-        create-clusters) 
-            scripts/k8s-handler.sh create $VIEW_CLUSTER_PROVIDER $VIEW_CLUSTER_NAME $VIEW_CLUSTER_NODES \
-            & scripts/k8s-handler.sh create $DEV_CLUSTER_PROVIDER $DEV_CLUSTER_NAME $DEV_CLUSTER_NODES
-            ;;
-      set-contexts)
-            scripts/k8s-handler.sh set-context $VIEW_CLUSTER_PROVIDER $VIEW_CLUSTER_NAME
-            scripts/k8s-handler.sh set-context $DEV_CLUSTER_PROVIDER $DEV_CLUSTER_NAME
-            ;;
-        delete-clusters)
-            scripts/k8s-handler.sh delete $VIEW_CLUSTER_PROVIDER $VIEW_CLUSTER_NAME \
-            & scripts/k8s-handler.sh delete $DEV_CLUSTER_PROVIDER $DEV_CLUSTER_NAME
-            ;;
-        install-demo)
-            install-view-cluster
-            install-dev-cluster 
-            ;;
-        esac
-    }
-    
-    #outerloop-handler
-    outerloop-handler() {
-
-        case $1 in
-        create-clusters) 
-            scripts/k8s-handler.sh create $STAGE_CLUSTER_PROVIDER $STAGE_CLUSTER_NAME $STAGE_CLUSTER_NODES \
-            & scripts/k8s-handler.sh create $PROD_CLUSTER_PROVIDER $PROD_CLUSTER_NAME $PROD_CLUSTER_NODES \
-            & scripts/k8s-handler.sh create $BROWNFIELD_CLUSTER_PROVIDER $BROWNFIELD_CLUSTER_NAME $BROWNFIELD_CLUSTER_NODES                  
-            ;;
-        set-contexts)
-            scripts/k8s-handler.sh set-context $STAGE_CLUSTER_PROVIDER $STAGE_CLUSTER_NAME
-            scripts/k8s-handler.sh set-context $PROD_CLUSTER_PROVIDER $PROD_CLUSTER_NAME
-            scripts/k8s-handler.sh set-context $BROWNFIELD_CLUSTER_PROVIDER $BROWNFIELD_CLUSTER_NAME
-            ;;
-        delete-clusters)
-            scripts/k8s-handler.sh delete $STAGE_CLUSTER_PROVIDER $STAGE_CLUSTER_NAME \
-            & scripts/k8s-handler.sh delete $PROD_CLUSTER_PROVIDER $PROD_CLUSTER_NAME \
-            & scripts/k8s-handler.sh delete $BROWNFIELD_CLUSTER_PROVIDER $BROWNFIELD_CLUSTER_NAME
-            delete-tmc-clusters
-            ;;
-        install-demo)
-            install-stage-cluster
-            install-prod-cluster
-            update-multi-cluster-access
-            add-brownfield-apis
-            attach-tmc-clusters
-            ;;
-        esac
-    }
-   
 
 #################### main ##########################
 
 
 case $1 in
 create-clusters)
-    innerloop-handler create-clusters & outerloop-handler create-clusters
+    scripts/k8s-handler.sh create $VIEW_CLUSTER_PROVIDER $VIEW_CLUSTER_NAME $VIEW_CLUSTER_NODES \
+    & scripts/k8s-handler.sh create $DEV_CLUSTER_PROVIDER $DEV_CLUSTER_NAME $DEV_CLUSTER_NODES \
+    & scripts/k8s-handler.sh create $STAGE_CLUSTER_PROVIDER $STAGE_CLUSTER_NAME $STAGE_CLUSTER_NODES \
+    & scripts/k8s-handler.sh create $PROD_CLUSTER_PROVIDER $PROD_CLUSTER_NAME $PROD_CLUSTER_NODES \
+    & scripts/k8s-handler.sh create $BROWNFIELD_CLUSTER_PROVIDER $BROWNFIELD_CLUSTER_NAME $BROWNFIELD_CLUSTER_NODES  
     ;;
 install-demo)
-    innerloop-handler set-contexts
-    outerloop-handler set-contexts
-    innerloop-handler install-demo
-    outerloop-handler install-demo
+    #set k8s contexts and verify cluster install
+    scripts/k8s-handler.sh set-context $DEV_CLUSTER_PROVIDER $DEV_CLUSTER_NAME
+    scripts/k8s-handler.sh set-context $STAGE_CLUSTER_PROVIDER $STAGE_CLUSTER_NAME
+    scripts/k8s-handler.sh set-context $PROD_CLUSTER_PROVIDER $PROD_CLUSTER_NAME
+    scripts/k8s-handler.sh set-context $BROWNFIELD_CLUSTER_PROVIDER $BROWNFIELD_CLUSTER_NAME
+    scripts/k8s-handler.sh set-context $VIEW_CLUSTER_PROVIDER $VIEW_CLUSTER_NAME
+    #install all demo components
+    install-view-cluster
+    install-dev-cluster
+    install-stage-cluster
+    install-prod-cluster
+    update-multi-cluster-access
+    add-brownfield-apis
+    attach-tmc-clusters 
     ;;
 delete-all)
     scripts/dektecho.sh prompt  "Are you sure you want to delete all clusters?" && [ $? -eq 0 ] || exit
     ./demo.sh besad
-    innerloop-handler delete-clusters & outerloop-handler delete-clusters
-    kubectl config delete-context $VIEW_CLUSTER_NAME
-    kubectl config delete-context $DEV_CLUSTER_NAME
-    kubectl config delete-context $STAGE_CLUSTER_NAME
-    kubectl config delete-context $PROD_CLUSTER_NAME
-    kubectl config delete-context $BROWNFIELD_CLUSTER_NAME
+    delete-tmc-clusters
+    scripts/k8s-handler.sh delete $VIEW_CLUSTER_PROVIDER $VIEW_CLUSTER_NAME \
+    & scripts/k8s-handler.sh delete $DEV_CLUSTER_PROVIDER $DEV_CLUSTER_NAME \
+    & scripts/k8s-handler.sh delete $STAGE_CLUSTER_PROVIDER $STAGE_CLUSTER_NAME \
+    & scripts/k8s-handler.sh delete $PROD_CLUSTER_PROVIDER $PROD_CLUSTER_NAME \
+    & scripts/k8s-handler.sh delete $BROWNFIELD_CLUSTER_PROVIDER $BROWNFIELD_CLUSTER_NAME
     ;;
 runme)
     $2 $3 $4

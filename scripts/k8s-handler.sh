@@ -168,12 +168,15 @@ delete)
 	case $clusterProvider in
 	aks)
   		delete-aks-cluster $clusterName
+		kubectl config delete-context $clusterName
     	;;
 	eks)
 		delete-eks-cluster $clusterName
+		kubectl config delete-context $clusterName
 		;;
 	gke)
 		delete-gke-cluster $clusterName
+		kubectl config delete-context $clusterName
 		;;
 	*)
 		incorrect-usage
