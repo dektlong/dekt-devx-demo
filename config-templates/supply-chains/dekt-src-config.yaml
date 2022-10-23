@@ -107,7 +107,7 @@ spec:
       name: service-bindings
   - configs:
     - name: config
-      resource: app-config
+      resource: service-bindings
     name: config-writer
     params:
     - name: serviceAccount

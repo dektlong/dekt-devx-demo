@@ -5,16 +5,17 @@ This repo contains artifacts to run a demo illustrating the vision and capabilit
 
 ## Preparations (one time setup)
 
-- Install the following tools
-  - Taznu CLI with apps, services and insight plugins
-  - az (with AKS plugin)
-  - eksclt 
-  - gcloud
+- Install the following
+  - clouds CLIs for the clouds you plan to use
+    - az
+    - eksclt 
+    - gcloud
+  - tanzu CLIs with apps and services plugins
+  - carvel (specifically imgpkg and ytt)
+  - docker CLI
   - jq
   - yq
-  - ytt
-  - TAP VSCode plugin 
-  - Tilt 
+    
 
 - Login with your cloud credentials for each cloud you plan to deploy on
 
@@ -38,6 +39,12 @@ scripts/tanzu-handler.sh generate-config-yamls
 ```
 scripts/tanzu-handler.sh relocate-tanzu-images
 ```
+- Packages relocated: 
+  - carvel
+  - taznu-app-platform
+  - tanzu-build-service (full dependecies)
+  - tanzu-data-services
+  - spring-cloud-gateway
 
 ## Installation
 

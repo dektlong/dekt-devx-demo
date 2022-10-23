@@ -27,7 +27,8 @@
     #tap
     TANZU_NETWORK_USER=$(yq .tanzu_network.username .config/demo-values.yaml)
     TANZU_NETWORK_PASSWORD=$(yq .tanzu_network.password .config/demo-values.yaml)
-    TAP_VERSION=$(yq .tap.version .config/demo-values.yaml)
+    TAP_VERSION=$(yq .tap.tapVersion .config/demo-values.yaml)
+    TBS_VERSION=$(yq .tap.tbsVersion .config/demo-values.yaml)
     CARVEL_BUNDLE=$(yq .tap.carvel_bundle .config/demo-values.yaml)
     SNYK_VERSION=$(yq .snyk.version .config/demo-values.yaml)
     CARBONBLACK_VERSION=$(yq .carbonblack.version .config/demo-values.yaml)
@@ -61,7 +62,7 @@
 
         scripts/tanzu-handler.sh add-carvel-tools
         
-        add-tap-package "tap-view.yaml"
+        install-tap "tap-view.yaml"
 
         scripts/dektecho.sh status "Adding custom accelerators"
         kubectl apply -f accelerators -n accelerator-system
@@ -83,7 +84,7 @@
         add-app-rbac $DEV_NAMESPACE
         add-app-rbac $TEAM_NAMESPACE
 
-        add-tap-package "tap-iterate.yaml"
+        install-tap "tap-iterate.yaml"
 
         scripts/dektecho.sh status "Adding custom supply chains"
         kubectl apply -f .config/supply-chains/dekt-src-config.yaml
@@ -109,7 +110,7 @@
 
         add-metadata-store-secrets
 
-        add-tap-package "tap-build.yaml"
+        install-tap "tap-build.yaml"
 
         install-snyk
 
@@ -136,7 +137,7 @@
         
         add-app-rbac $STAGEPROD_NAMESPACE
         
-        add-tap-package "tap-run.yaml"
+        install-tap "tap-run.yaml"
 
         add-data-services "prod"
 
@@ -144,8 +145,8 @@
 
     }
 
-    #add-tap-package
-    add-tap-package() {
+    #install-tap
+    install-tap() {
 
         tap_values_file_name=$1
 
@@ -309,11 +310,10 @@
 
         export storeCert=$(kubectl get secret -n metadata-store ingress-cert -o json | jq -r ".data.\"ca.crt\"")
         export storeToken=$(kubectl get secrets metadata-store-read-write-client -n metadata-store -o jsonpath="{.data.token}" | base64 -d)
-        export storeProxyAuthHeader="Bearer $storeToken"
-
+        
         yq '.data."ca.crt"= env(storeCert)' .config/cluster-configs/store-ca-cert.yaml -i
         yq '.stringData.auth_token= env(storeToken)' .config/cluster-configs/store-auth-token.yaml -i
-        yq '.tap_gui.app_config.proxy."/metadata-store".headers.Authorization= env(storeProxyAuthHeader)' .config/tap-profiles/tap-view.yaml -i
+        
     }
     
     #add-metadata-store-secrets 
@@ -403,8 +403,13 @@
         yq '.tap_gui.app_config.kubernetes.clusterLocatorMethods.[0].clusters.[2].name = env(prodClusterName)' .config/tap-profiles/tap-view.yaml -i
         yq '.tap_gui.app_config.kubernetes.clusterLocatorMethods.[0].clusters.[2].serviceAccountToken = env(prodClusterToken)' .config/tap-profiles/tap-view.yaml -i
 
-        #update view cluster after config changes
+        #configure view cluster proxy
         kubectl config use-context $VIEW_CLUSTER_NAME
+        storeToken=$(kubectl get secrets metadata-store-read-write-client -n metadata-store -o jsonpath="{.data.token}" | base64 -d)
+        export storeProxyAuthHeader="Bearer $storeToken"
+        yq '.tap_gui.app_config.proxy."/metadata-store".headers.Authorization= env(storeProxyAuthHeader)' .config/tap-profiles/tap-view.yaml -i
+
+        #update view cluster tap package
         tanzu package installed update tap --package-name tap.tanzu.vmware.com --version $TAP_VERSION -n tap-install -f .config/tap-profiles/tap-view.yaml
         
 
@@ -456,6 +461,8 @@
      #attach TMC clusters
     attach-tmc-clusters() {
 
+        scripts/dektecho.sh info "Attaching clusters to TMC"
+
         attach-tmc-cluster $VIEW_CLUSTER_NAME
         attach-tmc-cluster $DEV_CLUSTER_NAME
         attach-tmc-cluster $STAGE_CLUSTER_NAME
@@ -468,7 +475,7 @@
 
         cluster_name=$1
 
-        scripts/dektecho.sh info "Attaching $cluster_name cluster to TMC"
+        scripts/dektecho.sh status "Attaching $cluster_name cluster to TMC"
 
         tmc system context create -n devxdemo-tmc -c
         tmc login -n tmc-login -c

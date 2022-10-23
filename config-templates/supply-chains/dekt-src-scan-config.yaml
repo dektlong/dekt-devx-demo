@@ -60,7 +60,7 @@ spec:
       value:
         ca_cert_data: ""
         server: #@ data.values.private_registry.host
-        repository: #@ data.values.repositories.stage
+        repository: #@ data.values.repositories.dev
     - default: default
       name: clusterBuilder
     - default: ./Dockerfile
@@ -130,8 +130,15 @@ spec:
       kind: ClusterConfigTemplate
       name: service-bindings
   - configs:
+    - name: app_def
+      resource: service-bindings
+    name: api-descriptors
+    templateRef:
+      kind: ClusterConfigTemplate
+      name: api-descriptors
+  - configs:
     - name: config
-      resource: app-config
+      resource: api-descriptors
     name: config-writer
     params:
     - name: serviceAccount
@@ -140,7 +147,7 @@ spec:
       value:
         ca_cert_data: ""
         server: #@ data.values.private_registry.host
-        repository: #@ data.values.repositories.stage
+        repository: #@ data.values.repositories.dev
     templateRef:
       kind: ClusterTemplate
       name: config-writer-template
@@ -150,7 +157,7 @@ spec:
       value:
         ca_cert_data: ""
         server: #@ data.values.private_registry.host
-        repository: #@ data.values.repositories.stage
+        repository: #@ data.values.repositories.dev
     templateRef:
       kind: ClusterTemplate
       name: deliverable-template

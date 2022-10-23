@@ -1,28 +1,19 @@
 #@ load("@ytt:data", "data")
 ---
 profile: build
-buildservice:
-  kp_default_repository: #@ "{}/{}/{}".format(data.values.private_registry.host, data.values.repositories.system, data.values.repositories.buildservice)
-  kp_default_repository_username: #@ data.values.private_registry.username
-  kp_default_repository_password: #@ data.values.private_registry.password
-  tanzunet_username: #@ data.values.tanzu_network.username
-  tanzunet_password: #@ data.values.tanzu_network.password
-  descriptor_name: "full"
-  enable_automatic_dependency_updates: true
+shared:
+  image_registry:
+    project_path: #@ "{}/{}".format(data.values.private_registry.host, data.values.repositories.system)
+    username: #@ data.values.private_registry.username
+    password: #@ data.values.private_registry.password
 supply_chain: testing_scanning
 ootb_supply_chain_basic:
-  registry:
-    server: #@ data.values.private_registry.host
-    repository: #@ data.values.repositories.stage
   gitops:
     ssh_secret: gitops-credentials
     server_address: #@ data.values.gitops.server
     repository_owner: #@ data.values.gitops.owner
     repository_name: #@ data.values.gitops.stage
 ootb_supply_chain_testing_scanning: 
-  registry:
-    server: #@ data.values.private_registry.host
-    repository: #@ data.values.repositories.stage
   gitops:
     ssh_secret: gitops-credentials
     server_address: #@ data.values.gitops.server

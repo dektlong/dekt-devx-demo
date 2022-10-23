@@ -7,9 +7,10 @@ SYSTEM_REPO=$(yq .repositories.system .config/demo-values.yaml)
 CARVEL_BUNDLE=$(yq .tap.carvelBundle .config/demo-values.yaml)
 TANZU_NETWORK_USER=$(yq .tanzu_network.username .config/demo-values.yaml)
 TANZU_NETWORK_PASSWORD=$(yq .tanzu_network.password .config/demo-values.yaml)
-export TAP_VERSION=$(yq .tap.version .config/demo-values.yaml)
+TAP_VERSION=$(yq .tap.tapVersion .config/demo-values.yaml)
+TBS_VERSION=$(yq .tap.tbsVersion .config/demo-values.yaml)
 TDS_VERSION=$(yq .data_services.tdsVersion .config/demo-values.yaml)
-GW_INSTALL_DIR=$(yq .apis.scgwInstallDirectory .config/demo-values.yaml)
+GW_INSTALL_DIR=$(yq .brownfield_apis.scgwInstallDirectory .config/demo-values.yaml)
 
 #relocate-tap-images
 relocate-tap-images() {
@@ -18,34 +19,51 @@ relocate-tap-images() {
 
     imgpkg copy \
         --bundle registry.tanzu.vmware.com/tanzu-application-platform/tap-packages:$TAP_VERSION \
-        --to-tar tap-packages-$TAP_VERSION.tar \
+        --to-tar .config/tap-packages-$TAP_VERSION.tar \
         --include-non-distributable-layers
 
     imgpkg copy \
-        --tar tap-packages-$TAP_VERSION.tar \
+        --tar .config/tap-packages-$TAP_VERSION.tar \
         --to-repo $IMGPKG_REGISTRY_HOSTNAME/$SYSTEM_REPO/tap-packages \
         --include-non-distributable-layers
 
-    rm -f tap-packages-$TAP_VERSION.tar
+    rm -f .config/tap-packages-$TAP_VERSION.tar
             
 }
 
 #relocate-carvel-bundle
 relocate-carvel-bundle() {
 
-    scripts/dektecho.sh status "relocating Carvel Bundle to $IMGPKG_REGISTRY_HOSTNAME/$SYSTEM_REPO/cluster-essentials-bundle"
+    scripts/dektecho.sh status "relocating cluster-essentials to $IMGPKG_REGISTRY_HOSTNAME/$SYSTEM_REPO/cluster-essentials-bundle"
 
     imgpkg copy \
         --bundle registry.tanzu.vmware.com/tanzu-cluster-essentials/$CARVEL_BUNDLE \
-        --to-tar carvel-bundle.tar \
+        --to-tar .config/carvel-bundle.tar \
         --include-non-distributable-layers
 
     imgpkg copy \
-        --tar carvel-bundle.tar \
+        --tar .config/carvel-bundle.tar \
         --to-repo $IMGPKG_REGISTRY_HOSTNAME/$SYSTEM_REPO/cluster-essentials-bundle \
         --include-non-distributable-layers
 
-    rm -f carvel-bundle.tar
+    rm -f .config/carvel-bundle.tar
+}
+
+#relocate-tbs-images
+relocate-tbs-images() {
+
+    scripts/dektecho.sh status "relocating TBS $TBS_VERSION images to $IMGPKG_REGISTRY_HOSTNAME/$SYSTEM_REPO/tbs-full-deps"
+
+    imgpkg copy \
+        --bundle registry.tanzu.vmware.com/tanzu-application-platform/full-tbs-deps-package-repo:$TBS_VERSION \
+        --to-tar=.config/tbs-full-deps.tar
+    
+    imgpkg copy \
+        --tar .config/tbs-full-deps.tar \
+        --to-repo=$IMGPKG_REGISTRY_HOSTNAME/$SYSTEM_REPO/tbs-full-deps
+
+    rm -f .config/tbs-full-deps.tar
+
 }
 
 #relocate-gw-images
@@ -81,15 +99,6 @@ add-carvel () {
     pushd
 }
 
-#remove-carvel
-remove-carvel () {
-
-    pushd scripts/carvel
-
-    ./uninstall.sh --yes
-
-    pushd
-}
 
 #generate-config-yamls
 generate-config-yamls() {
@@ -139,53 +148,35 @@ generate-config-yamls() {
     cp config-templates/workloads/mood-sensors-openapi.yaml .config/workloads/mood-sensors-openapi.yaml
     cp config-templates/workloads/mood-sensors.yaml .config/workloads/mood-sensors.yaml
 }
-#install-nginx
-install-nginx ()
-{
-    scripts/dektecho.sh status "Install nginx ingress controller"
 
-    # Add the ingress-nginx repository
-    helm repo add ingress-nginx https://kubernetes.github.io/ingress-nginx
-
-    kubectl create ns nginx-system
-
-    # Use Helm to deploy an NGINX ingress controller
-    helm install dekt ingress-nginx/ingress-nginx \
-        --namespace nginx-system \
-        --set controller.replicaCount=2 \
-        --set controller.nodeSelector."beta\.kubernetes\.io/os"=linux \
-        --set defaultBackend.nodeSelector."beta\.kubernetes\.io/os"=linux \
-        --set controller.admissionWebhooks.patch.nodeSelector."beta\.kubernetes\.io/os"=linux
-}
 #################### main #######################
 
 #incorrect-usage
 incorrect-usage() {
-    scripts/dektecho.sh err "Incorrect usage."
-    exit
+    scripts/dektecho.sh err "Incorrect usage. Use one of the following: "
+    echo "  relocate-tanzu-images"
+    echo 
+    echo "  add-carvel-tools"
+    echo 
+    echo "  generate-config-yamls"
+    echo
 }
 
 case $1 in
 relocate-tanzu-images)
-    scripts/dektecho.sh prompt "Make sure docker deamon is running before proceeding"
     docker login $IMGPKG_REGISTRY_HOSTNAME -u $IMGPKG_REGISTRY_USERNAME -p $IMGPKG_REGISTRY_PASSWORD
     docker login registry.tanzu.vmware.com -u $TANZU_NETWORK_USER -p $TANZU_NETWORK_PASSWORD
     relocate-carvel-bundle
     relocate-tap-images
+    relocate-tbs-images
     relocate-tds-images
     relocate-scgw-images
     ;;
-add-carvel-tools )
+add-carvel-tools)
   	add-carvel
-    ;;
-remove-carvel-tools)
-    remove-carvel
     ;;
 generate-config-yamls)
     generate-config-yamls
-    ;;
-add-nginx)
-    install-nginx
     ;;
 *)
 	incorrect-usage

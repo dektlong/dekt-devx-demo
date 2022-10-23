@@ -4,22 +4,14 @@ profile: iterate
 
 shared:
   ingress_domain: #@ "{}.{}".format(data.values.dns.devSubDomain, data.values.dns.domain)
-
-buildservice:
-  kp_default_repository: #@ "{}/{}/{}".format(data.values.private_registry.host, data.values.repositories.system, data.values.repositories.buildservice)
-  kp_default_repository_username: #@ data.values.private_registry.username
-  kp_default_repository_password: #@ data.values.private_registry.password
-  tanzunet_username: #@ data.values.tanzu_network.username
-  tanzunet_password: #@ data.values.tanzu_network.password
-  descriptor_name: "full"
-  enable_automatic_dependency_updates: true
+  image_registry:
+    project_path: #@ "{}/{}".format(data.values.private_registry.host, data.values.repositories.system)
+    username: #@ data.values.private_registry.username
+    password: #@ data.values.private_registry.password
 
 supply_chain: basic
 
 ootb_supply_chain_basic: 
-  registry:
-    server: #@ data.values.private_registry.host
-    repository: #@ data.values.repositories.dev
   gitops:
     ssh_secret: gitops-credentials
     server_address: #@ data.values.gitops.server
@@ -27,9 +19,6 @@ ootb_supply_chain_basic:
     repository_name: #@ data.values.gitops.dev
 
 ootb_supply_chain_testing: 
-  registry:
-    server: #@ data.values.private_registry.host
-    repository: #@ data.values.repositories.dev
   gitops:
     ssh_secret: gitops-credentials
     server_address: #@ data.values.gitops.server

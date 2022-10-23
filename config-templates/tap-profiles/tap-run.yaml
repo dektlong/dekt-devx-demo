@@ -4,6 +4,7 @@ profile: run
 
 shared:
   ingress_domain: #@ "{}.{}".format(data.values.dns.prodSubDomain, data.values.dns.domain)
+  
 
 cnrs:
   domain_template: "{{.Name}}.{{.Domain}}"
