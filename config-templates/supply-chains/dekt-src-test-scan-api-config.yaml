@@ -101,7 +101,7 @@ spec:
     params:
     - default: scan-policy
       name: scanning_image_policy
-    - default: #@ data.values.tap.imageScanTemplate
+    - default: #@ data.values.tap.imageScanTemplateSrcTestScanSC
       name: scanning_image_template
     templateRef:
       kind: ClusterImageTemplate

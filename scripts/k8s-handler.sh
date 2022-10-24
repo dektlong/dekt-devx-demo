@@ -56,26 +56,31 @@ create-eks-cluster () {
 
     eksctl create cluster \
 		--name $cluster_name \
-		--region $AWS_REGION \
-		--without-nodegroup
+		 --managed \
+		 --region $AWS_REGION 
+		 --instance-types $AWS_INSTANCE_TYPE \
+		 --version 1.22 \
+		 --with-oidc \
+		 --nodes $number_of_nodes
 	
 	#docker to containerd bug workaround
-	containerdAMI=$(aws ssm get-parameter --name /aws/service/eks/optimized-ami/1.21/amazon-linux-2/recommended/image_id --region $AWS_REGION --query "Parameter.Value" --output text)
-	bootstrap_cmd="/etc/eks/bootstrap.sh $cluster_name --container-runtime containerd"
+	#	--without-nodegroup
+	#containerdAMI=$(aws ssm get-parameter --name /aws/service/eks/optimized-ami/1.21/amazon-linux-2/recommended/image_id --region $AWS_REGION --query "Parameter.Value" --output text)
+	#bootstrap_cmd="/etc/eks/bootstrap.sh $cluster_name --container-runtime containerd"
 
-cat <<EOF | eksctl create nodegroup -f -
-apiVersion: eksctl.io/v1alpha5
-kind: ClusterConfig
-metadata:
-  name: $cluster_name
-  region: $AWS_REGION
-managedNodeGroups:
-  - name: containerd-ng
-    ami: $containerdAMI
-    instanceType: $AWS_INSTANCE_TYPE
-    desiredCapacity: $number_of_nodes
-    overrideBootstrapCommand: $bootstrap_cmd
-EOF
+#cat <<EOF | eksctl create nodegroup -f -
+#apiVersion: eksctl.io/v1alpha5
+#kind: ClusterConfig
+#metadata:
+#  name: $cluster_name
+#  region: $AWS_REGION
+#managedNodeGroups:
+#  - name: containerd-ng
+#    ami: $containerdAMI
+#    instanceType: 
+#    desiredCapacity: $number_of_nodes
+#    overrideBootstrapCommand: $bootstrap_cmd
+#EOF
 
 }
 
