@@ -1,0 +1,6 @@
+scope=openid,profile,email
+client-id={your_client_id}
+client-secret={your_client_secret}
+issuer-uri={your-issuer-uri}
+
+$ kubectl create secret generic mood-gw-sso-creds --from-env-file=mood-gw-sso-creds.example
