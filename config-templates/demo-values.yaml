@@ -21,15 +21,19 @@ clusters:
     nodes: 3 
 
 clouds:
-  azureLocation: 
-  azureResourceGroup: 
-  azureNodeType: Standard_DS3_v2 
-  awsIAMuser:
-  awsRegion: 
-  awsInstanceType: t3.xlarge
-  gcpRegion: 
-  gcpProjectID: 
-  gcpMachineType: e2-standard-4
+  azure:
+    location: 
+    resourceGroup: 
+    nodeType: Standard_DS3_v2 
+  aws:
+    accountID: 
+    IAMuser:
+    region: 
+    instanceType: t3.xlarge
+  gcp:
+    region: 
+    projectID: 
+    machineType: e2-standard-4
 
 private_registry:
   host: 

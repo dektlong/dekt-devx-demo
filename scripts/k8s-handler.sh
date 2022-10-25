@@ -1,17 +1,18 @@
 #!/usr/bin/env bash
 
 #azure configs
-AZURE_LOCATION=$(yq .clouds.azureLocation .config/demo-values.yaml)
-AZURE_RESOURCE_GROUP=$(yq .clouds.azureResourceGroup .config/demo-values.yaml)
-AZURE_NODE_TYPE=$(yq .clouds.azureNodeType .config/demo-values.yaml)
+AZURE_LOCATION=$(yq .clouds.azure.location .config/demo-values.yaml)
+AZURE_RESOURCE_GROUP=$(yq .clouds.azure.resourceGroup .config/demo-values.yaml)
+AZURE_NODE_TYPE=$(yq .clouds.azure.nodeType .config/demo-values.yaml)
 #aws configs
-AWS_IAM_USER=$(yq .clouds.awsIAMuser .config/demo-values.yaml)
-AWS_REGION=$(yq .clouds.awsRegion .config/demo-values.yaml)
-AWS_INSTANCE_TYPE=$(yq .clouds.awsInstanceType .config/demo-values.yaml)
+AWS_ACCOUNT_ID=$(yq .clouds.aws.accountID .config/demo-values.yaml)
+AWS_IAM_USER=$(yq .clouds.aws.IAMuser .config/demo-values.yaml)
+AWS_REGION=$(yq .clouds.aws.region .config/demo-values.yaml)
+AWS_INSTANCE_TYPE=$(yq .clouds.aws.instanceType .config/demo-values.yaml)
 #gcp configs
-GCP_REGION=$(yq .clouds.gcpRegion .config/demo-values.yaml)
-GCP_PROJECT_ID=$(yq .clouds.gcpProjectID .config/demo-values.yaml)
-GCP_MACHINE_TYPE=$(yq .clouds.gcpMachineType .config/demo-values.yaml)
+GCP_REGION=$(yq .clouds.gcp.region .config/demo-values.yaml)
+GCP_PROJECT_ID=$(yq .clouds.gcp.projectID .config/demo-values.yaml)
+GCP_MACHINE_TYPE=$(yq .clouds.gcp.machineType .config/demo-values.yaml)
 
 
 #create-aks-cluster
@@ -54,33 +55,56 @@ create-eks-cluster () {
 
 	scripts/dektecho.sh info "Creating EKS cluster $cluster_name with $number_of_nodes nodes"
 
+	# NOTE!!do not upgrade to 1.23 unless you figure out how to manualy install the EBS CSI driver
     eksctl create cluster \
 		--name $cluster_name \
-		 --managed \
-		 --region $AWS_REGION 
-		 --instance-types $AWS_INSTANCE_TYPE \
-		 --version 1.22 \
-		 --with-oidc \
-		 --nodes $number_of_nodes
+		--region $AWS_REGION \
+		--version 1.22 \
+        --with-oidc \
+		--without-nodegroup
 	
 	#docker to containerd bug workaround
-	#	--without-nodegroup
-	#containerdAMI=$(aws ssm get-parameter --name /aws/service/eks/optimized-ami/1.21/amazon-linux-2/recommended/image_id --region $AWS_REGION --query "Parameter.Value" --output text)
-	#bootstrap_cmd="/etc/eks/bootstrap.sh $cluster_name --container-runtime containerd"
+	containerdAMI=$(aws ssm get-parameter --name /aws/service/eks/optimized-ami/1.21/amazon-linux-2/recommended/image_id --region $AWS_REGION --query "Parameter.Value" --output text)
+	bootstrap_cmd="/etc/eks/bootstrap.sh $cluster_name --container-runtime containerd"
 
-#cat <<EOF | eksctl create nodegroup -f -
-#apiVersion: eksctl.io/v1alpha5
-#kind: ClusterConfig
-#metadata:
-#  name: $cluster_name
-#  region: $AWS_REGION
-#managedNodeGroups:
-#  - name: containerd-ng
-#    ami: $containerdAMI
-#    instanceType: 
-#    desiredCapacity: $number_of_nodes
-#    overrideBootstrapCommand: $bootstrap_cmd
-#EOF
+cat <<EOF | eksctl create nodegroup -f -
+apiVersion: eksctl.io/v1alpha5
+kind: ClusterConfig
+metadata:
+  name: $cluster_name
+  region: $AWS_REGION
+
+managedNodeGroups:
+  - name: $cluster_name-containerd
+    ami: $containerdAMI
+    instanceType: $AWS_INSTANCE_TYPE
+    desiredCapacity: $number_of_nodes
+    volumeSize: 100
+    overrideBootstrapCommand: $bootstrap_cmd
+EOF
+
+	#add-ebs-csi-driver $cluster_name
+
+}
+
+#add-ebs-csi-driver
+add-ebs-csi-driver() {
+
+	cluster_name=$1
+
+	eksctl create iamserviceaccount \
+  		--name ebs-csi-controller-sa \
+  		--namespace kube-system \
+  		--cluster $cluster_name \
+  		--attach-policy-arn arn:aws:iam::aws:policy/service-role/AmazonEBSCSIDriverPolicy \
+  		--approve \
+  		--role-only \
+  		--role-name AmazonEKS_EBS_CSI_DriverRole
+	sa_role="arn:aws:iam::$AWS_ACCOUNT_ID"":role/AmazonEKS_EBS_CSI_DriverRole"
+	eksctl create addon --name aws-ebs-csi-driver \
+		--cluster $cluster_name \
+		--service-account-role-arn $sa_role \
+		--force
 
 }
 
@@ -207,6 +231,9 @@ set-context)
 		;;
 	esac
 	;;	
+add-csi)
+	add-ebs-csi-driver $1
+	;;
 *)
 	incorrect-usage
 	;;
