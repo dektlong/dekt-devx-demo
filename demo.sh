@@ -97,13 +97,13 @@
         yq '.spec.env[1].value = env(sensorsMeasureAPI)' .config/workloads/mood-portal.yaml -i
 
         scripts/dektecho.sh cmd "tanzu apps workload create $PORTAL_WORKLOAD -f .config/workloads/mood-portal.yaml -y -n $appNamespace"
-        tanzu apps workload create $PORTAL_WORKLOAD -f .config/workloads/mood-portal.yaml -y -n $appNamespace
+        tanzu apps workload create -f .config/workloads/mood-portal.yaml -y -n $appNamespace
 
         scripts/dektecho.sh cmd "tanzu apps workload create $SENSORS_WORKLOAD -f .config/workloads/mood-sensors.yaml -y -n $appNamespace"
-        tanzu apps workload create $SENSORS_WORKLOAD -f .config/workloads/mood-sensors.yaml -y -n $appNamespace
+        tanzu apps workload create -f .config/workloads/mood-sensors.yaml -y -n $appNamespace
 
         scripts/dektecho.sh cmd "tanzu apps workload create $ANALYZER_WORKLOAD -f .config/workloads/mood-analyzer.yaml -y -n $appNamespace"
-        tanzu apps workload create $ANALYZER_WORKLOAD -f .config/workloads/mood-analyzer.yaml -y -n $appNamespace
+        tanzu apps workload create -f .config/workloads/mood-analyzer.yaml -y -n $appNamespace
     }
 
     #single-dev-workload

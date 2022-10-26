@@ -40,10 +40,10 @@ private_registry:
   username: 
   password: 
 
-repositories:
-  system: #for tanzu images relocation, must be created manually
-  dev: #for dev supplychain artifacts
-  stage: #for stage supplychain artifacts
+repositories: #repos needs to be created manually in your private registry
+  system: 
+  dev: 
+  stage: 
 
 tanzu_network:
   username: 
