@@ -41,7 +41,7 @@ private_registry:
   password: 
 
 repositories:
-  system: #for tanzu images relocation
+  system: #for tanzu images relocation, must be created manually
   dev: #for dev supplychain artifacts
   stage: #for stage supplychain artifacts
 
