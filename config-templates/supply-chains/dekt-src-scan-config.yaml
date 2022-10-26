@@ -60,7 +60,7 @@ spec:
       value:
         ca_cert_data: ""
         server: #@ data.values.private_registry.host
-        repository: #@ data.values.repositories.dev
+        repository: #@ data.values.repositories.stage
     - default: default
       name: clusterBuilder
     - default: ./Dockerfile
@@ -147,7 +147,7 @@ spec:
       value:
         ca_cert_data: ""
         server: #@ data.values.private_registry.host
-        repository: #@ data.values.repositories.dev
+        repository: #@ data.values.repositories.stage
     templateRef:
       kind: ClusterTemplate
       name: config-writer-template
@@ -157,7 +157,7 @@ spec:
       value:
         ca_cert_data: ""
         server: #@ data.values.private_registry.host
-        repository: #@ data.values.repositories.dev
+        repository: #@ data.values.repositories.stage
     templateRef:
       kind: ClusterTemplate
       name: deliverable-template
