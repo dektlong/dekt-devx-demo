@@ -19,7 +19,7 @@
     DEV_SUB_DOMAIN=$(yq .dns.devSubDomain .config/demo-values.yaml)
     RUN_SUB_DOMAIN=$(yq .dns.prodSubDomain .config/demo-values.yaml)
     DOMAIN=$(yq .dns.domain .config/demo-values.yaml)
-    TAP_VERSION=$(yq .tap.version .config/demo-values.yaml)
+    TAP_VERSION=$(yq .tap.tapVersion .config/demo-values.yaml)
     DEV_NAMESPACE=$(yq .apps_namespaces.dev .config/demo-values.yaml)
     TEAM_NAMESPACE=$(yq .apps_namespaces.team .config/demo-values.yaml)
     STAGEPROD_NAMESPACE=$(yq .apps_namespaces.stageProd .config/demo-values.yaml)
