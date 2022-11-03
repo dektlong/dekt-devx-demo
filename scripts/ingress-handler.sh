@@ -43,46 +43,38 @@ rm output.yaml
 
 }
 
-update-dns-A-record()
+update-dns-record()
 {
 
-    record_name=$1
-    ingress_service_name=$2
-    ingress_namespace=$3
+    ingress_service_name=$1
+    ingress_namespace=$2
+    
 
-    ingressType=""
-
-    printf "Waiting for ingress controller to receive public address from loadbalancer ."
-
-    while [ "$ingressType" == "" ]
-    do
-        printf "."
-        ingressType=$(kubectl get svc $ingress_service_name --namespace $ingress_namespace -o=jsonpath='{.status.loadBalancer.ingress[0]}')
-        sleep 1
-    done
-
-    if [[ "$ingressType" == *"hostname"* ]]; then
-        ingress_host_name=$(kubectl get svc $ingress_service_name --namespace $ingress_namespace -o=jsonpath='{.status.loadBalancer.ingress[0].hostname}')
-        ingress_public_ip=$(dig +short $ingress_host_name| head -1)
-    elif [[ "$ingressType" == *"ip"* ]]; then
-        ingress_public_ip=$(kubectl get svc $ingress_service_name --namespace $ingress_namespace -o=jsonpath='{.status.loadBalancer.ingress[0].ip}')
-    fi
-        
-    scripts/dektecho.sh status "updating this A record in GoDaddy:  $record_name.$DOMAIN--> $ingress_public_ip"
-
-    # Update/Create DNS A Record
-
-    curl -s -X PUT \
-        -H "Authorization: sso-key $GODADDY_API_KEY:$GODADDY_API_SECRET" "https://api.godaddy.com/v1/domains/$DOMAIN/records/A/$record_name" \
+    if [ "$cloudProvider" == "eks" ]
+    then
+        record_data=$(kubectl get svc $ingress_service_name --namespace $ingress_namespace -o=jsonpath='{.status.loadBalancer.ingress[0].hostname}')
+        scripts/dektecho.sh status "updating this CNAME record in GoDaddy:  *.$subDomain.$DOMAIN --> $record_data"
+        curl -s -X PUT \
+        -H "Authorization: sso-key $GODADDY_API_KEY:$GODADDY_API_SECRET" "https://api.godaddy.com/v1/domains/$DOMAIN/records/CNAME/*.$subDomain" \
         -H "Content-Type: application/json" \
-        -d "[{\"data\": \"${ingress_public_ip}\"}]"
+        -d "[{\"data\": \"${record_data}\"}]"
+    else
+        record_data=$(kubectl get svc $ingress_service_name --namespace $ingress_namespace -o=jsonpath='{.status.loadBalancer.ingress[0].ip}')
+        scripts/dektecho.sh status "updating this A record in GoDaddy:  *.$subDomain.$DOMAIN --> $record_data"
+        curl -s -X PUT \
+        -H "Authorization: sso-key $GODADDY_API_KEY:$GODADDY_API_SECRET" "https://api.godaddy.com/v1/domains/$DOMAIN/records/A/*.$subDomain" \
+        -H "Content-Type: application/json" \
+        -d "[{\"data\": \"${record_data}\"}]"
+    fi
+    
 }
 
 subDomain=$2
+cloudProvider=$3
 
 case $1 in
 update-tap-dns)
-    update-dns-A-record "*.$subDomain" "envoy" "tanzu-system-ingress"
+    update-dns-record "envoy" "tanzu-system-ingress"
     ;;
 add-brownfield-apis)
     create-ingress-rule "api-portal-ingress" "contour" "api-portal.$subDomain.$DOMAIN" "api-portal-server" "8080" "api-portal"
@@ -90,7 +82,7 @@ add-brownfield-apis)
     ;;
 add-scgw-ingress)
     scripts/install-nginx.sh
-    update-dns-A-record "*.$subDomain" "dekt-ingress-nginx-controller" "nginx-system" 
+    update-dns-record "dekt-ingress-nginx-controller" "nginx-system" 
     create-ingress-rule "dekt4pets-dev" "nginx" "dekt4pets-dev.$subDomain.$DOMAIN"  "dekt4pets-gateway" "80" $DEMO_APPS_NS
     create-ingress-rule "dekt4pets" "nginx" "dekt4pets.$subDomain.$DOMAIN"  "dekt4pets-gateway" "80" $DEMO_APPS_NS
     ;;

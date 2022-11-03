@@ -68,7 +68,7 @@
         scripts/dektecho.sh status "Adding custom accelerators"
         kubectl apply -f accelerators -n accelerator-system
 
-        scripts/ingress-handler.sh update-tap-dns $SYSTEM_SUB_DOMAIN
+        scripts/ingress-handler.sh update-tap-dns $SYSTEM_SUB_DOMAIN $VIEW_CLUSTER_PROVIDER
 
         update-store-secrets
     }
@@ -95,7 +95,7 @@
 
         add-data-services "dev"
 
-        scripts/ingress-handler.sh update-tap-dns $DEV_SUB_DOMAIN
+        scripts/ingress-handler.sh update-tap-dns $DEV_SUB_DOMAIN $DEV_CLUSTER_PROVIDER
     }
 
     #install-stage-cluster
@@ -142,7 +142,7 @@
 
         add-data-services "prod"
 
-        scripts/ingress-handler.sh update-tap-dns $RUN_SUB_DOMAIN
+        scripts/ingress-handler.sh update-tap-dns $RUN_SUB_DOMAIN $RUN_CLUSTER_PROVIDER
 
     }
 
