@@ -134,11 +134,17 @@ This scripts automated the following:
 
 - innerloop teams (shared dev work) ```./demo.sh team```
 
-- follow workloads and supply chain progress via Backstage and/or
-  - ```./demo.sh track team [logs]```
-- show how the RabbitMQ 'reading' single instance resource created
-- show how the Tanzu Postgres 'inventory' resource provisioned 
-- show service claims generated for both data services and mapped to the workload
+- ```./demo.sh track team [logs]```
+  - follow workloads and supply chain progress 
+ 
+- ```./demo.sh services dev```
+  - show how the RabbitMQ 'reading' single instance resource created
+  - show service claim generated for data services and mapped to the workload
+
+- ```./demo.sh services teams```
+  - show how the RabbitMQ 'reading' single instance resource created
+  - show how the Tanzu Postgres 'inventory' resource provisioned 
+  - show service claims generated for both data services and mapped to the workload
 
 - access the live url at mood-portal.```dns.devSubdomain```.```dns.domain``` and show the call back to the mood-sensors APIs and the mood-analyzer outputs in ()
 
@@ -151,6 +157,7 @@ This scripts automated the following:
   - show the enhanced supply chain (dekt-src-to-api-with-scan with scanning) progress on multi-cluster Backstage
   - show Deliverables created in your gitops.stage repo, but NO runtime artifacts deployed
   - show how the RabbitMQ 'reading' multi instance resource created
+- ```./demo.sh services stage```
   - show how the RDS Postgres 'inventory' resource provisioned 
       - note: this will take a few minutes to provision in the RDS console
   - show service claims generated for both data services and mapped to the workload
@@ -159,6 +166,11 @@ This scripts automated the following:
   - show deliverables deployed to ```app-namespaces.stageProd``` without building source/scanning
   - show that the new Deliverable is deployed on the production domain - mood-portal.```dns.prodSubdomain```.```dns.domain```
 
+- ```./demo.sh services prod```
+  - show how the RDS Postgres 'inventory' resource provisioned 
+      - note: this will take a few minutes to provision in the RDS console
+  - show service claims generated for both data services and mapped to the workload
+ 
 - The Secured Platform Team
   - Showcase how Tanzu helps a secured platform team role along the **4Cs of cloud native security**  (https://kubernetes.io/docs/concepts/security/overview)
   - **Code** (TAP SupplyChain: source scan, build service, pod conventions)

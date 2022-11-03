@@ -436,6 +436,9 @@ services)
     stage)
         data-services $STAGE_CLUSTER $STAGEPROD_NAMESPACE rds
         ;;
+    prod)
+        data-services $PROD_CLUSTER $STAGEPROD_NAMESPACE rds
+        ;;
     *)
         incorrect-usage
         ;;
