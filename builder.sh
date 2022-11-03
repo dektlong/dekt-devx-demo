@@ -142,7 +142,7 @@
 
         add-data-services "prod"
 
-        scripts/ingress-handler.sh update-tap-dns $RUN_SUB_DOMAIN $RUN_CLUSTER_PROVIDER
+        scripts/ingress-handler.sh update-tap-dns $RUN_SUB_DOMAIN $PROD_CLUSTER_PROVIDER
 
     }
 
