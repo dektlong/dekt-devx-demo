@@ -71,8 +71,8 @@ This scripts automated the following:
   - ```dekt-src-config``` and ```dekt-src-test-api-config``` custom supply chains
   - Tekton pipeline
   - Metadata store config on provider cluster
-  - RabbitMQ operator and single instance
-  - Service claim to Azure PostgreSQL
+  - RabbitMQ operator and service toolkit integration
+  - Tanzu postgres operator and service toolkit integration
   - CNR dev ingress rule
 - Install demo components on Stage cluster
   - Carvel tools
@@ -82,13 +82,15 @@ This scripts automated the following:
   - Metadata store config on provider cluster
   - Tekton pipeline
   - ```dekt-src-scan-config``` and ```dekt-src-test-scan-api-config``` custom supply chains 
-  - RabbitMQ operator and HA instance
-  - Service claim to RDS PostgresSQL
+  - RabbitMQ operator and service toolkit integration
+  - Crossplane RDS connector and RDS Postgres XRDs
 - Install demo components on Prod cluster
   - Carvel tools
   - TAP based on ```.config/tap-profiles/tap-run.yaml``` values
   - Metadata store config on provider cluster
   - CNR run ingress rule
+  - RabbitMQ operator and service toolkit integration
+  - Crossplane RDS connector and RDS Postgres XRDs
 - Configure TAP-gui multi clusters access
 - Install demo components on Brownfield cluster
   - Spring Cloud Gateway operator
@@ -134,6 +136,9 @@ This scripts automated the following:
 
 - follow workloads and supply chain progress via Backstage and/or
   - ```./demo.sh track team [logs]```
+- show how the RabbitMQ 'reading' single instance resource created
+- show how the Tanzu Postgres 'inventory' resource provisioned 
+- show service claims generated for both data services and mapped to the workload
 
 - access the live url at mood-portal.```dns.devSubdomain```.```dns.domain``` and show the call back to the mood-sensors APIs and the mood-analyzer outputs in ()
 
@@ -145,6 +150,10 @@ This scripts automated the following:
   - show workload created pointing to ```release``` branch instead of ```dev``` branch
   - show the enhanced supply chain (dekt-src-to-api-with-scan with scanning) progress on multi-cluster Backstage
   - show Deliverables created in your gitops.stage repo, but NO runtime artifacts deployed
+  - show how the RabbitMQ 'reading' multi instance resource created
+  - show how the RDS Postgres 'inventory' resource provisioned 
+      - note: this will take a few minutes to provision in the RDS console
+  - show service claims generated for both data services and mapped to the workload
  
 - 'promote' to Run cluster (Deliverable)  ```./demo.sh prod```
   - show deliverables deployed to ```app-namespaces.stageProd``` without building source/scanning

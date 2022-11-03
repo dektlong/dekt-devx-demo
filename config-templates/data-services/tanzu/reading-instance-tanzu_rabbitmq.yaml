@@ -3,4 +3,4 @@ kind: RabbitmqCluster
 metadata:
   name: reading-queue
 spec:
-  replicas: UPDATED_IN_RUNTIME
+  replicas: 1

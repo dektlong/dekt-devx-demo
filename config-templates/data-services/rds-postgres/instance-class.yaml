@@ -1,0 +1,29 @@
+apiVersion: services.apps.tanzu.vmware.com/v1alpha1
+kind: ClusterInstanceClass
+metadata:
+  name: rds-postgres
+spec:
+  description:
+    short: AWS RDS Postgresql database instances
+  pool:
+    kind: Secret
+    labelSelector:
+      matchLabels:
+        services.apps.tanzu.vmware.com/class: rds-postgres
+    fieldSelector: type=connection.crossplane.io/v1alpha1
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: stk-secret-reader
+  labels:
+    servicebinding.io/controller: "true"
+rules:
+- apiGroups:
+  - ""
+  resources:
+  - secrets
+  verbs:
+  - get
+  - list
+  - watch

@@ -140,6 +140,7 @@ generate-config-yamls() {
 
     #data-services (WIP)
     cp -R config-templates/data-services .config
+    ytt -f config-templates/data-services/rds-postgres/crossplane-xrd-composition.yaml --data-values-file=.config/demo-values.yaml > .config/data-services/rds-postgres/crossplane-xrd-composition.yaml
 
     #workloads
     mkdir -p .config/workloads

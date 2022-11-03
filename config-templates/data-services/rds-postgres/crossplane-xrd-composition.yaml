@@ -1,4 +1,5 @@
-
+#@ load("@ytt:data", "data")
+---
 apiVersion: apiextensions.crossplane.io/v1
 kind: CompositeResourceDefinition
 metadata:
@@ -45,7 +46,7 @@ kind: Composition
 metadata:
  labels:
    provider: "aws"
-   vpc: "vpc-03756ba71e05cb2c9"
+   vpc: "default"
  name: xpostgresqlinstances.bindable.aws.database.example.org
 spec:
  compositeTypeRef:
@@ -59,13 +60,13 @@ spec:
      kind: RDSInstance
      spec:
        forProvider:
-         dbInstanceClass: db.t3.micro
+         dbInstanceClass: db.t2.micro
          engine: postgres
-         dbName: sensors-inventory-db
+         dbName: postgres
          engineVersion: "12"
-         masterUsername: dektlong
-         publiclyAccessible: false
-         region: us-west-1
+         masterUsername: masteruser
+         publiclyAccessible: true
+         region: #@ data.values.clouds.aws.region
          skipFinalSnapshotBeforeDeletion: true
        writeConnectionSecretToRef:
          namespace: crossplane-system
@@ -75,7 +76,7 @@ spec:
    - name: provider
      value: aws
    - name: database
-     value: sensors-inventory-db
+     value: postgres
    - fromConnectionSecretKey: username
    - fromConnectionSecretKey: password
    - name: host
@@ -94,22 +95,3 @@ spec:
    - fromFieldPath: spec.parameters.storageGB
      toFieldPath: spec.forProvider.allocatedStorage
      type: FromCompositeFieldPath
----
-apiVersion: pkg.crossplane.io/v1
-kind: Provider
-metadata:
-  name: provider-aws
-spec:
-  package: xpkg.upbound.io/crossplane/provider-aws:v0.24.1
----
-apiVersion: aws.crossplane.io/v1beta1
-kind: ProviderConfig
-metadata:
-  name: default
-spec:
-  credentials:
-    source: Secret
-    secretRef:
-      namespace: crossplane-system
-      name: aws-provider-creds
-      key: creds

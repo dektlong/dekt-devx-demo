@@ -104,6 +104,7 @@
 
         scripts/dektecho.sh cmd "tanzu apps workload create $ANALYZER_WORKLOAD -f .config/workloads/mood-analyzer.yaml -y -n $appNamespace"
         tanzu apps workload create -f .config/workloads/mood-analyzer.yaml -y -n $appNamespace
+
     }
 
     #single-dev-workload
@@ -146,6 +147,65 @@
 
     }
 
+    #provision-rabbitmq
+    provision-rabbitmq() {
+
+        appNamespace=$1
+        export numReplicas=$2
+
+        scripts/dektecho.sh status "Provision reading RabbitMQ instance(s) and service claim in $appNamespace namespace"
+       
+        #provision RabbitMQ 'reading' instance 
+        yq '.spec.replicas = env(numReplicas)' .config/data-services/tanzu/reading-instance-tanzu_rabbitmq.yaml -i
+        kubectl apply -f .config/data-services/tanzu/reading-instance-tanzu_rabbitmq.yaml -n $appNamespace
+
+        #create a service claim
+        tanzu service claim create rabbitmq-claim -n $appNamespace \
+            --resource-name reading-queue \
+            --resource-kind RabbitmqCluster \
+            --resource-api-version rabbitmq.com/v1beta1
+    }
+
+    #provision-tanzu-postgres
+    provision-tanzu-postgres() {
+
+        appNamespace=$1
+
+        scripts/dektecho.sh status "Provision inventory-db Tanzu Postgres instance and service claim in $appNamespace namespace"
+       
+        kubectl apply -f .config/data-services/tanzu/inventory-instance-tanzu_postgres.yaml -n $appNamespace
+
+        #create inventory-db resource claim
+        tanzu service claim create postgres-claim \
+            --resource-name inventory-db \
+            --resource-kind Postgres \
+            --resource-api-version sql.tanzu.vmware.com/v1 \
+            --resource-namespace $appNamespace \
+            --namespace $appNamespace
+    }
+
+    #provision-rds-postgres
+    provision-rds-postgres() {
+
+        appNamespace=$1
+
+        scripts/dektecho.sh status "Provision inventory-db RDS Postgres instance and service claim in $appNamespace namespace"
+
+        kubectl apply -f .config/data-services/rds-postgres/inventory-db-rds-instance.yaml -n $appNamespace
+
+        tanzu service claim create postgres-claim \
+            --resource-name inventory-db \
+            --resource-kind Secret \
+            --resource-api-version v1 \
+            --resource-namespace $appNamespace \
+            --namespace $appNamespace
+
+
+
+
+
+    }
+
     #supplychains
     supplychains () {
 
@@ -180,6 +240,27 @@
         fi
     }
 
+    #data-services
+    data-services() {
+
+        tapCluster=$1
+        appsNamespace=$2
+        dbType=$3
+
+        kubectl config use-context $tapCluster
+
+        scripts/dektecho.sh cmd "tanzu service claim list -o wide -n $appsNamespace"
+        tanzu service claim list -o wide -n $appsNamespace
+
+        scripts/dektecho.sh cmd "kubectl get pods -n $appsNamespace | grep -E '(reading|inventory)'"
+        kubectl get pods -n $appsNamespace | grep -E '(reading|inventory)'
+
+        if [ "$dbType" == "rds" ]; then
+            scripts/dektecho.sh cmd "kubectl get postgresqlinstance -n $appsNamespace"
+            kubectl get postgresqlinstance -n $appsNamespace
+        fi
+
+    }
     #brownfield
     brownfield () {
 
@@ -209,11 +290,19 @@
         tanzu apps workload delete $ANALYZER_WORKLOAD -n $STAGEPROD_NAMESPACE -y
         tanzu apps workload delete $PORTAL_WORKLOAD -n $STAGEPROD_NAMESPACE -y
         tanzu apps workload delete $SENSORS_WORKLOAD -n $STAGEPROD_NAMESPACE -y
+        tanzu service claims delete postgres-claim -y -n $STAGEPROD_NAMESPACE
+        tanzu service claims delete rabbitmq-claim -y -n $STAGEPROD_NAMESPACE
+        kubectl delete -f .config/data-services/rds-postgres/inventory-db-rds-instance.yaml -n $STAGEPROD_NAMESPACE
+        kubectl delete -f .config/data-services/tanzu/reading-instance-tanzu_rabbitmq.yaml -n $STAGEPROD_NAMESPACE
 
         kubectl config use-context $PROD_CLUSTER
         kubectl delete -f ../$GITOPS_STAGE_REPO/config/dekt-apps/$ANALYZER_WORKLOAD -n $STAGEPROD_NAMESPACE
         kubectl delete -f ../$GITOPS_STAGE_REPO/config/dekt-apps/$PORTAL_WORKLOAD -n $STAGEPROD_NAMESPACE
         kubectl delete -f ../$GITOPS_STAGE_REPO/config/dekt-apps/$SENSORS_WORKLOAD -n $STAGEPROD_NAMESPACE
+        tanzu service claims delete postgres-claim -y -n $STAGEPROD_NAMESPACE
+        tanzu service claims delete rabbitmq-claim -y -n $STAGEPROD_NAMESPACE
+        kubectl delete -f .config/data-services/rds-postgres/inventory-db-rds-instance.yaml -n $STAGEPROD_NAMESPACE
+        kubectl delete -f .config/data-services/tanzu/reading-instance-tanzu_rabbitmq.yaml -n $STAGEPROD_NAMESPACE
        
         
         kubectl config use-context $DEV_CLUSTER
@@ -221,6 +310,12 @@
         tanzu apps workload delete $PORTAL_WORKLOAD -n $TEAM_NAMESPACE -y
         tanzu apps workload delete $SENSORS_WORKLOAD -n $TEAM_NAMESPACE -y
         tanzu apps workload delete $DEV_WORKLOAD -n $DEV_NAMESPACE -y
+        tanzu service claims delete rabbitmq-claim -y -n $DEV_NAMESPACE
+        tanzu service claims delete postgres-claim -y -n $TEAM_NAMESPACE
+        tanzu service claims delete rabbitmq-claim -y -n $TEAM_NAMESPACE
+        kubectl delete -f .config/data-services/tanzu/reading-instance-tanzu_rabbitmq.yaml -n $DEV_NAMESPACE
+        kubectl delete -f .config/data-services/tanzu/inventory-instance-tanzu_postgres.yaml -n $TEAM_NAMESPACE
+        kubectl delete -f .config/data-services/tanzu/reading-instance-tanzu_rabbitmq.yaml -n $TEAM_NAMESPACE
 
         toggle-dog sad
 
@@ -284,7 +379,9 @@
         echo
         echo "  supplychains"
         echo
-        echo "  track dev/stage [logs]"
+        echo "  track team/stage [logs]"
+        echo
+        echo "  services dev/team/stage"
         echo
         echo "  brownfield"
         echo
@@ -302,14 +399,21 @@ info)
     ;;
 dev)
     single-dev-workload
+    provision-rabbitmq $DEV_NAMESPACE 1
     ;;
 team)
     create-workloads $DEV_CLUSTER $TEAM_NAMESPACE $DEV_BRANCH $DEV_SUB_DOMAIN
+    provision-rabbitmq $TEAM_NAMESPACE 1
+    provision-tanzu-postgres $TEAM_NAMESPACE
     ;;
 stage)
     create-workloads $STAGE_CLUSTER $STAGEPROD_NAMESPACE $STAGE_BRANCH $RUN_SUB_DOMAIN
+    provision-rabbitmq $STAGEPROD_NAMESPACE 2
+    provision-rds-postgres $STAGEPROD_NAMESPACE
     ;;
 prod)
+    provision-rabbitmq $STAGEPROD_NAMESPACE 2
+    provision-rds-postgres $STAGEPROD_NAMESPACE
     prod-roleout
     ;;
 behappy)
@@ -320,6 +424,22 @@ besad)
     ;;   
 supplychains)
     supplychains
+    ;;
+services)
+    case $2 in
+    dev)
+        data-services $DEV_CLUSTER $DEV_NAMESPACE tanzu
+        ;;
+    team)
+        data-services $DEV_CLUSTER $TEAM_NAMESPACE tanzu
+        ;;
+    stage)
+        data-services $STAGE_CLUSTER $STAGEPROD_NAMESPACE rds
+        ;;
+    *)
+        incorrect-usage
+        ;;
+    esac
     ;;
 track)
     case $2 in
@@ -336,12 +456,6 @@ track)
     ;;
 brownfield)
     brownfield
-    ;;
-behappy)
-    toggle-dog happy
-    ;;
-besad)
-    toggle-dog sad
     ;;
 reset)
     reset

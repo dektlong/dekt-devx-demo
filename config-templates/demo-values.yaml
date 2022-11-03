@@ -88,7 +88,7 @@ dns: #e.g. dev.dekt.io / run.dekt.io
   godaddyApiKey: 
   godaddyApiSecret: 
 
-data_services: #WIP
+data_services:
   tdsVersion:
   tanzuPostgresVersion:
   rdsProfile: #pre-configured named profile for an AWS account that has permissions to manage RDS databases

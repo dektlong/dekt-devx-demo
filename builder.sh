@@ -45,6 +45,7 @@
     RDS_PROFILE=$(yq .data-services.rdsProfile .config/demo-values.yaml)
     TDS_VERSION=$(yq .data_services.tdsVersion .config/demo-values.yaml)       
     TANZU_POSTGRES_VERSION=$(yq .data_services.tanzuPostgresVersion .config/demo-values.yaml)
+    AWS_REGION=$(yq .clouds.aws.region .config/demo-values.yaml)
     #apis
     GW_INSTALL_DIR=$(yq .brownfield_apis.scgwInstallDirectory .config/demo-values.yaml)
     #tmc
@@ -200,29 +201,29 @@
 
         case $mode in
         dev)
-            add-tanzu-postgres $TEAM_NAMESPACE
-            add-tanzu-rabbitmq 1 $TEAM_NAMESPACE
+            install-tanzu-postgres $TEAM_NAMESPACE
+            install-tanzu-rabbitmq $TEAM_NAMESPACE
+            install-tanzu-rabbitmq $DEV_NAMESPACE
             ;;
         stage)
             #temp until service binding will be included in the build and run profiles
             tanzu package install services-toolkit -n tap-install -p services-toolkit.tanzu.vmware.com -v $SERVICES_TOOLKIT_VERSION
-            add-rds-postgres $STAGEPROD_NAMESPACE
-            add-tanzu-rabbitmq 2 $STAGEPROD_NAMESPACE
+            install-rds-postgres $STAGEPROD_NAMESPACE
+            install-tanzu-rabbitmq $STAGEPROD_NAMESPACE
             ;;
         prod)
-            add-rds-postgres $STAGEPROD_NAMESPACE
-            add-tanzu-rabbitmq 2 $STAGEPROD_NAMESPACE
+            install-rds-postgres $STAGEPROD_NAMESPACE
+            install-tanzu-rabbitmq $STAGEPROD_NAMESPACE
             ;;
         esac
 
     }
-    #add-tanzu-rabbitmq
-    add-tanzu-rabbitmq() {
+    #install-tanzu-rabbitmq
+    install-tanzu-rabbitmq() {
 
-        export numReplicas=$1
-        appNamespace=$2
+        appNamespace=$1
 
-        scripts/dektecho.sh status "Adding Tanzu RabbitMQ with $numReplicas replicas in namespace $appNamespace"
+        scripts/dektecho.sh status "Install Tanzu RabbitMQ operator with tanzy services toolkit support"
 
         #install RabbitMQ operator
         kubectl apply -f "https://github.com/rabbitmq/cluster-operator/releases/latest/download/cluster-operator.yml"
@@ -230,19 +231,10 @@
         #configure taznu services toolkit for RabbitMQ
         kubectl apply -f .config/data-services/tanzu/rabbitmq-cluster-config.yaml -n $appNamespace
         
-        #provision the RabbitMQ 'reading' instance(s)
-        yq '.spec.replicas = env(numReplicas)' .config/data-services/tanzu/reading-instance-tanzu_rabbitmq.yaml -i
-        kubectl apply -f .config/data-services/tanzu/reading-instance-tanzu_rabbitmq.yaml -n $appNamespace
-
-        #create a service claim
-        tanzu service claim create rabbitmq-claim -n $appNamespace \
-            --resource-name reading-queue \
-            --resource-kind RabbitmqCluster \
-            --resource-api-version rabbitmq.com/v1beta1
     }
 
-    #add tanzu postgres operator (on cluster)
-    add-tanzu-postgres() {
+    #install tanzu postgres operator (on cluster)
+    install-tanzu-postgres() {
 
         appNamespace=$1
 
@@ -255,54 +247,37 @@
 
         kubectl apply -f .config/data-services/tanzu/cluster-intance-class-postgres.yaml
         kubectl apply -f .config/data-services/tanzu/resource-claims-postgres.yaml
-        
-
-        #provision inventory-db instance 
-        kubectl apply -f .config/data-services/tanzu/inventory-instance-tanzu_postgres.yaml -n $appNamespace
-
-        #create inventory-db resource claim
-        tanzu service claim create postgres-claim \
-            --resource-name inventory-db \
-            --resource-kind Postgres \
-            --resource-api-version sql.tanzu.vmware.com/v1 \
-            --resource-namespace $appNamespace \
-            --namespace $appNamespace
+                
     }
 
-    #add-rds-postgres
-    add-rds-postgres() { #WIP
+    #install-rds-postgres
+    install-rds-postgres() {
 
         appNamespace=$1
 
-        scripts/dektecho.sh status "Install Crossplane connector to RDS Postgres in $appNamespace namespace"
-        #install crossplane 
-        #kubectl create namespace crossplane-system
-        #helm repo add crossplane-stable https://charts.crossplane.io/stable
-        #helm repo update
-        #helm install crossplane --namespace crossplane-system crossplane-stable/crossplane \
-        #    --set 'args={--enable-external-secret-stores}'
-        
-        #configure crossplan access to your RDS account
-        #AWS_PROFILE=$RDS_PROFILE && echo -e "[$RDS_PROFILE]\naws_access_key_id = $(aws configure get aws_access_key_id --profile $AWS_PROFILE)\naws_secret_access_key = $(aws configure get aws_secret_access_key --profile $AWS_PROFILE)\naws_session_token = $(aws configure get aws_session_token --profile $AWS_PROFILE)" > creds.conf
-        #kubectl create secret generic aws-provider-creds -n crossplane-system --from-file=creds=./creds.conf
-        #rm -f creds.conf
-        
-        #configure taznu services toolkit for RDS
-        #kubectl apply -f .config/data-services/postgres-cluster-config.yaml
-        
-        #provision the RDS postgres-inventory-db instance using crossplane
-        #kubectl apply -f .config/data-services/inventory-db-prod.yaml -n $TEAM_NAMESPACE
+        scripts/dektecho.sh status "Install Crossplane connector to RDS Postgres"
+       
+        kubectl create namespace crossplane-system
 
-        #scripts/dektecho.sh status "Waiting for RDS PostgreSQL instance named inventory-db to be create"
-        #kubectl wait --for=condition=Ready=true postgresqlinstances.bindable.database.example.org inventory-db
+        helm repo add crossplane-stable https://charts.crossplane.io/stable
 
-        kubectl apply -f .config/data-services/aws/inventory-instance-rds_postgresql.yaml -n $appNamespace
+        helm install crossplane --namespace crossplane-system crossplane-stable/crossplane \
+        --set 'args={--enable-external-secret-stores}'
+        
+        kubectl apply -f .config/data-services/rds-postgres/crossplane-aws-provider.yaml
 
-        #create a service claim for inventory-db
-        tanzu service claim create postgres-claim -n $appNamespace \
-            --resource-name inventory-db \
-            --resource-kind Secret \
-            --resource-api-version v1 
+        AWS_PROFILE=default && echo -e "[default]\naws_access_key_id = $(aws configure get aws_access_key_id --profile $AWS_PROFILE)\naws_secret_access_key = $(aws configure get aws_secret_access_key --profile $AWS_PROFILE)\naws_session_token = $(aws configure get aws_session_token --profile $AWS_PROFILE)" > .config/creds.conf
+
+        kubectl create secret generic aws-provider-creds -n crossplane-system --from-file=creds=.config/creds.conf
+
+        kubectl apply -f .config/data-services/rds-postgres/rds-secret.yaml
+
+        kubectl apply -f .config/data-services/rds-postgres/crossplane-xrd-composition.yaml
+
+        kubectl apply -f .config/data-services/rds-postgres/instance-class.yaml
+
+         rm -f .config/creds.conf
+
     }
     
     #update-store-secrets
