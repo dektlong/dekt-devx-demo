@@ -200,10 +200,6 @@
             --resource-namespace $appNamespace \
             --namespace $appNamespace
 
-
-
-
-
     }
 
     #supplychains
