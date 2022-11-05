@@ -159,7 +159,7 @@ incorrect-usage() {
     echo 
     echo "  add-carvel-tools"
     echo 
-    echo "  generate-config-yamls"
+    echo "  generate-configs"
     echo
 }
 
@@ -176,7 +176,7 @@ relocate-tanzu-images)
 add-carvel-tools)
   	add-carvel
     ;;
-generate-config-yamls)
+generate-configs)
     generate-config-yamls
     ;;
 *)

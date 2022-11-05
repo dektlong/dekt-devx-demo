@@ -29,7 +29,7 @@ This repo contains artifacts to run a demo illustrating the vision and capabilit
 
 - Generate demo config yamls
 ```
-scripts/tanzu-handler.sh generate-config-yamls
+scripts/tanzu-handler.sh generate-configs
 ```
 - verify all yamls created successfully in the ```.config``` folder
 
