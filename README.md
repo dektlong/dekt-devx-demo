@@ -127,40 +127,40 @@ This scripts automated the following:
 
 - highlight the simplicity of the ```workload.yaml```
 
-- Option1: deploy single dev workload via script
-```
-./demo.sh dev
-```
-
-- Option2: deploy vial VScode (require Tanzu VScode plugin)
-
-- The single dev deploy will run on ```apps_namespaces.dev``` namespaces in the ```clusters.dev.name```
-  
-- show cluster topology 
+- show demo clusters TAP packages and profiles
 ```
 ./demo.sh info
 ```
 
+- Deploy single dev workload via script
+```
+./demo.sh dev
+```
+
+  - Option2: deploy vial VScode (require Tanzu VScode plugin)
+
+  - The single dev deploy will run on ```apps_namespaces.dev``` namespaces in the ```clusters.dev.name```
+
+  - Track provisioned data service
+  ```
+  ./demo.sh services dev
+  ```
+  - show how the RabbitMQ 'reading' single instance resource created
+  - show service claim generated for data services and mapped to the workload
+  
 - Promote to innerloop teams (shared dev work) 
 ```
 ./demo.sh team
 ```
 
-- Track the progress of the 3 supply chains in the TAP gui or comman lind
-```
-./demo.sh track team [logs]
-```
-
-- Track provisioned data services
-```
-./demo.sh services dev
-```
-  - show how the RabbitMQ 'reading' single instance resource created
-  - show service claim generated for data services and mapped to the workload
-
-```
-./demo.sh services teams
-```
+  - Track the progress of the 3 supply chains in the TAP gui or comman lind
+  ```
+  ./demo.sh track team [logs]
+  ```
+  - Track provisioned data services
+  ```
+  ./demo.sh services teams
+  ```
   - show how the RabbitMQ 'reading' single instance resource created
   - show how the Tanzu Postgres 'inventory' resource provisioned 
   - show service claims generated for both data services and mapped to the workload
