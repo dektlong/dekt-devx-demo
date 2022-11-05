@@ -127,21 +127,40 @@ This scripts automated the following:
 
 - highlight the simplicity of the ```workload.yaml```
 
-- Show the single dev experience from VSCode via tilt 
-  - The single dev deploy will run on ```apps_namespaces.dev``` namespaces in the ```clusters.dev.name```
+- Option1: deploy single dev workload via script
+```
+./demo.sh dev
+```
+
+- Option2: deploy vial VScode (require Tanzu VScode plugin)
+
+- The single dev deploy will run on ```apps_namespaces.dev``` namespaces in the ```clusters.dev.name```
   
-- show cluster topology ```./demo.sh info```
+- show cluster topology 
+```
+./demo.sh info
+```
 
-- innerloop teams (shared dev work) ```./demo.sh team```
+- Promote to innerloop teams (shared dev work) 
+```
+./demo.sh team
+```
 
-- ```./demo.sh track team [logs]```
-  - follow workloads and supply chain progress 
- 
-- ```./demo.sh services dev```
+- Track the progress of the 3 supply chains in the TAP gui or comman lind
+```
+./demo.sh track team [logs]
+```
+
+- Track provisioned data services
+```
+./demo.sh services dev
+```
   - show how the RabbitMQ 'reading' single instance resource created
   - show service claim generated for data services and mapped to the workload
 
-- ```./demo.sh services teams```
+```
+./demo.sh services teams
+```
   - show how the RabbitMQ 'reading' single instance resource created
   - show how the Tanzu Postgres 'inventory' resource provisioned 
   - show service claims generated for both data services and mapped to the workload
@@ -152,24 +171,38 @@ This scripts automated the following:
 - click on ```mood-sensors``` to show application live view
 
 ### Outer loop
-- 'promote' to Staging cluster ```./demo.sh stage```
+- 'promote' to Staging phase
+```
+./demo.sh stage
+```
   - show workload created pointing to ```release``` branch instead of ```dev``` branch
   - show the enhanced supply chain (dekt-src-to-api-with-scan with scanning) progress on multi-cluster Backstage
   - show Deliverables created in your gitops.stage repo, but NO runtime artifacts deployed
-  - show how the RabbitMQ 'reading' multi instance resource created
-- ```./demo.sh services stage```
+  - Track provisioned data services
+
+    ```
+    ./demo.sh services stage
+    ```
   - show how the RDS Postgres 'inventory' resource provisioned 
       - note: this will take a few minutes to provision in the RDS console
   - show service claims generated for both data services and mapped to the workload
  
 - 'promote' to Run cluster (Deliverable)  ```./demo.sh prod```
+```
+./demo.sh prod
+```
   - show deliverables deployed to ```app-namespaces.stageProd``` without building source/scanning
   - show that the new Deliverable is deployed on the production domain - mood-portal.```dns.prodSubdomain```.```dns.domain```
-
-- ```./demo.sh services prod```
   - show how the RDS Postgres 'inventory' resource provisioned 
       - note: this will take a few minutes to provision in the RDS console
-  - show service claims generated for both data services and mapped to the workload
+ - Track provisioned data services
+
+    ```
+    ./demo.sh services stage
+    ```
+  - show how the RDS Postgres 'inventory' resource provisioned 
+      - note: this will take a few minutes to provision in the RDS console
+
  
 - The Secured Platform Team
   - Showcase how Tanzu helps a secured platform team role along the **4Cs of cloud native security**  (https://kubernetes.io/docs/concepts/security/overview)
