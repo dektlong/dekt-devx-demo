@@ -198,7 +198,7 @@ This scripts automated the following:
  - Track provisioned data services
 
     ```
-    ./demo.sh services stage
+    ./demo.sh services prod
     ```
   - show how the RDS Postgres 'inventory' resource provisioned 
       - note: this will take a few minutes to provision in the RDS console
