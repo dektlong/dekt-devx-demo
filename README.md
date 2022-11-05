@@ -142,9 +142,9 @@ This scripts automated the following:
   - The single dev deploy will run on ```apps_namespaces.dev``` namespaces in the ```clusters.dev.name```
 
   - Track provisioned data service
-  ```
-  ./demo.sh services dev
-  ```
+    ```
+    ./demo.sh services dev
+    ```
   - show how the RabbitMQ 'reading' single instance resource created
   - show service claim generated for data services and mapped to the workload
   
@@ -154,13 +154,13 @@ This scripts automated the following:
 ```
 
   - Track the progress of the 3 supply chains in the TAP gui or comman lind
-  ```
-  ./demo.sh track team [logs]
-  ```
+    ```
+    ./demo.sh track team [logs]
+    ```
   - Track provisioned data services
-  ```
-  ./demo.sh services teams
-  ```
+    ```
+    ./demo.sh services teams
+    ```
   - show how the RabbitMQ 'reading' single instance resource created
   - show how the Tanzu Postgres 'inventory' resource provisioned 
   - show service claims generated for both data services and mapped to the workload
