@@ -58,7 +58,7 @@ scripts/tanzu-handler.sh relocate-tanzu-images
 ```
 This scripts automated the following:
 
-- Set k8s contexts and verify clusters created succefully
+- Set k8s contexts and verify clusters created successfully
 - Install demo components on View cluster
   - Carvel tools
   - TAP based on ```.config/tap-profiles/tap-view.yaml``` values
@@ -153,7 +153,7 @@ This scripts automated the following:
 ./demo.sh team
 ```
 
-  - Track the progress of the 3 supply chains in the TAP gui or comman lind
+  - Track the progress of the 3 supply chains in the TAP gui or CLI
     ```
     ./demo.sh track team [logs]
     ```
