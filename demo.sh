@@ -128,17 +128,21 @@
 
         scripts/dektecho.sh info "Review Deliverables and ServiceBindings in gitops repo"
 
-        scripts/dektecho.sh prompt  "Are you sure you want deploy to production?" && [ $? -eq 0 ] || exit
-        
         scripts/dektecho.sh status "Pulling stage Deliverables and ServiceBindings from $GITOPS_STAGE_REPO repo"
 
         pushd ../$GITOPS_STAGE_REPO
         git pull 
         pushd
 
-        scripts/dektecho.sh status "Applying Deliverables and ServiceBindings to $PROD_CLUSTER cluster..."
-
+        scripts/dektecho.sh prompt  "Are you sure you want deploy to production?" && [ $? -eq 0 ] || exit
+        
         kubectl config use-context $PROD_CLUSTER
+
+        provision-rabbitmq $STAGEPROD_NAMESPACE 2
+        provision-rds-postgres $STAGEPROD_NAMESPACE
+
+        scripts/dektecho.sh status "Applying Deliverables and ServiceBindings to $PROD_CLUSTER cluster..."
+        
         kubectl apply -f ../$GITOPS_STAGE_REPO/config/$STAGEPROD_NAMESPACE/$ANALYZER_WORKLOAD -n $STAGEPROD_NAMESPACE
         kubectl apply -f ../$GITOPS_STAGE_REPO/config/$STAGEPROD_NAMESPACE/$PORTAL_WORKLOAD -n $STAGEPROD_NAMESPACE
         kubectl apply -f ../$GITOPS_STAGE_REPO/config/$STAGEPROD_NAMESPACE/$SENSORS_WORKLOAD -n $STAGEPROD_NAMESPACE
@@ -408,8 +412,6 @@ stage)
     provision-rds-postgres $STAGEPROD_NAMESPACE
     ;;
 prod)
-    provision-rabbitmq $STAGEPROD_NAMESPACE 2
-    provision-rds-postgres $STAGEPROD_NAMESPACE
     prod-roleout
     ;;
 behappy)
