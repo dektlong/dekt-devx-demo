@@ -487,7 +487,9 @@
         echo 
         echo "  delete-all"
         echo
-        echo "  relocate-tap-images"
+        echo "  generate-configs"
+        echo
+        echo "  export-packages"
         echo
         echo "  runme [ function-name ]"
         echo
@@ -531,6 +533,12 @@ delete-all)
     & scripts/k8s-handler.sh delete $STAGE_CLUSTER_PROVIDER $STAGE_CLUSTER_NAME \
     & scripts/k8s-handler.sh delete $PROD_CLUSTER_PROVIDER $PROD_CLUSTER_NAME \
     & scripts/k8s-handler.sh delete $BROWNFIELD_CLUSTER_PROVIDER $BROWNFIELD_CLUSTER_NAME
+    ;;
+generate-configs)
+    scripts/tanzu-handler.sh generate-configs
+    ;;
+export-packages)
+    scripts/tanzu-handler.sh relocate-tanzu-images
     ;;
 runme)
     $2 $3 $4

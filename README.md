@@ -29,13 +29,14 @@ This repo contains artifacts to run a demo illustrating the vision and capabilit
 
 - Generate demo config yamls
 ```
-scripts/tanzu-handler.sh generate-configs
+./builder.sh generate-configs
 ```
 - verify all yamls created successfully in the ```.config``` folder
 
-- Relocate Tanzu images to your private registry 
+- 
+export Tanzu packages to your private registry 
 ```
-scripts/tanzu-handler.sh relocate-tanzu-images
+./builder.sh export-packages
 ```
 - Packages relocated: 
   - carvel
