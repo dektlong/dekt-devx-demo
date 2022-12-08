@@ -26,3 +26,21 @@ spec:
               cd `mktemp -d`
               wget -qO- $(params.source-url) | tar xvz -m
               mvn test
+
+    # JENKINS INTEGRATION
+    #! Required: Include the built-in task that triggers the given job in Jenkins
+    #- name: jenkins-task
+    #  taskRef:
+    #    name: jenkins-task
+    #    kind: ClusterTask
+    #  params:
+    #    - name: source-url
+    #      value: $(params.source-url)
+    #    - name: source-revision
+    #      value: $(params.source-revision)
+    #    - name: secret-name
+    #      value: $(params.secret-name)
+    #    - name: job-name
+    #      value: $(params.job-name)
+    #    - name: job-params
+    #      value: $(params.job-params)
