@@ -30,9 +30,7 @@
     TAP_VERSION=$(yq .tap.tapVersion .config/demo-values.yaml)
     TBS_VERSION=$(yq .tap.tbsVersion .config/demo-values.yaml)
     CARVEL_BUNDLE=$(yq .tap.carvel_bundle .config/demo-values.yaml)
-    SNYK_VERSION=$(yq .snyk.version .config/demo-values.yaml)
-    CARBONBLACK_VERSION=$(yq .carbonblack.version .config/demo-values.yaml)
-    SERVICES_TOOLKIT_VERSION=$(yq .tap.serviceToolkitVersion .config/demo-values.yaml)
+
     #apps-namespaces
     DEV_NAMESPACE=$(yq .apps_namespaces.dev .config/demo-values.yaml)
     TEAM_NAMESPACE=$(yq .apps_namespaces.team .config/demo-values.yaml)
@@ -207,7 +205,11 @@
             ;;
         stage)
             #temp until service binding will be included in the build and run profiles
-            tanzu package install services-toolkit -n tap-install -p services-toolkit.tanzu.vmware.com -v $SERVICES_TOOLKIT_VERSION
+            #obtain available version
+            services_toolkit_package=$(tanzu package available list -n tap-install | grep 'services-toolkit')
+            services_toolkit_version=$(echo ${services_toolkit_package: -20} | sed 's/[[:space:]]//g')
+            tanzu package install services-toolkit -n tap-install -p services-toolkit.tanzu.vmware.com -v $services_toolkit_version
+            
             install-rds-postgres $STAGEPROD_NAMESPACE
             install-tanzu-rabbitmq $STAGEPROD_NAMESPACE
             ;;
@@ -308,9 +310,13 @@
         
         kubectl apply -f .config/scanners/snyk-creds.yaml -n $STAGEPROD_NAMESPACE
 
+        #obtain available version
+        snyk_package=$(tanzu package available list -n tap-install | grep 'snyk')
+        snyk_version=$(echo ${snyk_package: -20} | sed 's/[[:space:]]//g')
+
         tanzu package install snyk-scanner \
             --package-name snyk.scanning.apps.tanzu.vmware.com \
-            --version $SNYK_VERSION \
+            --version $snyk_version \
             --namespace tap-install \
             --values-file .config/scanners/snyk-values.yaml
 
@@ -322,11 +328,15 @@
 
         scripts/dektecho.sh status "Add CarbonBlack for image scanning "
         
+        #obtain available version
+        carbon_package=$(tanzu package available list -n tap-install | grep 'carbonblack')
+        carbon_version=$(echo ${carbon_package: -20} | sed 's/[[:space:]]//g')
+        
         kubectl apply -f .config/scanners/carbonblack-creds.yaml -n $STAGEPROD_NAMESPACE
 
         tanzu package install carbonblack-scanner \
             --package-name carbonblack.scanning.apps.tanzu.vmware.com \
-            --version $CARBONBLACK_VERSION \
+            --version $carbon_version \
             --namespace tap-install \
             --values-file .config/scanners/carbonblack-values.yaml
         

@@ -55,14 +55,11 @@ tap:
   carvelBundle: "cluster-essentials-bundle@sha256:54bf611711923dccd7c7f10603c846782b90644d48f1cb570b43a082d18e23b9"
   imageScanTemplateSrcScanSC: #accepted values: carbonblack-private-image-scan-template snyk-private-image-scan-template, private-image-scan-template
   imageScanTemplateSrcTestScanSC: #accepted values: carbonblack-private-image-scan-template snyk-private-image-scan-template, private-image-scan-template
-  serviceToolkitVersion: "0.8.0" #temp until service toolkit package will be included in the build profile
 
 snyk: 
-  version: "1.0.0-beta.4"
   token: 
 
 carbonblack:
-  version: "1.0.0-beta.2"
   cbc_api_id: 
   cbc_api_key: 
   cbc_org_key: 
