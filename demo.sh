@@ -12,8 +12,6 @@
     SENSORS_WORKLOAD="mood-sensors"
     ANALYZER_WORKLOAD="mood-analyzer"
     DEV_WORKLOAD="mysensors"
-    DEV_BRANCH="dev"
-    STAGE_BRANCH="release-v1.0"
     GITOPS_DEV_REPO="gitops-dev"
     GITOPS_STAGE_REPO="gitops-stage"
     DEV_SUB_DOMAIN=$(yq .dns.devSubDomain .config/demo-values.yaml)
@@ -23,6 +21,8 @@
     DEV_NAMESPACE=$(yq .apps_namespaces.dev .config/demo-values.yaml)
     TEAM_NAMESPACE=$(yq .apps_namespaces.team .config/demo-values.yaml)
     STAGEPROD_NAMESPACE=$(yq .apps_namespaces.stageProd .config/demo-values.yaml)
+    SNIFF_LEVEL_MILD=1
+    SNIFF_LEVEL_AGGRESSIVE=2
    
     
 
@@ -82,19 +82,17 @@
 
         clusterName=$1
         appNamespace=$2
-        export branch=$3
+        export sniffLevel=$3
         subDomain=$4
         
         kubectl config use-context $clusterName
         
-        #set branch in workloads
-        yq '.spec.source.git.ref.branch = env(branch)' .config/workloads/mood-portal.yaml -i
-        yq '.spec.source.git.ref.branch = env(branch)' .config/workloads/mood-sensors.yaml -i
+        yq '.spec.env[0].value = env(sniffLevel)' .config/workloads/mood-portal.yaml -i
         #set subdomain for api calls in mood-portal
         export sensorsActivateAPI="http://mood-sensors.$subDomain.$DOMAIN/activate"
         export sensorsMeasureAPI="http://mood-sensors.$subDomain.$DOMAIN/measure"
-        yq '.spec.env[0].value = env(sensorsActivateAPI)' .config/workloads/mood-portal.yaml -i
-        yq '.spec.env[1].value = env(sensorsMeasureAPI)' .config/workloads/mood-portal.yaml -i
+        yq '.spec.env[1].value = env(sensorsActivateAPI)' .config/workloads/mood-portal.yaml -i
+        yq '.spec.env[2].value = env(sensorsMeasureAPI)' .config/workloads/mood-portal.yaml -i
 
         scripts/dektecho.sh cmd "tanzu apps workload create $PORTAL_WORKLOAD -f .config/workloads/mood-portal.yaml -y -n $appNamespace"
         tanzu apps workload create -f .config/workloads/mood-portal.yaml -y -n $appNamespace
@@ -115,7 +113,7 @@
         scripts/dektecho.sh cmd "tanzu apps workload create $DEV_WORKLOAD -f workload.yaml -n $DEV_NAMESPACE"
         tanzu apps workload create $DEV_WORKLOAD \
             --git-repo https://github.com/dektlong/mood-sensors \
-            --git-branch dev \
+            --git-branch main \
             --type dekt-api \
             --label apps.tanzu.vmware.com/has-tests="true" \
             --label app.kubernetes.io/part-of=$DEV_WORKLOAD \
@@ -317,8 +315,6 @@
         kubectl delete -f .config/data-services/tanzu/inventory-instance-tanzu_postgres.yaml -n $TEAM_NAMESPACE
         kubectl delete -f .config/data-services/tanzu/reading-instance-tanzu_rabbitmq.yaml -n $TEAM_NAMESPACE
 
-        toggle-dog sad
-
         pushd ../$GITOPS_DEV_REPO
         git pull 
         git rm -rf config 
@@ -333,32 +329,7 @@
         git push 
         pushd
 
-        #kubectl config use-context $VIEW_CLUSTER
-        #kubectl delete pod -l app=backstage -n tap-gui
         ./builder.sh runme update-multi-cluster-access
-    }
-
-    #toggle the BYPASS_BACKEND flag in mood-portal
-    toggle-dog () {
-
-        pushd ../mood-portal
-
-        case $1 in
-        happy)
-            sed -i '' 's/false/true/g' main.go
-            git commit -a -m "always happy"      
-            ;;
-        sad)
-            sed -i '' 's/true/false/g' main.go
-            git commit -a -m "usually sad"
-            ;;
-        *)      
-            scripts/dektecho.sh err "!!!incorrect-usage. please specify happy / sad"
-            ;;
-        esac
-        
-        git push
-        pushd
     }
 
     #incorrect usage
@@ -385,7 +356,7 @@
         echo
         echo "  brownfield"
         echo
-        echo "  behappy / besad"
+        echo "  behappy"
         echo
         echo "  uninstall"
         exit
@@ -402,12 +373,12 @@ dev)
     provision-rabbitmq $DEV_NAMESPACE 1
     ;;
 team)
-    create-workloads $DEV_CLUSTER $TEAM_NAMESPACE $DEV_BRANCH $DEV_SUB_DOMAIN
+    create-workloads $DEV_CLUSTER $TEAM_NAMESPACE $SNIFF_LEVEL_AGGRESSIVE $DEV_SUB_DOMAIN
     provision-rabbitmq $TEAM_NAMESPACE 1
     provision-tanzu-postgres $TEAM_NAMESPACE
     ;;
 stage)
-    create-workloads $STAGE_CLUSTER $STAGEPROD_NAMESPACE $STAGE_BRANCH $RUN_SUB_DOMAIN
+    create-workloads $STAGE_CLUSTER $STAGEPROD_NAMESPACE $SNIFF_LEVEL_MILD $RUN_SUB_DOMAIN
     provision-rabbitmq $STAGEPROD_NAMESPACE 2
     provision-rds-postgres $STAGEPROD_NAMESPACE
     ;;
@@ -415,10 +386,8 @@ prod)
     prod-roleout
     ;;
 behappy)
-    toggle-dog happy
-    ;;   
-besad)
-    toggle-dog sad
+    kubectl config use-context $DEV_CLUSTER
+    tanzu apps workload update $PORTAL_WORKLOAD --env SNIFF_LEVEL=$SNIFF_LEVEL_MILD -n $TEAM_NAMESPACE 
     ;;   
 supplychains)
     supplychains

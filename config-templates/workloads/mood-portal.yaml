@@ -10,8 +10,10 @@ spec:
     git:
       url: https://github.com/dektlong/mood-portal
       ref:
-        branch: dev
+        branch: main
   env:
+    - name: SNIFF_LEVEL
+      value: UPDATED_IN_RUNTIME
     - name: SENSORS_ACTIVATE_API
       value: UPDATED_IN_RUNTIME
     - name: SENSORS_MEASURE_API
