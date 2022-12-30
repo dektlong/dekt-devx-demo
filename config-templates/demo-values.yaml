@@ -50,8 +50,8 @@ tanzu_network:
   password: 
 
 tap:
-  tapVersion: "1.3.0"
-  tbsVersion: "1.7.2" #since we use TBS full profile in air-gap configuration
+  tapVersion: "1.3.4"
+  tbsVersion: "1.7.4" #since we install in air-gap configuration
   carvelBundle: "cluster-essentials-bundle@sha256:54bf611711923dccd7c7f10603c846782b90644d48f1cb570b43a082d18e23b9"
   imageScanTemplateSrcScanSC: #accepted values: carbonblack-private-image-scan-template snyk-private-image-scan-template, private-image-scan-template
   imageScanTemplateSrcTestScanSC: #accepted values: carbonblack-private-image-scan-template snyk-private-image-scan-template, private-image-scan-template

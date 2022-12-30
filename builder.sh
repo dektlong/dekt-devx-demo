@@ -264,10 +264,10 @@
         helm repo add crossplane-stable https://charts.crossplane.io/stable
 
         helm install crossplane --namespace crossplane-system crossplane-stable/crossplane \
-        --set 'args={--enable-external-secret-stores}'
+        --set 'args={--enable-external-secret-stores}' && sleep 10
         
-        kubectl apply -f .config/data-services/rds-postgres/crossplane-aws-provider.yaml
-
+        kubectl apply -f .config/data-services/rds-postgres/crossplane-aws-provider.yaml && sleep 20
+ 
         AWS_PROFILE=default && echo -e "[default]\naws_access_key_id = $(aws configure get aws_access_key_id --profile $AWS_PROFILE)\naws_secret_access_key = $(aws configure get aws_secret_access_key --profile $AWS_PROFILE)\naws_session_token = $(aws configure get aws_session_token --profile $AWS_PROFILE)" > .config/creds.conf
 
         kubectl create secret generic aws-provider-creds -n crossplane-system --from-file=creds=.config/creds.conf
