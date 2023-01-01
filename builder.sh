@@ -210,11 +210,11 @@
             services_toolkit_version=$(echo ${services_toolkit_package: -20} | sed 's/[[:space:]]//g')
             tanzu package install services-toolkit -n tap-install -p services-toolkit.tanzu.vmware.com -v $services_toolkit_version
             
-            install-rds-postgres $STAGEPROD_NAMESPACE
+            install-crossplane $STAGEPROD_NAMESPACE
             install-tanzu-rabbitmq $STAGEPROD_NAMESPACE
             ;;
         prod)
-            install-rds-postgres $STAGEPROD_NAMESPACE
+            install-crossplane $STAGEPROD_NAMESPACE
             install-tanzu-rabbitmq $STAGEPROD_NAMESPACE
             ;;
         esac
@@ -252,8 +252,8 @@
                 
     }
 
-    #install-rds-postgres
-    install-rds-postgres() {
+    #install-crossplane
+    install-crossplane() {
 
         appNamespace=$1
 
@@ -264,21 +264,15 @@
         helm repo add crossplane-stable https://charts.crossplane.io/stable
 
         helm install crossplane --namespace crossplane-system crossplane-stable/crossplane \
-        --set 'args={--enable-external-secret-stores}' && sleep 10
+        --set 'args={--enable-external-secret-stores}'
         
-        kubectl apply -f .config/data-services/rds-postgres/crossplane-aws-provider.yaml && sleep 20
- 
         AWS_PROFILE=default && echo -e "[default]\naws_access_key_id = $(aws configure get aws_access_key_id --profile $AWS_PROFILE)\naws_secret_access_key = $(aws configure get aws_secret_access_key --profile $AWS_PROFILE)\naws_session_token = $(aws configure get aws_session_token --profile $AWS_PROFILE)" > .config/creds.conf
 
         kubectl create secret generic aws-provider-creds -n crossplane-system --from-file=creds=.config/creds.conf
 
         kubectl apply -f .config/data-services/rds-postgres/rds-secret.yaml
-
-        kubectl apply -f .config/data-services/rds-postgres/crossplane-xrd-composition.yaml
-
-        kubectl apply -f .config/data-services/rds-postgres/instance-class.yaml
-
-         rm -f .config/creds.conf
+        
+        rm -f .config/creds.conf
 
     }
     

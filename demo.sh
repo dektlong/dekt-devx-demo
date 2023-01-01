@@ -193,6 +193,12 @@
 
         scripts/dektecho.sh status "Provision inventory-db RDS Postgres instance and service claim in $appNamespace namespace"
 
+        kubectl apply -f .config/data-services/rds-postgres/crossplane-aws-provider.yaml
+
+        kubectl apply -f .config/data-services/rds-postgres/crossplane-xrd-composition.yaml
+
+        kubectl apply -f .config/data-services/rds-postgres/instance-class.yaml
+
         kubectl apply -f .config/data-services/rds-postgres/inventory-db-rds-instance.yaml -n $appNamespace
 
         tanzu service claim create postgres-claim \
