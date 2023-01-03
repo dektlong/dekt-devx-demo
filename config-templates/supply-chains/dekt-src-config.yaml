@@ -33,8 +33,8 @@ spec:
   resources:
   - name: source-provider
     params:
-    - name: serviceAccount
-      value: default
+    - default: default
+      name: serviceAccount
     - name: gitImplementation
       value: go-git
     templateRef:
@@ -42,8 +42,8 @@ spec:
       name: source-template
   - name: image-provider
     params:
-    - name: serviceAccount
-      value: default
+    - default: default
+      name: serviceAccount
     - name: registry
       value:
         ca_cert_data: ""
@@ -78,8 +78,8 @@ spec:
       resource: image-provider
     name: config-provider
     params:
-    - name: serviceAccount
-      value: default
+    - default: default
+      name: serviceAccount
     templateRef:
       kind: ClusterConfigTemplate
       name: convention-template
@@ -110,8 +110,8 @@ spec:
       resource: service-bindings
     name: config-writer
     params:
-    - name: serviceAccount
-      value: default
+    - default: default
+      name: serviceAccount
     - name: registry
       value:
         ca_cert_data: ""

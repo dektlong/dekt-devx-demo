@@ -2,6 +2,7 @@
 ---
 profile: build
 shared:
+  ingress_issuer: #@ data.values.tap.ingressIssuer
   image_registry:
     project_path: #@ "{}/{}".format(data.values.private_registry.host, data.values.repositories.system)
     username: #@ data.values.private_registry.username

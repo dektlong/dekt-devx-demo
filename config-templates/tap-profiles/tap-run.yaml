@@ -4,7 +4,7 @@ profile: run
 
 shared:
   ingress_domain: #@ "{}.{}".format(data.values.dns.prodSubDomain, data.values.dns.domain)
-  
+  ingress_issuer: #@ data.values.tap.ingressIssuer
 
 cnrs:
   domain_template: "{{.Name}}.{{.Domain}}"
@@ -18,7 +18,7 @@ appliveview_connector:
   backend:
     host: #@ "{}.{}.{}".format("appliveview", data.values.dns.sysSubDomain, data.values.dns.domain)
     ingressEnabled: true
-    sslDisabled: true
+    sslDeactivated: true
 
 excluded_packages:
   - learningcenter.tanzu.vmware.com 

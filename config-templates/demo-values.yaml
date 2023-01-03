@@ -1,8 +1,8 @@
 clusters:
   view: # TAP view profile installed
     name: 
-    provider: #accepted values: aks,eks,gke
-    nodes: 4
+    provider: #accepted values: aks,eks,gke.  
+    nodes: 3
   dev: # TAP interate profile installed
     name: 
     provider: #accepted values: aks,eks,gke 
@@ -50,11 +50,11 @@ tanzu_network:
   password: 
 
 tap:
-  tapVersion: "1.3.4"
-  tbsVersion: "1.7.4" #since we install in air-gap configuration
+  tapVersion: "1.4.0"
   carvelBundle: "cluster-essentials-bundle@sha256:54bf611711923dccd7c7f10603c846782b90644d48f1cb570b43a082d18e23b9"
   imageScanTemplateSrcScanSC: #accepted values: carbonblack-private-image-scan-template snyk-private-image-scan-template, private-image-scan-template
   imageScanTemplateSrcTestScanSC: #accepted values: carbonblack-private-image-scan-template snyk-private-image-scan-template, private-image-scan-template
+  ingressIssuer: tap-ingress-selfsigned # if modified, issuer name must be indetical to .config/cluster-configs/cluster-issuer.yaml
 
 snyk: 
   token: 

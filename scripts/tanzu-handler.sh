@@ -8,7 +8,6 @@ CARVEL_BUNDLE=$(yq .tap.carvelBundle .config/demo-values.yaml)
 TANZU_NETWORK_USER=$(yq .tanzu_network.username .config/demo-values.yaml)
 TANZU_NETWORK_PASSWORD=$(yq .tanzu_network.password .config/demo-values.yaml)
 TAP_VERSION=$(yq .tap.tapVersion .config/demo-values.yaml)
-TBS_VERSION=$(yq .tap.tbsVersion .config/demo-values.yaml)
 TDS_VERSION=$(yq .data_services.tdsVersion .config/demo-values.yaml)
 GW_INSTALL_DIR=$(yq .brownfield_apis.scgwInstallDirectory .config/demo-values.yaml)
 
@@ -52,10 +51,14 @@ relocate-carvel-bundle() {
 #relocate-tbs-images
 relocate-tbs-images() {
 
-    scripts/dektecho.sh status "relocating TBS $TBS_VERSION images to $IMGPKG_REGISTRY_HOSTNAME/$SYSTEM_REPO/tbs-full-deps"
+    #obtain available tbs version
+    tbs_package=$(tanzu package available list -n tap-install | grep 'buildservice')
+    tbs_version=$(echo ${tbs_package: -20} | sed 's/[[:space:]]//g')
+    
+    scripts/dektecho.sh status "relocating TBS $tbs_version images to $IMGPKG_REGISTRY_HOSTNAME/$SYSTEM_REPO/tbs-full-deps"
 
     imgpkg copy \
-        --bundle registry.tanzu.vmware.com/tanzu-application-platform/full-tbs-deps-package-repo:$TBS_VERSION \
+        --bundle registry.tanzu.vmware.com/tanzu-application-platform/full-tbs-deps-package-repo:$tbs_version \
         --to-tar=.config/tbs-full-deps.tar
     
     imgpkg copy \
@@ -132,22 +135,16 @@ generate-config-yamls() {
 
     #cluster-configs
     mkdir -p .config/cluster-configs
-    cp config-templates/cluster-configs/reader-accounts.yaml .config/cluster-configs/reader-accounts.yaml
-    cp config-templates/cluster-configs/single-user-access.yaml .config/cluster-configs/single-user-access.yaml
-    cp config-templates/cluster-configs/store-auth-token.yaml .config/cluster-configs/store-auth-token.yaml
-    cp config-templates/cluster-configs/store-ca-cert.yaml .config/cluster-configs/store-ca-cert.yaml
-    cp config-templates/cluster-configs/store-secrets-export.yaml .config/cluster-configs/store-secrets-export.yaml
-
+    cp -a config-templates/cluster-configs/ .config/cluster-configs/
+    
     #data-services (WIP)
     cp -R config-templates/data-services .config
     ytt -f config-templates/data-services/rds-postgres/crossplane-xrd-composition.yaml --data-values-file=.config/demo-values.yaml > .config/data-services/rds-postgres/crossplane-xrd-composition.yaml
 
     #workloads
     mkdir -p .config/workloads
-    cp config-templates/workloads/mood-analyzer.yaml .config/workloads/mood-analyzer.yaml
-    cp config-templates/workloads/mood-portal.yaml .config/workloads/mood-portal.yaml
-    cp config-templates/workloads/mood-sensors-openapi.yaml .config/workloads/mood-sensors-openapi.yaml
-    cp config-templates/workloads/mood-sensors.yaml .config/workloads/mood-sensors.yaml
+    cp -a config-templates/workloads/ .config/workloads/
+    
 }
 
 #################### main #######################
@@ -155,7 +152,7 @@ generate-config-yamls() {
 #incorrect-usage
 incorrect-usage() {
     scripts/dektecho.sh err "Incorrect usage. Use one of the following: "
-    echo "  relocate-tanzu-images"
+    echo "  relocate-tanzu-images tap|tbs|tds|scgw"
     echo 
     echo "  add-carvel-tools"
     echo 
@@ -167,11 +164,25 @@ case $1 in
 relocate-tanzu-images)
     docker login $IMGPKG_REGISTRY_HOSTNAME -u $IMGPKG_REGISTRY_USERNAME -p $IMGPKG_REGISTRY_PASSWORD
     docker login registry.tanzu.vmware.com -u $TANZU_NETWORK_USER -p $TANZU_NETWORK_PASSWORD
-    relocate-carvel-bundle
-    relocate-tap-images
-    relocate-tbs-images
-    relocate-tds-images
-    relocate-scgw-images
+    case $2 in
+    tap)
+        relocate-carvel-bundle
+        relocate-tap-images
+        ;;
+    tbs)
+        scripts/dektecho.sh prompt  "Verfiy tap registery is installed. Continue?" && [ $? -eq 0 ] || exit
+        relocate-tbs-images 
+        ;;
+    tds)    
+        relocate-tds-images
+        ;;
+    scgw)
+        relocate-scgw-images
+        ;;
+    *)
+	    incorrect-usage
+	    ;;
+    esac
     ;;
 add-carvel-tools)
   	add-carvel

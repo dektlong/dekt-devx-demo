@@ -3,11 +3,10 @@
 profile: view
 shared:
   ingress_domain: #@ "{}.{}".format(data.values.dns.sysSubDomain, data.values.dns.domain)
+  ingress_issuer: #@ data.values.tap.ingressIssuer
 tap_gui:
   service_type: ClusterIP
   app_config:
-    app:
-      baseUrl: #@ "{}.{}.{}".format("http://tap-gui", data.values.dns.sysSubDomain, data.values.dns.domain)
     catalog:
       locations:
         - type: url
@@ -17,9 +16,8 @@ tap_gui:
         - type: url
           target: https://github.com/krisapplegate/tap-gui-catalogs/blob/main/tap-gui/api-test.yaml
     backend:
-      baseUrl: #@ "{}.{}.{}".format("http://tap-gui", data.values.dns.sysSubDomain, data.values.dns.domain)
       cors:
-        origin: #@ "{}.{}.{}".format("http://tap-gui", data.values.dns.sysSubDomain, data.values.dns.domain)
+        origin: #@ "{}.{}.{}".format("https://tap-gui", data.values.dns.sysSubDomain, data.values.dns.domain)
       reading:
         allow:
           - host: "petstore.swagger.io"
@@ -60,10 +58,10 @@ contour:
 metadata_store:
   app_service_type: ClusterIP
 appliveview:
-  ingressEnabled: true
-  sslDisabled: true
+  ingressEnabled: "true"
+
 api_auto_registration:
-  tap_gui_url: #@ "{}.{}.{}".format("http://tap-gui", data.values.dns.sysSubDomain, data.values.dns.domain)
+  tap_gui_url: #@ "{}.{}.{}".format("https://tap-gui", data.values.dns.sysSubDomain, data.values.dns.domain)
 excluded_packages:
   - learningcenter.tanzu.vmware.com
   - workshops.learningcenter.tanzu.vmware.com

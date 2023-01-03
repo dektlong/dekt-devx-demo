@@ -21,8 +21,8 @@
     DEV_NAMESPACE=$(yq .apps_namespaces.dev .config/demo-values.yaml)
     TEAM_NAMESPACE=$(yq .apps_namespaces.team .config/demo-values.yaml)
     STAGEPROD_NAMESPACE=$(yq .apps_namespaces.stageProd .config/demo-values.yaml)
-    SNIFF_LEVEL_MILD=1
-    SNIFF_LEVEL_AGGRESSIVE=2
+    HAPPY_THRESHOLD_MILD=3
+    HAPPY_THRESHOLD_AGGRESSIVE=30
    
     
 
@@ -82,12 +82,12 @@
 
         clusterName=$1
         appNamespace=$2
-        export sniffLevel=$3
+        export happyThreshold=$3
         subDomain=$4
         
         kubectl config use-context $clusterName
         
-        yq '.spec.env[0].value = env(sniffLevel)' .config/workloads/mood-portal.yaml -i
+        yq '.spec.env[0].value = env(happyThreshold)' .config/workloads/mood-portal.yaml -i
         #set subdomain for api calls in mood-portal
         export sensorsActivateAPI="http://mood-sensors.$subDomain.$DOMAIN/activate"
         export sensorsMeasureAPI="http://mood-sensors.$subDomain.$DOMAIN/measure"
@@ -199,6 +199,8 @@
 
         kubectl apply -f .config/data-services/rds-postgres/instance-class.yaml
 
+        kubectl apply -f .config/data-services/rds-postgres/rds-secret.yaml -n $appNamespace 
+        
         kubectl apply -f .config/data-services/rds-postgres/inventory-db-rds-instance.yaml -n $appNamespace
 
         tanzu service claim create postgres-claim \
@@ -338,6 +340,7 @@
         ./builder.sh runme update-multi-cluster-access
     }
 
+
     #incorrect usage
     incorrect-usage() {
         
@@ -379,12 +382,12 @@ dev)
     provision-rabbitmq $DEV_NAMESPACE 1
     ;;
 team)
-    create-workloads $DEV_CLUSTER $TEAM_NAMESPACE $SNIFF_LEVEL_AGGRESSIVE $DEV_SUB_DOMAIN
+    create-workloads $DEV_CLUSTER $TEAM_NAMESPACE $HAPPY_THRESHOLD_AGGRESSIVE $DEV_SUB_DOMAIN
     provision-rabbitmq $TEAM_NAMESPACE 1
     provision-tanzu-postgres $TEAM_NAMESPACE
     ;;
 stage)
-    create-workloads $STAGE_CLUSTER $STAGEPROD_NAMESPACE $SNIFF_LEVEL_MILD $RUN_SUB_DOMAIN
+    create-workloads $STAGE_CLUSTER $STAGEPROD_NAMESPACE $HAPPY_THRESHOLD_MILD $RUN_SUB_DOMAIN
     provision-rabbitmq $STAGEPROD_NAMESPACE 2
     provision-rds-postgres $STAGEPROD_NAMESPACE
     ;;
@@ -393,7 +396,7 @@ prod)
     ;;
 behappy)
     kubectl config use-context $DEV_CLUSTER
-    tanzu apps workload update $PORTAL_WORKLOAD --env SNIFF_LEVEL=$SNIFF_LEVEL_MILD -n $TEAM_NAMESPACE 
+    tanzu apps workload update $PORTAL_WORKLOAD --env HAPPY_THRESHOLD=$HAPPY_THRESHOLD_MILD -n $TEAM_NAMESPACE 
     ;;   
 supplychains)
     supplychains

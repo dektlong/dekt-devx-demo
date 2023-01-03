@@ -55,42 +55,14 @@ create-eks-cluster () {
 
 	scripts/dektecho.sh info "Creating EKS cluster $cluster_name with $number_of_nodes nodes"
 
-	# NOTE!!do not upgrade to 1.23 unless you figure out how to manualy install the EBS CSI driver
-    eksctl create cluster \
+	eksctl create cluster \
 		--name $cluster_name \
+		--managed \
 		--region $AWS_REGION \
-		--version 1.22 \
+		--instance-types $AWS_INSTANCE_TYPE \
+		--version 1.23 \
         --with-oidc \
-		--without-nodegroup
-	
-	#docker to containerd bug workaround
-	containerdAMI=$(aws ssm get-parameter --name /aws/service/eks/optimized-ami/1.21/amazon-linux-2/recommended/image_id --region $AWS_REGION --query "Parameter.Value" --output text)
-	bootstrap_cmd="/etc/eks/bootstrap.sh $cluster_name --container-runtime containerd"
-
-cat <<EOF | eksctl create nodegroup -f -
-apiVersion: eksctl.io/v1alpha5
-kind: ClusterConfig
-metadata:
-  name: $cluster_name
-  region: $AWS_REGION
-
-managedNodeGroups:
-  - name: $cluster_name-containerd
-    ami: $containerdAMI
-    instanceType: $AWS_INSTANCE_TYPE
-    desiredCapacity: $number_of_nodes
-    volumeSize: 100
-    overrideBootstrapCommand: $bootstrap_cmd
-EOF
-
-	#add-ebs-csi-driver $cluster_name
-
-}
-
-#add-ebs-csi-driver
-add-ebs-csi-driver() {
-
-	cluster_name=$1
+		-N $number_of_nodes
 
 	eksctl create iamserviceaccount \
   		--name ebs-csi-controller-sa \
@@ -100,10 +72,11 @@ add-ebs-csi-driver() {
   		--approve \
   		--role-only \
   		--role-name AmazonEKS_EBS_CSI_DriverRole
-	sa_role="arn:aws:iam::$AWS_ACCOUNT_ID"":role/AmazonEKS_EBS_CSI_DriverRole"
-	eksctl create addon --name aws-ebs-csi-driver \
+
+	eksctl create addon \
+		--name aws-ebs-csi-driver \
 		--cluster $cluster_name \
-		--service-account-role-arn $sa_role \
+		--service-account-role-arn arn:aws:iam::$AWS_ACCOUNT_ID:role/AmazonEKS_EBS_CSI_DriverRole \
 		--force
 
 }
@@ -228,9 +201,6 @@ set-context)
 		;;
 	esac
 	;;	
-add-csi)
-	add-ebs-csi-driver $1
-	;;
 *)
 	incorrect-usage
 	;;

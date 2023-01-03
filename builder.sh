@@ -28,7 +28,6 @@
     TANZU_NETWORK_USER=$(yq .tanzu_network.username .config/demo-values.yaml)
     TANZU_NETWORK_PASSWORD=$(yq .tanzu_network.password .config/demo-values.yaml)
     TAP_VERSION=$(yq .tap.tapVersion .config/demo-values.yaml)
-    TBS_VERSION=$(yq .tap.tbsVersion .config/demo-values.yaml)
     CARVEL_BUNDLE=$(yq .tap.carvel_bundle .config/demo-values.yaml)
 
     #apps-namespaces
@@ -69,6 +68,9 @@
         scripts/ingress-handler.sh update-tap-dns $SYSTEM_SUB_DOMAIN $VIEW_CLUSTER_PROVIDER
 
         update-store-secrets
+
+        kubectl apply -f .config/cluster-configs/cluster-issuer.yaml
+        
     }
 
     #install-dev-cluster
@@ -94,6 +96,9 @@
         add-data-services "dev"
 
         scripts/ingress-handler.sh update-tap-dns $DEV_SUB_DOMAIN $DEV_CLUSTER_PROVIDER
+
+        kubectl apply -f .config/cluster-configs/cluster-issuer.yaml
+        
     }
 
     #install-stage-cluster
@@ -123,6 +128,7 @@
 
         add-data-services "stage"
 
+        kubectl apply -f .config/cluster-configs/cluster-issuer.yaml
     }
     
     #install-prod-cluster
@@ -142,6 +148,7 @@
 
         scripts/ingress-handler.sh update-tap-dns $RUN_SUB_DOMAIN $PROD_CLUSTER_PROVIDER
 
+        kubectl apply -f .config/cluster-configs/cluster-issuer.yaml
     }
 
     #install-tap
@@ -152,7 +159,7 @@
         scripts/dektecho.sh status "Installing TAP on $(kubectl config current-context) cluster with $tap_values_file_name configs"
 
         kubectl create ns tap-install
-       
+
         tanzu secret registry add tap-registry \
             --username ${PRIVATE_REPO_USER} --password ${PRIVATE_REPO_PASSWORD} \
            --server $PRIVATE_REPO_SERVER \
@@ -165,7 +172,6 @@
         tanzu package install tap -p tap.tanzu.vmware.com -v $TAP_VERSION \
             --values-file .config/tap-profiles/$tap_values_file_name \
             --namespace tap-install
-
     }
 
     #add-app-rbac
@@ -176,6 +182,7 @@
         scripts/dektecho.sh status "Setup $appsNamespace namespace on $(kubectl config current-context) cluster"
 
         kubectl create ns $appsNamespace
+        
         tanzu secret registry add registry-credentials \
             --server $PRIVATE_REPO_SERVER \
             --username $PRIVATE_REPO_USER \
@@ -184,6 +191,8 @@
 
         kubectl apply -f .config/supply-chains/gitops-creds.yaml -n $appsNamespace
         kubectl apply -f .config/cluster-configs/single-user-access.yaml -n $appsNamespace
+        #currently not using the namespace provisioner since using customer sc with gitops
+        #kubectl label namespaces $appsNamespace apps.tanzu.vmware.com/tap-ns=""
     }
 
     #add-data-services
@@ -262,16 +271,15 @@
         kubectl create namespace crossplane-system
 
         helm repo add crossplane-stable https://charts.crossplane.io/stable
+        helm repo update
 
         helm install crossplane --namespace crossplane-system crossplane-stable/crossplane \
         --set 'args={--enable-external-secret-stores}'
-        
+
         AWS_PROFILE=default && echo -e "[default]\naws_access_key_id = $(aws configure get aws_access_key_id --profile $AWS_PROFILE)\naws_secret_access_key = $(aws configure get aws_secret_access_key --profile $AWS_PROFILE)\naws_session_token = $(aws configure get aws_session_token --profile $AWS_PROFILE)" > .config/creds.conf
 
         kubectl create secret generic aws-provider-creds -n crossplane-system --from-file=creds=.config/creds.conf
 
-        kubectl apply -f .config/data-services/rds-postgres/rds-secret.yaml
-        
         rm -f .config/creds.conf
 
     }
@@ -493,7 +501,7 @@
         echo
         echo "  generate-configs"
         echo
-        echo "  export-packages"
+        echo "  export-packages tap|tbs|tds|scgw"
         echo
         echo "  runme [ function-name ]"
         echo
@@ -542,7 +550,7 @@ generate-configs)
     scripts/tanzu-handler.sh generate-configs
     ;;
 export-packages)
-    scripts/tanzu-handler.sh relocate-tanzu-images
+    scripts/tanzu-handler.sh relocate-tanzu-images $2
     ;;
 runme)
     $2 $3 $4

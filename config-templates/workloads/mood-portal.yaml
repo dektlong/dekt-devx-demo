@@ -12,7 +12,7 @@ spec:
       ref:
         branch: main
   env:
-    - name: SNIFF_LEVEL
+    - name: HAPPY_THRESHOLD
       value: UPDATED_IN_RUNTIME
     - name: SENSORS_ACTIVATE_API
       value: UPDATED_IN_RUNTIME

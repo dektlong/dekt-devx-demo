@@ -5,5 +5,5 @@
 .config
 
 # ignore carvel bundle
-scripts/carvel/bundle
+scripts/carvel
 

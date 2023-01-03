@@ -4,6 +4,7 @@ profile: iterate
 
 shared:
   ingress_domain: #@ "{}.{}".format(data.values.dns.devSubDomain, data.values.dns.domain)
+  ingress_issuer: #@ data.values.tap.ingressIssuer
   image_registry:
     project_path: #@ "{}/{}".format(data.values.private_registry.host, data.values.repositories.system)
     username: #@ data.values.private_registry.username
@@ -36,7 +37,7 @@ appliveview_connector:
   backend:
     host: #@ "{}.{}.{}".format("appliveview", data.values.dns.sysSubDomain, data.values.dns.domain)
     ingressEnabled: true
-    sslDisabled: true
+    sslDeactivated: true
 
 excluded_packages:
   - learningcenter.tanzu.vmware.com

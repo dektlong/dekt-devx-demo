@@ -34,16 +34,18 @@ This repo contains artifacts to run a demo illustrating the vision and capabilit
 - verify all yamls created successfully in the ```.config``` folder
 
 - 
-export Tanzu packages to your private registry 
+export Tanzu packages to your private registry if node done prior
 ```
-./builder.sh export-packages
+./builder.sh export-packages tap (relocates TAP and Cluster Essentials packages)
+
+./builder.sh export-packages tbs !!requires tap registery to be installed to determine the latest TBS version
+
+./builder.sh export-packages tds
 ```
-- Packages relocated: 
-  - carvel
-  - taznu-app-platform
-  - tanzu-build-service (full dependencies)
-  - tanzu-data-services
-  - spring-cloud-gateway
+
+```
+./builder.sh export-packages scgw (if planning to use it for brownfield apis)
+```
 
 ## Installation
 

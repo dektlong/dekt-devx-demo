@@ -20,7 +20,7 @@ spec:
     name: gitops_user_name
   - default: supplychain
     name: gitops_user_email
-  - default: supplychain@dekt-src-scan-config
+  - default: supplychain@cluster.local
     name: gitops_commit_message
   - default: gitops-credentials
     name: gitops_ssh_secret
@@ -33,8 +33,8 @@ spec:
   resources:
   - name: source-provider
     params:
-    - name: serviceAccount
-      value: default
+    - default: default
+      name: serviceAccount
     - name: gitImplementation
       value: go-git
     templateRef:
@@ -54,8 +54,8 @@ spec:
       name: source-scanner-template
   - name: image-provider
     params:
-    - name: serviceAccount
-      value: default
+    - default: default
+      name: serviceAccount
     - name: registry
       value:
         ca_cert_data: ""
@@ -102,8 +102,8 @@ spec:
       resource: image-scanner
     name: config-provider
     params:
-    - name: serviceAccount
-      value: default
+    - default: default
+      name: serviceAccount
     templateRef:
       kind: ClusterConfigTemplate
       name: convention-template
@@ -130,19 +130,12 @@ spec:
       kind: ClusterConfigTemplate
       name: service-bindings
   - configs:
-    - name: app_def
-      resource: service-bindings
-    name: api-descriptors
-    templateRef:
-      kind: ClusterConfigTemplate
-      name: api-descriptors
-  - configs:
     - name: config
-      resource: api-descriptors
+      resource: service-bindings
     name: config-writer
     params:
-    - name: serviceAccount
-      value: default
+    - default: default
+      name: serviceAccount
     - name: registry
       value:
         ca_cert_data: ""
@@ -160,4 +153,4 @@ spec:
         repository: #@ data.values.repositories.stage
     templateRef:
       kind: ClusterTemplate
-      name: deliverable-template
+      name: external-deliverable-template
