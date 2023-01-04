@@ -21,8 +21,8 @@
     DEV_NAMESPACE=$(yq .apps_namespaces.dev .config/demo-values.yaml)
     TEAM_NAMESPACE=$(yq .apps_namespaces.team .config/demo-values.yaml)
     STAGEPROD_NAMESPACE=$(yq .apps_namespaces.stageProd .config/demo-values.yaml)
-    HAPPY_THRESHOLD_MILD=3
-    HAPPY_THRESHOLD_AGGRESSIVE=30
+    SNIFF_THRESHOLD_MILD=5
+    SNIFF_THRESHOLD_AGGRESSIVE=15
    
     
 
@@ -82,12 +82,12 @@
 
         clusterName=$1
         appNamespace=$2
-        export happyThreshold=$3
+        export sniffThreshold=$3
         subDomain=$4
         
         kubectl config use-context $clusterName
         
-        yq '.spec.env[0].value = env(happyThreshold)' .config/workloads/mood-portal.yaml -i
+        yq '.spec.env[0].value = env(sniffThreshold)' .config/workloads/mood-portal.yaml -i
         #set subdomain for api calls in mood-portal
         export sensorsActivateAPI="http://mood-sensors.$subDomain.$DOMAIN/activate"
         export sensorsMeasureAPI="http://mood-sensors.$subDomain.$DOMAIN/measure"
@@ -296,6 +296,9 @@
         tanzu apps workload delete $ANALYZER_WORKLOAD -n $STAGEPROD_NAMESPACE -y
         tanzu apps workload delete $PORTAL_WORKLOAD -n $STAGEPROD_NAMESPACE -y
         tanzu apps workload delete $SENSORS_WORKLOAD -n $STAGEPROD_NAMESPACE -y
+            #workaround
+            kubectl delete kservice/mood-sensors -n $STAGEPROD_NAMESPACE
+        
         tanzu service claims delete postgres-claim -y -n $STAGEPROD_NAMESPACE
         tanzu service claims delete rabbitmq-claim -y -n $STAGEPROD_NAMESPACE
         kubectl delete -f .config/data-services/rds-postgres/inventory-db-rds-instance.yaml -n $STAGEPROD_NAMESPACE
@@ -315,6 +318,9 @@
         tanzu apps workload delete $ANALYZER_WORKLOAD -n $TEAM_NAMESPACE -y
         tanzu apps workload delete $PORTAL_WORKLOAD -n $TEAM_NAMESPACE -y
         tanzu apps workload delete $SENSORS_WORKLOAD -n $TEAM_NAMESPACE -y
+        #workaround
+        kubectl delete kservice/mood-sensors -n $TEAM_NAMESPACE 
+
         tanzu apps workload delete $DEV_WORKLOAD -n $DEV_NAMESPACE -y
         tanzu service claims delete rabbitmq-claim -y -n $DEV_NAMESPACE
         tanzu service claims delete postgres-claim -y -n $TEAM_NAMESPACE
@@ -382,12 +388,12 @@ dev)
     provision-rabbitmq $DEV_NAMESPACE 1
     ;;
 team)
-    create-workloads $DEV_CLUSTER $TEAM_NAMESPACE $HAPPY_THRESHOLD_AGGRESSIVE $DEV_SUB_DOMAIN
+    create-workloads $DEV_CLUSTER $TEAM_NAMESPACE $SNIFF_THRESHOLD_AGGRESSIVE $DEV_SUB_DOMAIN
     provision-rabbitmq $TEAM_NAMESPACE 1
     provision-tanzu-postgres $TEAM_NAMESPACE
     ;;
 stage)
-    create-workloads $STAGE_CLUSTER $STAGEPROD_NAMESPACE $HAPPY_THRESHOLD_MILD $RUN_SUB_DOMAIN
+    create-workloads $STAGE_CLUSTER $STAGEPROD_NAMESPACE $SNIFF_THRESHOLD_MILD $RUN_SUB_DOMAIN
     provision-rabbitmq $STAGEPROD_NAMESPACE 2
     provision-rds-postgres $STAGEPROD_NAMESPACE
     ;;
@@ -396,8 +402,12 @@ prod)
     ;;
 behappy)
     kubectl config use-context $DEV_CLUSTER
-    tanzu apps workload update $PORTAL_WORKLOAD --env HAPPY_THRESHOLD=$HAPPY_THRESHOLD_MILD -n $TEAM_NAMESPACE 
+    tanzu apps workload update $PORTAL_WORKLOAD --env SNIFF_THRESHOLD=$SNIFF_THRESHOLD_MILD -n $TEAM_NAMESPACE 
     ;;   
+besad)
+    kubectl config use-context $DEV_CLUSTER
+    tanzu apps workload update $PORTAL_WORKLOAD --env SNIFF_THRESHOLD=$SNIFF_THRESHOLD_AGGRESSIVE -n $TEAM_NAMESPACE 
+    ;;
 supplychains)
     supplychains
     ;;
