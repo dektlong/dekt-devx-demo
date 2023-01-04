@@ -21,8 +21,8 @@
     DEV_NAMESPACE=$(yq .apps_namespaces.dev .config/demo-values.yaml)
     TEAM_NAMESPACE=$(yq .apps_namespaces.team .config/demo-values.yaml)
     STAGEPROD_NAMESPACE=$(yq .apps_namespaces.stageProd .config/demo-values.yaml)
-    SNIFF_THRESHOLD_MILD=5
-    SNIFF_THRESHOLD_AGGRESSIVE=15
+    SNIFF_THRESHOLD_MILD=15
+    SNIFF_THRESHOLD_AGGRESSIVE=30
    
     
 
