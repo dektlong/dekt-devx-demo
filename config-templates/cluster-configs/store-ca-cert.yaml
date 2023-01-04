@@ -7,4 +7,3 @@ data:
   ca.crt: UPDATED_IN_RUNTIME
   tls.crt: ""
   tls.key: ""
-.
