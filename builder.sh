@@ -219,11 +219,11 @@
             services_toolkit_version=$(echo ${services_toolkit_package: -20} | sed 's/[[:space:]]//g')
             tanzu package install services-toolkit -n tap-install -p services-toolkit.tanzu.vmware.com -v $services_toolkit_version
             
-            install-crossplane $STAGEPROD_NAMESPACE
+            install-crossplane
             install-tanzu-rabbitmq $STAGEPROD_NAMESPACE
             ;;
         prod)
-            install-crossplane $STAGEPROD_NAMESPACE
+            install-crossplane 
             install-tanzu-rabbitmq $STAGEPROD_NAMESPACE
             ;;
         esac
@@ -264,9 +264,7 @@
     #install-crossplane
     install-crossplane() {
 
-        appNamespace=$1
-
-        scripts/dektecho.sh status "Install Crossplane connector to RDS Postgres"
+        scripts/dektecho.sh status "Install Crossplane provider to AWS"
        
         kubectl create namespace crossplane-system
 
@@ -276,17 +274,9 @@
         helm install crossplane --namespace crossplane-system crossplane-stable/crossplane \
         --set 'args={--enable-external-secret-stores}'
 
-        scripts/k8s-handler.sh wait-for-all-running-pods crossplane-system
-        
+        sleep 30
+
         kubectl apply -f .config/data-services/rds-postgres/crossplane-aws-provider.yaml
-
-        scripts/k8s-handler.sh wait-for-all-running-pods crossplane-system
-
-        kubectl apply -f .config/data-services/rds-postgres/crossplane-xrd-composition.yaml
-
-        kubectl apply -f .config/data-services/rds-postgres/instance-class.yaml
-
-        kubectl apply -f .config/data-services/rds-postgres/rds-secret.yaml -n $appNamespace 
 
         AWS_PROFILE=default && echo -e "[default]\naws_access_key_id = $(aws configure get aws_access_key_id --profile $AWS_PROFILE)\naws_secret_access_key = $(aws configure get aws_secret_access_key --profile $AWS_PROFILE)\naws_session_token = $(aws configure get aws_session_token --profile $AWS_PROFILE)" > .config/creds.conf
 

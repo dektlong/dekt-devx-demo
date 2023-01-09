@@ -65,18 +65,18 @@ create-eks-cluster () {
 		-N $number_of_nodes
 
 	eksctl create iamserviceaccount \
-  		--name ebs-csi-controller-sa-$cluster_name \
+  		--name ebs-csi-controller-sa \
   		--namespace kube-system \
   		--cluster $cluster_name \
   		--attach-policy-arn arn:aws:iam::aws:policy/service-role/AmazonEBSCSIDriverPolicy \
   		--approve \
   		--role-only \
-  		--role-name AmazonEKS_EBS_CSI_DriverRole-$cluster_name 
+  		--role-name AmazonEKS_EBS_CSI_DriverRole-$cluster_name
 
 	eksctl create addon \
 		--name aws-ebs-csi-driver \
 		--cluster $cluster_name \
-		--service-account-role-arn arn:aws:iam::$AWS_ACCOUNT_ID:role/AmazonEKS_EBS_CSI_DriverRole \
+		--service-account-role-arn arn:aws:iam::$AWS_ACCOUNT_ID:role/AmazonEKS_EBS_CSI_DriverRole-$cluster_name \
 		--force
 
 }
@@ -179,8 +179,7 @@ incorrect-usage() {
 	scripts/dektecho.sh err "Incorrect usage. Please specify:"
     echo "  create [aks/eks/gke cluster-name numbber-of-nodes]"
     echo "  delete [aks/eks/gke cluster-name]"
-	echo "  init [aks/eks/gke cluster-name]"
-	echo "	wait-for-all-running-pods namespace "
+	echo "  init-cluster [aks/eks/gke cluster-name]"
     exit
 }
 
@@ -225,9 +224,6 @@ init)
 	get-creds $clusterProvider $clusterName
 	verify $clusterName
 	;;
-wait-for-all-running-pods)
-	wait-for-all-running-pods $2
-	;;	
 *)
 	incorrect-usage
 	;;
