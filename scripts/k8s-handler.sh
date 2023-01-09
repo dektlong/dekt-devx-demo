@@ -105,7 +105,7 @@ create-gke-cluster () {
 		--num-nodes $number_of_nodes \
 		--machine-type $GCP_MACHINE_TYPE
 
-	gcloud container clusters get-credentials $cluster_name --region $GCP_REGION 
+	gcloud container clusters get-credentials $cluster_name --region $GCP_REGION --project $GCP_PROJECT_ID 
 }
 
 #delete-eks-cluster
@@ -119,6 +119,29 @@ delete-gke-cluster () {
 		--region $GCP_REGION \
 		--project $GCP_PROJECT_ID \
 		--quiet
+
+}
+
+#get-creds
+get-creds() {
+
+	clusterProvider=$1
+	clusterName=$2
+	
+	case $clusterProvider in
+	aks)
+  		az aks get-credentials --overwrite-existing --resource-group $AZURE_RESOURCE_GROUP --name $clusterName
+    	;;
+	eks)
+		kubectl config rename-context $AWS_IAM_USER@$clusterName.$AWS_REGION.eksctl.io $clusterName
+		;;
+	gke)
+		kubectl config rename-context gke_$GCP_PROJECT_ID"_"$GCP_REGION"_"$clusterName $clusterName
+		;;
+	*)
+		incorrect-usage
+		;;
+	esac
 
 }
 
@@ -141,7 +164,7 @@ incorrect-usage() {
 	scripts/dektecho.sh err "Incorrect usage. Please specify:"
     echo "  create [aks/eks/gke cluster-name numbber-of-nodes]"
     echo "  delete [aks/eks/gke cluster-name]"
-	echo "  set-context [aks/eks/gke cluster-name]"
+	echo "  init [aks/eks/gke cluster-name]"
     exit
 }
 
@@ -182,24 +205,9 @@ delete)
 		;;
 	esac
 	;;	
-set-context)
-	case $clusterProvider in
-	aks)
-  		az aks get-credentials --overwrite-existing --resource-group $AZURE_RESOURCE_GROUP --name $clusterName
-		verify $clusterName
-    	;;
-	eks)
-		kubectl config rename-context $AWS_IAM_USER@$clusterName.$AWS_REGION.eksctl.io $clusterName
-		verify $clusterName
-		;;
-	gke)
-		kubectl config rename-context gke_$GCP_PROJECT_ID"_"$GCP_REGION"_"$clusterName $clusterName
-		verify $clusterName
-		;;
-	*)
-		incorrect-usage
-		;;
-	esac
+init)
+	get-creds $clusterProvider $clusterName
+	verify $clusterName
 	;;	
 *)
 	incorrect-usage
