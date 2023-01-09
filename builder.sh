@@ -276,6 +276,18 @@
         helm install crossplane --namespace crossplane-system crossplane-stable/crossplane \
         --set 'args={--enable-external-secret-stores}'
 
+        scripts/k8s-handler.sh wait-for-all-running-pods crossplane-system
+        
+        kubectl apply -f .config/data-services/rds-postgres/crossplane-aws-provider.yaml
+
+        scripts/k8s-handler.sh wait-for-all-running-pods crossplane-system
+
+        kubectl apply -f .config/data-services/rds-postgres/crossplane-xrd-composition.yaml
+
+        kubectl apply -f .config/data-services/rds-postgres/instance-class.yaml
+
+        kubectl apply -f .config/data-services/rds-postgres/rds-secret.yaml -n $appNamespace 
+
         AWS_PROFILE=default && echo -e "[default]\naws_access_key_id = $(aws configure get aws_access_key_id --profile $AWS_PROFILE)\naws_secret_access_key = $(aws configure get aws_secret_access_key --profile $AWS_PROFILE)\naws_session_token = $(aws configure get aws_session_token --profile $AWS_PROFILE)" > .config/creds.conf
 
         kubectl create secret generic aws-provider-creds -n crossplane-system --from-file=creds=.config/creds.conf

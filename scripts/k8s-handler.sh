@@ -156,6 +156,21 @@ verify () {
 	scripts/dektecho.sh prompt  "Verfiy core components of $cluster_name have been created succefully. Continue?" && [ $? -eq 0 ] || exit
 }
 
+#wait-for-all-running-pods
+wait-for-all-running-pods () {
+
+		namespace=$1
+        status=""
+        printf "Waiting for all pods in namespace $namespace to be in 'running' state  ."
+        while [ "$status" == "" ]
+        do
+            printf "."
+            status="$(kubectl get pods -n $namespace  -o=json | grep 'running')" 
+            sleep 1
+        done
+        echo
+}
+
 #################### main #######################
 
 #incorrect-usage
@@ -165,6 +180,7 @@ incorrect-usage() {
     echo "  create [aks/eks/gke cluster-name numbber-of-nodes]"
     echo "  delete [aks/eks/gke cluster-name]"
 	echo "  init [aks/eks/gke cluster-name]"
+	echo "	wait-for-all-running-pods namespace "
     exit
 }
 
@@ -208,6 +224,9 @@ delete)
 init)
 	get-creds $clusterProvider $clusterName
 	verify $clusterName
+	;;
+wait-for-all-running-pods)
+	wait-for-all-running-pods $2
 	;;	
 *)
 	incorrect-usage
