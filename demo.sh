@@ -162,7 +162,7 @@
         kubectl apply -f .config/data-services/tanzu/reading-instance-tanzu_rabbitmq.yaml -n $appNamespace
 
         #create a service claim
-        tanzu service claim create rabbitmq-claim -n $appNamespace \
+        tanzu service resource-claim create rabbitmq-claim -n $appNamespace \
             --resource-name reading-queue \
             --resource-kind RabbitmqCluster \
             --resource-api-version rabbitmq.com/v1beta1
@@ -178,7 +178,7 @@
         kubectl apply -f .config/data-services/tanzu/inventory-instance-tanzu_postgres.yaml -n $appNamespace
 
         #create inventory-db resource claim
-        tanzu service claim create postgres-claim \
+        tanzu service resource-claim create postgres-claim \
             --resource-name inventory-db \
             --resource-kind Postgres \
             --resource-api-version sql.tanzu.vmware.com/v1 \
@@ -201,7 +201,7 @@
         
         kubectl apply -f .config/data-services/rds-postgres/inventory-db-rds-instance.yaml -n $appNamespace
 
-        tanzu service claim create postgres-claim \
+        tanzu service resource-claim create postgres-claim \
             --resource-name inventory-db \
             --resource-kind Secret \
             --resource-api-version v1 \
@@ -297,8 +297,8 @@
             #workaround
             kubectl delete kservice/mood-sensors -n $STAGEPROD_NAMESPACE
         
-        tanzu service claims delete postgres-claim -y -n $STAGEPROD_NAMESPACE
-        tanzu service claims delete rabbitmq-claim -y -n $STAGEPROD_NAMESPACE
+        tanzu service resource-claim delete postgres-claim -y -n $STAGEPROD_NAMESPACE
+        tanzu service resource-claim delete rabbitmq-claim -y -n $STAGEPROD_NAMESPACE
         kubectl delete -f .config/data-services/rds-postgres/inventory-db-rds-instance.yaml -n $STAGEPROD_NAMESPACE
         kubectl delete -f .config/data-services/tanzu/reading-instance-tanzu_rabbitmq.yaml -n $STAGEPROD_NAMESPACE
 
@@ -306,8 +306,8 @@
         kubectl delete -f ../$GITOPS_STAGE_REPO/config/dekt-apps/$ANALYZER_WORKLOAD -n $STAGEPROD_NAMESPACE
         kubectl delete -f ../$GITOPS_STAGE_REPO/config/dekt-apps/$PORTAL_WORKLOAD -n $STAGEPROD_NAMESPACE
         kubectl delete -f ../$GITOPS_STAGE_REPO/config/dekt-apps/$SENSORS_WORKLOAD -n $STAGEPROD_NAMESPACE
-        tanzu service claims delete postgres-claim -y -n $STAGEPROD_NAMESPACE
-        tanzu service claims delete rabbitmq-claim -y -n $STAGEPROD_NAMESPACE
+        tanzu service resource-claim delete postgres-claim -y -n $STAGEPROD_NAMESPACE
+        tanzu service resource-claim delete rabbitmq-claim -y -n $STAGEPROD_NAMESPACE
         kubectl delete -f .config/data-services/rds-postgres/inventory-db-rds-instance.yaml -n $STAGEPROD_NAMESPACE
         kubectl delete -f .config/data-services/tanzu/reading-instance-tanzu_rabbitmq.yaml -n $STAGEPROD_NAMESPACE
        
@@ -320,9 +320,9 @@
         kubectl delete kservice/mood-sensors -n $TEAM_NAMESPACE 
 
         tanzu apps workload delete $DEV_WORKLOAD -n $DEV_NAMESPACE -y
-        tanzu service claims delete rabbitmq-claim -y -n $DEV_NAMESPACE
-        tanzu service claims delete postgres-claim -y -n $TEAM_NAMESPACE
-        tanzu service claims delete rabbitmq-claim -y -n $TEAM_NAMESPACE
+        tanzu service resource-claim delete rabbitmq-claim -y -n $DEV_NAMESPACE
+        tanzu service resource-claim delete postgres-claim -y -n $TEAM_NAMESPACE
+        tanzu service resource-claim delete rabbitmq-claim -y -n $TEAM_NAMESPACE
         kubectl delete -f .config/data-services/tanzu/reading-instance-tanzu_rabbitmq.yaml -n $DEV_NAMESPACE
         kubectl delete -f .config/data-services/tanzu/inventory-instance-tanzu_postgres.yaml -n $TEAM_NAMESPACE
         kubectl delete -f .config/data-services/tanzu/reading-instance-tanzu_rabbitmq.yaml -n $TEAM_NAMESPACE
