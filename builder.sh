@@ -250,9 +250,13 @@
 
         scripts/dektecho.sh status "Install Tanzu Postgres in $appNamespace namespace"
 
+        #obtain available version
+        postgres_package=$(tanzu package available list -n tap-install | grep 'postgres')
+        postgres_version=$(echo ${postgres_package: -20} | sed 's/[[:space:]]//g')
+
         tanzu package install tanzu-postgres \
             --package-name postgres-operator.sql.tanzu.vmware.com \
-            --version $TANZU_POSTGRES_VERSION \
+            --version $postgres_version \
             --namespace tap-install
 
         kubectl apply -f .config/data-services/tanzu/cluster-intance-class-postgres.yaml
