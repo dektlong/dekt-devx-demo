@@ -32,7 +32,7 @@ spec:
       value:
         type: openapi
         location:
-          path: /backstage/apis/mood-sensors-api-definition.yaml
+          path: /api-docs
         owner: dekt-dev-team2
         system: devx-mood
         description: A set of API endpoints to manage the resources within the my-web-backend app.
