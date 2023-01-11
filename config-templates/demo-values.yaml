@@ -51,7 +51,7 @@ tanzu_network:
 
 tap:
   tapVersion: "1.4.0"
-  carvelBundle: "cluster-essentials-bundle@sha256:54bf611711923dccd7c7f10603c846782b90644d48f1cb570b43a082d18e23b9"
+  carvelBundle: "sha256:5fd527dda8af0e4c25c427e5659559a2ff9b283f6655a335ae08357ff63b8e7f"
   imageScanTemplateSrcScanSC: #accepted values: carbonblack-private-image-scan-template snyk-private-image-scan-template, private-image-scan-template
   imageScanTemplateSrcTestScanSC: #accepted values: carbonblack-private-image-scan-template snyk-private-image-scan-template, private-image-scan-template
   ingressIssuer: tap-ingress-selfsigned # if modified, issuer name must be indetical to .config/cluster-configs/cluster-issuer.yaml
@@ -86,7 +86,7 @@ dns: #e.g. dev.dekt.io / run.dekt.io
   godaddyApiSecret: 
 
 data_services:
-  tdsVersion:
+  tdsVersion: 1.6.0 
   tanzuPostgresVersion:
   rdsProfile: #pre-configured named profile for an AWS account that has permissions to manage RDS databases
 

@@ -5,6 +5,7 @@ export IMGPKG_REGISTRY_USERNAME=$(yq .private_registry.username .config/demo-val
 export IMGPKG_REGISTRY_PASSWORD=$(yq .private_registry.password .config/demo-values.yaml)
 SYSTEM_REPO=$(yq .repositories.system .config/demo-values.yaml)
 CARVEL_BUNDLE=$(yq .tap.carvelBundle .config/demo-values.yaml)
+TANZU_NETWORK_REGISTRY="registry.tanzu.vmware.com"
 TANZU_NETWORK_USER=$(yq .tanzu_network.username .config/demo-values.yaml)
 TANZU_NETWORK_PASSWORD=$(yq .tanzu_network.password .config/demo-values.yaml)
 TAP_VERSION=$(yq .tap.tapVersion .config/demo-values.yaml)
@@ -17,7 +18,7 @@ relocate-tap-images() {
     scripts/dektecho.sh status "relocating TAP $TAP_VERSION images to $IMGPKG_REGISTRY_HOSTNAME/$SYSTEM_REPO/tap-packages"
 
     imgpkg copy \
-        --bundle registry.tanzu.vmware.com/tanzu-application-platform/tap-packages:$TAP_VERSION \
+        --bundle $TANZU_NETWORK_REGISTRY/tanzu-application-platform/tap-packages:$TAP_VERSION \
         --to-tar .config/tap-packages-$TAP_VERSION.tar \
         --include-non-distributable-layers
 
@@ -36,7 +37,7 @@ relocate-carvel-bundle() {
     scripts/dektecho.sh status "relocating cluster-essentials to $IMGPKG_REGISTRY_HOSTNAME/$SYSTEM_REPO/cluster-essentials-bundle"
 
     imgpkg copy \
-        --bundle registry.tanzu.vmware.com/tanzu-cluster-essentials/$CARVEL_BUNDLE \
+        --bundle $TANZU_NETWORK_REGISTRY/tanzu-cluster-essentials/cluster-essentials-bundle@$CARVEL_BUNDLE \
         --to-tar .config/carvel-bundle.tar \
         --include-non-distributable-layers
 
@@ -58,7 +59,7 @@ relocate-tbs-images() {
     scripts/dektecho.sh status "relocating TBS $tbs_version images to $IMGPKG_REGISTRY_HOSTNAME/$SYSTEM_REPO/tbs-full-deps"
 
     imgpkg copy \
-        --bundle registry.tanzu.vmware.com/tanzu-application-platform/full-tbs-deps-package-repo:$tbs_version \
+        --bundle $TANZU_NETWORK_REGISTRY/tanzu-application-platform/full-tbs-deps-package-repo:$tbs_version \
         --to-tar=.config/tbs-full-deps.tar
     
     imgpkg copy \
@@ -83,7 +84,7 @@ relocate-tds-images() {
     scripts/dektecho.sh status "relocating Tanzu Data Services $TDS_VERSION to $IMGPKG_REGISTRY_HOSTNAME/$SYSTEM_REPO/tds-packages"
         
     imgpkg copy \
-        --bundle registry.tanzu.vmware.com/packages-for-vmware-tanzu-data-services/tds-packages:$TDS_VERSION \
+        --bundle $TANZU_NETWORK_REGISTRY/packages-for-vmware-tanzu-data-services/tds-packages:$TDS_VERSION \
         --to-repo $IMGPKG_REGISTRY_HOSTNAME/$SYSTEM_REPO/tds-packages
 }
 #add-carvel
@@ -93,7 +94,7 @@ add-carvel () {
 
     pushd scripts/carvel
     
-    INSTALL_BUNDLE=$IMGPKG_REGISTRY_HOSTNAME/$SYSTEM_REPO/$CARVEL_BUNDLE \
+    INSTALL_BUNDLE=$IMGPKG_REGISTRY_HOSTNAME/$SYSTEM_REPO/cluster-essentials-bundle@$CARVEL_BUNDLE \
     INSTALL_REGISTRY_HOSTNAME=$IMGPKG_REGISTRY_HOSTNAME \
     INSTALL_REGISTRY_USERNAME=$IMGPKG_REGISTRY_USERNAME \
     INSTALL_REGISTRY_PASSWORD=$IMGPKG_REGISTRY_PASSWORD \
@@ -170,7 +171,7 @@ relocate-tanzu-images)
         relocate-tap-images
         ;;
     tbs)
-        scripts/dektecho.sh prompt  "Verfiy tap registery is installed. Continue?" && [ $? -eq 0 ] || exit
+        scripts/dektecho.sh prompt  "Verfiy tanzu registry is installed on this k8s cluster. Continue?" && [ $? -eq 0 ] || exit
         relocate-tbs-images 
         ;;
     tds)    

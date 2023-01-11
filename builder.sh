@@ -41,7 +41,6 @@
     #data-services
     RDS_PROFILE=$(yq .data-services.rdsProfile .config/demo-values.yaml)
     TDS_VERSION=$(yq .data_services.tdsVersion .config/demo-values.yaml)       
-    TANZU_POSTGRES_VERSION=$(yq .data_services.tanzuPostgresVersion .config/demo-values.yaml)
     AWS_REGION=$(yq .clouds.aws.region .config/demo-values.yaml)
     #apis
     GW_INSTALL_DIR=$(yq .brownfield_apis.scgwInstallDirectory .config/demo-values.yaml)
