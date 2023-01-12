@@ -9,4 +9,4 @@ spec:
   owner: dekt-dev-team2
   system: devx-mood
   definition:
-   $text: mood-sensors.dev.dekt.io/api-docs
+   $text: http://mood-sensors.dev.dekt.io/api-docs
