@@ -60,8 +60,4 @@ metadata_store:
 appliveview:
   ingressEnabled: "true"
 
-excluded_packages:
-  - learningcenter.tanzu.vmware.com
-  - workshops.learningcenter.tanzu.vmware.com
-  - policy.apps.tanzu.vmware.com 
 ceip_policy_disclosed: true

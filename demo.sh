@@ -21,7 +21,7 @@
     DEV_NAMESPACE=$(yq .apps_namespaces.dev .config/demo-values.yaml)
     TEAM_NAMESPACE=$(yq .apps_namespaces.team .config/demo-values.yaml)
     STAGEPROD_NAMESPACE=$(yq .apps_namespaces.stageProd .config/demo-values.yaml)
-    SNIFF_THRESHOLD_MILD=15
+    SNIFF_THRESHOLD_MILD=20
     SNIFF_THRESHOLD_AGGRESSIVE=50
    
     
@@ -400,11 +400,11 @@ prod)
     ;;
 behappy)
     kubectl config use-context $DEV_CLUSTER
-    tanzu apps workload update $PORTAL_WORKLOAD --env SNIFF_THRESHOLD=$SNIFF_THRESHOLD_MILD -n $TEAM_NAMESPACE 
+    tanzu apps workload apply $PORTAL_WORKLOAD --env SNIFF_THRESHOLD=$SNIFF_THRESHOLD_MILD -n $TEAM_NAMESPACE 
     ;;   
 besad)
     kubectl config use-context $DEV_CLUSTER
-    tanzu apps workload update $PORTAL_WORKLOAD --env SNIFF_THRESHOLD=$SNIFF_THRESHOLD_AGGRESSIVE -n $TEAM_NAMESPACE 
+    tanzu apps workload apply $PORTAL_WORKLOAD --env SNIFF_THRESHOLD=$SNIFF_THRESHOLD_AGGRESSIVE -n $TEAM_NAMESPACE 
     ;;
 supplychains)
     supplychains
