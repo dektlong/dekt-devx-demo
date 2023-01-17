@@ -233,7 +233,7 @@
 
         appNamespace=$1
 
-        scripts/dektecho.sh status "Install Tanzu RabbitMQ operator with tanzy services toolkit support"
+        scripts/dektecho.sh status "Install Tanzu RabbitMQ operator in $appNamespace namespace with services toolkit support"
 
         #install RabbitMQ operator
         kubectl apply -f "https://github.com/rabbitmq/cluster-operator/releases/latest/download/cluster-operator.yml"
