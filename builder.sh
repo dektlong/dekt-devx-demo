@@ -360,10 +360,13 @@
         kubectl apply -f .config/cluster-configs/reader-accounts.yaml
         export devClusterUrl=$(kubectl config view --minify -o jsonpath='{.clusters[0].cluster.server}')
         export devClusterName=$DEV_CLUSTER_NAME
-        export devClusterToken=$(kubectl -n tap-gui get secret $(kubectl -n tap-gui get sa tap-gui-viewer -o=json \
-        | jq -r '.secrets[0].name') -o=json \
-        | jq -r '.data["token"]' \
-        | base64 --decode)
+
+        #k8 1.24 changes
+        kubectl apply -f .config/cluster-configs/tap-gui-secret.yaml
+        export devClusterToken=$(kubectl -n tap-gui get secret tap-gui-viewer -o=json \
+            | jq -r '.data["token"]' \
+            | base64 --decode)
+
         yq '.tap_gui.app_config.kubernetes.clusterLocatorMethods.[0].clusters.[0].url = env(devClusterUrl)' .config/tap-profiles/tap-view.yaml -i
         yq '.tap_gui.app_config.kubernetes.clusterLocatorMethods.[0].clusters.[0].name = env(devClusterName)' .config/tap-profiles/tap-view.yaml -i
         yq '.tap_gui.app_config.kubernetes.clusterLocatorMethods.[0].clusters.[0].serviceAccountToken = env(devClusterToken)' .config/tap-profiles/tap-view.yaml -i
@@ -380,7 +383,7 @@
         yq '.tap_gui.app_config.kubernetes.clusterLocatorMethods.[0].clusters.[1].url = env(stageClusterUrl)' .config/tap-profiles/tap-view.yaml -i
         yq '.tap_gui.app_config.kubernetes.clusterLocatorMethods.[0].clusters.[1].name = env(stageClusterName)' .config/tap-profiles/tap-view.yaml -i
         yq '.tap_gui.app_config.kubernetes.clusterLocatorMethods.[0].clusters.[1].serviceAccountToken = env(stageClusterToken)' .config/tap-profiles/tap-view.yaml -i
-
+    
 
         #configure GUI on view cluster to access prod cluster
         kubectl config use-context $PROD_CLUSTER_NAME
