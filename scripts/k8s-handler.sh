@@ -106,6 +106,8 @@ create-gke-cluster () {
 		--machine-type $GCP_MACHINE_TYPE
 
 	gcloud container clusters get-credentials $cluster_name --region $GCP_REGION --project $GCP_PROJECT_ID 
+
+	gcloud components install gke-gcloud-auth-plugin
 }
 
 #delete-eks-cluster
