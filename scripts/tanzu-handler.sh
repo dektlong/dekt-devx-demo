@@ -11,6 +11,8 @@ TANZU_NETWORK_PASSWORD=$(yq .tanzu_network.password .config/demo-values.yaml)
 TAP_VERSION=$(yq .tap.tapVersion .config/demo-values.yaml)
 TDS_VERSION=$(yq .data_services.tdsVersion .config/demo-values.yaml)
 GW_INSTALL_DIR=$(yq .brownfield_apis.scgwInstallDirectory .config/demo-values.yaml)
+TMC_API_TOKEN_VALUE=$(yq .tmc.apiToken .config/demo-values.yaml)
+TMC_CLUSTER_GROUP=$(yq .tmc.clusterGroup .config/demo-values.yaml)
 
 #relocate-tap-images
 relocate-tap-images() {
@@ -148,6 +150,36 @@ generate-config-yamls() {
     
 }
 
+#attach TMC cluster
+attach-tmc-cluster() {
+    
+    cluster_name=$1
+
+    scripts/dektecho.sh status "Attaching $cluster_name cluster to TMC"
+
+    export TMC_API_TOKEN=$TMC_API_TOKEN_VALUE
+    tmc login -n devxdemo-tmc -c
+
+    kubectl config use-context $cluster_name
+    tmc cluster attach -n $cluster_name -g $TMC_CLUSTER_GROUP
+    kubectl apply -f k8s-attach-manifest.yaml
+    rm -f k8s-attach-manifest.yaml
+}
+
+#delete-tmc-cluster
+remove-tmc-cluster() {
+
+    cluster_name=$1
+
+    scripts/dektecho.sh status "Removing $cluster_name cluster from TMC"
+
+    export TMC_API_TOKEN=$TMC_API_TOKEN_VALUE
+    tmc login -n devxdemo-tmc -c
+
+    tmc cluster delete $cluster_name -f -m attached -p attached
+    
+}
+
 #################### main #######################
 
 #incorrect-usage
@@ -158,6 +190,8 @@ incorrect-usage() {
     echo "  add-carvel-tools"
     echo 
     echo "  add-aria-monitoring"
+    echo 
+    echo "  tmc-cluster attach|remove"
     echo 
     echo "  generate-configs"
     echo
@@ -190,8 +224,18 @@ relocate-tanzu-images)
 add-carvel-tools)
   	add-carvel
     ;;
-add-aria-monitoring)
-  	kubectl apply -f .config/cluster-configs/aria-monitoring.yaml
+tmc-cluster)
+    case $2 in
+    attach)
+        attach-tmc-cluster $3
+        ;;
+    remove)
+        remove-tmc-cluster $3
+        ;;
+    *)
+	    incorrect-usage
+	    ;;
+    esac
     ;;
 generate-configs)
     generate-config-yamls

@@ -44,10 +44,7 @@
     AWS_REGION=$(yq .clouds.aws.region .config/demo-values.yaml)
     #apis
     GW_INSTALL_DIR=$(yq .brownfield_apis.scgwInstallDirectory .config/demo-values.yaml)
-    #tmc
-    TMC_API_TOKEN_VALUE=$(yq .tmc.apiToken .config/demo-values.yaml)
-    TMC_CLUSTER_GROUP=$(yq .tmc.clusterGroup .config/demo-values.yaml)
-
+ 
 #################### functions ################
 
     #install-view-cluster
@@ -58,8 +55,6 @@
         kubectl config use-context $VIEW_CLUSTER_NAME
 
         scripts/tanzu-handler.sh add-carvel-tools
-        
-        scripts/tanzu-handler.sh add-aria-monitoring
         
         install-tap "tap-view.yaml"
 
@@ -82,8 +77,6 @@
         kubectl config use-context $DEV_CLUSTER_NAME
 
         scripts/tanzu-handler.sh add-carvel-tools
-
-        scripts/tanzu-handler.sh add-aria-monitoring
 
         add-app-rbac $DEV_NAMESPACE
         add-app-rbac $TEAM_NAMESPACE
@@ -113,8 +106,6 @@
 
         scripts/tanzu-handler.sh add-carvel-tools
 
-        scripts/tanzu-handler.sh add-aria-monitoring
-    
         add-app-rbac $STAGEPROD_NAMESPACE
 
         add-metadata-store-secrets
@@ -145,8 +136,6 @@
 
         scripts/tanzu-handler.sh add-carvel-tools
 
-        scripts/tanzu-handler.sh add-aria-monitoring
-        
         add-app-rbac $STAGEPROD_NAMESPACE
         
         install-tap "tap-run.yaml"
@@ -464,42 +453,22 @@
      #attach TMC clusters
     attach-tmc-clusters() {
 
-        scripts/dektecho.sh info "Attaching clusters to TMC"
-
-        attach-tmc-cluster $VIEW_CLUSTER_NAME
-        attach-tmc-cluster $DEV_CLUSTER_NAME
-        attach-tmc-cluster $STAGE_CLUSTER_NAME
-        attach-tmc-cluster $PROD_CLUSTER_NAME
-        attach-tmc-cluster $BROWNFIELD_CLUSTER_NAME
+        scripts/tanzu-handler.sh tmc-cluster attach $VIEW_CLUSTER_NAME
+        scripts/tanzu-handler.sh tmc-cluster attach $DEV_CLUSTER_NAME
+        scripts/tanzu-handler.sh tmc-cluster attach $STAGE_CLUSTER_NAME
+        scripts/tanzu-handler.sh tmc-cluster attach $PROD_CLUSTER_NAME
+        scripts/tanzu-handler.sh tmc-cluster attach $BROWNFIELD_CLUSTER_NAME
 
     }
-    #attach TMC cluster
-    attach-tmc-cluster() {
-
-        cluster_name=$1
-
-        scripts/dektecho.sh status "Attaching $cluster_name cluster to TMC"
-
-        export TMC_API_TOKEN=$TMC_API_TOKEN_VALUE
-        tmc login -n devxdemo-tmc -c
-
-        kubectl config use-context $cluster_name
-        tmc cluster attach -n $cluster_name -g $TMC_CLUSTER_GROUP
-        kubectl apply -f k8s-attach-manifest.yaml
-        rm -f k8s-attach-manifest.yaml
-    }
-
+    
     #delete-tmc-cluster
     delete-tmc-clusters() {
 
-        export TMC_API_TOKEN=$TMC_API_TOKEN_VALUE
-        tmc login -n devxdemo-tmc -c
-
-        tmc cluster delete $VIEW_CLUSTER_NAME -f -m attached -p attached
-        tmc cluster delete $DEV_CLUSTER_NAME -f -m attached -p attached
-        tmc cluster delete $STAGE_CLUSTER_NAME -f -m attached -p attached
-        tmc cluster delete $PROD_CLUSTER_NAME -f -m attached -p attached
-        tmc cluster delete $BROWNFIELD_CLUSTER_NAME -f -m attached -p attached
+        scripts/tanzu-handler.sh tmc-cluster remove $VIEW_CLUSTER_NAME
+        scripts/tanzu-handler.sh tmc-cluster remove $DEV_CLUSTER_NAME
+        scripts/tanzu-handler.sh tmc-cluster remove $STAGE_CLUSTER_NAME
+        scripts/tanzu-handler.sh tmc-cluster remove $PROD_CLUSTER_NAME
+        scripts/tanzu-handler.sh tmc-cluster remove $BROWNFIELD_CLUSTER_NAME
     }
 
     
