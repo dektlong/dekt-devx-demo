@@ -45,7 +45,7 @@
     #apis
     GW_INSTALL_DIR=$(yq .brownfield_apis.scgwInstallDirectory .config/demo-values.yaml)
     #tmc
-    export TMC_API_TOKEN=$(yq .tmc.apiToken .config/demo-values.yaml)
+    TMC_API_TOKEN_VALUE=$(yq .tmc.apiToken .config/demo-values.yaml)
     TMC_CLUSTER_GROUP=$(yq .tmc.clusterGroup .config/demo-values.yaml)
 
 #################### functions ################
@@ -58,6 +58,8 @@
         kubectl config use-context $VIEW_CLUSTER_NAME
 
         scripts/tanzu-handler.sh add-carvel-tools
+        
+        scripts/tanzu-handler.sh add-aria-monitoring
         
         install-tap "tap-view.yaml"
 
@@ -80,6 +82,8 @@
         kubectl config use-context $DEV_CLUSTER_NAME
 
         scripts/tanzu-handler.sh add-carvel-tools
+
+        scripts/tanzu-handler.sh add-aria-monitoring
 
         add-app-rbac $DEV_NAMESPACE
         add-app-rbac $TEAM_NAMESPACE
@@ -108,6 +112,8 @@
         kubectl config use-context $STAGE_CLUSTER_NAME
 
         scripts/tanzu-handler.sh add-carvel-tools
+
+        scripts/tanzu-handler.sh add-aria-monitoring
     
         add-app-rbac $STAGEPROD_NAMESPACE
 
@@ -138,6 +144,8 @@
         kubectl config use-context $PROD_CLUSTER_NAME
 
         scripts/tanzu-handler.sh add-carvel-tools
+
+        scripts/tanzu-handler.sh add-aria-monitoring
         
         add-app-rbac $STAGEPROD_NAMESPACE
         
@@ -472,8 +480,8 @@
 
         scripts/dektecho.sh status "Attaching $cluster_name cluster to TMC"
 
-        tmc system context create -n devxdemo-tmc -c
-        tmc login -n tmc-login -c
+        export TMC_API_TOKEN=$TMC_API_TOKEN_VALUE
+        tmc login -n devxdemo-tmc -c
 
         kubectl config use-context $cluster_name
         tmc cluster attach -n $cluster_name -g $TMC_CLUSTER_GROUP
@@ -484,6 +492,7 @@
     #delete-tmc-cluster
     delete-tmc-clusters() {
 
+        export TMC_API_TOKEN=$TMC_API_TOKEN_VALUE
         tmc login -n devxdemo-tmc -c
 
         tmc cluster delete $VIEW_CLUSTER_NAME -f -m attached -p attached

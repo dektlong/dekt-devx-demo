@@ -157,6 +157,8 @@ incorrect-usage() {
     echo 
     echo "  add-carvel-tools"
     echo 
+    echo "  add-aria-monitoring"
+    echo 
     echo "  generate-configs"
     echo
 }
@@ -187,6 +189,9 @@ relocate-tanzu-images)
     ;;
 add-carvel-tools)
   	add-carvel
+    ;;
+add-aria-monitoring)
+  	kubectl apply -f .config/cluster-configs/aria-monitoring.yaml
     ;;
 generate-configs)
     generate-config-yamls
