@@ -1,0 +1,17 @@
+#@ load("@ytt:data", "data")
+---
+apiVersion: carto.run/v1alpha1
+kind: Workload
+metadata:
+  name: mood-predictor
+  labels:
+    apps.tanzu.vmware.com/workload-type: dekt-img
+    app.kubernetes.io/part-of: mood-predictor
+spec:
+  image: #@ data.values.private_registry.host + "/" + data.values.repositories.stage + "/mood-predictor-" + data.values.apps_namespaces.stageProd
+  serviceClaims:
+  - name: rabbitmq-claim
+    ref:
+      apiVersion: rabbitmq.com/v1beta1
+      kind: RabbitmqCluster
+      name: reading-queue

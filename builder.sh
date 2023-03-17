@@ -119,6 +119,7 @@
         scripts/dektecho.sh status "Adding custom supply chains"
         kubectl apply -f .config/supply-chains/dekt-src-scan-config.yaml
         kubectl apply -f .config/supply-chains/dekt-src-test-scan-api-config.yaml
+        kubectl apply -f .config/supply-chains/dekt-img-scan-config.yaml
         kubectl apply -f .config/supply-chains/tekton-pipeline.yaml -n $STAGEPROD_NAMESPACE
         kubectl apply -f .config/scanners/scan-policy.yaml -n $STAGEPROD_NAMESPACE #for all scanners
 

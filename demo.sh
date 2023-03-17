@@ -11,6 +11,7 @@
     PORTAL_WORKLOAD="mood-portal"
     SENSORS_WORKLOAD="mood-sensors"
     ANALYZER_WORKLOAD="mood-analyzer"
+    PREDICTOR_WORKLOAD="mood-predictor"
     DEV_WORKLOAD="mysensors"
     GITOPS_DEV_REPO="gitops-dev"
     GITOPS_STAGE_REPO="gitops-stage"
@@ -84,6 +85,7 @@
         appNamespace=$2
         export sniffThreshold=$3
         subDomain=$4
+        includePredictor=$5
         
         kubectl config use-context $clusterName
         
@@ -102,6 +104,11 @@
 
         scripts/dektecho.sh cmd "tanzu apps workload create $ANALYZER_WORKLOAD -f .config/workloads/mood-analyzer.yaml -y -n $appNamespace"
         tanzu apps workload create -f .config/workloads/mood-analyzer.yaml -y -n $appNamespace
+
+        if [ "$includePredictor" == "true" ]; then
+            scripts/dektecho.sh cmd "tanzu apps workload create $PREDICTOR_WORKLOAD -f .config/workloads/mood-predictor.yaml -y -n $appNamespace"
+            tanzu apps workload create -f .config/workloads/mood-predictor.yaml -y -n $appNamespace
+        fi
 
     }
 
@@ -292,6 +299,7 @@
 
         kubectl config use-context $STAGE_CLUSTER
         tanzu apps workload delete $ANALYZER_WORKLOAD -n $STAGEPROD_NAMESPACE -y
+        tanzu apps workload delete $PREDICTOR_WORKLOAD -n $STAGEPROD_NAMESPACE -y
         tanzu apps workload delete $PORTAL_WORKLOAD -n $STAGEPROD_NAMESPACE -y
         tanzu apps workload delete $SENSORS_WORKLOAD -n $STAGEPROD_NAMESPACE -y
             #workaround
@@ -391,7 +399,8 @@ team)
     provision-tanzu-postgres $TEAM_NAMESPACE
     ;;
 stage)
-    create-workloads $STAGE_CLUSTER $STAGEPROD_NAMESPACE $SNIFF_THRESHOLD_MILD $RUN_SUB_DOMAIN
+    create-workloads $STAGE_CLUSTER $STAGEPROD_NAMESPACE $SNIFF_THRESHOLD_MILD $RUN_SUB_DOMAIN true
+    tanzu apps workload create -f .config/workloads/mood-predictor.yaml -n $STAGEPROD_NAMESPACE -y
     provision-rabbitmq $STAGEPROD_NAMESPACE 2
     provision-rds-postgres $STAGEPROD_NAMESPACE
     ;;
