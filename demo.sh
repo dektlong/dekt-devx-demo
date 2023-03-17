@@ -400,7 +400,6 @@ team)
     ;;
 stage)
     create-workloads $STAGE_CLUSTER $STAGEPROD_NAMESPACE $SNIFF_THRESHOLD_MILD $RUN_SUB_DOMAIN true
-    tanzu apps workload create -f .config/workloads/mood-predictor.yaml -n $STAGEPROD_NAMESPACE -y
     provision-rabbitmq $STAGEPROD_NAMESPACE 2
     provision-rds-postgres $STAGEPROD_NAMESPACE
     ;;
