@@ -317,7 +317,7 @@
         
         kubectl config use-context $DEV_CLUSTER
         tanzu apps workload delete $ANALYZER_WORKLOAD -n $TEAM_NAMESPACE -y
-        tanzu apps workload delete $PREDICTOR_WORKLOAD -n $STAGEPROD_NAMESPACE -y
+        tanzu apps workload delete $PREDICTOR_WORKLOAD -n $TEAM_NAMESPACE -y
         tanzu apps workload delete $PORTAL_WORKLOAD -n $TEAM_NAMESPACE -y
         tanzu apps workload delete $SENSORS_WORKLOAD -n $TEAM_NAMESPACE -y
         #workaround
