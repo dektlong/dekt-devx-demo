@@ -85,7 +85,6 @@
         appNamespace=$2
         export sniffThreshold=$3
         subDomain=$4
-        includePredictor=$5
         
         kubectl config use-context $clusterName
         
@@ -105,11 +104,9 @@
         scripts/dektecho.sh cmd "tanzu apps workload create $ANALYZER_WORKLOAD -f .config/workloads/mood-analyzer.yaml -y -n $appNamespace"
         tanzu apps workload create -f .config/workloads/mood-analyzer.yaml -y -n $appNamespace
 
-        if [ "$includePredictor" == "true" ]; then
-            scripts/dektecho.sh cmd "tanzu apps workload create $PREDICTOR_WORKLOAD -f .config/workloads/mood-predictor.yaml -y -n $appNamespace"
-            tanzu apps workload create -f .config/workloads/mood-predictor.yaml -y -n $appNamespace
-        fi
-
+        scripts/dektecho.sh cmd "tanzu apps workload create $PREDICTOR_WORKLOAD -f .config/workloads/mood-predictor.yaml -y -n $appNamespace"
+        tanzu apps workload create -f .config/workloads/mood-predictor.yaml -y -n $appNamespace
+        
     }
 
     #single-dev-workload
@@ -302,8 +299,6 @@
         tanzu apps workload delete $PREDICTOR_WORKLOAD -n $STAGEPROD_NAMESPACE -y
         tanzu apps workload delete $PORTAL_WORKLOAD -n $STAGEPROD_NAMESPACE -y
         tanzu apps workload delete $SENSORS_WORKLOAD -n $STAGEPROD_NAMESPACE -y
-            #workaround
-            kubectl delete kservice/mood-sensors -n $STAGEPROD_NAMESPACE
         
         tanzu service resource-claim delete postgres-claim -y -n $STAGEPROD_NAMESPACE
         tanzu service resource-claim delete rabbitmq-claim -y -n $STAGEPROD_NAMESPACE
@@ -322,6 +317,7 @@
         
         kubectl config use-context $DEV_CLUSTER
         tanzu apps workload delete $ANALYZER_WORKLOAD -n $TEAM_NAMESPACE -y
+        tanzu apps workload delete $PREDICTOR_WORKLOAD -n $STAGEPROD_NAMESPACE -y
         tanzu apps workload delete $PORTAL_WORKLOAD -n $TEAM_NAMESPACE -y
         tanzu apps workload delete $SENSORS_WORKLOAD -n $TEAM_NAMESPACE -y
         #workaround
@@ -399,7 +395,7 @@ team)
     provision-tanzu-postgres $TEAM_NAMESPACE
     ;;
 stage)
-    create-workloads $STAGE_CLUSTER $STAGEPROD_NAMESPACE $SNIFF_THRESHOLD_MILD $RUN_SUB_DOMAIN true
+    create-workloads $STAGE_CLUSTER $STAGEPROD_NAMESPACE $SNIFF_THRESHOLD_MILD $RUN_SUB_DOMAIN
     provision-rabbitmq $STAGEPROD_NAMESPACE 2
     provision-rds-postgres $STAGEPROD_NAMESPACE
     ;;

@@ -86,6 +86,7 @@
         scripts/dektecho.sh status "Adding custom supply chains"
         kubectl apply -f .config/supply-chains/dekt-src-config.yaml
         kubectl apply -f .config/supply-chains/dekt-src-test-api-config.yaml
+        kubectl apply -f .config/supply-chains/dekt-img-config.yaml
         kubectl apply -f .config/supply-chains/tekton-pipeline.yaml -n $DEV_NAMESPACE
         kubectl apply -f .config/supply-chains/tekton-pipeline.yaml -n $TEAM_NAMESPACE
 
