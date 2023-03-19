@@ -8,7 +8,7 @@ metadata:
     apps.tanzu.vmware.com/workload-type: dekt-img
     app.kubernetes.io/part-of: mood-predictor
 spec:
-  image: #@ data.values.private_registry.host + "/isvs//mood-predictor"
+  image: #@ data.values.private_registry.host + "/isvs/" + data.values.tap.isvImg
   serviceClaims:
   - name: rabbitmq-claim
     ref:
