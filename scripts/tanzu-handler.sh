@@ -54,10 +54,11 @@ relocate-carvel-bundle() {
 #relocate-tbs-images
 relocate-tbs-images() {
 
-    #obtain available tbs version
-    tbs_package=$(tanzu package available list -n tap-install | grep 'buildservice')
-    tbs_version=$(echo ${tbs_package: -20} | sed 's/[[:space:]]//g')
+    #check if there is an tap=repo available on cluster
     
+    tbs_package=$(tanzu package available list -n tap-install | grep 'buildservice' > /dev/null)
+    tbs_version=$(echo ${tbs_package: -20} | sed 's/[[:space:]]//g')
+    tbs_version=1.10.8
     scripts/dektecho.sh status "relocating TBS $tbs_version images to $IMGPKG_REGISTRY_HOSTNAME/$SYSTEM_REPO/tbs-full-deps"
 
     imgpkg copy \
@@ -147,6 +148,7 @@ generate-config-yamls() {
     #workloads
     mkdir -p .config/workloads
     cp -a config-templates/workloads/ .config/workloads/
+    ytt -f config-templates/workloads/mood-predictor.yaml --data-values-file=.config/demo-values.yaml > .config/workloads/mood-predictor.yaml
     
 }
 

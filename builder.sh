@@ -95,7 +95,7 @@
         scripts/ingress-handler.sh update-tap-dns $DEV_SUB_DOMAIN $DEV_CLUSTER_PROVIDER
 
         kubectl apply -f .config/cluster-configs/cluster-issuer.yaml
-        
+
     }
 
     #install-stage-cluster
@@ -291,7 +291,7 @@
     #update-store-secrets
     update-store-secrets() {
 
-        export storeCert=$(kubectl get secret -n metadata-store ingress-cert -o json | jq -r ".data.\"ca.crt\"")
+        export storeCert=$(kubectl get secret -n metadata-store app-tls-ca-cert -o json | jq -r ".data.\"ca.crt\"")
         export storeToken=$(kubectl get secrets metadata-store-read-write-client -n metadata-store -o jsonpath="{.data.token}" | base64 -d)
         
         yq '.data."ca.crt"= env(storeCert)' .config/cluster-configs/store-ca-cert.yaml -i

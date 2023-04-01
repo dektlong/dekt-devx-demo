@@ -60,7 +60,7 @@ create-eks-cluster () {
 		--managed \
 		--region $AWS_REGION \
 		--instance-types $AWS_INSTANCE_TYPE \
-		--version 1.23 \
+		--version 1.24 \
         --with-oidc \
 		-N $number_of_nodes
 
