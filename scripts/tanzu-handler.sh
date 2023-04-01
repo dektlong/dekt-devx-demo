@@ -58,7 +58,7 @@ relocate-tbs-images() {
     
     tbs_package=$(tanzu package available list -n tap-install | grep 'buildservice' > /dev/null)
     tbs_version=$(echo ${tbs_package: -20} | sed 's/[[:space:]]//g')
-    tbs_version=1.10.8
+    
     scripts/dektecho.sh status "relocating TBS $tbs_version images to $IMGPKG_REGISTRY_HOSTNAME/$SYSTEM_REPO/tbs-full-deps"
 
     imgpkg copy \
