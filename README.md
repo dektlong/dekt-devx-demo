@@ -39,7 +39,12 @@ export Tanzu packages to your private registry if node done prior
 ./builder.sh export-packages tap (relocates TAP and Cluster Essentials packages)
 
 ./builder.sh export-packages tbs !!requires tap registery to be installed to determine the latest TBS version
+```
+```
+tanzu package repository add tbs-full-deps-repository --url <INSTALL_REGISTRY_HOSTNAME}/${INSTALL_REGISTRY_REPO>/tbs-full-deps:<TBS_VERSION> --namespace tap-install
+```
 
+```
 ./builder.sh export-packages tds
 ```
 
