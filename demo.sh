@@ -345,7 +345,7 @@
         git push 
         pushd
 
-        ./builder.sh runme update-multi-cluster-access
+        #./builder.sh runme update-multi-cluster-access
     }
 
 
