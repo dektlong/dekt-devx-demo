@@ -125,6 +125,8 @@ generate-config-yamls() {
     ytt -f config-templates/supply-chains/dekt-src-scan-config.yaml --data-values-file=.config/demo-values.yaml > .config/supply-chains/dekt-src-scan-config.yaml
     ytt -f config-templates/supply-chains/dekt-src-test-api-config.yaml --data-values-file=.config/demo-values.yaml > .config/supply-chains/dekt-src-test-api-config.yaml
     ytt -f config-templates/supply-chains/dekt-src-test-scan-api-config.yaml --data-values-file=.config/demo-values.yaml > .config/supply-chains/dekt-src-test-scan-api-config.yaml
+    ytt -f config-templates/supply-chains/dekt-img-config.yaml --data-values-file=.config/demo-values.yaml > .config/supply-chains/dekt-img-config.yaml
+    ytt -f config-templates/supply-chains/dekt-img-scan-config.yaml --data-values-file=.config/demo-values.yaml > .config/supply-chains/dekt-img-scan-config.yaml
     ytt -f config-templates/supply-chains/gitops-creds.yaml --data-values-file=.config/demo-values.yaml > .config/supply-chains/gitops-creds.yaml
     cp config-templates/supply-chains/tekton-pipeline-dotnet.yaml .config/supply-chains/tekton-pipeline-dotnet.yaml
     cp config-templates/supply-chains/tekton-pipeline.yaml .config/supply-chains/tekton-pipeline.yaml
