@@ -34,7 +34,7 @@ This repo contains artifacts to run a demo illustrating the vision and capabilit
 - verify all yamls created successfully in the ```.config``` folder
 
 - 
-export Tanzu packages to your private registry if node done prior
+export Tanzu packages to your private registry
 ```
 ./builder.sh export-packages tap (relocates TAP and Cluster Essentials packages)
 
