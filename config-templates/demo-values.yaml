@@ -52,10 +52,10 @@ tanzu_network:
 tap:
   tapVersion: "1.4.0"
   carvelBundle: "sha256:5fd527dda8af0e4c25c427e5659559a2ff9b283f6655a335ae08357ff63b8e7f"
-  imageScanTemplateSrcScanSC: #accepted values: carbonblack-private-image-scan-template snyk-private-image-scan-template, private-image-scan-template
-  imageScanTemplateSrcTestScanSC: #accepted values: carbonblack-private-image-scan-template snyk-private-image-scan-template, private-image-scan-template
-  ingressIssuer: tap-ingress-selfsigned # if modified, issuer name must be indetical to .config/cluster-configs/cluster-issuer.yaml
-  isvImg: #BYO image name, must be pushed to private_registry/isvs repo
+  imageScanTemplateSrcScanSC: snyk-private-image-scan-template #accepted values: carbonblack-private-image-scan-template snyk-private-image-scan-template, private-image-scan-template
+  imageScanTemplateSrcTestScanSC: carbonblack-private-image-scan-template #accepted values: carbonblack-private-image-scan-template snyk-private-image-scan-template, private-image-scan-template
+  ingressIssuer: dekt-letsencrypt # if modified, issuer name must be indetical to .config/cluster-configs/cluster-issuer.yaml
+  isvImg: data-ai #BYO image name, must be pushed to private_registry/isvs repo
 
 snyk: 
   token: 
