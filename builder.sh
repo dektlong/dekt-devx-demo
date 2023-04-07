@@ -425,15 +425,15 @@
         kubectl create secret docker-registry spring-cloud-gateway-image-pull-secret --docker-server=$PRIVATE_REPO_SERVER --docker-username=$PRIVATE_REPO_USER --docker-password=$PRIVATE_REPO_PASSWORD --namespace scgw-system
         $GW_INSTALL_DIR/scripts/install-spring-cloud-gateway.sh --namespace scgw-system
         kubectl create ns $brownfield_apis_ns
+        kubectl apply -f brownfield-apis/sentiment-gateway.yaml -n $brownfield_apis_ns
         kubectl apply -f brownfield-apis/sentiment.yaml -n $brownfield_apis_ns
 
-        scripts/dektecho.sh status "adding 'provider' components on $PRIVATE_CLUSTER_NAME cluster"
-        kubectl config use-context $PRIVATE_CLUSTER_NAME
-        kubectl create ns scgw-system
-        kubectl create secret docker-registry spring-cloud-gateway-image-pull-secret --docker-server=$PRIVATE_REPO_SERVER --docker-username=$PRIVATE_REPO_USER --docker-password=$PRIVATE_REPO_PASSWORD --namespace scgw-system
-        $GW_INSTALL_DIR/scripts/install-spring-cloud-gateway.sh --namespace scgw-system
+        scripts/dektecho.sh status "adding'consumer' components on $VIEW_CLUSTER_NAME cluster"
+        kubectl config use-context $VIEW_CLUSTER_NAME
         kubectl create ns $brownfield_apis_ns
-        kubectl apply -f brownfield-apis/datacheck.yaml -n $brownfield_apis_ns
+        kubectl create service clusterip sentiment-api --tcp=80:80 -n $brownfield_apis_ns
+        kubectl create service clusterip datacheck-api --tcp=80:80 -n $brownfield_apis_ns
+
     
         scripts/dektecho.sh status "adding'consumer' components on $DEV_CLUSTER_NAME cluster"
         kubectl config use-context $DEV_CLUSTER_NAME

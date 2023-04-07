@@ -275,6 +275,8 @@
         scripts/dektecho.sh info "Brownfield CONSUMER services"
 
         scripts/dektecho.sh cmd "kubectl get svc -n brownfield-apis"
+        kubectl config use-context $VIEW_CLUSTER
+        kubectl get svc -n brownfield-apis
         kubectl config use-context $DEV_CLUSTER
         kubectl get svc -n brownfield-apis
         kubectl config use-context $STAGE_CLUSTER
@@ -284,9 +286,10 @@
 
         scripts/dektecho.sh info "Brownfield PROVIDERS services"
         kubectl config use-context $BROWNFIELD_CLUSTER 
-        kubectl get svc -n brownfield-apis
-        kubectl config use-context $PRIVATE_CLUSTER
-        kubectl get svc -n brownfield-apis
+        kubectl get pods -n scgw-system
+        kubectl get SpringCloudGateway -n brownfield-apis
+        kubectl get SpringCloudGatewayRouteConfig -n brownfield-apis
+        
 
         
     }
