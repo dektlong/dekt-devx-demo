@@ -180,7 +180,7 @@ incorrect-usage() {
 	scripts/dektecho.sh err "Incorrect usage. Please specify:"
     echo "  create [aks/eks/gke cluster-name numbber-of-nodes]"
     echo "  delete [aks/eks/gke cluster-name]"
-	echo "  init-cluster [aks/eks/gke cluster-name]"
+	echo "  get-context [aks/eks/gke cluster-name]"
     exit
 }
 
