@@ -124,8 +124,8 @@ delete-gke-cluster () {
 
 }
 
-#get-creds
-get-creds() {
+#get-context
+get-context() {
 
 	clusterProvider=$1
 	clusterName=$2
@@ -155,7 +155,6 @@ verify () {
 	kubectl config use-context $cluster_name 
 	kubectl get pods -A
 	kubectl get svc -A
-	scripts/dektecho.sh prompt  "Verfiy core components of $cluster_name have been created succefully. Continue?" && [ $? -eq 0 ] || exit
 }
 
 #wait-for-all-running-pods
@@ -222,8 +221,8 @@ delete)
 		;;
 	esac
 	;;	
-init)
-	get-creds $clusterProvider $clusterName
+get-context)
+	get-context $clusterProvider $clusterName
 	verify $clusterName
 	;;
 *)

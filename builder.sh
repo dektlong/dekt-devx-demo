@@ -476,6 +476,17 @@
         scripts/tanzu-handler.sh tmc-cluster remove $BROWNFIELD_CLUSTER_NAME
     }
 
+    #get-contexts
+    get-contexts() {
+
+        #get k8s contexts and verify cluster install
+        scripts/k8s-handler.sh get-context $VIEW_CLUSTER_PROVIDER $VIEW_CLUSTER_NAME
+        scripts/k8s-handler.sh get-context $DEV_CLUSTER_PROVIDER $DEV_CLUSTER_NAME
+        scripts/k8s-handler.sh get-context $STAGE_CLUSTER_PROVIDER $STAGE_CLUSTER_NAME
+        scripts/k8s-handler.sh get-context $PROD_CLUSTER_PROVIDER $PROD_CLUSTER_NAME
+        scripts/k8s-handler.sh get-context $BROWNFIELD_CLUSTER_PROVIDER $BROWNFIELD_CLUSTER_NAME
+    }
+
     
     #incorrect usage
     incorrect-usage() {
@@ -512,13 +523,8 @@ create-clusters)
     & scripts/k8s-handler.sh create $BROWNFIELD_CLUSTER_PROVIDER $BROWNFIELD_CLUSTER_NAME $BROWNFIELD_CLUSTER_NODES  
     ;;
 install-demo)
-    #set k8s contexts and verify cluster install
-    scripts/k8s-handler.sh init $VIEW_CLUSTER_PROVIDER $VIEW_CLUSTER_NAME
-    scripts/k8s-handler.sh init $DEV_CLUSTER_PROVIDER $DEV_CLUSTER_NAME
-    scripts/k8s-handler.sh init $STAGE_CLUSTER_PROVIDER $STAGE_CLUSTER_NAME
-    scripts/k8s-handler.sh init $PROD_CLUSTER_PROVIDER $PROD_CLUSTER_NAME
-    scripts/k8s-handler.sh init $BROWNFIELD_CLUSTER_PROVIDER $BROWNFIELD_CLUSTER_NAME
-    #install all demo components
+    get-contexts
+    scripts/dektecho.sh prompt  "Verfiy all clusters created succefully. Continue to install demo??" && [ $? -eq 0 ] || exit
     install-view-cluster
     install-dev-cluster
     install-stage-cluster
