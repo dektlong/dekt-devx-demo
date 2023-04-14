@@ -34,23 +34,25 @@ Create Target {{ tgt_name }}:
         name: Runtime resources
         uiElement: multiselect
         options:
-        - name: Service mesh
-          value: service-mesh
-        - name: Cartorgapher
-          value: cartorgapher
-        - name: Secrets
-          value: Secrets
+        - name: Auto provisioned data services
+          value: dev-services
+        - name: Pre-provisioned data services (Crossplane)
+          value: crossplane
+        - name: Pre-provisioned data services (Services toolkit)
+          value: svc-toolkit
         - name: Deployments
           value: deployments
         - name: Api descriptors
           value: apidescriptors
       tgt_value:
-        description: Network policy
+        description: Traffic policy
         name: Network policy
         uiElement: select
         options:
         - name: Strict
           value: strict
+        - name: Dynamic
+          value: dynamic
         - name: Baseline
           value: baseline
   saltstack.target.present:
@@ -77,20 +79,19 @@ Create Policy on target {{ policy_name }}:
        - name: Active-passive
          value: active-passive
      remediate:
-       description: Connected clusters
-       name: Locations
+       description: HA levels
+       name: slas
        uiElement: multiselect
        options:
-         - name: vSphere
-           value: vsphere
-         - name: EKS
-           value: eks
-         - name: AKS
-           value: aks
-         - name: GKE
-           value: gke
-         - name: GLBs (VMs)
-           value: glb
+         - name: Cloud (Cloud providers failover)
+           value: clouds
+         - name: Datacenter (Avalability zones failover)
+           value: datacenter
+         - name: Cluster (cluster failover)
+           value: cluster
+         - name: Gateway (API gateways routes failover)
+           value: gw
+         - name: App (app instance failover)
      benchmark_names:
        description: Space config values
        name: Space config key-values
