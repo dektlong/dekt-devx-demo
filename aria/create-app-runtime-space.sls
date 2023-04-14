@@ -34,16 +34,25 @@ Create Target {{ tgt_name }}:
         name: Runtime resources
         uiElement: multiselect
         options:
-        - name: Auto provisioned data services
+        - name: On-cluster data services
           value: dev-services
-        - name: Pre-provisioned data services (Crossplane)
-          value: crossplane
-        - name: Pre-provisioned data services (Services toolkit)
-          value: svc-toolkit
-        - name: Deployments
+        - name: AWS data services
+          value: aws
+        - name: Azure data services
+          value: azure
+        - name: Google data services
+          value: google
+        - name: Google data services
+          value: google
+        - name: Private data services 
+          value: private
+        - name: K8s Deployments
           value: deployments
-        - name: Api descriptors
-          value: apidescriptors
+        - name: API servers
+          value: apiservers
+        - name: API gateways
+          value: gw
+
       tgt_value:
         description: Traffic policy
         name: Network policy
@@ -80,7 +89,7 @@ Create Policy on target {{ policy_name }}:
          value: active-passive
      remediate:
        description: HA levels
-       name: slas
+       name: HA levels
        uiElement: multiselect
        options:
          - name: Cloud (Cloud providers failover)
