@@ -1,37 +1,38 @@
 META:
-  name: Create App runtime space 
+  name: Create App runtimes_components space 
   provider: SaltStack
   category: SECURITY
   subcategory: Reference
   template_id: 3b.ssc.11
   version: v1
-  description: Create App runtime space
+  description: Create App runtimes_components space
 
-{% set tgt_name = params.get('tgt_name') %}
-{% set tgt_name1 = params.get('tgt_name1') %}
-{% set tgt_desc = params.get('tgt_desc') %}
-{% set policy_name = params.get('policy_name') %}
-{% set tgt_type = params.get('tgt_type') %}
-{% set tgt_value = params.get('tgt_value') %}
-{% set remediate = params.get('remediate') %}
-{% set benchmark_names = params.get('benchmark_names') %}
+{% set space_name = params.get('space_name') %}
+{% set data_svc_provisioning = params.get('data_svc_provisioning') %}
+{% set data_complainces = params.get('data_complainces') %}
+{% set space_domain = params.get('space_domain') %}
+{% set k8s_ns = params.get('k8s_ns') %}
+{% set runtimes_components = params.get('runtimes_components') %}
+{% set workloads = params.get('workloads') %}
+{% set ha_levels = params.get('ha_levels') %}
+{% set space_config_values = params.get('space_config_values') %}
 
 
-Create Target {{ tgt_name }}:
+Create Target {{ space_name }}:
   META:
     name: Create space
     parameters:
-      tgt_name:
+      space_name:
         description: Space name
         name: Space name
         uiElement: text
-      tgt_desc:
+      space_domain:
         description: Space domain
         name: Space domain
         uiElement: text
-      tgt_type:
-        description: Runtime resources access
-        name: Runtime resources
+      runtimes_components:
+        description: Runtime Components
+        name: Runtime Components
         uiElement: multiselect
         options:
         - name: On-cluster services
@@ -44,71 +45,88 @@ Create Target {{ tgt_name }}:
           value: google
         - name: Private services 
           value: private
-        - name: K8s Deployments
-          value: deployments
-        - name: API servers
-          value: apiservers
-        - name: API gateways
-          value: gw
+        - name: External APIs
+          value: externalapis
         - name: Scanners policies
           value: scanners
         - name: Image build strategies
           value: builds
-        - name: Pods configurations
-          value: configmaps
-
-      tgt_value:
-        description: Traffic policy
-        name: Network policy
+        - name: Sensitive cluster operations
+          value: sensitive
+      workloads:
+        description: Workloads placement
+        name: Workloads placement
         uiElement: select
         options:
+        - name: Best effort
+          value: besteffort
+        - name: SLA driven
+          value: sla
         - name: Strict
           value: strict
-        - name: Dynamic
-          value: dynamic
-        - name: Baseline
-          value: baseline
-  saltstack.target.present:
-  - name: {{ tgt_name }}
-  - desc: {{ tgt_desc }}
-  - tgt_type: {{ tgt_type }}
-  - tgt: {{tgt_value}}
 
-Create Policy on target {{ policy_name }}:
+  saltstack.target.present:
+  - name: {{ workloads }}
+  - desc: {{ space_domain }}
+  - runtimes_components: {{ runtimes_components }}
+  - tgt: {{space_name}}
+
+Create Policy on target {{ ha_levels }}:
   META:
    name: Configure space
    parameters:
-     policy_name:
+     ha_levels:
+       description: High-Availability levels
+       name: High-Availability levels
+       uiElement: multiselect
+       options:
+       - name: Clouds
+         value: clouds
+       - name: Avalability zones
+         value: datacenter
+       - name: Clusters
+         value: cluster
+       - name: API Gateway routes
+         value: gw
+       - name: App instances
+         value: app
+     data_complainces:
+       description: Data Compliances
+       name: Data Compliances
+       uiElement: multiselect
+       options:
+       - name: Baseline
+         value: baseline
+       - name: GDPR
+         value: GDPR
+       - name: HIPAA
+         value: HIPAA
+       - name: PCI DSS
+         value: pci
+       - name: CCPA
+         value: CCPA
+     data_svc_provisioning:
+       description: Service binding 
+       name: Service binding 
+       uiElement: select
+       options:
+       - name: Provision and bind
+         value: provision_bind
+       - name: Bind only
+         value: bind
+     k8s_ns:
        description: Mapped k8s namespaces
        name: Mapped k8s namespaces
        uiElement: array
-     tgt_name1:
-       description: Enable data service auto-provision 
-       name: Enable data service auto-provision 
-       uiElement: checkbox
-     remediate:
-       description: Failover policies
-       name: HA levels
-       uiElement: multiselect
-       options:
-         - name: Clouds
-           value: clouds
-         - name: Avalability zones
-           value: datacenter
-         - name: Clusters
-           value: cluster
-         - name: API Gateway routes
-           value: gw
-         - name: App instances
-          value: app
-     benchmark_names:
+     space_config_values:
        description: Space config values
        name: Space config key-values
        uiElement: array
   saltstack.policy.present:
   - require:
-    - saltstack.target: Create Target {{ tgt_name1 }}
-  - name: {{ policy_name }}
-  - tgt_name1: {{ tgt_name1 }}
-  - remediate: {{ remediate }}
-  - benchmark_names: {{ benchmark_names }}
+    - saltstack.target: Create Target {{ data_svc_provisioning }}
+  - name: {{ ha_levels }}
+  - data_svc_provisioning: {{ data_svc_provisioning }}
+  - data_complainces: {{ data_complainces }}
+  - k8s_ns: {{ k8s_ns }}
+  - space_config_values: {{ space_config_values }}
