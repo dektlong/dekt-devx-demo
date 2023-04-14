@@ -30,21 +30,19 @@ Create Target {{ tgt_name }}:
         name: Space domain
         uiElement: text
       tgt_type:
-        description: Runtime resources
+        description: Runtime resources access
         name: Runtime resources
         uiElement: multiselect
         options:
-        - name: On-cluster data services
+        - name: On-cluster services
           value: dev-services
-        - name: AWS data services
+        - name: AWS services
           value: aws
-        - name: Azure data services
+        - name: Azure services
           value: azure
-        - name: Google data services
+        - name: Google services
           value: google
-        - name: Google data services
-          value: google
-        - name: Private data services 
+        - name: Private services 
           value: private
         - name: K8s Deployments
           value: deployments
@@ -52,6 +50,12 @@ Create Target {{ tgt_name }}:
           value: apiservers
         - name: API gateways
           value: gw
+        - name: Scanners policies
+          value: scanners
+        - name: Image build strategies
+          value: builds
+        - name: Pods configurations
+          value: configmaps
 
       tgt_value:
         description: Traffic policy
@@ -79,28 +83,24 @@ Create Policy on target {{ policy_name }}:
        name: Mapped k8s namespaces
        uiElement: array
      tgt_name1:
-       description: Placement strategy
-       name: Placement strategy
-       uiElement: select
-       options:
-       - name: Active-active
-         value: active-active
-       - name: Active-passive
-         value: active-passive
+       description: Enable data service auto-provision 
+       name: Enable data service auto-provision 
+       uiElement: checkbox
      remediate:
-       description: HA levels
+       description: Failover policies
        name: HA levels
        uiElement: multiselect
        options:
-         - name: Cloud (Cloud providers failover)
+         - name: Clouds
            value: clouds
-         - name: Datacenter (Avalability zones failover)
+         - name: Avalability zones
            value: datacenter
-         - name: Cluster (cluster failover)
+         - name: Clusters
            value: cluster
-         - name: Gateway (API gateways routes failover)
+         - name: API Gateway routes
            value: gw
-         - name: App (app instance failover)
+         - name: App instances
+          value: app
      benchmark_names:
        description: Space config values
        name: Space config key-values
