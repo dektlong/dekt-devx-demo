@@ -1,37 +1,41 @@
 clusters:
   view: # TAP view profile installed
     name: 
-    provider: #accepted values: aks,eks,gke.  
-    nodes: 3
+    provider: #accepted values: aks,eks,gke 
+    nodes: 2
   dev: # TAP interate profile installed
     name: 
-    provider: #accepted values: aks,eks,gke 
-    nodes: 5 
+    provider: #accepted values: aks,eks,gke  
+    nodes: 4 
   stage: #TAP build profile installed
     name: 
-    provider: #accepted values: aks,eks,gke
-    nodes: 5 
-  prod: # TAP run profile installed
+    provider: #accepted values: aks,eks,gke 
+    nodes: 4 
+  prod1: # TAP run profile installed
     name: 
-    provider: #accepted values: aks,eks,gke
-    nodes: 3 
-  brownfield: #optional, needed for bronwfield apis demo, SCGW and TSM, no TAP installed
+    provider: #accepted values: aks,eks,gke  
+    nodes: 2 
+  prod2: # TAP run profile installed
     name: 
-    provider: #accepted values: aks,eks,gke
+    provider: #accepted values: aks,eks,gke  
+    nodes: 2 
+  brownfield: #for bronwfield apis demo, SCGW and TSM, no TAP installed
+    name: 
+    provider: #accepted values: aks,eks,gke 
     nodes: 3 
 
 clouds:
   azure:
-    location: 
+    location: # US: westus | UK: ukwest | EU: germanynorth | SIN: eastasia | ANZ: australiasoutheast 
     resourceGroup: 
     nodeType: Standard_DS3_v2 
   aws:
     accountID: 
-    IAMuser:
-    region: 
+    IAMuser: 
+    region: # US: us-west-1 | UK: eu-west-2 | EU: eu-central-1 | SIN: ap-southeast1 | ANZ: ap-southeast-2
     instanceType: t3.xlarge
   gcp:
-    region: 
+    region: # US: us-central1 | UK: europe-west2 | EU: europe-west3 | SIN: asia-southeast1 | ANZ: australia-southeast1
     projectID: 
     machineType: e2-standard-4
 
@@ -39,23 +43,22 @@ private_registry:
   host: 
   username: 
   password: 
-
-repositories: #repos needs to be created manually in your private registry
-  system: 
-  dev: 
-  stage: 
+  repo: 
 
 tanzu_network:
   username: 
   password: 
 
 tap:
-  tapVersion: "1.4.0"
-  carvelBundle: "sha256:5fd527dda8af0e4c25c427e5659559a2ff9b283f6655a335ae08357ff63b8e7f"
-  imageScanTemplateSrcScanSC: snyk-private-image-scan-template #accepted values: carbonblack-private-image-scan-template snyk-private-image-scan-template, private-image-scan-template
-  imageScanTemplateSrcTestScanSC: carbonblack-private-image-scan-template #accepted values: carbonblack-private-image-scan-template snyk-private-image-scan-template, private-image-scan-template
-  ingressIssuer: dekt-letsencrypt # if modified, issuer name must be indetical to .config/cluster-configs/cluster-issuer.yaml
-  isvImg: data-ai #BYO image name, must be pushed to private_registry/isvs repo
+  
+  tapVersion: 1.5.0
+  carvelBundle: "sha256:79abddbc3b49b44fc368fede0dab93c266ff7c1fe305e2d555ed52d00361b446"
+  imageScanPortal: #accepted values: carbonblack-private-image-scan-template snyk-private-image-scan-template, private-image-scan-template
+  imageScanSensors:  #accepted values: carbonblack-private-image-scan-template snyk-private-image-scan-template, private-image-scan-template
+  imageScanDoctor:  #accepted values: carbonblack-private-image-scan-template snyk-private-image-scan-template, private-image-scan-template
+  imageScanPredictor:  #accepted values: carbonblack-private-image-scan-template snyk-private-image-scan-template, private-image-scan-template
+  ingressIssuer: tap-ingress-selfsigned #update .config/cluster-configs/cluster-issuer.yaml if diffenrent than tap-selfsigned
+  isvImg: #BYO image name, must be pushed to private_registry/isvs repo
 
 snyk: 
   token: 
@@ -66,35 +69,21 @@ carbonblack:
   cbc_org_key: 
   cbc_saas_url: 
 
-apps_namespaces: 
-  dev: #for single dev workload
-  team: #for team dev workloads
-  stageProd: #for stage and prod workloads
+apps_namespaces:
+  dev1:  #for mood-portal single dev workload
+  dev2:  #for mood-sensors single dev workload
+  team:  #for the DevXmood dev team (mood-portal, mood-sensors, mood-doctor and mood-predictor workloads)
+  stageProd:  #for promoting the DevXmood business application to stage and prod
 
-gitops:
-  server: "https://github.com/"
-  apiKey: 
-  owner: 
-  dev: #repo needs to be created manually and clone at the same folder level as the demo repo, make sure git pull works
-  stage: #repo needs to be created manually and clone at the same folder level as the demo repo, make sure git pull works
-
-dns: #e.g. dev.dekt.io / run.dekt.io
+dns:
   domain: 
   sysSubDomain: 
   devSubDomain: 
-  prodSubDomain: 
+  prod1SubDomain: 
+  prod2SubDomain: 
   godaddyApiKey: 
   godaddyApiSecret: 
 
-data_services:
-  tdsVersion: 1.6.0 
-  tanzuPostgresVersion:
-  rdsProfile: #pre-configured named profile for an AWS account that has permissions to manage RDS databases
-
-brownfield_apis: #optional, needed if you want to demo 'brownfield apis'
-  scgwInstallDirectory:
-  privateClusterContext: #setup this cluster (e.g. on vSphere) seperatly, and put the kubectl context name here
-
 tmc:
   apiToken: 
-  clusterGroup:
+  clusterGroup: 

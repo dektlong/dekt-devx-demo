@@ -3,7 +3,7 @@ kind: Workload
 metadata:
   name: mood-sensors
   labels:
-    apps.tanzu.vmware.com/workload-type: dekt-api
+    apps.tanzu.vmware.com/workload-type: web
     apps.tanzu.vmware.com/has-tests: "true"
     app.kubernetes.io/part-of: mood-sensors
     apis.apps.tanzu.vmware.com/register-api: "true"
@@ -14,20 +14,26 @@ spec:
       url: https://github.com/dektlong/mood-sensors
       ref:
         branch: main
-  #data services
+  
   serviceClaims:
-    - name: postgres-claim
+    - name: inventory-claim
       ref:
-        apiVersion: services.apps.tanzu.vmware.com/v1alpha1
-        kind: ResourceClaim
-        name: inventory-db
-    - name: rabbitmq-claim
+        apiVersion: services.apps.tanzu.vmware.com/v1alpha1          
+        kind: ClassClaim
+        name: inventory
+    - name: reading-claim
       ref:
-        apiVersion: rabbitmq.com/v1beta1
-        kind: RabbitmqCluster
-        name: reading-queue
-  #api description
+        apiVersion: services.apps.tanzu.vmware.com/v1alpha1          
+        kind: ClassClaim
+        name: reading
+
   params:
+    - name: testing_pipeline_matching_labels
+      value:
+        apps.tanzu.vmware.com/language: java
+    - name: annotations
+      value:
+        autoscaling.knative.dev/minScale: "1"
     - name: api_descriptor
       value:
         type: openapi
@@ -36,6 +42,3 @@ spec:
         owner: dekt-dev-team2
         system: devx-mood
         description: A set of API endpoints to manage the resources within the my-web-backend app.
-    - name: annotations
-      value:
-        autoscaling.knative.dev/minScale: "1"

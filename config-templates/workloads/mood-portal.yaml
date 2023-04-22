@@ -3,22 +3,22 @@ kind: Workload
 metadata:
   name: mood-portal
   labels:
-    apps.tanzu.vmware.com/workload-type: dekt-url
+    apps.tanzu.vmware.com/workload-type: web
     app.kubernetes.io/part-of: mood-portal
+    apps.tanzu.vmware.com/has-tests: "true"
 spec:
   source:
     git:
       url: https://github.com/dektlong/mood-portal
       ref:
         branch: main
-  env:
-    - name: SNIFF_THRESHOLD
-      value: UPDATED_IN_RUNTIME
-    - name: SENSORS_ACTIVATE_API
-      value: UPDATED_IN_RUNTIME
-    - name: SENSORS_MEASURE_API
-      value: UPDATED_IN_RUNTIME
   params:
+    - name: testing_pipeline_matching_labels
+      value:
+        apps.tanzu.vmware.com/language: golang
     - name: annotations
       value:
         autoscaling.knative.dev/minScale: "1"
+      
+
+#env var to connect to mood-sensors set in runtime

@@ -138,7 +138,8 @@ get-context() {
 		kubectl config rename-context $AWS_IAM_USER@$clusterName.$AWS_REGION.eksctl.io $clusterName
 		;;
 	gke)
-		kubectl config rename-context gke_$GCP_PROJECT_ID"_"$GCP_REGION"_"$clusterName $clusterName
+		#gke creates the context during install, so we are deleting the duplicate
+		kubectl config delete-context gke_$GCP_PROJECT_ID"_"$GCP_REGION"_"$clusterName
 		;;
 	*)
 		incorrect-usage
@@ -146,6 +147,7 @@ get-context() {
 	esac
 
 }
+
 
 #verify cluster
 verify () {

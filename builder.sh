@@ -8,9 +8,12 @@
     STAGE_CLUSTER_NAME=$(yq .clusters.stage.name .config/demo-values.yaml)
     STAGE_CLUSTER_PROVIDER=$(yq .clusters.stage.provider .config/demo-values.yaml)
     STAGE_CLUSTER_NODES=$(yq .clusters.stage.nodes .config/demo-values.yaml)
-    PROD_CLUSTER_NAME=$(yq .clusters.prod.name .config/demo-values.yaml)
-    PROD_CLUSTER_PROVIDER=$(yq .clusters.prod.provider .config/demo-values.yaml)
-    PROD_CLUSTER_NODES=$(yq .clusters.prod.nodes .config/demo-values.yaml)
+    PROD1_CLUSTER_NAME=$(yq .clusters.prod1.name .config/demo-values.yaml)
+    PROD1_CLUSTER_PROVIDER=$(yq .clusters.prod1.provider .config/demo-values.yaml)
+    PROD1_CLUSTER_NODES=$(yq .clusters.prod1.nodes .config/demo-values.yaml)
+    PROD2_CLUSTER_NAME=$(yq .clusters.prod2.name .config/demo-values.yaml)
+    PROD2_CLUSTER_PROVIDER=$(yq .clusters.prod2.provider .config/demo-values.yaml)
+    PROD2_CLUSTER_NODES=$(yq .clusters.prod2.nodes .config/demo-values.yaml)
     VIEW_CLUSTER_NAME=$(yq .clusters.view.name .config/demo-values.yaml)
     VIEW_CLUSTER_PROVIDER=$(yq .clusters.view.provider .config/demo-values.yaml)
     VIEW_CLUSTER_NODES=$(yq .clusters.view.nodes .config/demo-values.yaml)
@@ -23,7 +26,7 @@
     PRIVATE_REPO_SERVER=$(yq .private_registry.host .config/demo-values.yaml)
     PRIVATE_REPO_USER=$(yq .private_registry.username .config/demo-values.yaml)
     PRIVATE_REPO_PASSWORD=$(yq .private_registry.password .config/demo-values.yaml)
-    SYSTEM_REPO=$(yq .repositories.system .config/demo-values.yaml)
+    SYSTEM_REPO=$(yq .private_registry.repo .config/demo-values.yaml)
     #tap
     TANZU_NETWORK_USER=$(yq .tanzu_network.username .config/demo-values.yaml)
     TANZU_NETWORK_PASSWORD=$(yq .tanzu_network.password .config/demo-values.yaml)
@@ -31,13 +34,15 @@
     CARVEL_BUNDLE=$(yq .tap.carvel_bundle .config/demo-values.yaml)
 
     #apps-namespaces
-    DEV_NAMESPACE=$(yq .apps_namespaces.dev .config/demo-values.yaml)
+    DEV1_NAMESPACE=$(yq .apps_namespaces.dev1 .config/demo-values.yaml)
+    DEV2_NAMESPACE=$(yq .apps_namespaces.dev2 .config/demo-values.yaml)
     TEAM_NAMESPACE=$(yq .apps_namespaces.team .config/demo-values.yaml)
     STAGEPROD_NAMESPACE=$(yq .apps_namespaces.stageProd .config/demo-values.yaml)
     #domains
     SYSTEM_SUB_DOMAIN=$(yq .dns.sysSubDomain .config/demo-values.yaml)
     DEV_SUB_DOMAIN=$(yq .dns.devSubDomain .config/demo-values.yaml)
-    RUN_SUB_DOMAIN=$(yq .dns.prodSubDomain .config/demo-values.yaml)
+    PROD1_SUB_DOMAIN=$(yq .dns.prod1SubDomain .config/demo-values.yaml)
+    PROD2_SUB_DOMAIN=$(yq .dns.prod2SubDomain .config/demo-values.yaml)
     #data-services
     RDS_PROFILE=$(yq .data-services.rdsProfile .config/demo-values.yaml)
     TDS_VERSION=$(yq .data_services.tdsVersion .config/demo-values.yaml)       
@@ -54,6 +59,8 @@
 
         kubectl config use-context $VIEW_CLUSTER_NAME
 
+        kubectl create ns tap-install
+
         scripts/tanzu-handler.sh add-carvel-tools
         
         install-tap "tap-view.yaml"
@@ -63,10 +70,13 @@
 
         scripts/ingress-handler.sh update-tap-dns $SYSTEM_SUB_DOMAIN $VIEW_CLUSTER_PROVIDER
 
-        update-store-secrets
+        #update ALV access to view cluster
+        #WORKAROUND!! update cert manualy
+        #export alvCert=$(kubectl get secret app-tls-ca-cert -n metadata-store -o yaml | yq '.data."ca.crt"' | base64 -d)
+        #yq '.appliveview_connector.backend.caCertData = env(alvCert)' .config/tap-profiles/tap-iterate.yaml -i
+        #yq '.appliveview_connector.backend.caCertData = env(alvCert)' .config/tap-profiles/tap-run1.yaml -i
+        #yq '.appliveview_connector.backend.caCertData = env(alvCert)' .config/tap-profiles/tap-run2.yaml -i
 
-        kubectl apply -f .config/cluster-configs/cluster-issuer.yaml
-        
     }
 
     #install-dev-cluster
@@ -76,25 +86,17 @@
 
         kubectl config use-context $DEV_CLUSTER_NAME
 
+        kubectl create ns tap-install
+
         scripts/tanzu-handler.sh add-carvel-tools
 
-        add-app-rbac $DEV_NAMESPACE
-        add-app-rbac $TEAM_NAMESPACE
+        setup-app-ns $DEV1_NAMESPACE
+        setup-app-ns $DEV2_NAMESPACE
+        setup-app-ns $TEAM_NAMESPACE
 
         install-tap "tap-iterate.yaml"
 
-        scripts/dektecho.sh status "Adding custom supply chains"
-        kubectl apply -f .config/supply-chains/dekt-src-config.yaml
-        kubectl apply -f .config/supply-chains/dekt-src-test-api-config.yaml
-        kubectl apply -f .config/supply-chains/dekt-img-config.yaml
-        kubectl apply -f .config/supply-chains/tekton-pipeline.yaml -n $DEV_NAMESPACE
-        kubectl apply -f .config/supply-chains/tekton-pipeline.yaml -n $TEAM_NAMESPACE
-
-        add-data-services "dev"
-
         scripts/ingress-handler.sh update-tap-dns $DEV_SUB_DOMAIN $DEV_CLUSTER_PROVIDER
-
-        kubectl apply -f .config/cluster-configs/cluster-issuer.yaml
 
     }
 
@@ -105,48 +107,55 @@
 
         kubectl config use-context $STAGE_CLUSTER_NAME
 
+        kubectl create ns tap-install
+
         scripts/tanzu-handler.sh add-carvel-tools
 
-        add-app-rbac $STAGEPROD_NAMESPACE
+        setup-metadata-store
 
-        add-metadata-store-secrets
+        setup-app-ns $STAGEPROD_NAMESPACE with-scans
 
-        install-tap "tap-build.yaml"
+        install-tap "tap-stage.yaml"
 
-        install-snyk
-
-        install-carbonblack
-        
-        scripts/dektecho.sh status "Adding custom supply chains"
-        kubectl apply -f .config/supply-chains/dekt-src-scan-config.yaml
-        kubectl apply -f .config/supply-chains/dekt-src-test-scan-api-config.yaml
-        kubectl apply -f .config/supply-chains/dekt-img-scan-config.yaml
-        kubectl apply -f .config/supply-chains/tekton-pipeline.yaml -n $STAGEPROD_NAMESPACE
-        kubectl apply -f .config/scanners/scan-policy.yaml -n $STAGEPROD_NAMESPACE #for all scanners
-
-        add-data-services "stage"
-
-        kubectl apply -f .config/cluster-configs/cluster-issuer.yaml
+        install-data-services-controls
     }
     
-    #install-prod-cluster
-    install-prod-cluster() {
+    #install-prod-cluster1
+    install-prod-cluster1() {
 
-        scripts/dektecho.sh info "Installing demo components for $PROD_CLUSTER_NAME cluster"
+        scripts/dektecho.sh info "Installing demo components for $PROD1_CLUSTER_NAME cluster"
 
-        kubectl config use-context $PROD_CLUSTER_NAME
+        kubectl config use-context $PROD1_CLUSTER_NAME
+
+        kubectl create ns tap-install
 
         scripts/tanzu-handler.sh add-carvel-tools
 
-        add-app-rbac $STAGEPROD_NAMESPACE
-        
-        install-tap "tap-run.yaml"
+        setup-app-ns $STAGEPROD_NAMESPACE
 
-        add-data-services "prod"
+        install-tap "tap-run1.yaml"
 
-        scripts/ingress-handler.sh update-tap-dns $RUN_SUB_DOMAIN $PROD_CLUSTER_PROVIDER
+        scripts/ingress-handler.sh update-tap-dns $PROD1_SUB_DOMAIN $PROD1_CLUSTER_PROVIDER
 
-        kubectl apply -f .config/cluster-configs/cluster-issuer.yaml
+    }
+
+    #install-prod-cluster2
+    install-prod-cluster2() {
+
+        scripts/dektecho.sh info "Installing demo components for $PROD2_CLUSTER_NAME cluster"
+
+        kubectl config use-context $PROD2_CLUSTER_NAME
+
+        kubectl create ns tap-install
+
+        scripts/tanzu-handler.sh add-carvel-tools
+
+        setup-app-ns $STAGEPROD_NAMESPACE
+
+        install-tap "tap-run2.yaml"
+
+        scripts/ingress-handler.sh update-tap-dns $PROD2_SUB_DOMAIN $PROD2_CLUSTER_PROVIDER
+
     }
 
     #install-tap
@@ -158,10 +167,13 @@
 
         kubectl create ns tap-install
 
-        tanzu secret registry add tap-registry \
-            --username ${PRIVATE_REPO_USER} --password ${PRIVATE_REPO_PASSWORD} \
-           --server $PRIVATE_REPO_SERVER \
-           --export-to-all-namespaces --yes --namespace tap-install
+        tanzu secret registry add private-repo-creds \
+            --server $PRIVATE_REPO_SERVER \
+            --username ${PRIVATE_REPO_USER} \
+            --password ${PRIVATE_REPO_PASSWORD} \
+            --export-to-all-namespaces \
+            --yes \
+            --namespace tap-install
 
         tanzu package repository add tanzu-tap-repository \
             --url $PRIVATE_REPO_SERVER/$SYSTEM_REPO/tap-packages:$TAP_VERSION \
@@ -170,252 +182,122 @@
         tanzu package install tap -p tap.tanzu.vmware.com -v $TAP_VERSION \
             --values-file .config/tap-profiles/$tap_values_file_name \
             --namespace tap-install
+
+        kubectl apply -f .config/secrets/cluster-issuer.yaml
     }
 
-    #add-app-rbac
-    add-app-rbac() {
+    install-data-services-controls() {
+
         
-        appsNamespace=$1
+        ./scripts/tanzu-handler.sh install-tanzu-package services-toolkit.tanzu.vmware.com  svc-toolkit
 
-        scripts/dektecho.sh status "Setup $appsNamespace namespace on $(kubectl config current-context) cluster"
-
-        kubectl create ns $appsNamespace
+        ./scripts/tanzu-handler.sh install-tanzu-package crossplane.tanzu.vmware.com crossplane
         
-        tanzu secret registry add registry-credentials \
-            --server $PRIVATE_REPO_SERVER \
-            --username $PRIVATE_REPO_USER \
-            --password $PRIVATE_REPO_PASSWORD \
-            --namespace $appsNamespace    
+        kubectl apply -f .config/crossplane
 
-        kubectl apply -f .config/supply-chains/gitops-creds.yaml -n $appsNamespace
-        kubectl apply -f .config/cluster-configs/single-user-access.yaml -n $appsNamespace
-        #currently not using the namespace provisioner since using customer sc with gitops
-        #kubectl label namespaces $appsNamespace apps.tanzu.vmware.com/tap-ns=""
-    }
-
-    #add-data-services
-    add-data-services() {
-
-        mode=$1
-
-        scripts/dektecho.sh status "Adding data services in $mode configuration"
-
-        tanzu package repository add tanzu-data-services-repository \
-        --url $PRIVATE_REPO_SERVER/$SYSTEM_REPO/tds-packages:$TDS_VERSION \
-        --namespace tap-install
-
-        case $mode in
-        dev)
-            install-tanzu-postgres $TEAM_NAMESPACE
-            install-tanzu-rabbitmq $TEAM_NAMESPACE
-            install-tanzu-rabbitmq $DEV_NAMESPACE
-            ;;
-        stage)
-            #temp until service binding will be included in the build and run profiles
-            #obtain available version
-            services_toolkit_package=$(tanzu package available list -n tap-install | grep 'services-toolkit')
-            services_toolkit_version=$(echo ${services_toolkit_package: -20} | sed 's/[[:space:]]//g')
-            tanzu package install services-toolkit -n tap-install -p services-toolkit.tanzu.vmware.com -v $services_toolkit_version
-            
-            install-crossplane
-            install-tanzu-rabbitmq $STAGEPROD_NAMESPACE
-            ;;
-        prod)
-            install-crossplane 
-            install-tanzu-rabbitmq $STAGEPROD_NAMESPACE
-            ;;
-        esac
-
-    }
-    #install-tanzu-rabbitmq
-    install-tanzu-rabbitmq() {
-
-        appNamespace=$1
-
-        scripts/dektecho.sh status "Install Tanzu RabbitMQ operator in $appNamespace namespace with services toolkit support"
-
-        #install RabbitMQ operator
-        kubectl apply -f "https://github.com/rabbitmq/cluster-operator/releases/latest/download/cluster-operator.yml"
-        
-        #configure taznu services toolkit for RabbitMQ
-        kubectl apply -f .config/data-services/tanzu/rabbitmq-cluster-config.yaml -n $appNamespace
-        
-    }
-
-    #install tanzu postgres operator (on cluster)
-    install-tanzu-postgres() {
-
-        appNamespace=$1
-
-        scripts/dektecho.sh status "Install Tanzu Postgres in $appNamespace namespace"
-
-        #obtain available version
-        postgres_package=$(tanzu package available list -n tap-install | grep 'postgres')
-        postgres_version=$(echo ${postgres_package: -20} | sed 's/[[:space:]]//g')
-
-        tanzu package install tanzu-postgres \
-            --package-name postgres-operator.sql.tanzu.vmware.com \
-            --version $postgres_version \
-            --namespace tap-install
-
-        kubectl apply -f .config/data-services/tanzu/cluster-intance-class-postgres.yaml
-        kubectl apply -f .config/data-services/tanzu/resource-claims-postgres.yaml
-                
-    }
-
-    #install-crossplane
-    install-crossplane() {
-
-        scripts/dektecho.sh status "Install Crossplane provider to AWS"
-       
-        kubectl create namespace crossplane-system
-
-        helm repo add crossplane-stable https://charts.crossplane.io/stable
-        helm repo update
-
-        helm install crossplane --namespace crossplane-system crossplane-stable/crossplane \
-        --set 'args={--enable-external-secret-stores}'
-
-        sleep 30
-
-        kubectl apply -f .config/data-services/rds-postgres/crossplane-aws-provider.yaml
-
-        AWS_PROFILE=default && echo -e "[default]\naws_access_key_id = $(aws configure get aws_access_key_id --profile $AWS_PROFILE)\naws_secret_access_key = $(aws configure get aws_secret_access_key --profile $AWS_PROFILE)\naws_session_token = $(aws configure get aws_session_token --profile $AWS_PROFILE)" > .config/creds.conf
-
-        kubectl create secret generic aws-provider-creds -n crossplane-system --from-file=creds=.config/creds.conf
-
-        rm -f .config/creds.conf
+        ./scripts/tanzu-handler.sh install-tanzu-package bitnami.services.tanzu.vmware.com  bitnami
 
     }
     
-    #update-store-secrets
-    update-store-secrets() {
+    #setup-app-ne
+    setup-app-ns() {
 
-        export storeCert=$(kubectl get secret -n metadata-store app-tls-ca-cert -o json | jq -r ".data.\"ca.crt\"")
-        export storeToken=$(kubectl get secrets metadata-store-read-write-client -n metadata-store -o jsonpath="{.data.token}" | base64 -d)
-        
-        yq '.data."ca.crt"= env(storeCert)' .config/cluster-configs/store-ca-cert.yaml -i
-        yq '.stringData.auth_token= env(storeToken)' .config/cluster-configs/store-auth-token.yaml -i
-        
-    }
-    
-    #add-metadata-store-secrets 
-    add-metadata-store-secrets() {
+        appnamespace=$1
 
-        scripts/dektecho.sh status "Adding metadata-store-secrets to access remote Store"
-        kubectl create ns metadata-store-secrets
-        kubectl apply -f .config/cluster-configs/store-auth-token.yaml -n metadata-store-secrets
-        kubectl apply -f .config/cluster-configs/store-ca-cert.yaml -n metadata-store-secrets
-        kubectl apply -f .config/cluster-configs/store-secrets-export.yaml -n metadata-store-secrets
-    }
+        kubectl create ns $appnamespace
+        kubectl label namespaces $appnamespace apps.tanzu.vmware.com/tap-ns="" 
 
-    #install-snyk
-    install-snyk() {
-
-        scripts/dektecho.sh status "Add Snyk for image scanning "
-        
-        kubectl apply -f .config/scanners/snyk-creds.yaml -n $STAGEPROD_NAMESPACE
-
-        #obtain available version
-        snyk_package=$(tanzu package available list -n tap-install | grep 'snyk')
-        snyk_version=$(echo ${snyk_package: -20} | sed 's/[[:space:]]//g')
-
-        tanzu package install snyk-scanner \
-            --package-name snyk.scanning.apps.tanzu.vmware.com \
-            --version $snyk_version \
-            --namespace tap-install \
-            --values-file .config/scanners/snyk-values.yaml
-
-        #kubectl apply -f .config/scanners/snyk-scan-policy.yaml -n $STAGEPROD_NAMESPACE
-    }
-
-     #install-carbonblack
-    install-carbonblack() {
-
-        scripts/dektecho.sh status "Add CarbonBlack for image scanning "
-        
-        #obtain available version
-        carbon_package=$(tanzu package available list -n tap-install | grep 'carbonblack')
-        carbon_version=$(echo ${carbon_package: -20} | sed 's/[[:space:]]//g')
-        
-        kubectl apply -f .config/scanners/carbonblack-creds.yaml -n $STAGEPROD_NAMESPACE
-
-        tanzu package install carbonblack-scanner \
-            --package-name carbonblack.scanning.apps.tanzu.vmware.com \
-            --version $carbon_version \
-            --namespace tap-install \
-            --values-file .config/scanners/carbonblack-values.yaml
-        
-        #kubectl apply -f .config/scanners/carbonblack-scan-policy.yaml -n $STAGEPROD_NAMESPACE
+        if [ "$2" == "with-scans" ]; then
+            kubectl apply -f .config/secrets/snyk-creds.yaml -n $appnamespace
+            kubectl apply -f .config/secrets/carbonblack-creds.yaml -n $appnamespace
+            #kubectl apply -f .config/secrets/scanners-auth.yaml
+        fi
 
     }
-    #update-multi-cluster-access
-    update-multi-cluster-access() {
+    #setup-metadata-store
+    setup-metadata-store() {
+
+        scripts/dektecho.sh status "Configure metadata-store access between $VIEW_CLUSTER_NAME and $STAGE_CLUSTER_NAME"
         
-        scripts/dektecho.sh status "Updating Backstage access to dev,stage & prod clusters"
-
-        #configure GUI on view cluster to access dev cluster
-        kubectl config use-context $DEV_CLUSTER_NAME
-        kubectl apply -f .config/cluster-configs/reader-accounts.yaml
-        export devClusterUrl=$(kubectl config view --minify -o jsonpath='{.clusters[0].cluster.server}')
-        export devClusterName=$DEV_CLUSTER_NAME
-
-        kubectl apply -f .config/cluster-configs/tap-gui-secret.yaml
-        export devClusterToken=$(kubectl -n tap-gui get secret tap-gui-viewer -o=json \
-            | jq -r '.data["token"]' \
-            | base64 --decode)
-
-        yq '.tap_gui.app_config.kubernetes.clusterLocatorMethods.[0].clusters.[0].url = env(devClusterUrl)' .config/tap-profiles/tap-view.yaml -i
-        yq '.tap_gui.app_config.kubernetes.clusterLocatorMethods.[0].clusters.[0].name = env(devClusterName)' .config/tap-profiles/tap-view.yaml -i
-        yq '.tap_gui.app_config.kubernetes.clusterLocatorMethods.[0].clusters.[0].serviceAccountToken = env(devClusterToken)' .config/tap-profiles/tap-view.yaml -i
-
-        #configure GUI on view cluster to access stage cluster
-        kubectl config use-context $STAGE_CLUSTER_NAME
-        kubectl apply -f .config/cluster-configs/reader-accounts.yaml
-        export stageClusterUrl=$(kubectl config view --minify -o jsonpath='{.clusters[0].cluster.server}')
-        export stageClusterName=$STAGE_CLUSTER_NAME
-
-        kubectl apply -f .config/cluster-configs/tap-gui-secret.yaml
-        export stageClusterToken=$(kubectl -n tap-gui get secret tap-gui-viewer -o=json \
-            | jq -r '.data["token"]' \
-            | base64 --decode)
-
-        yq '.tap_gui.app_config.kubernetes.clusterLocatorMethods.[0].clusters.[1].url = env(stageClusterUrl)' .config/tap-profiles/tap-view.yaml -i
-        yq '.tap_gui.app_config.kubernetes.clusterLocatorMethods.[0].clusters.[1].name = env(stageClusterName)' .config/tap-profiles/tap-view.yaml -i
-        yq '.tap_gui.app_config.kubernetes.clusterLocatorMethods.[0].clusters.[1].serviceAccountToken = env(stageClusterToken)' .config/tap-profiles/tap-view.yaml -i
-    
-
-        #configure GUI on view cluster to access prod cluster
-        kubectl config use-context $PROD_CLUSTER_NAME
-        kubectl apply -f .config/cluster-configs/reader-accounts.yaml
-        export prodClusterUrl=$(kubectl config view --minify -o jsonpath='{.clusters[0].cluster.server}')
-        export prodClusterName=$PROD_CLUSTER_NAME
-
-        kubectl apply -f .config/cluster-configs/tap-gui-secret.yaml
-        export prodClusterToken=$(kubectl -n tap-gui get secret tap-gui-viewer -o=json \
-            | jq -r '.data["token"]' \
-            | base64 --decode)
-            
-        yq '.tap_gui.app_config.kubernetes.clusterLocatorMethods.[0].clusters.[2].url = env(prodClusterUrl)' .config/tap-profiles/tap-view.yaml -i
-        yq '.tap_gui.app_config.kubernetes.clusterLocatorMethods.[0].clusters.[2].name = env(prodClusterName)' .config/tap-profiles/tap-view.yaml -i
-        yq '.tap_gui.app_config.kubernetes.clusterLocatorMethods.[0].clusters.[2].serviceAccountToken = env(prodClusterToken)' .config/tap-profiles/tap-view.yaml -i
-
-        #configure view cluster proxy
         kubectl config use-context $VIEW_CLUSTER_NAME
-        storeToken=$(kubectl get secrets metadata-store-read-write-client -n metadata-store -o jsonpath="{.data.token}" | base64 -d)
-        export storeProxyAuthHeader="Bearer $storeToken"
-        yq '.tap_gui.app_config.proxy."/metadata-store".headers.Authorization= env(storeProxyAuthHeader)' .config/tap-profiles/tap-view.yaml -i
-
-        #update view cluster tap package
-        tanzu package installed update tap --package-name tap.tanzu.vmware.com --version $TAP_VERSION -n tap-install -f .config/tap-profiles/tap-view.yaml
+        CA_CERT=$(kubectl get secret -n metadata-store ingress-cert -o json | jq -r ".data.\"ca.crt\"")
+cat <<EOF > .config/secrets/store_ca.yaml
+---
+apiVersion: v1
+kind: Secret
+type: Opaque
+metadata:
+  name: store-ca-cert
+  namespace: metadata-store-secrets
+data:
+  ca.crt: $CA_CERT
+EOF
         
+        AUTH_TOKEN=$(kubectl get secrets metadata-store-read-write-client -n metadata-store -o jsonpath="{.data.token}" | base64 -d)
 
+        kubectl config use-context $STAGE_CLUSTER_NAME
+        kubectl create ns metadata-store-secrets
+        kubectl apply -f .config/secrets/store_ca.yaml
+        kubectl create secret generic store-auth-token \
+            --from-literal=auth_token=$AUTH_TOKEN -n metadata-store-secrets
+cat <<EOF | kubectl apply -f -
+---
+apiVersion: secretgen.carvel.dev/v1alpha1
+kind: SecretExport
+metadata:
+  name: store-ca-cert
+  namespace: metadata-store-secrets
+spec:
+  toNamespace: $STAGEPROD_NAMESPACE
+---
+apiVersion: secretgen.carvel.dev/v1alpha1
+kind: SecretExport
+metadata:
+  name: store-auth-token
+  namespace: metadata-store-secrets
+spec:
+  toNamespace: $STAGEPROD_NAMESPACE
+EOF
+
+   rm .config/secrets/store_ca.yaml
+
+    }
+
+    #setup-access-to-view-cluster
+    setup-access-to-view-cluster() {
+
+        export clusterName=$1
+        export clusterIndex=$2
+        
+        scripts/dektecho.sh status "Setup access between $clusterName and $VIEW_CLUSTER_NAME ..."
+
+        kubectl config use-context $clusterName
+        kubectl apply -f .config/secrets/viewer-rbac.yaml
+        export clusterUrl=$(kubectl config view --minify -o jsonpath='{.clusters[0].cluster.server}')
+
+kubectl apply -f - <<EOF
+apiVersion: v1
+kind: Secret
+metadata:
+  name: tap-gui-viewer
+  namespace: tap-gui
+  annotations:
+    kubernetes.io/service-account.name: tap-gui-viewer
+type: kubernetes.io/service-account-token
+EOF
+        export clusterToken=$(kubectl -n tap-gui get secret tap-gui-viewer -o=json \
+            | jq -r '.data["token"]' \
+            | base64 --decode)
+
+        yq '.tap_gui.app_config.kubernetes.clusterLocatorMethods.[0].clusters.[env(clusterIndex)].url = env(clusterUrl)' .config/tap-profiles/tap-view.yaml -i
+        yq '.tap_gui.app_config.kubernetes.clusterLocatorMethods.[0].clusters.[env(clusterIndex)].name = env(clusterName)' .config/tap-profiles/tap-view.yaml -i
+        yq '.tap_gui.app_config.kubernetes.clusterLocatorMethods.[0].clusters.[env(clusterIndex)].serviceAccountToken = env(clusterToken)' .config/tap-profiles/tap-view.yaml -i
     } 
  
     #add-brownfield-apis
     add-brownfield-apis () {
         
-        brownfield_apis_ns="brownfield-apis"
+        brownfield_apis_ns="brownfield"
 
         scripts/dektecho.sh info "Installing brownfield APIs components"
 
@@ -425,15 +307,7 @@
         kubectl create secret docker-registry spring-cloud-gateway-image-pull-secret --docker-server=$PRIVATE_REPO_SERVER --docker-username=$PRIVATE_REPO_USER --docker-password=$PRIVATE_REPO_PASSWORD --namespace scgw-system
         $GW_INSTALL_DIR/scripts/install-spring-cloud-gateway.sh --namespace scgw-system
         kubectl create ns $brownfield_apis_ns
-        kubectl apply -f brownfield-apis/sentiment-gateway.yaml -n $brownfield_apis_ns
         kubectl apply -f brownfield-apis/sentiment.yaml -n $brownfield_apis_ns
-
-        scripts/dektecho.sh status "adding'consumer' components on $VIEW_CLUSTER_NAME cluster"
-        kubectl config use-context $VIEW_CLUSTER_NAME
-        kubectl create ns $brownfield_apis_ns
-        kubectl create service clusterip sentiment-api --tcp=80:80 -n $brownfield_apis_ns
-        kubectl create service clusterip datacheck-api --tcp=80:80 -n $brownfield_apis_ns
-
     
         scripts/dektecho.sh status "adding'consumer' components on $DEV_CLUSTER_NAME cluster"
         kubectl config use-context $DEV_CLUSTER_NAME
@@ -447,8 +321,14 @@
         kubectl create service clusterip sentiment-api --tcp=80:80 -n $brownfield_apis_ns
         kubectl create service clusterip datacheck-api --tcp=80:80 -n $brownfield_apis_ns
 
-        scripts/dektecho.sh status "adding 'consumer' components on $PROD_CLUSTER_NAME cluster"
-        kubectl config use-context $PROD_CLUSTER_NAME
+        scripts/dektecho.sh status "adding 'consumer' components on $PROD1_CLUSTER_NAME cluster"
+        kubectl config use-context $PROD1_CLUSTER_NAME
+        kubectl create ns $brownfield_apis_ns
+        kubectl create service clusterip sentiment-api --tcp=80:80 -n $brownfield_apis_ns
+        kubectl create service clusterip datacheck-api --tcp=80:80 -n $brownfield_apis_ns
+
+        scripts/dektecho.sh status "adding 'consumer' components on $PROD2_CLUSTER_NAME cluster"
+        kubectl config use-context $PROD2_CLUSTER_NAME
         kubectl create ns $brownfield_apis_ns
         kubectl create service clusterip sentiment-api --tcp=80:80 -n $brownfield_apis_ns
         kubectl create service clusterip datacheck-api --tcp=80:80 -n $brownfield_apis_ns
@@ -461,7 +341,8 @@
         scripts/tanzu-handler.sh tmc-cluster attach $VIEW_CLUSTER_NAME
         scripts/tanzu-handler.sh tmc-cluster attach $DEV_CLUSTER_NAME
         scripts/tanzu-handler.sh tmc-cluster attach $STAGE_CLUSTER_NAME
-        scripts/tanzu-handler.sh tmc-cluster attach $PROD_CLUSTER_NAME
+        scripts/tanzu-handler.sh tmc-cluster attach $PROD1_CLUSTER_NAME
+        scripts/tanzu-handler.sh tmc-cluster attach $PROD2_CLUSTER_NAME
         scripts/tanzu-handler.sh tmc-cluster attach $BROWNFIELD_CLUSTER_NAME
 
     }
@@ -472,8 +353,44 @@
         scripts/tanzu-handler.sh tmc-cluster remove $VIEW_CLUSTER_NAME
         scripts/tanzu-handler.sh tmc-cluster remove $DEV_CLUSTER_NAME
         scripts/tanzu-handler.sh tmc-cluster remove $STAGE_CLUSTER_NAME
-        scripts/tanzu-handler.sh tmc-cluster remove $PROD_CLUSTER_NAME
+        scripts/tanzu-handler.sh tmc-cluster remove $PROD1_CLUSTER_NAME
+        scripts/tanzu-handler.sh tmc-cluster remove $PROD2_CLUSTER_NAME
         scripts/tanzu-handler.sh tmc-cluster remove $BROWNFIELD_CLUSTER_NAME
+    }
+
+    #update-tap
+    update-tap ()
+    {
+        case $1 in
+        view) 
+            kubectl config use-context $VIEW_CLUSTER_NAME
+            tanzu package installed update tap --values-file .config/tap-profiles/tap-view.yaml -n tap-install
+            ;;
+        dev) 
+            kubectl config use-context $DEV_CLUSTER_NAME
+            tanzu package installed update tap --values-file .config/tap-profiles/tap-iterate.yaml -n tap-install
+            ;;
+        stage) 
+            kubectl config use-context $STAGE_CLUSTER_NAME
+            tanzu package installed update tap --values-file .config/tap-profiles/tap-stage.yaml -n tap-install
+            ;;
+        prod) 
+            kubectl config use-context $PROD1_CLUSTER_NAME
+            tanzu package installed update tap --values-file .config/tap-profiles/tap-run1.yaml -n tap-install
+            kubectl config use-context $PROD2_CLUSTER_NAME
+            tanzu package installed update tap --values-file .config/tap-profiles/tap-run2.yaml -n tap-install
+            ;;
+        multicluster)
+            setup-access-to-view-cluster $DEV_CLUSTER_NAME 0
+            setup-access-to-view-cluster $STAGE_CLUSTER_NAME 1
+            setup-access-to-view-cluster $PROD1_CLUSTER_NAME 2
+            setup-access-to-view-cluster $PROD2_CLUSTER_NAME 3
+            update-tap view
+            ;;
+        *)
+            incorrect-usage
+            ;;
+        esac
     }
 
     #get-contexts
@@ -483,7 +400,8 @@
         scripts/k8s-handler.sh get-context $VIEW_CLUSTER_PROVIDER $VIEW_CLUSTER_NAME
         scripts/k8s-handler.sh get-context $DEV_CLUSTER_PROVIDER $DEV_CLUSTER_NAME
         scripts/k8s-handler.sh get-context $STAGE_CLUSTER_PROVIDER $STAGE_CLUSTER_NAME
-        scripts/k8s-handler.sh get-context $PROD_CLUSTER_PROVIDER $PROD_CLUSTER_NAME
+        scripts/k8s-handler.sh get-context $PROD1_CLUSTER_PROVIDER $PROD1_CLUSTER_NAME
+        scripts/k8s-handler.sh get-context $PROD2_CLUSTER_PROVIDER $PROD2_CLUSTER_NAME
         scripts/k8s-handler.sh get-context $BROWNFIELD_CLUSTER_PROVIDER $BROWNFIELD_CLUSTER_NAME
     }
 
@@ -493,8 +411,6 @@
         
         scripts/dektecho.sh err "Incorrect usage. Please specify one of the following: "
         
-        echo "  init-all"
-        echo 
         echo "  create-clusters"
         echo 
         echo "  install-demo"
@@ -502,6 +418,8 @@
         echo "  delete-all"
         echo
         echo "  generate-configs"
+        echo
+        echo "  update-tap view | dev | stage | prod | multicluster"
         echo
         echo "  export-packages tap|tbs|tds|scgw"
         echo
@@ -519,7 +437,8 @@ create-clusters)
     scripts/k8s-handler.sh create $VIEW_CLUSTER_PROVIDER $VIEW_CLUSTER_NAME $VIEW_CLUSTER_NODES \
     & scripts/k8s-handler.sh create $DEV_CLUSTER_PROVIDER $DEV_CLUSTER_NAME $DEV_CLUSTER_NODES \
     & scripts/k8s-handler.sh create $STAGE_CLUSTER_PROVIDER $STAGE_CLUSTER_NAME $STAGE_CLUSTER_NODES \
-    & scripts/k8s-handler.sh create $PROD_CLUSTER_PROVIDER $PROD_CLUSTER_NAME $PROD_CLUSTER_NODES \
+    & scripts/k8s-handler.sh create $PROD1_CLUSTER_PROVIDER $PROD1_CLUSTER_NAME $PROD1_CLUSTER_NODES \
+    & scripts/k8s-handler.sh create $PROD2_CLUSTER_PROVIDER $PROD2_CLUSTER_NAME $PROD2_CLUSTER_NODES \
     & scripts/k8s-handler.sh create $BROWNFIELD_CLUSTER_PROVIDER $BROWNFIELD_CLUSTER_NAME $BROWNFIELD_CLUSTER_NODES  
     ;;
 install-demo)
@@ -528,23 +447,27 @@ install-demo)
     install-view-cluster
     install-dev-cluster
     install-stage-cluster
-    install-prod-cluster
-    update-multi-cluster-access
+    install-prod-cluster1 
+    install-prod-cluster2
+    update-tap multicluster
     add-brownfield-apis
     attach-tmc-clusters 
     ;;
 delete-all)
     scripts/dektecho.sh prompt  "Are you sure you want to delete all clusters?" && [ $? -eq 0 ] || exit
-    ./demo.sh reset
     delete-tmc-clusters
     scripts/k8s-handler.sh delete $VIEW_CLUSTER_PROVIDER $VIEW_CLUSTER_NAME \
     & scripts/k8s-handler.sh delete $DEV_CLUSTER_PROVIDER $DEV_CLUSTER_NAME \
     & scripts/k8s-handler.sh delete $STAGE_CLUSTER_PROVIDER $STAGE_CLUSTER_NAME \
-    & scripts/k8s-handler.sh delete $PROD_CLUSTER_PROVIDER $PROD_CLUSTER_NAME \
+    & scripts/k8s-handler.sh delete $PROD1_CLUSTER_PROVIDER $PROD1_CLUSTER_NAME \
+    & scripts/k8s-handler.sh delete $PROD2_CLUSTER_PROVIDER $PROD2_CLUSTER_NAME \
     & scripts/k8s-handler.sh delete $BROWNFIELD_CLUSTER_PROVIDER $BROWNFIELD_CLUSTER_NAME
     ;;
 generate-configs)
     scripts/tanzu-handler.sh generate-configs
+    ;;
+update-tap)
+    update-tap $2
     ;;
 export-packages)
     scripts/tanzu-handler.sh relocate-tanzu-images $2

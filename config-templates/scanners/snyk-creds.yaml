@@ -1,8 +1,0 @@
-#@ load("@ytt:data", "data")
----
-apiVersion: v1
-kind: Secret
-metadata:
-  name: snyk-token-secret
-data:
-  snyk_token: #@ data.values.snyk.token

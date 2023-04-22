@@ -1,51 +1,40 @@
 #@ load("@ytt:data", "data")
 ---
 profile: iterate
-
 shared:
   ingress_domain: #@ "{}.{}".format(data.values.dns.devSubDomain, data.values.dns.domain)
   ingress_issuer: #@ data.values.tap.ingressIssuer
   image_registry:
-    project_path: #@ "{}/{}".format(data.values.private_registry.host, data.values.repositories.system)
+    project_path: #@ "{}/{}".format(data.values.private_registry.host, data.values.private_registry.repo)
     username: #@ data.values.private_registry.username
     password: #@ data.values.private_registry.password
+supply_chain: testing
 
-supply_chain: basic
-
-ootb_supply_chain_basic: 
-  gitops:
-    ssh_secret: gitops-credentials
-    server_address: #@ data.values.gitops.server
-    repository_owner: #@ data.values.gitops.owner
-    repository_name: #@ data.values.gitops.dev
-
-ootb_supply_chain_testing: 
-  gitops:
-    ssh_secret: gitops-credentials
-    server_address: #@ data.values.gitops.server
-    repository_owner: #@ data.values.gitops.owner
-    repository_name: #@ data.values.gitops.dev
-
+namespace_provisioner:
+  controller: true
+  additional_sources:
+    - git:
+        ref: origin/main
+        subPath: resources
+        url: https://github.com/dektlong/dekt-gitops.git
+      path: _ytt_lib/resources
 cnrs:
-  domain_template: "{{.Name}}.{{.Domain}}"
+  domain_template: '{{.Name}}.{{.Domain}}'
 contour:
   envoy:
     service:
       type: LoadBalancer
-
 appliveview_connector:
+  activateSensitiveOperations: true
   backend:
     host: #@ "{}.{}.{}".format("appliveview", data.values.dns.sysSubDomain, data.values.dns.domain)
     ingressEnabled: true
-    sslDeactivated: true
-
+    caCertData: |-
+    UPDATED_IN_RUNTIME
 api_auto_registration:
   tap_gui_url: #@ "{}.{}.{}".format("https://tap-gui", data.values.dns.sysSubDomain, data.values.dns.domain)
-
 excluded_packages:
   - learningcenter.tanzu.vmware.com
   - workshops.learningcenter.tanzu.vmware.com
-  - eventing.tanzu.vmware.com
-  - policy.apps.tanzu.vmware.com 
-
+  - tap-telemetry.tanzu.vmware.com
 ceip_policy_disclosed: true

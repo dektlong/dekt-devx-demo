@@ -11,6 +11,7 @@ This repo contains artifacts to run a demo illustrating the vision and capabilit
     - eksclt 
     - gcloud
   - tanzu CLIs with apps and services plugins
+    - version 0.28.1 or above!
   - carvel (specifically imgpkg and ytt)
   - docker CLI
   - jq
@@ -34,7 +35,7 @@ This repo contains artifacts to run a demo illustrating the vision and capabilit
 - verify all yamls created successfully in the ```.config``` folder
 
 - 
-export Tanzu packages to your private registry
+export Tanzu packages to your private registry if node done prior
 ```
 ./builder.sh export-packages tap (relocates TAP and Cluster Essentials packages)
 
@@ -62,39 +63,30 @@ export Tanzu packages to your private registry
 This scripts automated the following:
 
 - Set k8s contexts and verify clusters created successfully
-- Install demo components on View cluster
+- Install demo components on ```clusters.view.name``` 
   - Carvel tools
   - TAP based on ```.config/tap-profiles/tap-view.yaml``` values
   - Custom app accelerators
-  - Metadata store config on consumer cluster
-  - System ingress rule
-- Install demo components on Dev cluster
+  - Ingress rule to ```dns.sysSubDomain.domain``
+- Install demo components on ```clusters.dev.name``` 
   - Carvel tools
   - TAP based on ```.config/tap-profiles/tap-itereate.yaml``` values
-  - ```dekt-src-config``` and ```dekt-src-test-api-config``` custom supply chains
-  - Tekton pipeline
-  - Metadata store config on provider cluster
-  - RabbitMQ operator and service toolkit integration
-  - Tanzu postgres operator and service toolkit integration
-  - CNR dev ingress rule
-- Install demo components on Stage cluster
+  - we use namespace-provisioner with ```dektlong/dekt-gitops/resources``` repo for the following ```ootb-testing``` supplychain resources:
+    - Java apps testing pipeline 
+    - Nodejs apps testing pipeline 
+    - Golang apps testing pipeline 
+  - Ingress rule to ```dns.devSubDomain.domain``
+- Install demo components on ```clusters.stage.name``` 
   - Carvel tools
   - TAP based on ```.config/tap-profiles/tap-build.yaml``` values
-  - CarbonBlack & Snyk image scanner (out-of-the-box Grype for source scanning)
-  - Scanning policy 
-  - Metadata store config on provider cluster
-  - Tekton pipeline
-  - ```dekt-src-scan-config``` and ```dekt-src-test-scan-api-config``` custom supply chains 
-  - RabbitMQ operator and service toolkit integration
-  - Crossplane RDS connector and RDS Postgres XRDs
-- Install demo components on Prod cluster
+  - we use namespace-provisioner with ```dektlong/dekt-gitops/resources``` repo for the following ```ootb-testing``` supplychain resources:
+    - Java apps testing pipeline 
+    - Nodejs apps testing pipeline 
+    - Golang apps testing pipeline 
+- Install demo components on ```clusters.prod1.name``` and ```clusters.prod2.name``` 
   - Carvel tools
-  - TAP based on ```.config/tap-profiles/tap-run.yaml``` values
-  - Metadata store config on provider cluster
-  - CNR run ingress rule
-  - RabbitMQ operator and service toolkit integration
-  - Crossplane RDS connector and RDS Postgres XRDs
-- Configure TAP-gui multi clusters access
+  - TAP based on ```.config/tap-profiles/tap-run1.yaml``` and ```.config/tap-profiles/tap-run1.yaml``` values
+  - Ingress rules to ```dns.prod1SubDomain.domain``` and ```dns.prod2SubDomain.domain```
 - Install demo components on Brownfield cluster
   - Spring Cloud Gateway operator
   - Brownfield APIs SCGW instances and routes in ```brownfield-apis``` ns
@@ -135,27 +127,11 @@ This scripts automated the following:
 ./demo.sh info
 ```
 
-- Deploy single dev workload via script
+  
+- Deploy innerloop workloads
 ```
 ./demo.sh dev
 ```
-
-  - Option2: deploy vial VScode (require Tanzu VScode plugin)
-
-  - The single dev deploy will run on ```apps_namespaces.dev``` namespaces in the ```clusters.dev.name```
-
-  - Track provisioned data service
-    ```
-    ./demo.sh services dev
-    ```
-  - show how the RabbitMQ 'reading' single instance resource created
-  - show service claim generated for data services and mapped to the workload
-  
-- Promote to innerloop teams (shared dev work) 
-```
-./demo.sh team
-```
-
   - Track the progress of the 3 supply chains in the TAP gui or CLI
     ```
     ./demo.sh track team [logs]

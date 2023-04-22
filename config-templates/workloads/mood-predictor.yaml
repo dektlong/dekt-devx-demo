@@ -5,13 +5,13 @@ kind: Workload
 metadata:
   name: mood-predictor
   labels:
-    apps.tanzu.vmware.com/workload-type: dekt-img
+    apps.tanzu.vmware.com/workload-type: server
     app.kubernetes.io/part-of: mood-predictor
 spec:
-  image: #@ data.values.private_registry.host + "/isvs/" + data.values.tap.isvImg
+  #image param is set in runtime
   serviceClaims:
-  - name: rabbitmq-claim
+  - name: reading-claim
     ref:
-      apiVersion: rabbitmq.com/v1beta1
-      kind: RabbitmqCluster
-      name: reading-queue
+      apiVersion: services.apps.tanzu.vmware.com/v1alpha1
+      kind: ClassClaim
+      name: reading

@@ -3,7 +3,7 @@
 export IMGPKG_REGISTRY_HOSTNAME=$(yq .private_registry.host .config/demo-values.yaml)
 export IMGPKG_REGISTRY_USERNAME=$(yq .private_registry.username .config/demo-values.yaml)
 export IMGPKG_REGISTRY_PASSWORD=$(yq .private_registry.password .config/demo-values.yaml)
-SYSTEM_REPO=$(yq .repositories.system .config/demo-values.yaml)
+SYSTEM_REPO=$(yq .private_registry.repo .config/demo-values.yaml)
 CARVEL_BUNDLE=$(yq .tap.carvelBundle .config/demo-values.yaml)
 TANZU_NETWORK_REGISTRY="registry.tanzu.vmware.com"
 TANZU_NETWORK_USER=$(yq .tanzu_network.username .config/demo-values.yaml)
@@ -116,44 +116,56 @@ generate-config-yamls() {
     mkdir -p .config/tap-profiles
     ytt -f config-templates/tap-profiles/tap-view.yaml --data-values-file=.config/demo-values.yaml > .config/tap-profiles/tap-view.yaml
     ytt -f config-templates/tap-profiles/tap-iterate.yaml --data-values-file=.config/demo-values.yaml > .config/tap-profiles/tap-iterate.yaml
-    ytt -f config-templates/tap-profiles/tap-build.yaml --data-values-file=.config/demo-values.yaml > .config/tap-profiles/tap-build.yaml
-    ytt -f config-templates/tap-profiles/tap-run.yaml --data-values-file=.config/demo-values.yaml > .config/tap-profiles/tap-run.yaml
+    ytt -f config-templates/tap-profiles/tap-stage.yaml --data-values-file=.config/demo-values.yaml > .config/tap-profiles/tap-stage.yaml
+    ytt -f config-templates/tap-profiles/tap-run1.yaml --data-values-file=.config/demo-values.yaml > .config/tap-profiles/tap-run1.yaml
+    ytt -f config-templates/tap-profiles/tap-run2.yaml --data-values-file=.config/demo-values.yaml > .config/tap-profiles/tap-run2.yaml
 
-    #supply-chains
-    mkdir -p .config/supply-chains
-    ytt -f config-templates/supply-chains/dekt-src-config.yaml --data-values-file=.config/demo-values.yaml > .config/supply-chains/dekt-src-config.yaml
-    ytt -f config-templates/supply-chains/dekt-src-scan-config.yaml --data-values-file=.config/demo-values.yaml > .config/supply-chains/dekt-src-scan-config.yaml
-    ytt -f config-templates/supply-chains/dekt-src-test-api-config.yaml --data-values-file=.config/demo-values.yaml > .config/supply-chains/dekt-src-test-api-config.yaml
-    ytt -f config-templates/supply-chains/dekt-src-test-scan-api-config.yaml --data-values-file=.config/demo-values.yaml > .config/supply-chains/dekt-src-test-scan-api-config.yaml
-    ytt -f config-templates/supply-chains/dekt-img-config.yaml --data-values-file=.config/demo-values.yaml > .config/supply-chains/dekt-img-config.yaml
-    ytt -f config-templates/supply-chains/dekt-img-scan-config.yaml --data-values-file=.config/demo-values.yaml > .config/supply-chains/dekt-img-scan-config.yaml
-    ytt -f config-templates/supply-chains/gitops-creds.yaml --data-values-file=.config/demo-values.yaml > .config/supply-chains/gitops-creds.yaml
-    cp config-templates/supply-chains/tekton-pipeline-dotnet.yaml .config/supply-chains/tekton-pipeline-dotnet.yaml
-    cp config-templates/supply-chains/tekton-pipeline.yaml .config/supply-chains/tekton-pipeline.yaml
+    #secrets
+    mkdir -p .config/secrets
+    cp -a config-templates/secrets/ .config/secrets
+    ytt -f config-templates/secrets/carbonblack-creds.yaml --data-values-file=.config/demo-values.yaml > .config/secrets/carbonblack-creds.yaml
+    ytt -f config-templates/secrets/snyk-creds.yaml --data-values-file=.config/demo-values.yaml > .config/secrets/snyk-creds.yaml
+    cp config-templates/secrets/viewer-rbac.yaml .config/secrets/viewer-rbac.yaml
 
-    #scanners
-    mkdir -p .config/scanners
-    ytt -f config-templates/scanners/carbonblack-creds.yaml --data-values-file=.config/demo-values.yaml > .config/scanners/carbonblack-creds.yaml
-    ytt -f config-templates/scanners/carbonblack-values.yaml --data-values-file=.config/demo-values.yaml > .config/scanners/carbonblack-values.yaml
-    ytt -f config-templates/scanners/snyk-creds.yaml --data-values-file=.config/demo-values.yaml > .config/scanners/snyk-creds.yaml
-    ytt -f config-templates/scanners/snyk-values.yaml --data-values-file=.config/demo-values.yaml > .config/scanners/snyk-values.yaml
-    cp config-templates/scanners/scan-policy.yaml .config/scanners/scan-policy.yaml
+    #crossplane
+    mkdir -p .config/crossplane
+    ytt -f config-templates/crossplane/inventory-db-composition.yml --data-values-file=.config/demo-values.yaml > .config/crossplane/inventory-db-composition.yml
+    cp config-templates/crossplane/aws-rds-psql-rbac.yaml .config/crossplane/aws-rds-psql-rbac.yaml
+    cp config-templates/crossplane/rds-class.yaml .config/crossplane/rds-class.yaml
+    cp config-templates/crossplane/inventory-db-xrd.yaml .config/crossplane/inventory-db-xrd.yaml
 
-    #cluster-configs
-    mkdir -p .config/cluster-configs
-    cp -a config-templates/cluster-configs/ .config/cluster-configs/
-    
-    #data-services (WIP)
-    cp -R config-templates/data-services .config
-    ytt -f config-templates/data-services/rds-postgres/crossplane-xrd-composition.yaml --data-values-file=.config/demo-values.yaml > .config/data-services/rds-postgres/crossplane-xrd-composition.yaml
-
-    #workloads
     mkdir -p .config/workloads
     cp -a config-templates/workloads/ .config/workloads/
-    ytt -f config-templates/workloads/mood-predictor.yaml --data-values-file=.config/demo-values.yaml > .config/workloads/mood-predictor.yaml
-    
 }
 
+#intall-tanzu-package
+install-tanzu-package() {
+
+    package_full_name=$1
+    package_display_name=$2
+    value_file_path=$3
+
+    tanzu package available list -n tap-install $package_full_name -o yaml | sed 's/- /  /' > .config/package_info.yaml
+    package_version=$(yq .version .config/package_info.yaml)
+    rm .config/package_info.yaml
+    
+    scripts/dektecho.sh status "Installing tanzu package $package_display_name with discoverd version $package_version"
+
+    if [ "$value_file" == "" ]
+    then    
+        tanzu package install $package_display_name \
+            --package $package_full_name \
+            --version  $package_version \
+            --namespace tap-install
+    else
+        tanzu package install $package_display_name \
+            --package $package_full_name \
+            --version $package_version\
+            --namespace tap-install \
+            --values-file $value_file_path  
+    fi
+
+}
 #attach TMC cluster
 attach-tmc-cluster() {
     
@@ -193,7 +205,7 @@ incorrect-usage() {
     echo 
     echo "  add-carvel-tools"
     echo 
-    echo "  add-aria-monitoring"
+    echo "  install-tanzu-package package-full-name,package-display-name,(optional)value-file-path"
     echo 
     echo "  tmc-cluster attach|remove"
     echo 
@@ -227,6 +239,9 @@ relocate-tanzu-images)
     ;;
 add-carvel-tools)
   	add-carvel
+    ;;
+install-tanzu-package)
+    install-tanzu-package $2 $3 $4
     ;;
 tmc-cluster)
     case $2 in

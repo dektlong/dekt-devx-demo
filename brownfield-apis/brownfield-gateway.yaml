@@ -11,12 +11,20 @@ spec:
         - datacheck.gns.dekt.io
         - sentiment.gns.dekt.io
         secretName: mood-tls-cert
+  client:
+    tls:   
+      secretNames: mood-tls-cert
   
   api:
-    serverUrl: https://sentiment.gns.dekt.io
+    serverUrl: https://gns.dekt.io
     title: Micro-gateway to contorl 3rd party/legacy API access
     version: 0.1.0
     groupId: brownfield-apis
+  
+  sso: 
+    secret: mood-gw-sso-creds
 
-
+  cors:
+      allowedOrigins:
+       - tap-gui.sys.dekt.io
   
