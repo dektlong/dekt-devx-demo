@@ -79,10 +79,13 @@ This scripts automated the following:
 - Install demo components on ```clusters.stage.name``` 
   - Carvel tools
   - TAP based on ```.config/tap-profiles/tap-build.yaml``` values
-  - we use namespace-provisioner with ```dektlong/dekt-gitops/resources``` repo for the following ```ootb-testing``` supplychain resources:
+  - we use namespace-provisioner with ```dektlong/dekt-gitops/resources``` repo for the following ```ootb-testing-scanning``` supplychain resources:
     - Java apps testing pipeline 
     - Nodejs apps testing pipeline 
-    - Golang apps testing pipeline 
+    - Golang apps testing pipeline
+    - Scan policy
+    - Install CarbonBlack scanner
+    - Install Snyk scanner 
 - Install demo components on ```clusters.prod1.name``` and ```clusters.prod2.name``` 
   - Carvel tools
   - TAP based on ```.config/tap-profiles/tap-run1.yaml``` and ```.config/tap-profiles/tap-run1.yaml``` values
@@ -93,18 +96,7 @@ This scripts automated the following:
   - Add brownfield 'consumer' k8s services to TAP clusters in ```brownfield-apis``` ns
 - Attach all clusters to TMC via the TMC API
 
-### Optional manual configuration
-  - TSM
-    - Add TSM integration via TMC dashboard for ```clusters.prod.name``` and ```clusters.brownfield.name```
-    - exclude TAP namespaces
-    - Do not use the option to install Spring Cloud Gateway
-  - CarbonBlack
-    - Inventory->Clusters->Add Cluster
-    - Onboard ```clusters.prod.name``` and ```clusters.stage.name```
-  - Cloud Health SecureState
-    - Settings->Cloud Accounts->Add account
-    - Register the AWS/Azure/GCP account used for ```clusters.prod.name``` and ```clusters.stage.name```
-    
+   
 ## Running the demo 
 
 ### Inner loop
@@ -114,7 +106,7 @@ This scripts automated the following:
     - use ```devx-mood```  as the parent application
     - show service claims abstraction
   - (optional) create ```mood-portal```  workload using the web-function accelerator 
-  - (optional) create ```mood-analyzer```  workload using the node.js accelerator 
+  - (optional) create ```mood-doctor```  workload using the node.js accelerator 
   
 
 - access the api-portal and highlight how discovery of existing APIs prior to creating new ones is done
