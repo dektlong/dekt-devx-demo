@@ -1,0 +1,17 @@
+# app-operator-claim-aws-rds-psql.rbac.yml
+
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: app-operator-claim-aws-rds-psql
+  labels:
+    apps.tanzu.vmware.com/aggregate-to-app-operator-cluster-access: "true"
+rules:
+- apiGroups:
+  - "services.apps.tanzu.vmware.com"
+  resources:
+  - clusterinstanceclasses
+  resourceNames:
+  - aws-rds-psql
+  verbs:
+  - claim

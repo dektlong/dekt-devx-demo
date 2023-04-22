@@ -1,0 +1,27 @@
+#@ load("@ytt:data", "data")
+---
+profile: run
+shared:
+  ingress_domain: #@ "{}.{}".format(data.values.dns.prod2SubDomain, data.values.dns.domain)
+  ingress_issuer: #@ data.values.tap.ingressIssuer
+
+supply_chain: basic
+
+cnrs:
+  domain_template: '{{.Name}}.{{.Domain}}'
+contour:
+  envoy:
+    service:
+      type: LoadBalancer
+appliveview_connector:
+  backend:
+    host:  #@ "{}.{}.{}".format("appliveview", data.values.dns.sysSubDomain, data.values.dns.domain)
+    caCertData: |-
+      UPDATED_IN_RUNTIME
+
+excluded_packages:
+  - learningcenter.tanzu.vmware.com
+  - workshops.learningcenter.tanzu.vmware.com
+  - eventing.tanzu.vmware.com
+  - tap-telemetry.tanzu.vmware.com
+ceip_policy_disclosed: true

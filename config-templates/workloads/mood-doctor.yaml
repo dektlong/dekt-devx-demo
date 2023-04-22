@@ -1,0 +1,27 @@
+apiVersion: carto.run/v1alpha1
+kind: Workload
+metadata:
+  name: mood-doctor
+  labels:
+    apps.tanzu.vmware.com/workload-type: worker
+    app.kubernetes.io/part-of: mood-doctor
+    apps.tanzu.vmware.com/has-tests: "true"
+spec:
+  #source code
+  source:
+    git:
+      url: https://github.com/dektlong/mood-doctor
+      ref:
+        branch: main
+  #data services
+  serviceClaims:
+  - name: reading-claim
+    ref:
+      apiVersion: services.apps.tanzu.vmware.com/v1alpha1
+      kind: ClassClaim
+      name: reading
+
+  params:
+  - name: testing_pipeline_matching_labels
+    value:
+      apps.tanzu.vmware.com/language: nodejs
