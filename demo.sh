@@ -110,6 +110,7 @@
         #dev2 workload
         scripts/dektecho.sh cmd "tanzu apps workload create $DEV2_WORKLOAD -f .config/workloads/mood-sensors.yaml -y -n $DEV2_NAMESPACE"
          tanzu apps workload create  $DEV2_WORKLOAD -f .config/workloads/mood-sensors.yaml \
+            --service-ref reading-claim=services.apps.tanzu.vmware.com/v1alpha1:ClassClaim:reading \
             --param-yaml testing_pipeline_matching_labels='{"apps.tanzu.vmware.com/language": "java"}' \
             -y -n $DEV2_NAMESPACE
 
@@ -126,11 +127,14 @@
         #sensors workload
         scripts/dektecho.sh cmd "tanzu apps workload create $SENSORS_WORKLOAD -f .config/workloads/mood-sensors.yaml -y -n $TEAM_NAMESPACE"
          tanzu apps workload create $SENSORS_WORKLOAD -f .config/workloads/mood-sensors.yaml \
+            --service-ref inventory-claim=services.apps.tanzu.vmware.com/v1alpha1:ClassClaim:inventory \
+            --service-ref reading-claim=services.apps.tanzu.vmware.com/v1alpha1:ClassClaim:reading \
             -y -n $TEAM_NAMESPACE
 
         #doctor workload
         scripts/dektecho.sh cmd "tanzu apps workload create $MEDICAL_WORKLOAD -f .config/workloads/mood-doctor.yaml -y -n $TEAM_NAMESPACE"
         tanzu apps workload create $MEDICAL_WORKLOAD -f .config/workloads/mood-doctor.yaml \
+            --service-ref reading-claim=services.apps.tanzu.vmware.com/v1alpha1:ClassClaim:reading \
             -y -n $TEAM_NAMESPACE
 
         #predictor workload 
@@ -163,17 +167,21 @@
             --param scanning_image_template=$IMAGE_SCAN_TEMPLATE_PORTAL \
             -y -n $STAGEPROD_NAMESPACE
 
-        #sensors workload
+        #sensors workload WORKAROUND!! until service-claims to run-cluster issue fixed
         scripts/dektecho.sh cmd "tanzu apps workload create $SENSORS_WORKLOAD -f .config/workloads/mood-sensors.yaml -y -n $STAGEPROD_NAMESPACE"
         tanzu apps workload create $SENSORS_WORKLOAD -f .config/workloads/mood-sensors.yaml \
             --param scanning_image_template=$IMAGE_SCAN_TEMPLATE_SENSORS \
             -y -n $STAGEPROD_NAMESPACE
+            #--service-ref inventory-claim=services.apps.tanzu.vmware.com/v1alpha1:ClassClaim:inventory \
+            #--service-ref reading-claim=services.apps.tanzu.vmware.com/v1alpha1:ClassClaim:reading \
 
-        #doctor workload
+        #doctor workload WORKAROUND!! until service-claims to run-cluster issue fixed
         scripts/dektecho.sh cmd "tanzu apps workload create $MEDICAL_WORKLOAD -f .config/workloads/mood-doctor.yaml -y -n $STAGEPROD_NAMESPACE"
         tanzu apps workload create $MEDICAL_WORKLOAD -f .config/workloads/mood-doctor.yaml  \
-        --param scanning_image_template=$IMAGE_SCAN_TEMPLATE_DOCTOR \
+            --param scanning_image_template=$IMAGE_SCAN_TEMPLATE_DOCTOR \
             -y -n $STAGEPROD_NAMESPACE
+            #--service-ref reading-claim=services.apps.tanzu.vmware.com/v1alpha1:ClassClaim:reading \
+        
 
         #predictor workload
         scripts/dektecho.sh cmd "tanzu apps workload create $PREDICTOR_WORKLOAD -f .config/workloads/mood-predictor.yaml -y -n $STAGEPROD_NAMESPACE"
@@ -192,27 +200,27 @@
         mkdir .config/staging-artifacts
 
         kubectl get configmap $PORTAL_WORKLOAD-deliverable -n $STAGEPROD_NAMESPACE -o go-template='{{.data.deliverable}}' > .config/staging-artifacts/$PORTAL_WORKLOAD-deliverable.yaml
-        kubectl get configmap $SENSORS_WORKLOAD-deliverable -n $STAGEPROD_NAMESPACE -o go-template='{{.data.deliverable}}' > .config/staging-artifacts/$SENSORS_WORKLOAD-deliverable.yaml
         kubectl get configmap $MEDICAL_WORKLOAD-deliverable -n $STAGEPROD_NAMESPACE -o go-template='{{.data.deliverable}}' > .config/staging-artifacts/$MEDICAL_WORKLOAD-deliverable.yaml
+        kubectl get configmap $SENSORS_WORKLOAD-deliverable -n $STAGEPROD_NAMESPACE -o go-template='{{.data.deliverable}}' > .config/staging-artifacts/$SENSORS_WORKLOAD-deliverable.yaml
         
         scripts/dektecho.sh prompt  "Deliverables created in .config/staging-artifacts. Press 'y' to continue deploying to production clusters" && [ $? -eq 0 ] || exit
         
-        kubectl config use-context $PROD1_CLUSTER
-        scripts/dektecho.sh status "Creating data services in $PROD1_CLUSTER production cluster..."
-        tanzu service class-claim create inventory --class aws-rds-psql -p storageGB=30 -n $STAGEPROD_NAMESPACE
-        tanzu service class-claim create reading --class rabbitmq-unmanaged --parameter replicas=2 --parameter storageGB=1 -n $STAGEPROD_NAMESPACE
-        scripts/dektecho.sh status "Applying workloads deliverables to $PROD1_CLUSTER production cluster..."
-        kubectl apply -f .config/staging-artifacts -n $STAGEPROD_NAMESPACE
-        
-        kubectl config use-context $PROD1_CLUSTER
-        scripts/dektecho.sh status "Creating data services in $PROD1_CLUSTER production cluster..."
-        tanzu service class-claim create inventory --class aws-rds-psql -p storageGB=30 -n $STAGEPROD_NAMESPACE
-        tanzu service class-claim create reading --class rabbitmq-unmanaged --parameter replicas=2 --parameter storageGB=1 -n $STAGEPROD_NAMESPACE
-        scripts/dektecho.sh status "Applying workloads deliverables to $PROD1_CLUSTER production cluster..."
-        kubectl apply -f .config/staging-artifacts -n $STAGEPROD_NAMESPACE
-        
-        scripts/dektecho.sh status "Your DevX-Mood application is being deployed to production"
+        prod-delpoy $PROD1_CLUSTER
+        prod-delpoy $PROD2_CLUSTER
 
+    }
+
+    #prod-deploy
+    prod-delpoy() {
+
+        clusterName=$1
+
+        kubectl config use-context $clusterName
+        scripts/dektecho.sh status "Creating data services in $clusterName production cluster..."
+        tanzu service class-claim create inventory --class aws-rds-psql -p storageGB=30 -n $STAGEPROD_NAMESPACE
+        tanzu service class-claim create reading --class rabbitmq-unmanaged --parameter replicas=2 --parameter storageGB=1 -n $STAGEPROD_NAMESPACE
+        scripts/dektecho.sh status "Applying workloads deliverables to $clusterName production cluster..."
+        kubectl apply -f .config/staging-artifacts -n $STAGEPROD_NAMESPACE
     }
 
     #supplychains
@@ -280,8 +288,8 @@
         reset-prod $PROD1_CLUSTER 
         reset-prod $PROD2_CLUSTER 
         rm -r .config/staging-artifacts
-
         ./builder.sh update-tap multicluster
+
     }
 
     #reset-dev
@@ -316,7 +324,7 @@
         clusterName=$1
 
         kubectl config use-context $clusterName
-        kubectl delete .config/staging-artifacts -n $STAGEPROD_NAMESPACE
+        kubectl delete -f .config/staging-artifacts -n $STAGEPROD_NAMESPACE
         tanzu service class-claim delete reading -y -n $STAGEPROD_NAMESPACE
         tanzu service class-claim delete inventory -y -n $STAGEPROD_NAMESPACE
       

@@ -70,12 +70,11 @@
 
         scripts/ingress-handler.sh update-tap-dns $SYSTEM_SUB_DOMAIN $VIEW_CLUSTER_PROVIDER
 
-        #update ALV access to view cluster
-        #WORKAROUND!! update cert manualy
-        #export alvCert=$(kubectl get secret app-tls-ca-cert -n metadata-store -o yaml | yq '.data."ca.crt"' | base64 -d)
-        #yq '.appliveview_connector.backend.caCertData = env(alvCert)' .config/tap-profiles/tap-iterate.yaml -i
-        #yq '.appliveview_connector.backend.caCertData = env(alvCert)' .config/tap-profiles/tap-run1.yaml -i
-        #yq '.appliveview_connector.backend.caCertData = env(alvCert)' .config/tap-profiles/tap-run2.yaml -i
+        #update ALV cert in iterate cluster
+        kubectl get secret app-tls-ca-cert -n metadata-store -o yaml | yq '.data."ca.crt"' | base64 -d > .config/secrets/alv-cert.pem
+        yq '.appliveview_connector.backend.caCertData = load_str(".config/secrets/alv-cert.pem")' .config/tap-profiles/tap-iterate.yaml -i
+        rm .config/secrets/alv-cert.pem
+        
 
     }
 
@@ -131,6 +130,8 @@
 
         scripts/tanzu-handler.sh add-carvel-tools
 
+        setup-app-ns $STAGEPROD_NAMESPACE
+
         install-tap "tap-run1.yaml"
 
         scripts/ingress-handler.sh update-tap-dns $PROD1_SUB_DOMAIN $PROD1_CLUSTER_PROVIDER
@@ -147,6 +148,8 @@
         kubectl create ns tap-install
 
         scripts/tanzu-handler.sh add-carvel-tools
+
+        setup-app-ns $STAGEPROD_NAMESPACE
 
         install-tap "tap-run2.yaml"
 
@@ -203,10 +206,11 @@
         kubectl create ns $appnamespace
         kubectl label namespaces $appnamespace apps.tanzu.vmware.com/tap-ns="" 
 
+        kubectl apply -f .config/secrets/gitops-creds.yaml -n $appnamespace
+
         if [ "$2" == "with-scans" ]; then
             kubectl apply -f .config/secrets/snyk-creds.yaml -n $appnamespace
             kubectl apply -f .config/secrets/carbonblack-creds.yaml -n $appnamespace
-            #kubectl apply -f .config/secrets/scanners-auth.yaml
         fi
 
     }
@@ -441,9 +445,10 @@ install-demo)
     install-view-cluster
     install-dev-cluster
     install-stage-cluster
+    update-tap multicluster
+
     install-prod-cluster1 
     install-prod-cluster2
-    update-tap multicluster
     add-brownfield-apis
     attach-tmc-clusters 
     ;;
