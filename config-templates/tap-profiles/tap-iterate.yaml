@@ -29,8 +29,6 @@ appliveview_connector:
   backend:
     host: #@ "{}.{}.{}".format("appliveview", data.values.dns.sysSubDomain, data.values.dns.domain)
     ingressEnabled: true
-    caCertData: |-
-    UPDATED_IN_RUNTIME
 api_auto_registration:
   tap_gui_url: #@ "{}.{}.{}".format("https://tap-gui", data.values.dns.sysSubDomain, data.values.dns.domain)
 excluded_packages:

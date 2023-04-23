@@ -16,9 +16,6 @@ contour:
 appliveview_connector:
   backend:
     host:  #@ "{}.{}.{}".format("appliveview", data.values.dns.sysSubDomain, data.values.dns.domain)
-    caCertData: |-
-      UPDATED_IN_RUNTIME
-
 excluded_packages:
   - learningcenter.tanzu.vmware.com
   - workshops.learningcenter.tanzu.vmware.com

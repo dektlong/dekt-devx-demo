@@ -383,8 +383,6 @@ EOF
         multicluster)
             setup-access-to-view-cluster $DEV_CLUSTER_NAME 0
             setup-access-to-view-cluster $STAGE_CLUSTER_NAME 1
-            setup-access-to-view-cluster $PROD1_CLUSTER_NAME 2
-            setup-access-to-view-cluster $PROD2_CLUSTER_NAME 3
             update-tap view
             ;;
         *)

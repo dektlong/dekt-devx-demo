@@ -46,17 +46,6 @@ tap_gui:
               authProvider: serviceAccount
               serviceAccountToken: UPDATED_IN_RUNTIME
               skipTLSVerify: true
-            - url: UPDATED_IN_RUNTIME
-              name: UPDATED_IN_RUNTIME
-              authProvider: serviceAccount
-              serviceAccountToken: UPDATED_IN_RUNTIME
-              skipTLSVerify: true
-            - url: UPDATED_IN_RUNTIME
-              name: UPDATED_IN_RUNTIME
-              authProvider: serviceAccount
-              serviceAccountToken: UPDATED_IN_RUNTIME
-              skipTLSVerify: true
-contour:
   envoy:
     service:
       type: LoadBalancer
