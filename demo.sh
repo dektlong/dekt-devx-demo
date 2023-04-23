@@ -189,29 +189,27 @@
 
         scripts/dektecho.sh status "Pulling workloads deliverables from $STAGE_CLUSTER cluster"
         kubectl config use-context $STAGE_CLUSTER
-        kubectl get configmap $PORTAL_WORKLOAD-deliverable -n $STAGEPROD_NAMESPACE -o go-template='{{.data.deliverable}}' > .config/workloads/$PORTAL_WORKLOAD-deliverable.yaml
-        kubectl get configmap $SENSORS_WORKLOAD-deliverable -n $STAGEPROD_NAMESPACE -o go-template='{{.data.deliverable}}' > .config/workloads/$SENSORS_WORKLOAD-deliverable.yaml
-        kubectl get configmap $MEDICAL_WORKLOAD-deliverable -n $STAGEPROD_NAMESPACE -o go-template='{{.data.deliverable}}' > .config/workloads/$MEDICAL_WORKLOAD-deliverable.yaml
+        mkdir .config/staging-artifacts
+
+        kubectl get configmap $PORTAL_WORKLOAD-deliverable -n $STAGEPROD_NAMESPACE -o go-template='{{.data.deliverable}}' > .config/staging-artifacts/$PORTAL_WORKLOAD-deliverable.yaml
+        kubectl get configmap $SENSORS_WORKLOAD-deliverable -n $STAGEPROD_NAMESPACE -o go-template='{{.data.deliverable}}' > .config/staging-artifacts/$SENSORS_WORKLOAD-deliverable.yaml
+        kubectl get configmap $MEDICAL_WORKLOAD-deliverable -n $STAGEPROD_NAMESPACE -o go-template='{{.data.deliverable}}' > .config/staging-artifacts/$MEDICAL_WORKLOAD-deliverable.yaml
         
-        scripts/dektecho.sh prompt  "Deliverables created. Press 'y' to continue deploying to production clusters" && [ $? -eq 0 ] || exit
+        scripts/dektecho.sh prompt  "Deliverables created in .config/staging-artifacts. Press 'y' to continue deploying to production clusters" && [ $? -eq 0 ] || exit
         
         kubectl config use-context $PROD1_CLUSTER
         scripts/dektecho.sh status "Creating data services in $PROD1_CLUSTER production cluster..."
         tanzu service class-claim create inventory --class aws-rds-psql -p storageGB=30 -n $STAGEPROD_NAMESPACE
         tanzu service class-claim create reading --class rabbitmq-unmanaged --parameter replicas=2 --parameter storageGB=1 -n $STAGEPROD_NAMESPACE
         scripts/dektecho.sh status "Applying workloads deliverables to $PROD1_CLUSTER production cluster..."
-        kubectl apply -f .config/workloads/$PORTAL_WORKLOAD-deliverable.yaml -n $STAGEPROD_NAMESPACE
-        kubectl apply -f .config/workloads/$SENSORS_WORKLOAD-deliverable.yaml -n $STAGEPROD_NAMESPACE
-        kubectl apply -f .config/workloads/$MEDICAL_WORKLOAD-deliverable.yaml -n $STAGEPROD_NAMESPACE
-
-        kubectl config use-context $PROD2_CLUSTER
-        scripts/dektecho.sh status "Creating data services in $PROD2_CLUSTER production cluster..."
+        kubectl apply -f .config/staging-artifacts -n $STAGEPROD_NAMESPACE
+        
+        kubectl config use-context $PROD1_CLUSTER
+        scripts/dektecho.sh status "Creating data services in $PROD1_CLUSTER production cluster..."
         tanzu service class-claim create inventory --class aws-rds-psql -p storageGB=30 -n $STAGEPROD_NAMESPACE
         tanzu service class-claim create reading --class rabbitmq-unmanaged --parameter replicas=2 --parameter storageGB=1 -n $STAGEPROD_NAMESPACE
-        scripts/dektecho.sh status "Applying workloads deliverables to $PROD2_CLUSTER production cluster..."
-        kubectl apply -f .config/workloads/$PORTAL_WORKLOAD-deliverable.yaml -n $STAGEPROD_NAMESPACE
-        kubectl apply -f .config/workloads/$SENSORS_WORKLOAD-deliverable.yaml -n $STAGEPROD_NAMESPACE
-        kubectl apply -f .config/workloads/$MEDICAL_WORKLOAD-deliverable.yaml -n $STAGEPROD_NAMESPACE
+        scripts/dektecho.sh status "Applying workloads deliverables to $PROD1_CLUSTER production cluster..."
+        kubectl apply -f .config/staging-artifacts -n $STAGEPROD_NAMESPACE
         
         scripts/dektecho.sh status "Your DevX-Mood application is being deployed to production"
 
@@ -276,48 +274,40 @@
     #soft reset of all clusters configurations
     reset() {
 
-        kubectl config use-context $STAGE_CLUSTER
-        tanzu apps workload delete $MEDICAL_WORKLOAD -n $STAGEPROD_NAMESPACE -y
-        tanzu apps workload delete $PREDICTOR_WORKLOAD -n $STAGEPROD_NAMESPACE -y
-        tanzu apps workload delete $PORTAL_WORKLOAD -n $STAGEPROD_NAMESPACE -y
-        tanzu apps workload delete $SENSORS_WORKLOAD -n $STAGEPROD_NAMESPACE -y
-        
-        tanzu service class-claim delete reading -y -n $STAGEPROD_NAMESPACE
-        tanzu service class-claim delete inventory -y -n $STAGEPROD_NAMESPACE
-        kubectl delete -f .config/data-services/rds-postgres/inventory-db-rds-instance.yaml -n $STAGEPROD_NAMESPACE
-        kubectl delete -f .config/data-services/tanzu/reading-instance-tanzu_rabbitmq.yaml -n $STAGEPROD_NAMESPACE
-
-        kubectl config use-context $PROD1_CLUSTER
-        kubectl delete deliverables/$PORTAL_WORKLOAD -n $STAGEPROD_NAMESPACE
-        kubectl delete deliverables/$SENSORS_WORKLOAD -n $STAGEPROD_NAMESPACE
-        kubectl delete deliverables/$MEDICAL_WORKLOAD -n $STAGEPROD_NAMESPACE
-        tanzu service class-claim delete reading -y -n $STAGEPROD_NAMESPACE
-        tanzu service class-claim delete inventory -y -n $STAGEPROD_NAMESPACE
-
-        kubectl config use-context $PROD2_CLUSTER
-        kubectl delete deliverables/$PORTAL_WORKLOAD -n $STAGEPROD_NAMESPACE
-        kubectl delete deliverables/$SENSORS_WORKLOAD -n $STAGEPROD_NAMESPACE
-        kubectl delete deliverables/$MEDICAL_WORKLOAD -n $STAGEPROD_NAMESPACE
-        tanzu service class-claim delete reading -y -n $STAGEPROD_NAMESPACE
-        tanzu service class-claim delete inventory -y -n $STAGEPROD_NAMESPACE
-        
-        kubectl config use-context $DEV_CLUSTER
-        tanzu apps workload delete $MEDICAL_WORKLOAD -n $TEAM_NAMESPACE -y
-        tanzu apps workload delete $PREDICTOR_WORKLOAD -n $TEAM_NAMESPACE -y
-        tanzu apps workload delete $PORTAL_WORKLOAD -n $TEAM_NAMESPACE -y
-        tanzu apps workload delete $SENSORS_WORKLOAD -n $TEAM_NAMESPACE -y
-        tanzu apps workload delete $DEV1_WORKLOAD -n $DEV1_NAMESPACE -y
-        tanzu apps workload delete $DEV2_WORKLOAD -n $DEV2_NAMESPACE -y
-        tanzu service class-claim delete reading -y -n $TEAM_NAMESPACE
-        tanzu service class-claim delete inventory -y -n $TEAM_NAMESPACE
-        tanzu service class-claim delete reading -y -n $DEV1_NAMESPACE
-        tanzu service class-claim delete inventory -y -n $DEV1_NAMESPACE
-
-        rm .config/workloads/$PORTAL_WORKLOAD-deliverable.yaml
-        rm .config/workloads/$SENSORS_WORKLOAD-deliverable.yaml
-        rm .config/workloads/$MEDICAL_WORKLOAD-deliverable.yaml
+        reset-dev
+        reset-team-stage $DEV_CLUSTER $TEAM_NAMESPACE
+        reset-team-stage $STAGE_CLUSTER $STAGEPROD_NAMESPACE
+        reset-prod $PROD1_CLUSTER 
+        reset-prod $PROD2_CLUSTER 
+        rm -r .config/staging-artifacts
 
         ./builder.sh update-tap multicluster
+    }
+
+    #reset-dev
+    reset-dev () {
+
+        kubectl config use-context $DEV_CLUSTER
+        tanzu apps workload delete $DEV1_WORKLOAD -n $DEV1_NAMESPACE -y
+        tanzu apps workload delete $DEV2_WORKLOAD -n $DEV2_NAMESPACE -y
+        tanzu service class-claim delete reading -y -n $DEV1_NAMESPACE
+        tanzu service class-claim delete inventory -y -n $DEV1_NAMESPACE
+    }
+    
+    #reset-team-stage
+    reset-team-stage() {
+
+        clusterName=$1
+        appNamespace=$2
+        
+        kubectl config use-context $clusterName
+
+        tanzu apps workload delete $MEDICAL_WORKLOAD -n $appNamespace -y
+        tanzu apps workload delete $PREDICTOR_WORKLOAD -n $appNamespace -y
+        tanzu apps workload delete $PORTAL_WORKLOAD -n $appNamespace -y
+        tanzu apps workload delete $SENSORS_WORKLOAD -n $appNamespace -y
+        tanzu service class-claim delete reading -y -n $appNamespace
+        tanzu service class-claim delete inventory -y -n $appNamespace
     }
 
     #reset-prod
@@ -326,7 +316,10 @@
         clusterName=$1
 
         kubectl config use-context $clusterName
-       
+        kubectl delete .config/staging-artifacts -n $STAGEPROD_NAMESPACE
+        tanzu service class-claim delete reading -y -n $STAGEPROD_NAMESPACE
+        tanzu service class-claim delete inventory -y -n $STAGEPROD_NAMESPACE
+      
       
     }
 

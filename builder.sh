@@ -131,8 +131,6 @@
 
         scripts/tanzu-handler.sh add-carvel-tools
 
-        setup-app-ns $STAGEPROD_NAMESPACE
-
         install-tap "tap-run1.yaml"
 
         scripts/ingress-handler.sh update-tap-dns $PROD1_SUB_DOMAIN $PROD1_CLUSTER_PROVIDER
@@ -149,8 +147,6 @@
         kubectl create ns tap-install
 
         scripts/tanzu-handler.sh add-carvel-tools
-
-        setup-app-ns $STAGEPROD_NAMESPACE
 
         install-tap "tap-run2.yaml"
 
@@ -453,6 +449,7 @@ install-demo)
     ;;
 delete-all)
     scripts/dektecho.sh prompt  "Are you sure you want to delete all clusters?" && [ $? -eq 0 ] || exit
+    rm -r .config/staging-artifacts
     delete-tmc-clusters
     scripts/k8s-handler.sh delete $VIEW_CLUSTER_PROVIDER $VIEW_CLUSTER_NAME \
     & scripts/k8s-handler.sh delete $DEV_CLUSTER_PROVIDER $DEV_CLUSTER_NAME \
