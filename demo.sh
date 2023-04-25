@@ -31,6 +31,7 @@
     IMAGE_SCAN_TEMPLATE_SENSORS=$(yq .tap.imageScanSensors .config/demo-values.yaml)
     IMAGE_SCAN_TEMPLATE_DOCTOR=$(yq .tap.imageScanDoctor .config/demo-values.yaml)
     IMAGE_SCAN_TEMPLATE_PREDICTOR=$(yq .tap.imageScanPredictor .config/demo-values.yaml)
+    DELIVERABLE_GITOPS_REPO_NAME=$(yq .deliverable_gitops.repository_name .config/demo-values.yaml)
     
 
     
@@ -277,8 +278,8 @@
         reset-team-stage $STAGE_CLUSTER $STAGEPROD_NAMESPACE
         reset-prod $PROD1_CLUSTER 
         reset-prod $PROD2_CLUSTER 
-        rm -r .config/staging-artifacts
-        ./builder.sh update-tap multicluster
+        reset-deliverable-gitops
+        #./builder.sh update-tap multicluster
 
     }
 
@@ -288,8 +289,6 @@
         kubectl config use-context $DEV_CLUSTER
         tanzu apps workload delete $DEV1_WORKLOAD -n $DEV1_NAMESPACE -y
         tanzu apps workload delete $DEV2_WORKLOAD -n $DEV2_NAMESPACE -y
-        tanzu service class-claim delete reading -y -n $DEV1_NAMESPACE
-        tanzu service class-claim delete inventory -y -n $DEV1_NAMESPACE
     }
     
     #reset-team-stage
@@ -319,6 +318,19 @@
         tanzu service class-claim delete inventory -y -n $STAGEPROD_NAMESPACE
       
       
+    }
+
+    #reset-deliverable-gitops
+    reset-deliverable-gitops () {
+
+        pushd ../$DELIVERABLE_GITOPS_REPO_NAME
+        git pull 
+        git rm -rf config 
+        git commit -m "reset" 
+        git push 
+        pushd
+
+        rm -r .config/staging-artifacts
     }
 
     #incorrect usage
