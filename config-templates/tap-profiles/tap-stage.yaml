@@ -15,7 +15,6 @@ ootb_supply_chain_testing_scanning:
     server_address: #@ data.values.deliverable_gitops.server_address
     repository_owner: #@ data.values.deliverable_gitops.repository_owner
     repository_name: #@ data.values.deliverable_gitops.repository_name
-    ssh_secret: gitops-creds
 
 namespace_provisioner:
   controller: true
