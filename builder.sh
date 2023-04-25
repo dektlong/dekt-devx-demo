@@ -183,6 +183,7 @@
             --namespace tap-install
 
         kubectl apply -f .config/secrets/cluster-issuer.yaml
+        kubectl apply -f .config/secrets/git-creds-sa-overlay.yaml
     }
 
     install-data-services-controls() {
@@ -206,7 +207,7 @@
         kubectl create ns $appnamespace
         kubectl label namespaces $appnamespace apps.tanzu.vmware.com/tap-ns="" 
 
-        kubectl apply -f .config/secrets/gitops-creds.yaml -n $appnamespace
+        kubectl apply -f .config/secrets/git-creds.yaml -n $appnamespace
 
         if [ "$2" == "with-scans" ]; then
             kubectl apply -f .config/secrets/snyk-creds.yaml -n $appnamespace
@@ -446,15 +447,23 @@ install-demo)
     install-dev-cluster
     install-stage-cluster
     update-tap multicluster
-
     install-prod-cluster1 
     install-prod-cluster2
     add-brownfield-apis
     attach-tmc-clusters 
     ;;
+install-non-prod)
+    scripts/k8s-handler.sh get-context $VIEW_CLUSTER_PROVIDER $VIEW_CLUSTER_NAME
+    scripts/k8s-handler.sh get-context $DEV_CLUSTER_PROVIDER $DEV_CLUSTER_NAME
+    scripts/k8s-handler.sh get-context $STAGE_CLUSTER_PROVIDER $STAGE_CLUSTER_NAME
+    install-view-cluster
+    install-dev-cluster
+    install-stage-cluster
+    update-tap multicluster
+    ;;
 delete-all)
     scripts/dektecho.sh prompt  "Are you sure you want to delete all clusters?" && [ $? -eq 0 ] || exit
-    rm -r .config/staging-artifacts
+    demo.sh reset
     delete-tmc-clusters
     scripts/k8s-handler.sh delete $VIEW_CLUSTER_PROVIDER $VIEW_CLUSTER_NAME \
     & scripts/k8s-handler.sh delete $DEV_CLUSTER_PROVIDER $DEV_CLUSTER_NAME \

@@ -73,19 +73,9 @@
         kubectl cluster-info | grep 'control plane' --color=never
         tanzu package installed list -n tap-install
 
-        addBrownfield=$(kubectl config get-contexts | grep $BROWNFIELD_CLUSTER)
-        if [ -z "$addBrownfield" ]
-        then
-            echo ""
-        else
-            scripts/dektecho.sh info "Social cluster (access via tanzu service mesh)"
-            kubectl config use-context $BROWNFIELD_CLUSTER 
-            kubectl cluster-info | grep 'control plane' --color=never
-
-            scripts/dektecho.sh info "Private cluster (access via tanzu service mesh)"
-            kubectl config use-context $PRIVATE_CLUSTER
-            kubectl cluster-info | grep 'control plane' --color=never
-        fi
+        scripts/dektecho.sh info "Social cluster (access via tanzu service mesh)"
+        kubectl config use-context $BROWNFIELD_CLUSTER 
+        kubectl cluster-info | grep 'control plane' --color=never
 
         kubectl config use-context $DEV_CLUSTER 
 
@@ -179,8 +169,8 @@
         scripts/dektecho.sh cmd "tanzu apps workload create $MEDICAL_WORKLOAD -f .config/workloads/mood-doctor.yaml -y -n $STAGEPROD_NAMESPACE"
         tanzu apps workload create $MEDICAL_WORKLOAD -f .config/workloads/mood-doctor.yaml  \
             --param scanning_image_template=$IMAGE_SCAN_TEMPLATE_DOCTOR \
-            -y -n $STAGEPROD_NAMESPACE
-            #--service-ref reading-claim=services.apps.tanzu.vmware.com/v1alpha1:ClassClaim:reading \
+            -y -n $STAGEPROD_NAMESPACE \
+            --service-ref reading-claim=services.apps.tanzu.vmware.com/v1alpha1:ClassClaim:reading
         
 
         #predictor workload

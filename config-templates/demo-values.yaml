@@ -57,7 +57,7 @@ tap:
   imageScanSensors:  #accepted values: carbonblack-private-image-scan-template snyk-private-image-scan-template, private-image-scan-template
   imageScanDoctor:  #accepted values: carbonblack-private-image-scan-template snyk-private-image-scan-template, private-image-scan-template
   imageScanPredictor:  #accepted values: carbonblack-private-image-scan-template snyk-private-image-scan-template, private-image-scan-template
-  ingressIssuer: tap-ingress-selfsigned #update .config/cluster-configs/cluster-issuer.yaml if diffenrent than tap-selfsigned
+  ingressIssuer: tap-ingress-selfsigned #create the appropriate secret in .config/cluster-configs/cluster-issuer.yaml if diffenrent than tap-ingress-selfsigned
   isvImg: #BYO image name, must be pushed to private_registry/isvs repo
 
 snyk: 
@@ -74,6 +74,12 @@ apps_namespaces:
   dev2:  #for mood-sensors single dev workload
   team:  #for the DevXmood dev team (mood-portal, mood-sensors, mood-doctor and mood-predictor workloads)
   stageProd:  #for promoting the DevXmood business application to stage and prod
+
+deliverable_gitops:
+  server_address: #e.g https://github.com
+  repository_owner:
+  repository_name: #repo must be created prior to installing the demo
+  token: #must have read/write permissions for repository_name
 
 dns:
   domain: 

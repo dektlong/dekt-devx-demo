@@ -10,6 +10,13 @@ shared:
     
 supply_chain: testing_scanning
 
+ootb_supply_chain_testing_scanning:
+  gitops:
+    server_address: #@ data.values.deliverable_gitops.server_address
+    repository_owner: #@ data.values.deliverable_gitops.repository_owner
+    repository_name: #@ data.values.deliverable_gitops.repository_name
+    ssh_secret: gitops-creds
+
 namespace_provisioner:
   controller: true
   additional_sources:
@@ -18,6 +25,11 @@ namespace_provisioner:
       subPath: resources
       url: https://github.com/dektlong/dekt-gitops.git
     path: _ytt_lib/resources
+  overlay_secrets:
+  - name: git-creds-sa-overlay
+    namespace: tap-install
+    create_export: true
+
 
 grype:
   namespace: "" 

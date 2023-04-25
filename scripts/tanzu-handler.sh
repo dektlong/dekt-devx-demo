@@ -125,15 +125,14 @@ generate-config-yamls() {
     cp -a config-templates/secrets/ .config/secrets
     ytt -f config-templates/secrets/carbonblack-creds.yaml --data-values-file=.config/demo-values.yaml > .config/secrets/carbonblack-creds.yaml
     ytt -f config-templates/secrets/snyk-creds.yaml --data-values-file=.config/demo-values.yaml > .config/secrets/snyk-creds.yaml
-    cp config-templates/secrets/viewer-rbac.yaml .config/secrets/viewer-rbac.yaml
-
+    ytt -f config-templates/secrets/git-creds.yaml --data-values-file=.config/demo-values.yaml > .config/secrets/git-creds.yaml
+    
     #crossplane
     mkdir -p .config/crossplane
+    cp -a config-templates/crossplane/ .config/crossplane
     ytt -f config-templates/crossplane/inventory-db-composition.yml --data-values-file=.config/demo-values.yaml > .config/crossplane/inventory-db-composition.yml
-    cp config-templates/crossplane/aws-rds-psql-rbac.yaml .config/crossplane/aws-rds-psql-rbac.yaml
-    cp config-templates/crossplane/rds-class.yaml .config/crossplane/rds-class.yaml
-    cp config-templates/crossplane/inventory-db-xrd.yaml .config/crossplane/inventory-db-xrd.yaml
-
+    
+    #workloads
     mkdir -p .config/workloads
     cp -a config-templates/workloads/ .config/workloads/
 }
