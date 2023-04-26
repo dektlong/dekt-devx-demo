@@ -166,6 +166,8 @@
 
         kubectl create ns tap-install
 
+        kubectl apply -f .config/secrets/git-creds-sa-overlay.yaml
+
         tanzu secret registry add private-repo-creds \
             --server $PRIVATE_REPO_SERVER \
             --username ${PRIVATE_REPO_USER} \
@@ -183,7 +185,7 @@
             --namespace tap-install
 
         kubectl apply -f .config/secrets/cluster-issuer.yaml
-        kubectl apply -f .config/secrets/git-creds-sa-overlay.yaml
+        
     }
 
     install-data-services-controls() {
