@@ -98,12 +98,8 @@
         tanzu apps workload create $DEV1_WORKLOAD -f .config/workloads/mood-portal.yaml \
             -y -n $DEV1_NAMESPACE
 
-        #dev2 workload
-        scripts/dektecho.sh cmd "tanzu apps workload create $DEV2_WORKLOAD -f .config/workloads/mood-sensors.yaml -y -n $DEV2_NAMESPACE"
-         tanzu apps workload create  $DEV2_WORKLOAD -f .config/workloads/mood-sensors.yaml \
-            --service-ref reading-claim=services.apps.tanzu.vmware.com/v1alpha1:ClassClaim:reading \
-            --param-yaml testing_pipeline_matching_labels='{"apps.tanzu.vmware.com/language": "java"}' \
-            -y -n $DEV2_NAMESPACE
+        #dev2 workload (updated via VS Code)
+        tanzu apps workload create $DEV2_WORKLOAD -f .config/workloads/mood-sensors.yaml -y -n $DEV2_NAMESPACE
 
         #portal workload
         scripts/dektecho.sh cmd "tanzu apps workload create $PORTAL_WORKLOAD -f .config/workloads/mood-portal.yaml -y -n $TEAM_NAMESPACE"
@@ -186,23 +182,21 @@
     #prod-roleout
     prod-roleout () {
 
-        scripts/dektecho.sh status "Pulling workloads deliverables from $STAGE_CLUSTER cluster"
-        kubectl config use-context $STAGE_CLUSTER
-        mkdir .config/staging-artifacts
+        scripts/dektecho.sh status "Pulling staging deliverables from $DELIVERABLE_GITOPS_REPO_NAME repo"
+        
+        pushd ../$DELIVERABLE_GITOPS_REPO_NAME
+        git pull 
+        pushd
 
-        kubectl get configmap $PORTAL_WORKLOAD-deliverable -n $STAGEPROD_NAMESPACE -o go-template='{{.data.deliverable}}' > .config/staging-artifacts/$PORTAL_WORKLOAD-deliverable.yaml
-        kubectl get configmap $MEDICAL_WORKLOAD-deliverable -n $STAGEPROD_NAMESPACE -o go-template='{{.data.deliverable}}' > .config/staging-artifacts/$MEDICAL_WORKLOAD-deliverable.yaml
-        kubectl get configmap $SENSORS_WORKLOAD-deliverable -n $STAGEPROD_NAMESPACE -o go-template='{{.data.deliverable}}' > .config/staging-artifacts/$SENSORS_WORKLOAD-deliverable.yaml
+        scripts/dektecho.sh prompt  "Deliverables pulled to  ../$DELIVERABLE_GITOPS_REPO_NAME/config/$STAGEPROD_NAMESPACE. Press 'y' to continue deploying to production clusters" && [ $? -eq 0 ] || exit
         
-        scripts/dektecho.sh prompt  "Deliverables created in .config/staging-artifacts. Press 'y' to continue deploying to production clusters" && [ $? -eq 0 ] || exit
-        
-        prod-delpoy $PROD1_CLUSTER
-        prod-delpoy $PROD2_CLUSTER
+        prod-deploy $PROD1_CLUSTER
+        prod-deploy $PROD2_CLUSTER
 
     }
 
     #prod-deploy
-    prod-delpoy() {
+    prod-deploy() {
 
         clusterName=$1
 
@@ -210,8 +204,12 @@
         scripts/dektecho.sh status "Creating data services in $clusterName production cluster..."
         tanzu service class-claim create inventory --class aws-rds-psql -p storageGB=30 -n $STAGEPROD_NAMESPACE
         tanzu service class-claim create reading --class rabbitmq-unmanaged --parameter replicas=2 --parameter storageGB=1 -n $STAGEPROD_NAMESPACE
-        scripts/dektecho.sh status "Applying workloads deliverables to $clusterName production cluster..."
-        kubectl apply -f .config/staging-artifacts -n $STAGEPROD_NAMESPACE
+        
+        scripts/dektecho.sh status "Applying staging deliverables to $clusterName production cluster..."
+        kubectl apply -f ../$DELIVERABLE_GITOPS_REPO_NAME/config/$STAGEPROD_NAMESPACE/$MEDICAL_WORKLOAD -n $STAGEPROD_NAMESPACE
+        kubectl apply -f ../$DELIVERABLE_GITOPS_REPO_NAME/config/$STAGEPROD_NAMESPACE/$PORTAL_WORKLOAD -n $STAGEPROD_NAMESPACE
+        kubectl apply -f ../$DELIVERABLE_GITOPS_REPO_NAME/config/$STAGEPROD_NAMESPACE/$SENSORS_WORKLOAD -n $STAGEPROD_NAMESPACE
+
     }
 
     #supplychains
@@ -222,30 +220,69 @@
         tanzu apps cluster-supply-chain list
     }
 
-    #track-workloads
-    track-workloads () {
+    #track-dev-workloads
+    track-dev-workloads () {
 
-        tapCluster=$1
-        appsNamespace=$2
-        showLogs=$3
-        
+        showLogs=$1
 
-        kubectl config use-context $tapCluster
+        kubectl config use-context $DEV_CLUSTER
 
-        scripts/dektecho.sh cmd "tanzu apps workload get $PORTAL_WORKLOAD -n $appsNamespace"
-        tanzu apps workload get $PORTAL_WORKLOAD -n $appsNamespace
+        scripts/dektecho.sh cmd "tanzu apps workload get $DEV1_WORKLOAD -n $DEV1_NAMESPACE"
+        tanzu apps workload get $DEV1_WORKLOAD -n $DEV1_NAMESPACE
 
-        scripts/dektecho.sh cmd "tanzu apps workload get $MEDICAL_WORKLOAD -n $appsNamespace"
-        tanzu apps workload get $MEDICAL_WORKLOAD -n $appsNamespace
+        scripts/dektecho.sh cmd "tanzu apps workload get $DEV2_WORKLOAD -n $DEV2_NAMESPACE"
+        tanzu apps workload get $DEV2_WORKLOAD -n $DEV2_NAMESPACE
 
-        scripts/dektecho.sh cmd "tanzu apps workload get $SENSORS_WORKLOAD -n $appsNamespace"
-        tanzu apps workload get $SENSORS_WORKLOAD -n $appsNamespace
+        scripts/dektecho.sh cmd "tanzu apps workload get $PORTAL_WORKLOAD -n $TEAM_NAMESPACE"
+        tanzu apps workload get $PORTAL_WORKLOAD -n $TEAM_NAMESPACE
+
+        scripts/dektecho.sh cmd "tanzu apps workload get $MEDICAL_WORKLOAD -n $TEAM_NAMESPACE"
+        tanzu apps workload get $MEDICAL_WORKLOAD -n $TEAM_NAMESPACE
+
+        scripts/dektecho.sh cmd "tanzu apps workload get $SENSORS_WORKLOAD -n $TEAM_NAMESPACE"
+        tanzu apps workload get $SENSORS_WORKLOAD -n $TEAM_NAMESPACE
         
         if [ "$showLogs" == "logs" ]; then
-            scripts/dektecho.sh cmd "tanzu apps workload tail $SENSORS_WORKLOAD --since 100m --timestamp  -n $appsNamespace"
+            scripts/dektecho.sh cmd "tanzu apps workload tail $SENSORS_WORKLOAD --since 100m --timestamp  -n $TEAM_NAMESPACE"
             
-            tanzu apps workload tail $SENSORS_WORKLOAD --since 100m --timestamp  -n $appsNamespace
+            tanzu apps workload tail $SENSORS_WORKLOAD --since 100m --timestamp  -n $TEAM_NAMESPACE
         fi
+    }
+
+    #track-stage-workloads
+    track-stage-workloads () {
+
+        showLogs=$1
+
+        kubectl config use-context $STAGE_CLUSTER
+
+        scripts/dektecho.sh cmd "tanzu apps workload get $PORTAL_WORKLOAD -n $STAGEPROD_NAMESPACE"
+        tanzu apps workload get $PORTAL_WORKLOAD -n $STAGEPROD_NAMESPACE
+
+        scripts/dektecho.sh cmd "tanzu apps workload get $MEDICAL_WORKLOAD -n $STAGEPROD_NAMESPACE"
+        tanzu apps workload get $MEDICAL_WORKLOAD -n $STAGEPROD_NAMESPACE
+
+        scripts/dektecho.sh cmd "tanzu apps workload get $SENSORS_WORKLOAD -n $STAGEPROD_NAMESPACE"
+        tanzu apps workload get $SENSORS_WORKLOAD -n $STAGEPROD_NAMESPACE
+        
+        if [ "$showLogs" == "logs" ]; then
+            scripts/dektecho.sh cmd "tanzu apps workload tail $SENSORS_WORKLOAD --since 100m --timestamp  -n $STAGEPROD_NAMESPACE"
+            
+            tanzu apps workload tail $SENSORS_WORKLOAD --since 100m --timestamp  -n $STAGEPROD_NAMESPACE
+        fi
+    }
+
+    #track-prod-deliverables
+    track-prod-deliverables () {
+
+        scripts/dektecho.sh info "$PROD1_CLUSTER running pods"
+        kubectl config use-context $PROD1_CLUSTER
+        kubectl get pods -n $STAGEPROD_NAMESPACE
+
+        scripts/dektecho.sh info "$PROD2_CLUSTER running pods"
+        kubectl config use-context $PROD2_CLUSTER
+        kubectl get pods -n $STAGEPROD_NAMESPACE
+
     }
 
     
@@ -313,7 +350,9 @@
         clusterName=$1
 
         kubectl config use-context $clusterName
-        kubectl delete -f .config/staging-artifacts -n $STAGEPROD_NAMESPACE
+        kubectl delete -f ../$DELIVERABLE_GITOPS_REPO_NAME/config/$STAGEPROD_NAMESPACE/$MEDICAL_WORKLOAD -n $STAGEPROD_NAMESPACE
+        kubectl delete -f ../$DELIVERABLE_GITOPS_REPO_NAME/config/$STAGEPROD_NAMESPACE/$PORTAL_WORKLOAD -n $STAGEPROD_NAMESPACE
+        kubectl delete -f ../$DELIVERABLE_GITOPS_REPO_NAME/config/$STAGEPROD_NAMESPACE/$SENSORS_WORKLOAD -n $STAGEPROD_NAMESPACE
         tanzu service class-claim delete reading -y -n $STAGEPROD_NAMESPACE
         tanzu service class-claim delete inventory -y -n $STAGEPROD_NAMESPACE
       
@@ -329,8 +368,6 @@
         git commit -m "reset" 
         git push 
         pushd
-
-        rm -r .config/staging-artifacts
     }
 
     #incorrect usage
@@ -349,9 +386,9 @@
         echo
         echo "  supplychains"
         echo
-        echo "  track team/stage [logs]"
+        echo "  track dev/stage/prod [logs]"
         echo
-        echo "  services dev/team/stage"
+        echo "  services dev/stage/prod"
         echo
         echo "  brownfield"
         echo
@@ -411,11 +448,14 @@ services)
     ;;
 track)
     case $2 in
-    team)
-        track-workloads $DEV_CLUSTER $TEAM_NAMESPACE $3
+    dev)
+        track-dev-workloads $3
         ;;
     stage)
-        track-workloads $STAGE_CLUSTER $STAGEPROD_NAMESPACE $3
+        track-stage-workloads $3
+        ;;
+    prod)
+        track-prod-deliverables
         ;;
     *)
         incorrect-usage

@@ -75,10 +75,10 @@ apps_namespaces:
   team:  #for the DevXmood dev team (mood-portal, mood-sensors, mood-doctor and mood-predictor workloads)
   stageProd:  #for promoting the DevXmood business application to stage and prod
 
-deliverable_gitops:
+deliverable_gitops: 
   server_address: #e.g https://github.com
   repository_owner:
-  repository_name: #repo must be created prior to installing the demo
+  repository_name: #repo must be created prior to installing the demo and cloned at the same path as the dekt-devx-demo
   token: #must have read/write permissions for repository_name
 
 dns:
