@@ -106,7 +106,6 @@
         sensorsActivateAPI="http://mood-sensors.$DEV_SUB_DOMAIN.$DOMAIN/activate"
         sensorsMeasureeAPI="http://mood-sensors.$DEV_SUB_DOMAIN.$DOMAIN/measure"
         tanzu apps workload create $PORTAL_WORKLOAD -f .config/workloads/mood-portal.yaml \
-            --env TEAM_NAME=$DEV_SUB_DOMAIN \
             --env SNIFF_THRESHOLD=$SNIFF_THRESHOLD_AGGRESSIVE \
             --env SENSORS_ACTIVATE_API=$sensorsActivateAPI \
             --env SENSORS_MEASURE_API=$sensorsMeasureeAPI \
@@ -148,7 +147,7 @@
         scripts/dektecho.sh cmd "tanzu apps workload create $PORTAL_WORKLOAD -f .config/workloads/mood-portal.yaml -y -n $STAGEPROD_NAMESPACE"
         sensorsActivateAPI="http://mood-sensors.$PROD1_SUB_DOMAIN.$DOMAIN/activate"
         sensorsMeasureeAPI="http://mood-sensors.$PROD1_SUB_DOMAIN.$DOMAIN/measure"
-        tanzu apps workload create $PORTAL_WORKLOAD .config/workloads/mood-portal.yaml \
+        tanzu apps workload create $PORTAL_WORKLOAD -f .config/workloads/mood-portal.yaml \
             --app $PORTAL_WORKLOAD \
             --env SNIFF_THRESHOLD=$SNIFF_THRESHOLD_MILD \
             --env SENSORS_ACTIVATE_API=$sensorsActivateAPI \
@@ -160,7 +159,7 @@
         scripts/dektecho.sh cmd "tanzu apps workload create $SENSORS_WORKLOAD -f .config/workloads/mood-sensors.yaml -y -n $STAGEPROD_NAMESPACE"
         tanzu apps workload create $SENSORS_WORKLOAD -f .config/workloads/mood-sensors.yaml \
             --param scanning_image_template=$IMAGE_SCAN_TEMPLATE_SENSORS \
-            -y -n $STAGEPROD_NAMESPACE
+            -y -n $STAGEPROD_NAMESPACE \
             --service-ref inventory-claim=services.apps.tanzu.vmware.com/v1alpha1:ClassClaim:inventory \
             --service-ref reading-claim=services.apps.tanzu.vmware.com/v1alpha1:ClassClaim:reading \
 
