@@ -62,6 +62,8 @@ Create Target {{ space_name }}:
           value: besteffort
         - name: SLA driven
           value: sla
+        - name: Cost driven
+          value: sla
         - name: Strict
           value: strict
 
