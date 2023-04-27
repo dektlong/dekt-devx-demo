@@ -81,103 +81,61 @@
         kubectl config use-context $DEV_CLUSTER 
 
     }
-    
+        
     #create-dev-workloads
     create-dev-workloads() {
 
-        #bitnami postgreSQL inventory db
-        scripts/dektecho.sh cmd "tanzu service class-claim create inventory --class postgresql-unmanaged --parameter storageGB=2 -n $TEAM_NAMESPACE"
-        tanzu service class-claim create inventory --class postgresql-unmanaged --parameter storageGB=2  -n $TEAM_NAMESPACE
-
-        #bitnami rabbitmq reading queue
-        scripts/dektecho.sh cmd "tanzu service class-claim create reading --class rabbitmq-unmanaged --parameter replicas=2 --parameter storageGB=1 -n $TEAM_NAMESPACE"
-        tanzu service class-claim create reading --class rabbitmq-unmanaged --parameter replicas=2 --parameter storageGB=1 -n $TEAM_NAMESPACE
-        
         #dev1 workload
         scripts/dektecho.sh cmd "tanzu apps workload create $DEV1_WORKLOAD -f .config/workloads/mood-portal.yaml -y -n $DEV1_NAMESPACE"
         tanzu apps workload create $DEV1_WORKLOAD -f .config/workloads/mood-portal.yaml \
+            --env SNIFF_THRESHOLD=$SNIFF_THRESHOLD_AGGRESSIVE \
             -y -n $DEV1_NAMESPACE
 
         #dev2 workload (updated via VS Code)
         tanzu apps workload create $DEV2_WORKLOAD -f .config/workloads/mood-sensors.yaml -y -n $DEV2_NAMESPACE
+    }
+
+    #create-workloads
+    create-workloads() {
+
+        appNamespace=$1
+        sniffThershold=$2
+        sqlClass=$3
+        
+        #postgreSQL inventory db
+        scripts/dektecho.sh cmd "tanzu service class-claim create inventory --class $sqlClass --parameter storageGB=2 -n $appNamespace"
+        tanzu service class-claim create inventory --class $sqlClass --parameter storageGB=2  -n $appNamespace
+
+        #rabbitmq reading queue
+        scripts/dektecho.sh cmd "tanzu service class-claim create reading --class rabbitmq-unmanaged --parameter replicas=2 --parameter storageGB=1 -n $appNamespace"
+        tanzu service class-claim create reading --class rabbitmq-unmanaged --parameter replicas=2 --parameter storageGB=1 -n $appNamespace
+    
 
         #portal workload
-        scripts/dektecho.sh cmd "tanzu apps workload create $PORTAL_WORKLOAD -f .config/workloads/mood-portal.yaml -y -n $TEAM_NAMESPACE"
-        sensorsActivateAPI="http://mood-sensors.$DEV_SUB_DOMAIN.$DOMAIN/activate"
-        sensorsMeasureeAPI="http://mood-sensors.$DEV_SUB_DOMAIN.$DOMAIN/measure"
+        scripts/dektecho.sh cmd "tanzu apps workload create $PORTAL_WORKLOAD -f .config/workloads/mood-portal.yaml -y -n $appNamespace" 
         tanzu apps workload create $PORTAL_WORKLOAD -f .config/workloads/mood-portal.yaml \
-            --env SNIFF_THRESHOLD=$SNIFF_THRESHOLD_AGGRESSIVE \
-            --env SENSORS_ACTIVATE_API=$sensorsActivateAPI \
-            --env SENSORS_MEASURE_API=$sensorsMeasureeAPI \
-            -y -n $TEAM_NAMESPACE
+            --env SNIFF_THRESHOLD=$sniffThershold \
+            -y -n $appNamespace
 
         #sensors workload
-        scripts/dektecho.sh cmd "tanzu apps workload create $SENSORS_WORKLOAD -f .config/workloads/mood-sensors.yaml -y -n $TEAM_NAMESPACE"
+        scripts/dektecho.sh cmd "tanzu apps workload create $SENSORS_WORKLOAD -f .config/workloads/mood-sensors.yaml -y -n $appNamespace"
          tanzu apps workload create $SENSORS_WORKLOAD -f .config/workloads/mood-sensors.yaml \
             --service-ref inventory-claim=services.apps.tanzu.vmware.com/v1alpha1:ClassClaim:inventory \
             --service-ref reading-claim=services.apps.tanzu.vmware.com/v1alpha1:ClassClaim:reading \
-            -y -n $TEAM_NAMESPACE
+            -y -n $appNamespace
 
         #doctor workload
-        scripts/dektecho.sh cmd "tanzu apps workload create $MEDICAL_WORKLOAD -f .config/workloads/mood-doctor.yaml -y -n $TEAM_NAMESPACE"
+        scripts/dektecho.sh cmd "tanzu apps workload create $MEDICAL_WORKLOAD -f .config/workloads/mood-doctor.yaml -y -n $appNamespace"
         tanzu apps workload create $MEDICAL_WORKLOAD -f .config/workloads/mood-doctor.yaml \
             --service-ref reading-claim=services.apps.tanzu.vmware.com/v1alpha1:ClassClaim:reading \
-            -y -n $TEAM_NAMESPACE
+            -y -n $appNamespace
 
         #predictor workload 
-        scripts/dektecho.sh cmd "tanzu apps workload create $PREDICTOR_WORKLOAD -f .config/workloads/mood-predictor.yaml -y -n $TEAM_NAMESPACE"
+        scripts/dektecho.sh cmd "tanzu apps workload create $PREDICTOR_WORKLOAD -f .config/workloads/mood-predictor.yaml -y -n $appNamespace"
         tanzu apps workload create $PREDICTOR_WORKLOAD -f .config/workloads/mood-predictor.yaml \
             --image $PREDICTOR_IMAGE \
-            -y -n $TEAM_NAMESPACE
-        
-    }
+            -y -n $appNamespace
 
-    #create-stage-workloads
-    create-stage-workloads() {
-
-        #RDS postgreSQL inventory db
-        scripts/dektecho.sh cmd "tanzu service class-claim create inventory --class aws-rds-psql -p storageGB=30 -n $STAGEPROD_NAMESPACE"
-        tanzu service class-claim create inventory --class aws-rds-psql -p storageGB=30 -n $STAGEPROD_NAMESPACE
-
-        #bitnami rabbitmq reading queue
-        scripts/dektecho.sh cmd "tanzu service class-claim create reading --class rabbitmq-unmanaged --parameter replicas=2 -n $STAGEPROD_NAMESPACE"
-        tanzu service class-claim create reading --class rabbitmq-unmanaged --parameter replicas=2 --parameter storageGB=1 -n $STAGEPROD_NAMESPACE
-
-        #portal workload
-        scripts/dektecho.sh cmd "tanzu apps workload create $PORTAL_WORKLOAD -f .config/workloads/mood-portal.yaml -y -n $STAGEPROD_NAMESPACE"
-        sensorsActivateAPI="http://mood-sensors.$PROD1_SUB_DOMAIN.$DOMAIN/activate"
-        sensorsMeasureeAPI="http://mood-sensors.$PROD1_SUB_DOMAIN.$DOMAIN/measure"
-        tanzu apps workload create $PORTAL_WORKLOAD -f .config/workloads/mood-portal.yaml \
-            --app $PORTAL_WORKLOAD \
-            --env SNIFF_THRESHOLD=$SNIFF_THRESHOLD_MILD \
-            --env SENSORS_ACTIVATE_API=$sensorsActivateAPI \
-            --env SENSORS_MEASURE_API=$sensorsMeasureeAPI \
-            --param scanning_image_template=$IMAGE_SCAN_TEMPLATE_PORTAL \
-            -y -n $STAGEPROD_NAMESPACE
-
-        #sensors workload WORKAROUND!! until service-claims to run-cluster issue fixed
-        scripts/dektecho.sh cmd "tanzu apps workload create $SENSORS_WORKLOAD -f .config/workloads/mood-sensors.yaml -y -n $STAGEPROD_NAMESPACE"
-        tanzu apps workload create $SENSORS_WORKLOAD -f .config/workloads/mood-sensors.yaml \
-            --param scanning_image_template=$IMAGE_SCAN_TEMPLATE_SENSORS \
-            -y -n $STAGEPROD_NAMESPACE \
-            --service-ref inventory-claim=services.apps.tanzu.vmware.com/v1alpha1:ClassClaim:inventory \
-            --service-ref reading-claim=services.apps.tanzu.vmware.com/v1alpha1:ClassClaim:reading \
-
-        #doctor workload WORKAROUND!! until service-claims to run-cluster issue fixed
-        scripts/dektecho.sh cmd "tanzu apps workload create $MEDICAL_WORKLOAD -f .config/workloads/mood-doctor.yaml -y -n $STAGEPROD_NAMESPACE"
-        tanzu apps workload create $MEDICAL_WORKLOAD -f .config/workloads/mood-doctor.yaml  \
-            --param scanning_image_template=$IMAGE_SCAN_TEMPLATE_DOCTOR \
-            -y -n $STAGEPROD_NAMESPACE \
-            --service-ref reading-claim=services.apps.tanzu.vmware.com/v1alpha1:ClassClaim:reading
-        
-
-        #predictor workload
-        scripts/dektecho.sh cmd "tanzu apps workload create $PREDICTOR_WORKLOAD -f .config/workloads/mood-predictor.yaml -y -n $STAGEPROD_NAMESPACE"
-        tanzu apps workload create $PREDICTOR_WORKLOAD -f .config/workloads/mood-predictor.yaml \
-        --param scanning_image_template=$IMAGE_SCAN_TEMPLATE_PREDICTOR \
-            --image $PREDICTOR_IMAGE \
-            -y -n $STAGEPROD_NAMESPACE
-        
     }
 
     #prod-roleout
@@ -221,69 +179,26 @@
         tanzu apps cluster-supply-chain list
     }
 
-    #track-dev-workloads
-    track-dev-workloads () {
+    #track-workloads
+    track-workloads () {
 
-        showLogs=$1
+        appNamespace=$1
+        showLogs=$2
 
-        kubectl config use-context $DEV_CLUSTER
+        scripts/dektecho.sh cmd "tanzu apps workload get $PORTAL_WORKLOAD -n $appNamespace"
+        tanzu apps workload get $PORTAL_WORKLOAD -n $appNamespace
 
-        scripts/dektecho.sh cmd "tanzu apps workload get $DEV1_WORKLOAD -n $DEV1_NAMESPACE"
-        tanzu apps workload get $DEV1_WORKLOAD -n $DEV1_NAMESPACE
+        scripts/dektecho.sh cmd "tanzu apps workload get $MEDICAL_WORKLOAD -n $appNamespace"
+        tanzu apps workload get $MEDICAL_WORKLOAD -n $appNamespace
 
-        scripts/dektecho.sh cmd "tanzu apps workload get $DEV2_WORKLOAD -n $DEV2_NAMESPACE"
-        tanzu apps workload get $DEV2_WORKLOAD -n $DEV2_NAMESPACE
-
-        scripts/dektecho.sh cmd "tanzu apps workload get $PORTAL_WORKLOAD -n $TEAM_NAMESPACE"
-        tanzu apps workload get $PORTAL_WORKLOAD -n $TEAM_NAMESPACE
-
-        scripts/dektecho.sh cmd "tanzu apps workload get $MEDICAL_WORKLOAD -n $TEAM_NAMESPACE"
-        tanzu apps workload get $MEDICAL_WORKLOAD -n $TEAM_NAMESPACE
-
-        scripts/dektecho.sh cmd "tanzu apps workload get $SENSORS_WORKLOAD -n $TEAM_NAMESPACE"
-        tanzu apps workload get $SENSORS_WORKLOAD -n $TEAM_NAMESPACE
+        scripts/dektecho.sh cmd "tanzu apps workload get $SENSORS_WORKLOAD -n $appNamespace"
+        tanzu apps workload get $SENSORS_WORKLOAD -n $appNamespace
         
         if [ "$showLogs" == "logs" ]; then
-            scripts/dektecho.sh cmd "tanzu apps workload tail $SENSORS_WORKLOAD --since 100m --timestamp  -n $TEAM_NAMESPACE"
+            scripts/dektecho.sh cmd "tanzu apps workload tail $SENSORS_WORKLOAD --since 100m --timestamp  -n $appNamespace"
             
-            tanzu apps workload tail $SENSORS_WORKLOAD --since 100m --timestamp  -n $TEAM_NAMESPACE
+            tanzu apps workload tail $SENSORS_WORKLOAD --since 100m --timestamp  -n $appNamespace
         fi
-    }
-
-    #track-stage-workloads
-    track-stage-workloads () {
-
-        showLogs=$1
-
-        kubectl config use-context $STAGE_CLUSTER
-
-        scripts/dektecho.sh cmd "tanzu apps workload get $PORTAL_WORKLOAD -n $STAGEPROD_NAMESPACE"
-        tanzu apps workload get $PORTAL_WORKLOAD -n $STAGEPROD_NAMESPACE
-
-        scripts/dektecho.sh cmd "tanzu apps workload get $MEDICAL_WORKLOAD -n $STAGEPROD_NAMESPACE"
-        tanzu apps workload get $MEDICAL_WORKLOAD -n $STAGEPROD_NAMESPACE
-
-        scripts/dektecho.sh cmd "tanzu apps workload get $SENSORS_WORKLOAD -n $STAGEPROD_NAMESPACE"
-        tanzu apps workload get $SENSORS_WORKLOAD -n $STAGEPROD_NAMESPACE
-        
-        if [ "$showLogs" == "logs" ]; then
-            scripts/dektecho.sh cmd "tanzu apps workload tail $SENSORS_WORKLOAD --since 100m --timestamp  -n $STAGEPROD_NAMESPACE"
-            
-            tanzu apps workload tail $SENSORS_WORKLOAD --since 100m --timestamp  -n $STAGEPROD_NAMESPACE
-        fi
-    }
-
-    #track-prod-deliverables
-    track-prod-deliverables () {
-
-        scripts/dektecho.sh info "$PROD1_CLUSTER running pods"
-        kubectl config use-context $PROD1_CLUSTER
-        kubectl get pods -n $STAGEPROD_NAMESPACE
-
-        scripts/dektecho.sh info "$PROD2_CLUSTER running pods"
-        kubectl config use-context $PROD2_CLUSTER
-        kubectl get pods -n $STAGEPROD_NAMESPACE
-
     }
 
     
@@ -381,13 +296,15 @@
         echo
         echo "  dev"
         echo
+        echo "  team"
+        echo
         echo "  stage"
         echo
         echo "  prod"
         echo
         echo "  supplychains"
         echo
-        echo "  track dev/stage/prod [logs]"
+        echo "  track team/stage [logs]"
         echo
         echo "  services dev/stage/prod"
         echo
@@ -409,9 +326,13 @@ dev)
     kubectl config use-context $DEV_CLUSTER
     create-dev-workloads
     ;;
+team)
+    kubectl config use-context $DEV_CLUSTER
+    create-workloads $TEAM_NAMESPACE $SNIFF_THRESHOLD_AGGRESSIVE "postgresql-unmanaged"
+    ;;
 stage)
     kubectl config use-context $STAGE_CLUSTER
-    create-stage-workloads
+    create-workloads $STAGEPROD_NAMESPACE $SNIFF_THRESHOLD_MILD "aws-rds-psql"
     ;;
 prod)
     prod-roleout
@@ -449,14 +370,13 @@ services)
     ;;
 track)
     case $2 in
-    dev)
-        track-dev-workloads $3
+    team)
+        kubectl config use-context $DEV_CLUSTER
+        track-workloads $TEAM_NAMESPACE $3
         ;;
     stage)
-        track-stage-workloads $3
-        ;;
-    prod)
-        track-prod-deliverables
+        kubectl config use-context $STAGE_CLUSTER
+        track-workloads $STAGEPROD_NAMESPACE $3
         ;;
     *)
         incorrect-usage

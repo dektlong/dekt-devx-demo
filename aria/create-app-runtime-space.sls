@@ -60,10 +60,10 @@ Create Target {{ space_name }}:
         options:
         - name: Best effort
           value: besteffort
-        - name: SLA driven
+        - name: Performance driven
           value: sla
         - name: Cost driven
-          value: sla
+          value: cost
         - name: Strict
           value: strict
 

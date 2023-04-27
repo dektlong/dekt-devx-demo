@@ -124,7 +124,12 @@ This scripts automated the following:
 ```
 ./demo.sh dev
 ```
-  - Track the progress of the 3 supply chains in the TAP gui or CLI
+
+```
+./demo.sh team
+```
+
+  - Track the progress of the supply chains in the TAP gui or CLI
     ```
     ./demo.sh track team [logs]
     ```
@@ -133,7 +138,7 @@ This scripts automated the following:
     ./demo.sh services teams
     ```
   - show how the RabbitMQ 'reading' single instance resource created
-  - show how the Tanzu Postgres 'inventory' resource provisioned 
+  - show how the Bitnami Postgres 'inventory' resource provisioned 
   - show service claims generated for both data services and mapped to the workload
 
 - access the live url at mood-portal.```dns.devSubdomain```.```dns.domain``` and show the call back to the mood-sensors APIs and the mood-analyzer outputs in ()

@@ -455,6 +455,9 @@ install-demo)
     attach-tmc-clusters 
     ;;
 install-non-prod)
+    scripts/k8s-handler.sh create $VIEW_CLUSTER_PROVIDER $VIEW_CLUSTER_NAME $VIEW_CLUSTER_NODES \
+    & scripts/k8s-handler.sh create $DEV_CLUSTER_PROVIDER $DEV_CLUSTER_NAME $DEV_CLUSTER_NODES \
+    & scripts/k8s-handler.sh create $STAGE_CLUSTER_PROVIDER $STAGE_CLUSTER_NAME $STAGE_CLUSTER_NODES
     scripts/k8s-handler.sh get-context $VIEW_CLUSTER_PROVIDER $VIEW_CLUSTER_NAME
     scripts/k8s-handler.sh get-context $DEV_CLUSTER_PROVIDER $DEV_CLUSTER_NAME
     scripts/k8s-handler.sh get-context $STAGE_CLUSTER_PROVIDER $STAGE_CLUSTER_NAME
