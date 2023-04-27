@@ -114,12 +114,14 @@
         #portal workload
         scripts/dektecho.sh cmd "tanzu apps workload create $PORTAL_WORKLOAD -f .config/workloads/mood-portal.yaml -y -n $appNamespace" 
         tanzu apps workload create $PORTAL_WORKLOAD -f .config/workloads/mood-portal.yaml \
+            --param scanning_image_template=$IMAGE_SCAN_TEMPLATE_PORTAL \
             --env SNIFF_THRESHOLD=$sniffThershold \
             -y -n $appNamespace
 
         #sensors workload
         scripts/dektecho.sh cmd "tanzu apps workload create $SENSORS_WORKLOAD -f .config/workloads/mood-sensors.yaml -y -n $appNamespace"
          tanzu apps workload create $SENSORS_WORKLOAD -f .config/workloads/mood-sensors.yaml \
+            --param scanning_image_template=$IMAGE_SCAN_TEMPLATE_SENSORS \
             --service-ref inventory-claim=services.apps.tanzu.vmware.com/v1alpha1:ClassClaim:inventory \
             --service-ref reading-claim=services.apps.tanzu.vmware.com/v1alpha1:ClassClaim:reading \
             -y -n $appNamespace
@@ -127,6 +129,7 @@
         #doctor workload
         scripts/dektecho.sh cmd "tanzu apps workload create $MEDICAL_WORKLOAD -f .config/workloads/mood-doctor.yaml -y -n $appNamespace"
         tanzu apps workload create $MEDICAL_WORKLOAD -f .config/workloads/mood-doctor.yaml \
+            --param scanning_image_template=$IMAGE_SCAN_TEMPLATE_DOCTOR \
             --service-ref reading-claim=services.apps.tanzu.vmware.com/v1alpha1:ClassClaim:reading \
             -y -n $appNamespace
 
@@ -134,6 +137,7 @@
         scripts/dektecho.sh cmd "tanzu apps workload create $PREDICTOR_WORKLOAD -f .config/workloads/mood-predictor.yaml -y -n $appNamespace"
         tanzu apps workload create $PREDICTOR_WORKLOAD -f .config/workloads/mood-predictor.yaml \
             --image $PREDICTOR_IMAGE \
+            --param scanning_image_template=$IMAGE_SCAN_TEMPLATE_PREDICTOR \
             -y -n $appNamespace
 
     }

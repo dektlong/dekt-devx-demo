@@ -74,6 +74,8 @@
         kubectl get secret app-tls-ca-cert -n metadata-store -o yaml | yq '.data."ca.crt"' | base64 -d > .config/secrets/alv-cert.pem
         yq '.appliveview_connector.backend.caCertData = load_str(".config/secrets/alv-cert.pem")' .config/tap-profiles/tap-iterate.yaml -i
         rm .config/secrets/alv-cert.pem
+
+        kubectl create ns brownfield
         
 
     }
