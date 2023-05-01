@@ -35,7 +35,7 @@ This repo contains artifacts to run a demo illustrating the vision and capabilit
 - verify all yamls created successfully in the ```.config``` folder
 
 - 
-export Tanzu packages to your private registry if node done prior
+export Tanzu packages to your private registry
 ```
 ./builder.sh export-packages tap (relocates TAP and Cluster Essentials packages)
 
@@ -64,7 +64,7 @@ Note: you can create only the view,dev and stage clusters using ```create-cluste
 ```
 ./builder.sh install all
 ```
-  Note: you can install portions of the demo using ```install devstage``` and add ```install-prod``` option
+  Note: you can install portions of the demo using ```install devstage``` and ```install-prod``` options
 
 This scripts automated the following:
 
