@@ -51,15 +51,21 @@ export Tanzu packages to your private registry if node done prior
 ## Installation
 
 ### Create clusters 
+
 ```
-./builder.sh create-clusters
+./builder.sh create-clusters all
 ```
-  *Note: this process make take 15-20min, depends on your k8s providers of choice*
+  this process make take 15-20min, depends on your k8s providers of choice*
+
+Note: you can create only the view,dev and stage clusters using ```create-clusters devstage```
+
 
 ### Install demo components
 ```
-./builder.sh install-demo
+./builder.sh install all
 ```
+  Note: you can install portions of the demo using ```install devstage``` and add ```install-prod``` option
+
 This scripts automated the following:
 
 - Set k8s contexts and verify clusters created successfully

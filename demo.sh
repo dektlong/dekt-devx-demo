@@ -31,7 +31,7 @@
     IMAGE_SCAN_TEMPLATE_SENSORS=$(yq .tap.imageScanSensors .config/demo-values.yaml)
     IMAGE_SCAN_TEMPLATE_DOCTOR=$(yq .tap.imageScanDoctor .config/demo-values.yaml)
     IMAGE_SCAN_TEMPLATE_PREDICTOR=$(yq .tap.imageScanPredictor .config/demo-values.yaml)
-    DELIVERABLE_GITOPS_REPO_NAME=$(yq .deliverable_gitops.repository_name .config/demo-values.yaml)
+    DELIVERABLE_GITOPS_REPO_NAME=$(yq .gitops.repo .config/demo-values.yaml)
     
 
     

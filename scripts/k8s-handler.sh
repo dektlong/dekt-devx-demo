@@ -32,6 +32,8 @@ create-aks-cluster() {
 		--node-count $number_of_nodes \
 		--node-vm-size $AZURE_NODE_TYPE \
 		--generate-ssh-keys
+
+	az aks get-credentials --overwrite-existing --resource-group $AZURE_RESOURCE_GROUP --name $clusterName
 }
 
 #delete-aks-cluster
@@ -79,6 +81,8 @@ create-eks-cluster () {
 		--service-account-role-arn arn:aws:iam::$AWS_ACCOUNT_ID:role/AmazonEKS_EBS_CSI_DriverRole-$cluster_name \
 		--force
 
+	kubectl config rename-context $AWS_IAM_USER@$clusterName.$AWS_REGION.eksctl.io $clusterName
+
 }
 
 #delete-eks-cluster
@@ -108,6 +112,8 @@ create-gke-cluster () {
 	gcloud container clusters get-credentials $cluster_name --region $GCP_REGION --project $GCP_PROJECT_ID 
 
 	gcloud components install gke-gcloud-auth-plugin
+
+	kubectl config rename-context gke_$GCP_PROJECT_ID"_"$GCP_REGION"_"$cluster_name $cluster_name
 }
 
 #delete-eks-cluster
@@ -122,31 +128,10 @@ delete-gke-cluster () {
 		--project $GCP_PROJECT_ID \
 		--quiet
 
-}
-
-#get-context
-get-context() {
-
-	clusterProvider=$1
-	clusterName=$2
-	
-	case $clusterProvider in
-	aks)
-  		az aks get-credentials --overwrite-existing --resource-group $AZURE_RESOURCE_GROUP --name $clusterName
-    	;;
-	eks)
-		kubectl config rename-context $AWS_IAM_USER@$clusterName.$AWS_REGION.eksctl.io $clusterName
-		;;
-	gke)
-		#gke creates the context during install, so we are deleting the duplicate
-		kubectl config delete-context gke_$GCP_PROJECT_ID"_"$GCP_REGION"_"$clusterName
-		;;
-	*)
-		incorrect-usage
-		;;
-	esac
+	kubectl config delete-context $cluster_name
 
 }
+
 
 #install-krew
 install-krew () {
@@ -161,15 +146,7 @@ install-krew () {
 	export PATH="${KREW_ROOT:-$HOME/.krew}/bin:$PATH"
 
 }
-#verify cluster
-verify () {
 
-	cluster_name=$1
-
-	kubectl config use-context $cluster_name 
-	kubectl get pods -A
-	kubectl get svc -A
-}
 
 #wait-for-all-running-pods
 wait-for-all-running-pods () {
@@ -194,7 +171,6 @@ incorrect-usage() {
 	scripts/dektecho.sh err "Incorrect usage. Please specify:"
     echo "  create [aks/eks/gke cluster-name numbber-of-nodes]"
     echo "  delete [aks/eks/gke cluster-name]"
-	echo "  get-context [aks/eks/gke cluster-name]"
     exit
 }
 
@@ -235,10 +211,6 @@ delete)
 		;;
 	esac
 	;;	
-get-context)
-	get-context $clusterProvider $clusterName
-	verify $clusterName
-	;;
 install-krew)
 	install-krew
 	;;

@@ -115,10 +115,10 @@ generate-config-yamls() {
     #tap-profiles
     mkdir -p .config/tap-profiles
     ytt -f config-templates/tap-profiles/tap-view.yaml --data-values-file=.config/demo-values.yaml > .config/tap-profiles/tap-view.yaml
-    ytt -f config-templates/tap-profiles/tap-iterate.yaml --data-values-file=.config/demo-values.yaml > .config/tap-profiles/tap-iterate.yaml
+    ytt -f config-templates/tap-profiles/tap-dev.yaml --data-values-file=.config/demo-values.yaml > .config/tap-profiles/tap-dev.yaml
     ytt -f config-templates/tap-profiles/tap-stage.yaml --data-values-file=.config/demo-values.yaml > .config/tap-profiles/tap-stage.yaml
-    ytt -f config-templates/tap-profiles/tap-run1.yaml --data-values-file=.config/demo-values.yaml > .config/tap-profiles/tap-run1.yaml
-    ytt -f config-templates/tap-profiles/tap-run2.yaml --data-values-file=.config/demo-values.yaml > .config/tap-profiles/tap-run2.yaml
+    ytt -f config-templates/tap-profiles/tap-prod1.yaml --data-values-file=.config/demo-values.yaml > .config/tap-profiles/tap-prod1.yaml
+    ytt -f config-templates/tap-profiles/tap-prod2.yaml --data-values-file=.config/demo-values.yaml > .config/tap-profiles/tap-prod2.yaml
 
     #secrets
     mkdir -p .config/secrets

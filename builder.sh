@@ -59,8 +59,6 @@
 
         kubectl config use-context $VIEW_CLUSTER_NAME
 
-        kubectl create ns tap-install
-
         scripts/tanzu-handler.sh add-carvel-tools
         
         install-tap "tap-view.yaml"
@@ -70,13 +68,7 @@
 
         scripts/ingress-handler.sh update-tap-dns $SYSTEM_SUB_DOMAIN $VIEW_CLUSTER_PROVIDER
 
-        #update ALV cert in iterate cluster
-        kubectl get secret app-tls-ca-cert -n metadata-store -o yaml | yq '.data."ca.crt"' | base64 -d > .config/secrets/alv-cert.pem
-        yq '.appliveview_connector.backend.caCertData = load_str(".config/secrets/alv-cert.pem")' .config/tap-profiles/tap-iterate.yaml -i
-        rm .config/secrets/alv-cert.pem
-
-        kubectl create ns brownfield
-        
+       update-alv-cert
 
     }
 
@@ -87,15 +79,13 @@
 
         kubectl config use-context $DEV_CLUSTER_NAME
 
-        kubectl create ns tap-install
-
         scripts/tanzu-handler.sh add-carvel-tools
 
         setup-app-ns $DEV1_NAMESPACE
         setup-app-ns $DEV2_NAMESPACE
         setup-app-ns $TEAM_NAMESPACE
 
-        install-tap "tap-iterate.yaml"
+        install-tap "tap-dev.yaml"
 
         scripts/ingress-handler.sh update-tap-dns $DEV_SUB_DOMAIN $DEV_CLUSTER_PROVIDER
 
@@ -107,8 +97,6 @@
         scripts/dektecho.sh info "Installing demo components for $STAGE_CLUSTER_NAME cluster"
 
         kubectl config use-context $STAGE_CLUSTER_NAME
-
-        kubectl create ns tap-install
 
         scripts/tanzu-handler.sh add-carvel-tools
 
@@ -128,13 +116,11 @@
 
         kubectl config use-context $PROD1_CLUSTER_NAME
 
-        kubectl create ns tap-install
-
         scripts/tanzu-handler.sh add-carvel-tools
 
         setup-app-ns $STAGEPROD_NAMESPACE
 
-        install-tap "tap-run1.yaml"
+        install-tap "tap-prod1.yaml"
 
         scripts/ingress-handler.sh update-tap-dns $PROD1_SUB_DOMAIN $PROD1_CLUSTER_PROVIDER
 
@@ -147,13 +133,11 @@
 
         kubectl config use-context $PROD2_CLUSTER_NAME
 
-        kubectl create ns tap-install
-
         scripts/tanzu-handler.sh add-carvel-tools
 
         setup-app-ns $STAGEPROD_NAMESPACE
 
-        install-tap "tap-run2.yaml"
+        install-tap "tap-prod2.yaml"
 
         scripts/ingress-handler.sh update-tap-dns $PROD2_SUB_DOMAIN $PROD2_CLUSTER_PROVIDER
 
@@ -185,8 +169,11 @@
         tanzu package install tap -p tap.tanzu.vmware.com -v $TAP_VERSION \
             --values-file .config/tap-profiles/$tap_values_file_name \
             --namespace tap-install
-
-        kubectl apply -f .config/secrets/cluster-issuer.yaml
+        
+        if test -f ".config/secrets/cluster-issuer.yaml"; then
+            kubectl apply -f .config/secrets/cluster-issuer.yaml
+        fi 
+        
         
     }
 
@@ -297,8 +284,18 @@ EOF
         yq '.tap_gui.app_config.kubernetes.clusterLocatorMethods.[0].clusters.[env(clusterIndex)].url = env(clusterUrl)' .config/tap-profiles/tap-view.yaml -i
         yq '.tap_gui.app_config.kubernetes.clusterLocatorMethods.[0].clusters.[env(clusterIndex)].name = env(clusterName)' .config/tap-profiles/tap-view.yaml -i
         yq '.tap_gui.app_config.kubernetes.clusterLocatorMethods.[0].clusters.[env(clusterIndex)].serviceAccountToken = env(clusterToken)' .config/tap-profiles/tap-view.yaml -i
+
+        kubectl apply -f .config/secrets/viewer-rbac.yaml
     } 
  
+    #update-alv-cert
+    updata-alv-cert() {
+        #update ALV cert in iterate cluster
+        kubectl get secret appliveview-cert -n app-live-view -o yaml | yq '.data."ca.crt"' | base64 -d > .config/secrets/alv-cert.pem
+        yq '.appliveview_connector.backend.caCertData = load_str(".config/secrets/alv-cert.pem")' .config/tap-profiles/tap-dev.yaml -i
+        rm .config/secrets/alv-cert.pem
+    }
+
     #add-brownfield-apis
     add-brownfield-apis () {
         
@@ -340,18 +337,7 @@ EOF
 
     }
 
-     #attach TMC clusters
-    attach-tmc-clusters() {
-
-        scripts/tanzu-handler.sh tmc-cluster attach $VIEW_CLUSTER_NAME
-        scripts/tanzu-handler.sh tmc-cluster attach $DEV_CLUSTER_NAME
-        scripts/tanzu-handler.sh tmc-cluster attach $STAGE_CLUSTER_NAME
-        scripts/tanzu-handler.sh tmc-cluster attach $PROD1_CLUSTER_NAME
-        scripts/tanzu-handler.sh tmc-cluster attach $PROD2_CLUSTER_NAME
-        scripts/tanzu-handler.sh tmc-cluster attach $BROWNFIELD_CLUSTER_NAME
-
-    }
-    
+  
     #delete-tmc-cluster
     delete-tmc-clusters() {
 
@@ -373,7 +359,7 @@ EOF
             ;;
         dev) 
             kubectl config use-context $DEV_CLUSTER_NAME
-            tanzu package installed update tap --values-file .config/tap-profiles/tap-iterate.yaml -n tap-install
+            tanzu package installed update tap --values-file .config/tap-profiles/tap-dev.yaml -n tap-install
             ;;
         stage) 
             kubectl config use-context $STAGE_CLUSTER_NAME
@@ -381,9 +367,9 @@ EOF
             ;;
         prod) 
             kubectl config use-context $PROD1_CLUSTER_NAME
-            tanzu package installed update tap --values-file .config/tap-profiles/tap-run1.yaml -n tap-install
+            tanzu package installed update tap --values-file .config/tap-profiles/tap-prod1.yaml -n tap-install
             kubectl config use-context $PROD2_CLUSTER_NAME
-            tanzu package installed update tap --values-file .config/tap-profiles/tap-run2.yaml -n tap-install
+            tanzu package installed update tap --values-file .config/tap-profiles/tap-prod2.yaml -n tap-install
             ;;
         multicluster)
             setup-access-to-view-cluster $DEV_CLUSTER_NAME 0
@@ -396,16 +382,30 @@ EOF
         esac
     }
 
-    #get-contexts
-    get-contexts() {
+    #install-devstage
+    install-devstage () {
+        
+        install-view-cluster
+        install-dev-cluster
+        install-stage-cluster
+        update-tap multicluster
 
-        #get k8s contexts and verify cluster install
-        scripts/k8s-handler.sh get-context $VIEW_CLUSTER_PROVIDER $VIEW_CLUSTER_NAME
-        scripts/k8s-handler.sh get-context $DEV_CLUSTER_PROVIDER $DEV_CLUSTER_NAME
-        scripts/k8s-handler.sh get-context $STAGE_CLUSTER_PROVIDER $STAGE_CLUSTER_NAME
-        scripts/k8s-handler.sh get-context $PROD1_CLUSTER_PROVIDER $PROD1_CLUSTER_NAME
-        scripts/k8s-handler.sh get-context $PROD2_CLUSTER_PROVIDER $PROD2_CLUSTER_NAME
-        scripts/k8s-handler.sh get-context $BROWNFIELD_CLUSTER_PROVIDER $BROWNFIELD_CLUSTER_NAME
+        scripts/tanzu-handler.sh tmc-cluster attach $VIEW_CLUSTER_NAME
+        scripts/tanzu-handler.sh tmc-cluster attach $DEV_CLUSTER_NAME
+        scripts/tanzu-handler.sh tmc-cluster attach $STAGE_CLUSTER_NAME
+    }
+
+    #install-prod()
+    install-prod() {
+
+        install-prod-cluster1 
+        install-prod-cluster2
+        add-brownfield-apis
+        
+        scripts/tanzu-handler.sh tmc-cluster attach $PROD1_CLUSTER_NAME
+        scripts/tanzu-handler.sh tmc-cluster attach $PROD2_CLUSTER_NAME
+        scripts/tanzu-handler.sh tmc-cluster attach $BROWNFIELD_CLUSTER_NAME
+
     }
 
     
@@ -414,17 +414,17 @@ EOF
         
         scripts/dektecho.sh err "Incorrect usage. Please specify one of the following: "
         
-        echo "  create-clusters"
-        echo 
-        echo "  install-demo"
+        echo "  create-clusters [ all | devstage ]"
+        echo
+        echo "  install  [ all | devstage | prod ]"
         echo 
         echo "  delete-all"
         echo
         echo "  generate-configs"
         echo
-        echo "  update-tap view | dev | stage | prod | multicluster"
+        echo "  update-tap view [ dev | stage | prod | multicluster ]"
         echo
-        echo "  export-packages tap|tbs|tds|scgw"
+        echo "  export-packages [ tap | tbs | tds | scgw ]"
         echo
         echo "  runme [ function-name ]"
         echo
@@ -437,36 +437,41 @@ EOF
 
 case $1 in
 create-clusters)
-    scripts/k8s-handler.sh create $VIEW_CLUSTER_PROVIDER $VIEW_CLUSTER_NAME $VIEW_CLUSTER_NODES \
-    & scripts/k8s-handler.sh create $DEV_CLUSTER_PROVIDER $DEV_CLUSTER_NAME $DEV_CLUSTER_NODES \
-    & scripts/k8s-handler.sh create $STAGE_CLUSTER_PROVIDER $STAGE_CLUSTER_NAME $STAGE_CLUSTER_NODES \
-    & scripts/k8s-handler.sh create $PROD1_CLUSTER_PROVIDER $PROD1_CLUSTER_NAME $PROD1_CLUSTER_NODES \
-    & scripts/k8s-handler.sh create $PROD2_CLUSTER_PROVIDER $PROD2_CLUSTER_NAME $PROD2_CLUSTER_NODES \
-    & scripts/k8s-handler.sh create $BROWNFIELD_CLUSTER_PROVIDER $BROWNFIELD_CLUSTER_NAME $BROWNFIELD_CLUSTER_NODES  
+    case $2 in
+    all)
+        scripts/k8s-handler.sh create $VIEW_CLUSTER_PROVIDER $VIEW_CLUSTER_NAME $VIEW_CLUSTER_NODES \
+        & scripts/k8s-handler.sh create $DEV_CLUSTER_PROVIDER $DEV_CLUSTER_NAME $DEV_CLUSTER_NODES \
+        & scripts/k8s-handler.sh create $STAGE_CLUSTER_PROVIDER $STAGE_CLUSTER_NAME $STAGE_CLUSTER_NODES \
+        & scripts/k8s-handler.sh create $PROD1_CLUSTER_PROVIDER $PROD1_CLUSTER_NAME $PROD1_CLUSTER_NODES \
+        & scripts/k8s-handler.sh create $PROD2_CLUSTER_PROVIDER $PROD2_CLUSTER_NAME $PROD2_CLUSTER_NODES \
+        & scripts/k8s-handler.sh create $BROWNFIELD_CLUSTER_PROVIDER $BROWNFIELD_CLUSTER_NAME $BROWNFIELD_CLUSTER_NODES  
+        ;;
+    devstage)
+        scripts/k8s-handler.sh create $VIEW_CLUSTER_PROVIDER $VIEW_CLUSTER_NAME $VIEW_CLUSTER_NODES \
+        & scripts/k8s-handler.sh create $DEV_CLUSTER_PROVIDER $DEV_CLUSTER_NAME $DEV_CLUSTER_NODES \
+        & scripts/k8s-handler.sh create $STAGE_CLUSTER_PROVIDER $STAGE_CLUSTER_NAME $STAGE_CLUSTER_NODES \
+        ;;
+    *)
+        incorrect-usage
+        ;;
+    esac
     ;;
-install-demo)
-    get-contexts
-    scripts/dektecho.sh prompt  "Verfiy all clusters created succefully. Continue to install demo??" && [ $? -eq 0 ] || exit
-    install-view-cluster
-    install-dev-cluster
-    install-stage-cluster
-    update-tap multicluster
-    install-prod-cluster1 
-    install-prod-cluster2
-    add-brownfield-apis
-    attach-tmc-clusters 
-    ;;
-install-non-prod)
-    scripts/k8s-handler.sh create $VIEW_CLUSTER_PROVIDER $VIEW_CLUSTER_NAME $VIEW_CLUSTER_NODES \
-    & scripts/k8s-handler.sh create $DEV_CLUSTER_PROVIDER $DEV_CLUSTER_NAME $DEV_CLUSTER_NODES \
-    & scripts/k8s-handler.sh create $STAGE_CLUSTER_PROVIDER $STAGE_CLUSTER_NAME $STAGE_CLUSTER_NODES
-    scripts/k8s-handler.sh get-context $VIEW_CLUSTER_PROVIDER $VIEW_CLUSTER_NAME
-    scripts/k8s-handler.sh get-context $DEV_CLUSTER_PROVIDER $DEV_CLUSTER_NAME
-    scripts/k8s-handler.sh get-context $STAGE_CLUSTER_PROVIDER $STAGE_CLUSTER_NAME
-    install-view-cluster
-    install-dev-cluster
-    install-stage-cluster
-    update-tap multicluster
+install)
+    case $2 in
+    all)
+        install-devstage
+        install-prod
+        ;;
+    devstage) 
+        install-devstage
+        ;;
+    prod)
+        install-prod
+        ;; 
+    *)
+        incorrect-usage
+        ;;
+    esac
     ;;
 delete-all)
     scripts/dektecho.sh prompt  "Are you sure you want to delete all clusters?" && [ $? -eq 0 ] || exit

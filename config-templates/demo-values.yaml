@@ -57,7 +57,7 @@ tap:
   imageScanSensors:  #accepted values: carbonblack-private-image-scan-template snyk-private-image-scan-template, private-image-scan-template
   imageScanDoctor:  #accepted values: carbonblack-private-image-scan-template snyk-private-image-scan-template, private-image-scan-template
   imageScanPredictor:  #accepted values: carbonblack-private-image-scan-template snyk-private-image-scan-template, private-image-scan-template
-  ingressIssuer: tap-ingress-selfsigned #create the appropriate secret in .config/cluster-configs/cluster-issuer.yaml if diffenrent than tap-ingress-selfsigned
+  ingressIssuer: tap-ingress-selfsigned # if changed, you need to create a ClusterIssuer definition named cluster-issuer.yaml in .config/secrets/
   isvImg: #BYO image name, must be pushed to private_registry/isvs repo
 
 snyk: 
@@ -75,11 +75,28 @@ apps_namespaces:
   team:  #for the DevXmood dev team (mood-portal, mood-sensors, mood-doctor and mood-predictor workloads)
   stageProd:  #for promoting the DevXmood business application to stage and prod
 
-deliverable_gitops: 
-  server_address: #e.g https://github.com
-  repository_owner:
-  repository_name: #repo must be created prior to installing the demo and cloned at the same path as the dekt-devx-demo
-  token: #must have read/write permissions for repository_name
+gitops: 
+  
+  server: #e.g https://github.com
+  owner:
+  token: #must have read/write permissions for repo
+
+  # repo must be created prior to installing the demo and cloned to the same path as the demo repo
+  # supplychains deliverables will be pushed to server/repo/config
+  repo: 
+  
+  # subPath needs to be created and contain at least the following resources: 
+  # 1. scan-policy.yaml
+  # 2. tekton-pipeline-golang.yaml
+  # 3. tekton-pipeline-java.yaml
+  # 4. tekton-pipeline-nodejs.yaml
+  # 5. snyk-install.yaml !!make sure the snyk_values["metadataStore"] = {"url" value is updated
+  # 6. carbonblack-install.yaml !!make sure the snyk_values["metadataStore"] = {"url" value is updated
+  #
+  # see example at https://github.com/dektlong/dekt-gitops/tree/main/resources
+  subPath: 
+  
+  
 
 dns:
   domain: 
