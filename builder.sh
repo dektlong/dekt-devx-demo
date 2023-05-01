@@ -68,7 +68,7 @@
 
         scripts/ingress-handler.sh update-tap-dns $SYSTEM_SUB_DOMAIN $VIEW_CLUSTER_PROVIDER
 
-       update-alv-cert
+        update-alv-cert
 
     }
 
@@ -289,7 +289,7 @@ EOF
     } 
  
     #update-alv-cert
-    updata-alv-cert() {
+    update-alv-cert() {
         #update ALV cert in iterate cluster
         kubectl get secret appliveview-cert -n app-live-view -o yaml | yq '.data."ca.crt"' | base64 -d > .config/secrets/alv-cert.pem
         yq '.appliveview_connector.backend.caCertData = load_str(".config/secrets/alv-cert.pem")' .config/tap-profiles/tap-dev.yaml -i
