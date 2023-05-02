@@ -26,7 +26,6 @@
     PRIVATE_REPO_SERVER=$(yq .private_registry.host .config/demo-values.yaml)
     PRIVATE_REPO_USER=$(yq .private_registry.username .config/demo-values.yaml)
     PRIVATE_REPO_PASSWORD=$(yq .private_registry.password .config/demo-values.yaml)
-    SYSTEM_REPO=$(yq .private_registry.repo .config/demo-values.yaml)
     #tap
     TANZU_NETWORK_USER=$(yq .tanzu_network.username .config/demo-values.yaml)
     TANZU_NETWORK_PASSWORD=$(yq .tanzu_network.password .config/demo-values.yaml)

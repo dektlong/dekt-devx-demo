@@ -126,6 +126,7 @@ generate-config-yamls() {
     ytt -f config-templates/secrets/carbonblack-creds.yaml --data-values-file=.config/demo-values.yaml > .config/secrets/carbonblack-creds.yaml
     ytt -f config-templates/secrets/snyk-creds.yaml --data-values-file=.config/demo-values.yaml > .config/secrets/snyk-creds.yaml
     ytt -f config-templates/secrets/git-creds.yaml --data-values-file=.config/demo-values.yaml > .config/secrets/git-creds.yaml
+    ytt -f config-templates/secrets/cluster-issuer.yaml --data-values-file=.config/demo-values.yaml > .config/secrets/cluster-issuer.yaml
     
     #crossplane
     mkdir -p .config/crossplane

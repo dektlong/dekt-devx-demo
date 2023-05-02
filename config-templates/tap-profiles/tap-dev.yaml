@@ -3,7 +3,7 @@
 profile: iterate
 shared:
   ingress_domain: #@ "{}.{}".format(data.values.dns.devSubDomain, data.values.dns.domain)
-  ingress_issuer: #@ data.values.tap.ingressIssuer
+  ingress_issuer: #@ data.values.tap.devStageIngressIssuer
   image_registry:
     project_path: #@ "{}/{}".format(data.values.private_registry.host, data.values.private_registry.repo)
     username: #@ data.values.private_registry.username
