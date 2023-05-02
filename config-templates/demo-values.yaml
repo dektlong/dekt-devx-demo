@@ -2,27 +2,27 @@ clusters:
   view: # TAP view profile installed
     name: 
     provider: #accepted values: aks,eks,gke 
-    nodes: 2
+    nodes: 3
   dev: # TAP interate profile installed
     name: 
     provider: #accepted values: aks,eks,gke  
-    nodes: 4 
+    nodes: 5 
   stage: #TAP build profile installed
     name: 
     provider: #accepted values: aks,eks,gke 
-    nodes: 4 
+    nodes: 5 
   prod1: # TAP run profile installed
     name: 
     provider: #accepted values: aks,eks,gke  
-    nodes: 2 
+    nodes: 3
   prod2: # TAP run profile installed
     name: 
     provider: #accepted values: aks,eks,gke  
-    nodes: 2 
+    nodes: 3 
   brownfield: #for bronwfield apis demo, SCGW and TSM, no TAP installed
     name: 
     provider: #accepted values: aks,eks,gke 
-    nodes: 3 
+    nodes: 2 
 
 clouds:
   azure:
