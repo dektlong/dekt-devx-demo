@@ -162,9 +162,9 @@
             --yes \
             --namespace tap-install
 
-      #  tanzu package repository add tanzu-tap-repository \
-      #      --url $PRIVATE_REGISTRY_SERVER/$PRIVATE_RGISTRY_REPO/tap-packages:$TAP_VERSION \
-      #      --namespace tap-install
+        tanzu package repository add tanzu-tap-repository \
+            --url $PRIVATE_REGISTRY_SERVER/$PRIVATE_RGISTRY_REPO/tap-packages:$TAP_VERSION \
+            --namespace tap-install
 
         tanzu package install tap -p tap.tanzu.vmware.com -v $TAP_VERSION \
             --values-file .config/tap-profiles/$tap_values_file_name \
