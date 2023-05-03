@@ -23,9 +23,10 @@
     PRIVATE_CLUSTER_NAME=$(yq .brownfield_apis.privateClusterContext .config/demo-values.yaml)
 
     #image registry
-    PRIVATE_REPO_SERVER=$(yq .private_registry.host .config/demo-values.yaml)
-    PRIVATE_REPO_USER=$(yq .private_registry.username .config/demo-values.yaml)
-    PRIVATE_REPO_PASSWORD=$(yq .private_registry.password .config/demo-values.yaml)
+    PRIVATE_REGISTRY_SERVER=$(yq .private_registry.host .config/demo-values.yaml)
+    PRIVATE_RGISTRY_USER=$(yq .private_registry.username .config/demo-values.yaml)
+    PRIVATE_RGISTRY_PASSWORD=$(yq .private_registry.password .config/demo-values.yaml)
+    PRIVATE_RGISTRY_REPO=$(yq .private_registry.repo .config/demo-values.yaml)
     #tap
     TANZU_NETWORK_USER=$(yq .tanzu_network.username .config/demo-values.yaml)
     TANZU_NETWORK_PASSWORD=$(yq .tanzu_network.password .config/demo-values.yaml)
@@ -154,16 +155,16 @@
         kubectl apply -f .config/secrets/git-creds-sa-overlay.yaml
 
         tanzu secret registry add private-repo-creds \
-            --server $PRIVATE_REPO_SERVER \
-            --username ${PRIVATE_REPO_USER} \
-            --password ${PRIVATE_REPO_PASSWORD} \
+            --server $PRIVATE_REGISTRY_SERVER \
+            --username ${PRIVATE_RGISTRY_USER} \
+            --password ${PRIVATE_RGISTRY_PASSWORD} \
             --export-to-all-namespaces \
             --yes \
             --namespace tap-install
 
-        tanzu package repository add tanzu-tap-repository \
-            --url $PRIVATE_REPO_SERVER/$SYSTEM_REPO/tap-packages:$TAP_VERSION \
-            --namespace tap-install
+      #  tanzu package repository add tanzu-tap-repository \
+      #      --url $PRIVATE_REGISTRY_SERVER/$PRIVATE_RGISTRY_REPO/tap-packages:$TAP_VERSION \
+      #      --namespace tap-install
 
         tanzu package install tap -p tap.tanzu.vmware.com -v $TAP_VERSION \
             --values-file .config/tap-profiles/$tap_values_file_name \
@@ -305,7 +306,7 @@ EOF
         scripts/dektecho.sh status "adding 'provider' components on $BROWNFIELD_CLUSTER_NAME cluster"
         kubectl config use-context $BROWNFIELD_CLUSTER_NAME
         kubectl create ns scgw-system
-        kubectl create secret docker-registry spring-cloud-gateway-image-pull-secret --docker-server=$PRIVATE_REPO_SERVER --docker-username=$PRIVATE_REPO_USER --docker-password=$PRIVATE_REPO_PASSWORD --namespace scgw-system
+        kubectl create secret docker-registry spring-cloud-gateway-image-pull-secret --docker-server=$PRIVATE_REGISTRY_SERVER --docker-username=$PRIVATE_RGISTRY_USER --docker-password=$PRIVATE_RGISTRY_PASSWORD --namespace scgw-system
         $GW_INSTALL_DIR/scripts/install-spring-cloud-gateway.sh --namespace scgw-system
         kubectl create ns $brownfield_apis_ns
         kubectl apply -f brownfield-apis/sentiment.yaml -n $brownfield_apis_ns
