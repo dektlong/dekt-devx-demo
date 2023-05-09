@@ -1,5 +1,9 @@
 #@ load("@ytt:data", "data")
 ---
+#@ if data.values.private_registry.ecr:
+#@   ecr_iam_arn = "arn:aws:iam::{}:role".format(data.values.clouds.aws.accountID)
+#@ end
+
 profile: run
 shared:
   ingress_domain: #@ "{}.{}".format(data.values.dns.prod1SubDomain, data.values.dns.domain)
@@ -10,6 +14,15 @@ contour:
   envoy:
     service:
       type: LoadBalancer
+
+#@ if data.values.private_registry.ecr:
+cartographer:
+  aws_iam_role_arn: #@ ecr_iam_arn
+source_controller:
+  aws_iam_role_arn: #@ ecr_iam_arn
+namespace_provisioner:
+  aws_iam_role_arn: #@ ecr_iam_arn
+#@ end
 
 excluded_packages:
   - learningcenter.tanzu.vmware.com
