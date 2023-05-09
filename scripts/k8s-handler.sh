@@ -5,10 +5,18 @@ AZURE_LOCATION=$(yq .clouds.azure.location .config/demo-values.yaml)
 AZURE_RESOURCE_GROUP=$(yq .clouds.azure.resourceGroup .config/demo-values.yaml)
 AZURE_NODE_TYPE=$(yq .clouds.azure.nodeType .config/demo-values.yaml)
 #aws configs
+PRIVATE_REGISTRY_IS_ECR=$(yq .private_registry.ecr .config/demo-values.yaml)
+PRIVATE_REGISTRY_REPO=$(yq .private_registry.repo .config/demo-values.yaml)
 AWS_ACCOUNT_ID=$(yq .clouds.aws.accountID .config/demo-values.yaml)
 AWS_IAM_USER=$(yq .clouds.aws.IAMuser .config/demo-values.yaml)
 AWS_REGION=$(yq .clouds.aws.region .config/demo-values.yaml)
 AWS_INSTANCE_TYPE=$(yq .clouds.aws.instanceType .config/demo-values.yaml)
+
+DEV1_NAMESPACE=$(yq .apps_namespaces.dev1 .config/demo-values.yaml)
+DEV2_NAMESPACE=$(yq .apps_namespaces.dev2 .config/demo-values.yaml)
+TEAM_NAMESPACE=$(yq .apps_namespaces.team .config/demo-values.yaml)
+STAGEPROD_NAMESPACE=$(yq .apps_namespaces.stageProd .config/demo-values.yaml)
+
 #gcp configs
 GCP_REGION=$(yq .clouds.gcp.region .config/demo-values.yaml)
 GCP_PROJECT_ID=$(yq .clouds.gcp.projectID .config/demo-values.yaml)
@@ -83,6 +91,232 @@ create-eks-cluster () {
 
 	kubectl config rename-context $AWS_IAM_USER@$clusterName.$AWS_REGION.eksctl.io $clusterName
 
+  if [ $PRIVATE_REGISTRY_IS_ECR = "true" ]; then
+
+  OIDCPROVIDER=$(aws eks describe-cluster --name $cluster_name --region $AWS_REGION --output json | jq '.cluster.identity.oidc.issuer' | tr -d '"' | sed 's/https:\/\///')
+  NAMESPACE_GROUPS="[ \"system:serviceaccount:${DEV1_NAMESPACE}:default\",\"system:serviceaccount:${DEV2_NAMESPACE}:default\",\"system:serviceaccount:${TEAM_NAMESPACE}:default\",\"system:serviceaccount:${STAGEPROD_NAMESPACE}:default\" ]"
+
+  cat << EOF > /tmp/${cluster_name}-build-service-trust-policy.json
+{
+    "Version": "2012-10-17",
+    "Statement": [
+        {
+            "Effect": "Allow",
+            "Principal": {
+                "Federated": "arn:aws:iam::${AWS_ACCOUNT_ID}:oidc-provider/${OIDCPROVIDER}"
+            },
+            "Action": "sts:AssumeRoleWithWebIdentity",
+            "Condition": {
+                "StringEquals": {
+                    "${OIDCPROVIDER}:aud": "sts.amazonaws.com"
+                },
+                "StringLike": {
+                    "${OIDCPROVIDER}:sub": [
+                        "system:serviceaccount:kpack:controller",
+                        "system:serviceaccount:build-service:dependency-updater-controller-serviceaccount"
+                    ]
+                }
+            }
+        }
+    ]
+}
+EOF
+
+
+  cat << EOF > /tmp/${cluster_name}-workload-trust-policy.json
+{
+    "Version": "2012-10-17",
+    "Statement": [
+        {
+            "Effect": "Allow",
+            "Principal": {
+                "Federated": "arn:aws:iam::${AWS_ACCOUNT_ID}:oidc-provider/${OIDCPROVIDER}"
+            },
+            "Action": "sts:AssumeRoleWithWebIdentity",
+            "Condition": {
+                "StringEquals": {
+                    "${OIDCPROVIDER}:sub": ${NAMESPACE_GROUPS},
+                    "${OIDCPROVIDER}:aud": "sts.amazonaws.com"
+                }
+            }
+        }
+    ]
+}
+EOF
+
+  cat << EOF > /tmp/${cluster_name}-build-service-policy.json
+{
+    "Version": "2012-10-17",
+    "Statement": [
+        {
+            "Action": [
+                "ecr:DescribeRegistry",
+                "ecr:GetAuthorizationToken",
+                "ecr:GetRegistryPolicy",
+                "ecr:PutRegistryPolicy",
+                "ecr:PutReplicationConfiguration",
+                "ecr:DeleteRegistryPolicy"
+            ],
+            "Resource": "*",
+            "Effect": "Allow",
+            "Sid": "TAPEcrBuildServiceGlobal"
+        },
+        {
+            "Action": [
+                "ecr:DescribeImages",
+                "ecr:ListImages",
+                "ecr:BatchCheckLayerAvailability",
+                "ecr:BatchGetImage",
+                "ecr:BatchGetRepositoryScanningConfiguration",
+                "ecr:DescribeImageReplicationStatus",
+                "ecr:DescribeImageScanFindings",
+                "ecr:DescribeRepositories",
+                "ecr:GetDownloadUrlForLayer",
+                "ecr:GetLifecyclePolicy",
+                "ecr:GetLifecyclePolicyPreview",
+                "ecr:GetRegistryScanningConfiguration",
+                "ecr:GetRepositoryPolicy",
+                "ecr:ListTagsForResource",
+                "ecr:TagResource",
+                "ecr:UntagResource",
+                "ecr:BatchDeleteImage",
+                "ecr:BatchImportUpstreamImage",
+                "ecr:CompleteLayerUpload",
+                "ecr:CreatePullThroughCacheRule",
+                "ecr:CreateRepository",
+                "ecr:DeleteLifecyclePolicy",
+                "ecr:DeletePullThroughCacheRule",
+                "ecr:DeleteRepository",
+                "ecr:InitiateLayerUpload",
+                "ecr:PutImage",
+                "ecr:PutImageScanningConfiguration",
+                "ecr:PutImageTagMutability",
+                "ecr:PutLifecyclePolicy",
+                "ecr:PutRegistryScanningConfiguration",
+                "ecr:ReplicateImage",
+                "ecr:StartImageScan",
+                "ecr:StartLifecyclePolicyPreview",
+                "ecr:UploadLayerPart",
+                "ecr:DeleteRepositoryPolicy",
+                "ecr:SetRepositoryPolicy"
+            ],
+            "Resource": [
+                "arn:aws:ecr:${AWS_REGION}:${AWS_ACCOUNT_ID}:repository/${PRIVATE_REGISTRY_REPO}",
+                "arn:aws:ecr:${AWS_REGION}:${AWS_ACCOUNT_ID}:repository/${PRIVATE_REGISTRY_REPO}/*"
+            ],
+            "Effect": "Allow",
+            "Sid": "TAPEcrBuildServiceScoped"
+        }
+    ]
+}
+EOF
+
+  cat << EOF > /tmp/${cluster_name}-workload-policy.json
+{
+    "Version": "2012-10-17",
+    "Statement": [
+        {
+            "Action": [
+                "ecr:DescribeRegistry",
+                "ecr:GetAuthorizationToken",
+                "ecr:GetRegistryPolicy",
+                "ecr:PutRegistryPolicy",
+                "ecr:PutReplicationConfiguration",
+                "ecr:DeleteRegistryPolicy"
+            ],
+            "Resource": "*",
+            "Effect": "Allow",
+            "Sid": "TAPEcrWorkloadGlobal"
+        },
+        {
+            "Action": [
+                "ecr:DescribeImages",
+                "ecr:ListImages",
+                "ecr:BatchCheckLayerAvailability",
+                "ecr:BatchGetImage",
+                "ecr:BatchGetRepositoryScanningConfiguration",
+                "ecr:DescribeImageReplicationStatus",
+                "ecr:DescribeImageScanFindings",
+                "ecr:DescribeRepositories",
+                "ecr:GetDownloadUrlForLayer",
+                "ecr:GetLifecyclePolicy",
+                "ecr:GetLifecyclePolicyPreview",
+                "ecr:GetRegistryScanningConfiguration",
+                "ecr:GetRepositoryPolicy",
+                "ecr:ListTagsForResource",
+                "ecr:TagResource",
+                "ecr:UntagResource",
+                "ecr:BatchDeleteImage",
+                "ecr:BatchImportUpstreamImage",
+                "ecr:CompleteLayerUpload",
+                "ecr:CreatePullThroughCacheRule",
+                "ecr:CreateRepository",
+                "ecr:DeleteLifecyclePolicy",
+                "ecr:DeletePullThroughCacheRule",
+                "ecr:DeleteRepository",
+                "ecr:InitiateLayerUpload",
+                "ecr:PutImage",
+                "ecr:PutImageScanningConfiguration",
+                "ecr:PutImageTagMutability",
+                "ecr:PutLifecyclePolicy",
+                "ecr:PutRegistryScanningConfiguration",
+                "ecr:ReplicateImage",
+                "ecr:StartImageScan",
+                "ecr:StartLifecyclePolicyPreview",
+                "ecr:UploadLayerPart",
+                "ecr:DeleteRepositoryPolicy",
+                "ecr:SetRepositoryPolicy"
+            ],
+            "Resource": [
+                "arn:aws:ecr:${AWS_REGION}:${AWS_ACCOUNT_ID}:repository/${PRIVATE_REGISTRY_REPO}",
+                "arn:aws:ecr:${AWS_REGION}:${AWS_ACCOUNT_ID}:repository/${PRIVATE_REGISTRY_REPO}/*"
+            ],
+            "Effect": "Allow",
+            "Sid": "TAPEcrWorkloadScoped"
+        }
+    ]
+}
+EOF
+  # Create the Tanzu Build Service Role
+  aws iam create-role --role-name ${cluster_name}-build-service --assume-role-policy-document file:///tmp/${cluster_name}-build-service-trust-policy.json
+  # Create the Workload Role
+  aws iam create-role --role-name ${cluster_name}-workload --assume-role-policy-document file:///tmp/${cluster_name}-workload-trust-policy.json
+  # Attach the Policy to the Build Role
+  aws iam put-role-policy --role-name ${cluster_name}-build-service --policy-name tapBuildServicePolicy --policy-document file:///tmp/${cluster_name}-build-service-policy.json
+
+  # Attach the Policy to the Workload Role
+  aws iam put-role-policy --role-name ${cluster_name}-workload --policy-name tapWorkload --policy-document file:///tmp/${cluster_name}-workload-policy.json
+
+  fi
+
+}
+
+
+create-ecr-repos() {
+
+  aws ecr create-repository --repository-name $PRIVATE_REGISTRY_REPO/cluster-essentials-bundle --region $AWS_REGION
+  aws ecr create-repository --repository-name $PRIVATE_REGISTRY_REPO/carvel-docker-image --region $AWS_REGION
+  aws ecr create-repository --repository-name $PRIVATE_REGISTRY_REPO/tap-packages --region $AWS_REGION
+  aws ecr create-repository --repository-name $PRIVATE_REGISTRY_REPO/tds-packages --region $AWS_REGION
+  aws ecr create-repository --repository-name $PRIVATE_REGISTRY_REPO/mood-sensors-$STAGEPROD_NAMESPACE --region $AWS_REGION
+  aws ecr create-repository --repository-name $PRIVATE_REGISTRY_REPO/mood-sensors-$TEAM_NAMESPACE --region $AWS_REGION
+  aws ecr create-repository --repository-name $PRIVATE_REGISTRY_REPO/mood-sensors-$DEV1_NAMESPACE --region $AWS_REGION
+  aws ecr create-repository --repository-name $PRIVATE_REGISTRY_REPO/mood-sensors-$DEV2_NAMESPACE --region $AWS_REGION
+
+  aws ecr create-repository --repository-name $PRIVATE_REGISTRY_REPO/mood-portal-$STAGEPROD_NAMESPACE --region $AWS_REGION
+  aws ecr create-repository --repository-name $PRIVATE_REGISTRY_REPO/mood-portal-$TEAM_NAMESPACE --region $AWS_REGION
+  aws ecr create-repository --repository-name $PRIVATE_REGISTRY_REPO/mood-portal-$DEV1_NAMESPACE --region $AWS_REGION
+  aws ecr create-repository --repository-name $PRIVATE_REGISTRY_REPO/mood-portal-$DEV2_NAMESPACE --region $AWS_REGION
+
+  aws ecr create-repository --repository-name $PRIVATE_REGISTRY_REPO/mood-predictor-$STAGEPROD_NAMESPACE --region $AWS_REGION
+  aws ecr create-repository --repository-name $PRIVATE_REGISTRY_REPO/mood-predictor-$TEAM_NAMESPACE --region $AWS_REGION
+  aws ecr create-repository --repository-name $PRIVATE_REGISTRY_REPO/mood-predictor-$DEV1_NAMESPACE --region $AWS_REGION
+  aws ecr create-repository --repository-name $PRIVATE_REGISTRY_REPO/mood-predictor-$DEV2_NAMESPACE --region $AWS_REGION
+
+  aws ecr create-repository --repository-name $PRIVATE_REGISTRY_REPO/mood-doctor-$STAGEPROD_NAMESPACE --region $AWS_REGION
+  aws ecr create-repository --repository-name $PRIVATE_REGISTRY_REPO/mood-doctor-$TEAM_NAMESPACE --region $AWS_REGION
+  aws ecr create-repository --repository-name $PRIVATE_REGISTRY_REPO/mood-doctor-$DEV1_NAMESPACE --region $AWS_REGION
+  aws ecr create-repository --repository-name $PRIVATE_REGISTRY_REPO/mood-doctor-$DEV2_NAMESPACE --region $AWS_REGION
 }
 
 #delete-eks-cluster
@@ -93,6 +327,14 @@ delete-eks-cluster () {
 	scripts/dektecho.sh status "Starting deleting resources of EKS cluster $cluster_name ..."
 
 	eksctl delete cluster --name $cluster_name --force
+
+  if [ $PRIVATE_REGISTRY_IS_ECR = "true" ]; then
+        aws iam delete-role-policy --role-name ${cluster_name}-workload --policy-name tapWorkload
+        aws iam delete-role-policy --role-name ${cluster_name}-build-service --policy-name tapBuildServicePolicy
+ 
+        aws iam delete-role --role-name ${cluster_name}-build-service 
+        aws iam delete-role --role-name ${cluster_name}-workload
+  fi
 }
 
 #create-gke-cluster
@@ -195,6 +437,9 @@ create)
 		;;
 	esac
 	;;
+create-ecr-repos)
+  create-ecr-repos
+  ;;
 delete)
 	case $clusterProvider in
 	aks)

@@ -44,6 +44,8 @@ private_registry:
   username: 
   password: 
   repo: 
+  ecr: false  # set true if you prefer AWS ECR for your registry (no user/password needed on EKS, need ECR admission controller for other distros)
+              # assumes your AWS AccountID and Region above is the same for this ECR.
 
 tanzu_network:
   username: 
@@ -109,6 +111,8 @@ dns:
   prod2SubDomain: 
   godaddyApiKey: 
   godaddyApiSecret: 
+  isRoute53: false #set true if you prefer route53 to godaddy
+  #  awsRoute53HostedZoneID:   the zone ID for the AWS route53 maintenance
 
 tmc:
   apiToken: 

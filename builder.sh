@@ -22,11 +22,19 @@
     BROWNFIELD_CLUSTER_NODES=$(yq .clusters.brownfield.nodes .config/demo-values.yaml)
     PRIVATE_CLUSTER_NAME=$(yq .brownfield_apis.privateClusterContext .config/demo-values.yaml)
 
+    AWS_REGION=$(yq .clouds.aws.region .config/demo-values.yaml)
+    AWS_ACCOUNT_ID=$(yq .clouds.aws.accountID .config/demo-values.yaml)
+
     #image registry
-    PRIVATE_REGISTRY_SERVER=$(yq .private_registry.host .config/demo-values.yaml)
-    PRIVATE_RGISTRY_USER=$(yq .private_registry.username .config/demo-values.yaml)
-    PRIVATE_RGISTRY_PASSWORD=$(yq .private_registry.password .config/demo-values.yaml)
-    PRIVATE_RGISTRY_REPO=$(yq .private_registry.repo .config/demo-values.yaml)
+    PRIVATE_REGISTRY_IS_ECR=$(yq .private_registry.ecr .config/demo-values.yaml)
+    if [ $PRIVATE_REGISTRY_IS_ECR = "true" ]; then
+      PRIVATE_REGISTRY_SERVER="$AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com"
+    else
+      PRIVATE_REGISTRY_SERVER=$(yq .private_registry.host .config/demo-values.yaml)
+      PRIVATE_REGISTRY_USER=$(yq .private_registry.username .config/demo-values.yaml)
+      PRIVATE_REGISTRY_PASSWORD=$(yq .private_registry.password .config/demo-values.yaml)
+    fi
+    PRIVATE_REGISTRY_REPO=$(yq .private_registry.repo .config/demo-values.yaml)
     #tap
     TANZU_NETWORK_USER=$(yq .tanzu_network.username .config/demo-values.yaml)
     TANZU_NETWORK_PASSWORD=$(yq .tanzu_network.password .config/demo-values.yaml)
@@ -46,7 +54,6 @@
     #data-services
     RDS_PROFILE=$(yq .data-services.rdsProfile .config/demo-values.yaml)
     TDS_VERSION=$(yq .data_services.tdsVersion .config/demo-values.yaml)       
-    AWS_REGION=$(yq .clouds.aws.region .config/demo-values.yaml)
     #apis
     GW_INSTALL_DIR=$(yq .brownfield_apis.scgwInstallDirectory .config/demo-values.yaml)
  
@@ -154,16 +161,18 @@
 
         kubectl apply -f .config/secrets/git-creds-sa-overlay.yaml
 
+        if [ $PRIVATE_REGISTRY_IS_ECR != "true" ]; then
         tanzu secret registry add private-repo-creds \
             --server $PRIVATE_REGISTRY_SERVER \
-            --username ${PRIVATE_RGISTRY_USER} \
-            --password ${PRIVATE_RGISTRY_PASSWORD} \
+            --username ${PRIVATE_REGISTRY_USER} \
+            --password ${PRIVATE_REGISTRY_PASSWORD} \
             --export-to-all-namespaces \
             --yes \
             --namespace tap-install
+        fi
 
         tanzu package repository add tanzu-tap-repository \
-            --url $PRIVATE_REGISTRY_SERVER/$PRIVATE_RGISTRY_REPO/tap-packages:$TAP_VERSION \
+            --url $PRIVATE_REGISTRY_SERVER/$PRIVATE_REGISTRY_REPO/tap-packages:$TAP_VERSION \
             --namespace tap-install
 
         tanzu package install tap -p tap.tanzu.vmware.com -v $TAP_VERSION \
@@ -306,7 +315,9 @@ EOF
         scripts/dektecho.sh status "adding 'provider' components on $BROWNFIELD_CLUSTER_NAME cluster"
         kubectl config use-context $BROWNFIELD_CLUSTER_NAME
         kubectl create ns scgw-system
-        kubectl create secret docker-registry spring-cloud-gateway-image-pull-secret --docker-server=$PRIVATE_REGISTRY_SERVER --docker-username=$PRIVATE_RGISTRY_USER --docker-password=$PRIVATE_RGISTRY_PASSWORD --namespace scgw-system
+        if [ $PRIVATE_REGISTRY_IS_ECR != "true" ]; then
+          kubectl create secret docker-registry spring-cloud-gateway-image-pull-secret --docker-server=$PRIVATE_REGISTRY_SERVER --docker-username=$PRIVATE_REGISTRY_USER --docker-password=$PRIVATE_REGISTRY_PASSWORD --namespace scgw-system
+        fi
         $GW_INSTALL_DIR/scripts/install-spring-cloud-gateway.sh --namespace scgw-system
         kubectl create ns $brownfield_apis_ns
         kubectl apply -f brownfield-apis/sentiment.yaml -n $brownfield_apis_ns
@@ -438,7 +449,10 @@ EOF
 case $1 in
 create-clusters)
     case $2 in
-    all)
+    all)        
+        if [ $PRIVATE_REGISTRY_IS_ECR = "true" ]; then
+          scripts/k8s-handler.sh create-ecr-repos
+        fi
         scripts/k8s-handler.sh create $VIEW_CLUSTER_PROVIDER $VIEW_CLUSTER_NAME $VIEW_CLUSTER_NODES \
         & scripts/k8s-handler.sh create $DEV_CLUSTER_PROVIDER $DEV_CLUSTER_NAME $DEV_CLUSTER_NODES \
         & scripts/k8s-handler.sh create $STAGE_CLUSTER_PROVIDER $STAGE_CLUSTER_NAME $STAGE_CLUSTER_NODES \
@@ -447,6 +461,9 @@ create-clusters)
         & scripts/k8s-handler.sh create $BROWNFIELD_CLUSTER_PROVIDER $BROWNFIELD_CLUSTER_NAME $BROWNFIELD_CLUSTER_NODES  
         ;;
     devstage)
+        if [ $PRIVATE_REGISTRY_IS_ECR = "true" ]; then
+          scripts/k8s-handler.sh create-ecr-repos
+        fi
         scripts/k8s-handler.sh create $VIEW_CLUSTER_PROVIDER $VIEW_CLUSTER_NAME $VIEW_CLUSTER_NODES \
         & scripts/k8s-handler.sh create $DEV_CLUSTER_PROVIDER $DEV_CLUSTER_NAME $DEV_CLUSTER_NODES \
         & scripts/k8s-handler.sh create $STAGE_CLUSTER_PROVIDER $STAGE_CLUSTER_NAME $STAGE_CLUSTER_NODES \
