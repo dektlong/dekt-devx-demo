@@ -6,7 +6,7 @@
 
 profile: build
 shared:
-  ingress_issuer: #@ data.values.tap.devStageIngressIssuer
+  ingress_issuer: #@ data.values.tap.ingressIssuer
   image_registry:
     #@ if data.values.private_registry.ecr:
     project_path: #@ "{}.dkr.ecr.{}.amazonaws.com/{}".format(data.values.clouds.aws.accountID, data.values.clouds.aws.region, data.values.private_registry.repo)

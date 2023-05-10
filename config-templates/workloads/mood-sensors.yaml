@@ -32,4 +32,4 @@ spec:
           path: /api-docs
         owner: dekt-dev-team2
         system: devx-mood
-        description: A set of API endpoints to manage the resources within the my-web-backend app.
+        description: APIs to interact with the mood-sensors component

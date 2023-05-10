@@ -82,8 +82,8 @@
 
     }
         
-    #create-dev-workloads
-    create-dev-workloads() {
+    #create-mydev
+    create-mydev() {
 
         #dev1 workload
         scripts/dektecho.sh cmd "tanzu apps workload create $DEV1_WORKLOAD -f .config/workloads/mood-portal.yaml -y -n $DEV1_NAMESPACE"
@@ -92,7 +92,7 @@
             -y -n $DEV1_NAMESPACE
 
         #dev2 workload (updated via VS Code)
-        tanzu apps workload create $DEV2_WORKLOAD -f .config/workloads/mood-sensors.yaml -y -n $DEV2_NAMESPACE
+        #tanzu apps workload create $DEV2_WORKLOAD -f .config/workloads/mood-sensors.yaml -y -n $DEV2_NAMESPACE
     }
 
     #create-workloads
@@ -300,8 +300,6 @@
         echo
         echo "  dev"
         echo
-        echo "  team"
-        echo
         echo "  stage"
         echo
         echo "  prod"
@@ -328,10 +326,7 @@ info)
     ;;
 dev)
     kubectl config use-context $DEV_CLUSTER
-    create-dev-workloads
-    ;;
-team)
-    kubectl config use-context $DEV_CLUSTER
+    create-mydev
     create-workloads $TEAM_NAMESPACE $SNIFF_THRESHOLD_AGGRESSIVE "postgresql-unmanaged"
     ;;
 stage)
