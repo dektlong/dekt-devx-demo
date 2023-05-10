@@ -3,7 +3,7 @@
 profile: run
 shared:
   ingress_domain: #@ "{}.{}".format(data.values.dns.prod1SubDomain, data.values.dns.domain)
-  ingress_issuer: #@ data.values.tap.prodIngressIssuer
+  ingress_issuer: #@ data.values.tap.ingressIssuer
 cnrs:
   domain_template: '{{.Name}}.{{.Domain}}'
 contour:

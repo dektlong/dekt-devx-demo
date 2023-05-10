@@ -68,7 +68,7 @@
 
         scripts/ingress-handler.sh update-tap-dns $SYSTEM_SUB_DOMAIN $VIEW_CLUSTER_PROVIDER
 
-        update-alv-cert
+        add-certs-info
 
     }
 
@@ -288,12 +288,21 @@ EOF
         kubectl apply -f .config/secrets/viewer-rbac.yaml
     } 
  
-    #update-alv-cert
-    update-alv-cert() {
-        #update ALV cert in iterate cluster
-        kubectl get secret appliveview-cert -n app-live-view -o yaml | yq '.data."ca.crt"' | base64 -d > .config/secrets/alv-cert.pem
-        yq '.appliveview_connector.backend.caCertData = load_str(".config/secrets/alv-cert.pem")' .config/tap-profiles/tap-dev.yaml -i
-        rm .config/secrets/alv-cert.pem
+    # add-certs-info
+    add-certs-info() {
+
+        kubectl config use-context $VIEW_CLUSTER_NAME
+
+        #ALV certs (!!!no need to specify the ca cert data when enabling TLS for Application Live View back end using ClusterIssuer )
+        #kubectl get secret appliveview-cert -n app-live-view --output go-template='{{ index .data "tls.crt" | base64decode }}' > .config/secrets/alv-cert.pem 
+        #yq '.appliveview_connector.backend.caCertData = load_str(".config/secrets/alv-cert.pem")' .config/tap-profiles/tap-dev.yaml -i
+        #rm .config/secrets/alv-cert.pem
+
+        #WORKAROUND for acme-solver pull image error issue
+         ./scripts/tanzu-handler.sh install-tanzu-package namespace-provisioner.apps.tanzu.vmware.com namespace-provisioner
+         kubectl label namespaces tap-gui apps.tanzu.vmware.com/tap-ns="" 
+         kubectl label namespaces metadata-store apps.tanzu.vmware.com/tap-ns="" 
+         kubectl label namespaces app-live-view apps.tanzu.vmware.com/tap-ns="" 
     }
 
     #add-brownfield-apis

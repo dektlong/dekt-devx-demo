@@ -57,9 +57,7 @@ tap:
   imageScanSensors:  #accepted values: carbonblack-private-image-scan-template snyk-private-image-scan-template, private-image-scan-template
   imageScanDoctor:  #accepted values: carbonblack-private-image-scan-template snyk-private-image-scan-template, private-image-scan-template
   imageScanPredictor:  #accepted values: carbonblack-private-image-scan-template snyk-private-image-scan-template, private-image-scan-template
-  viewIngressIssuer: tap-ingress-selfsigned  # if modifed, verify if you need to update .config/secrets/cluster-issuer.yaml
-  devStageIngressIssuer: tap-ingress-selfsigned  # if modifed, verify if you need to update .config/secrets/cluster-issuer.yaml
-  prodIngressIssuer: tap-ingress-selfsigned  # if modifed, verify if you need to update .config/secrets/cluster-issuer.yaml
+  ingressIssuer:  # verify if you need to update .config/secrets/cluster-issuer.yaml
   isvImg: #BYO image name, must be pushed to private_registry/isvs repo
 
 
