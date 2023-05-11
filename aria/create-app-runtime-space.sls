@@ -15,17 +15,32 @@ META:
 {% set param8= params.get('param8') %}
 {% set param9= params.get('param9') %}
 {% set param10= params.get('param10') %}
+{% set param11= params.get('param11') %}
+{% set param12= params.get('param12') %}
 
-App Runtime {{ param1 }}:
+Delivery {{ param1 }}:
   META:
-    name: App Runtime
+    name: Delivery Definitions
     parameters:
       param1:
-        name: Space Name
+        name: Runtime Environment Name
         uiElement: text
       param2:
-        name: Space Domain
-        uiElement: text
+        name: Pipeline Requirements
+        uiElement: multiselect
+        options:
+        - name: Functional Testing 
+          value: testing
+        - name: Source Scanning 
+          value: src_scan
+        - name: Image Scanning 
+          value: img_scan
+        - name: Open API Validation 
+          value: api_validation
+        - name:  Enforce Pod Convensions  
+          value: conv
+        - name:  Manual deployment approval
+          value: manual_deployment
       param3:
         name: Target Runtime
         uiElement: select
@@ -42,7 +57,7 @@ App Runtime {{ param1 }}:
   - param2: {{ param2 }}
   - param3: {{ param3 }}
 
-Operational Policies  {{ param4 }}:
+Policies  {{ param4 }}:
   META:
     name: Operational Policies
     parameters:
@@ -59,6 +74,16 @@ Operational Policies  {{ param4 }}:
         - name: Strict
           value: strict
       param5:
+        name: Load Management
+        uiElement: multiselect
+        options:
+        - name: Auto Scaling
+          value: auto_scale
+        - name: Scale to Zero
+          value: scale_zero
+        - name: Fixed instances
+          value: fixed
+      param6:
         name: High Availability
         uiElement: multiselect
         options:
@@ -70,7 +95,17 @@ Operational Policies  {{ param4 }}:
           value: cluster
         - name: App instances
           value: app
-      param6:
+      param7:
+        name: Deployment Strategy
+        uiElement: select
+        options:
+        - name: Rolling 
+          value: rolling
+        - name: Blue-Green
+          value: blue_green
+        - name: Canary
+          value: canary
+      param8:
         name: Data Compliance
         uiElement: multiselect
         options:
@@ -88,12 +123,14 @@ Operational Policies  {{ param4 }}:
   - param4: {{ param4 }}
   - param5: {{ param5 }}
   - param6: {{ param6 }}
+  - param7: {{ param7 }}
+  - param8: {{ param7 }}
   
-App Services {{ param7 }}:
+App Services {{ param9 }}:
   META:
     name: App Services
     parameters:
-      param7:
+      param9:
         name: Available Catalogs
         uiElement: multiselect
         options:
@@ -107,7 +144,7 @@ App Services {{ param7 }}:
           value: bitnami
         - name: Helm charts
           value: helm
-      param8:
+      param10:
        name: Service binding 
        uiElement: select
        options:
@@ -116,19 +153,19 @@ App Services {{ param7 }}:
        - name: Bind only
          value: bind
   saltstack.policy.present:
-  - param4: {{ param7 }}
-  - param5: {{ param8 }}
+  - param9: {{ param9 }}
+  - param10: {{ param10 }}
 
-Advanced Configurations {{ param9 }}:
+Advanced Configurations {{ param11 }}:
   META:
     name: Advanced Configurations
     parameters:
-      param9:
+      param11:
         name: Mapped k8s namespaces
         uiElement: array
-      param10:
+      param12:
         name: Space config key-values
         uiElement: array
   saltstack.policy.present:
-  - param6: {{ param9 }}
-  - param7: {{ param10 }}
+  - param11: {{ param11 }}
+  - param12: {{ param12 }}
