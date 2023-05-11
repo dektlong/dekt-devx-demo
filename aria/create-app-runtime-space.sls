@@ -1,61 +1,53 @@
 META:
-  name: Create App runtimes_components space 
-  provider: SaltStack
+  name: Create App Runtime Space
   category: SECURITY
   subcategory: Reference
   template_id: 3b.ssc.11
   version: v1
-  description: Create App runtimes_components space
 
-{% set space_name = params.get('space_name') %}
-{% set data_svc_provisioning = params.get('data_svc_provisioning') %}
-{% set data_complainces = params.get('data_complainces') %}
-{% set space_domain = params.get('space_domain') %}
-{% set k8s_ns = params.get('k8s_ns') %}
-{% set runtimes_components = params.get('runtimes_components') %}
-{% set workloads = params.get('workloads') %}
-{% set ha_levels = params.get('ha_levels') %}
-{% set space_config_values = params.get('space_config_values') %}
+{% set param1= params.get('param1') %}
+{% set param2= params.get('param2') %}
+{% set param3= params.get('param3') %}
+{% set param4= params.get('param4') %}
+{% set param5= params.get('param5') %}
+{% set param6= params.get('param6') %}
+{% set param7= params.get('param7') %}
+{% set param8= params.get('param8') %}
+{% set param9= params.get('param9') %}
+{% set param10= params.get('param10') %}
 
-
-Create Target {{ space_name }}:
+App Runtime {{ param1 }}:
   META:
-    name: Create space
+    name: App Runtime
     parameters:
-      space_name:
-        description: Space name
-        name: Space name
+      param1:
+        name: Space Name
         uiElement: text
-      space_domain:
-        description: Space domain
-        name: Space domain
+      param2:
+        name: Space Domain
         uiElement: text
-      runtimes_components:
-        description: Runtime Components
-        name: Runtime Components
-        uiElement: multiselect
+      param3:
+        name: Target Runtime
+        uiElement: select
         options:
-        - name: On-cluster services
-          value: dev-services
-        - name: AWS services
-          value: aws
-        - name: Azure services
-          value: azure
-        - name: Google services
-          value: google
-        - name: Private services 
-          value: private
-        - name: External APIs
-          value: externalapis
-        - name: Scanners policies
-          value: scanners
-        - name: Image build strategies
-          value: builds
-        - name: Sensitive cluster operations
-          value: sensitive
-      workloads:
-        description: Workloads placement
-        name: Workloads placement
+        - name: Tanzu Cloud Native Runtime (kNative)
+          value: knative
+        - name: Vanilla k8s provider
+          value: k8s
+        - name: BYO middleware (base image)
+          value: byo
+          
+  saltstack.target.present:
+  - param1: {{ param1 }}
+  - param2: {{ param2 }}
+  - param3: {{ param3 }}
+
+Operational Policies  {{ param4 }}:
+  META:
+    name: Operational Policies
+    parameters:
+      param4:
+        name: Workloads Placement
         uiElement: select
         options:
         - name: Best effort
@@ -66,49 +58,56 @@ Create Target {{ space_name }}:
           value: cost
         - name: Strict
           value: strict
-
-  saltstack.target.present:
-  - name: {{ workloads }}
-  - desc: {{ space_domain }}
-  - runtimes_components: {{ runtimes_components }}
-  - tgt: {{space_name}}
-
-Create Policy on target {{ ha_levels }}:
+      param5:
+        name: High Availability
+        uiElement: multiselect
+        options:
+        - name: Cloud Regions
+          value: clouds
+        - name: Avalability zones
+          value: datacenter
+        - name: Clusters
+          value: cluster
+        - name: App instances
+          value: app
+      param6:
+        name: Data Compliance
+        uiElement: multiselect
+        options:
+        - name: Baseline
+          value: baseline
+        - name: GDPR
+          value: GDPR
+        - name: HIPAA
+          value: HIPAA
+        - name: PCI DSS
+          value: pci
+        - name: CCPA
+          value: CCPA
+  saltstack.policy.present:
+  - param4: {{ param4 }}
+  - param5: {{ param5 }}
+  - param6: {{ param6 }}
+  
+App Services {{ param7 }}:
   META:
-   name: Configure space
-   parameters:
-     ha_levels:
-       description: High-Availability levels
-       name: High-Availability levels
-       uiElement: multiselect
-       options:
-       - name: Clouds
-         value: clouds
-       - name: Avalability zones
-         value: datacenter
-       - name: Clusters
-         value: cluster
-       - name: API Gateway routes
-         value: gw
-       - name: App instances
-         value: app
-     data_complainces:
-       description: Data Compliances
-       name: Data Compliances
-       uiElement: multiselect
-       options:
-       - name: Baseline
-         value: baseline
-       - name: GDPR
-         value: GDPR
-       - name: HIPAA
-         value: HIPAA
-       - name: PCI DSS
-         value: pci
-       - name: CCPA
-         value: CCPA
-     data_svc_provisioning:
-       description: Service binding 
+    name: App Services
+    parameters:
+      param7:
+        name: Available Catalogs
+        uiElement: multiselect
+        options:
+        - name: AWS curate marketplace
+          value: aws
+        - name: Azure curate marketplace
+          value: azure
+        - name: GCP curate marketplace
+          value: gcp
+        - name: Tanzu App Catalog (bitnami)
+          value: bitnami
+        - name: Helm charts
+          value: helm
+      param8:
        name: Service binding 
        uiElement: select
        options:
@@ -116,19 +115,20 @@ Create Policy on target {{ ha_levels }}:
          value: provision_bind
        - name: Bind only
          value: bind
-     k8s_ns:
-       description: Mapped k8s namespaces
-       name: Mapped k8s namespaces
-       uiElement: array
-     space_config_values:
-       description: Space config values
-       name: Space config key-values
-       uiElement: array
   saltstack.policy.present:
-  - require:
-    - saltstack.target: Create Target {{ data_svc_provisioning }}
-  - name: {{ ha_levels }}
-  - data_svc_provisioning: {{ data_svc_provisioning }}
-  - data_complainces: {{ data_complainces }}
-  - k8s_ns: {{ k8s_ns }}
-  - space_config_values: {{ space_config_values }}
+  - param4: {{ param7 }}
+  - param5: {{ param8 }}
+
+Advanced Configurations {{ param9 }}:
+  META:
+    name: Advanced Configurations
+    parameters:
+      param9:
+        name: Mapped k8s namespaces
+        uiElement: array
+      param10:
+        name: Space config key-values
+        uiElement: array
+  saltstack.policy.present:
+  - param6: {{ param9 }}
+  - param7: {{ param10 }}
