@@ -106,7 +106,8 @@
 
         install-tap "tap-stage.yaml"
 
-        install-data-services-controls
+        #install-aws-crossplane-provider
+
     }
     
     #install-prod-cluster1
@@ -177,23 +178,12 @@
         
     }
 
-    install-data-services-controls() {
-
-        
-        ./scripts/tanzu-handler.sh install-tanzu-package services-toolkit.tanzu.vmware.com  svc-toolkit
-
-        ./scripts/tanzu-handler.sh install-tanzu-package crossplane.tanzu.vmware.com crossplane
-        
-        kubectl apply -f .config/crossplane
-
-        ./scripts/tanzu-handler.sh install-tanzu-package bitnami.services.tanzu.vmware.com  bitnami
-
-    }
-    
     #setup-app-ne
     setup-app-ns() {
 
         appnamespace=$1
+
+        scripts/dektecho.sh status "Setting up $appnamespace as a TAP application namespace"
 
         kubectl create ns $appnamespace
         kubectl label namespaces $appnamespace apps.tanzu.vmware.com/tap-ns="" 
@@ -305,6 +295,20 @@ EOF
          kubectl label namespaces app-live-view apps.tanzu.vmware.com/tap-ns="" 
     }
 
+    #install-aws-crossplane-provider
+    install-aws-crossplane-provider() {
+
+        scripts/dektecho.sh status "Install Crossplane provider to AWS"
+       
+        kubectl apply -f .config/crossplane/crossplane-aws-provider.yaml
+
+        AWS_PROFILE=default && echo -e "[default]\naws_access_key_id = $(aws configure get aws_access_key_id --profile $AWS_PROFILE)\naws_secret_access_key = $(aws configure get aws_secret_access_key --profile $AWS_PROFILE)\naws_session_token = $(aws configure get aws_session_token --profile $AWS_PROFILE)" > .config/secrets/creds.conf
+
+        kubectl create secret generic aws-provider-creds -n crossplane-system --from-file=creds=.config/secrets/creds.conf
+
+        rm -f .config/secrets/creds.conf
+
+    }
     #add-brownfield-apis
     add-brownfield-apis () {
         

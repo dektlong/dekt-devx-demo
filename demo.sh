@@ -175,6 +175,28 @@
 
     }
 
+    provision-rds-postgres() {
+
+        appNamespace=$1
+
+        scripts/dektecho.sh status "Provision inventory-db RDS Postgres instance and service claim in $appNamespace namespace"
+
+        kubectl apply -f .config/crossplane/crossplane-xrd-composition.yaml
+
+        kubectl apply -f .config/crossplane/instance-class.yaml
+
+        kubectl apply -f .config/crossplane/rds-secret.yaml -n $appNamespace 
+        
+        kubectl apply -f .config/crossplane/inventory-db-rds-instance.yaml -n $appNamespace
+
+        tanzu service resource-claim create postgres-claim \
+            --resource-name inventory-db \
+            --resource-kind Secret \
+            --resource-api-version v1 \
+            --resource-namespace $appNamespace \
+            --namespace $appNamespace
+
+    }
     #supplychains
     supplychains () {
 
@@ -304,17 +326,13 @@
         echo
         echo "  prod"
         echo
-        echo "  supplychains"
-        echo
         echo "  track team/stage [logs]"
-        echo
-        echo "  services dev/stage/prod"
         echo
         echo "  brownfield"
         echo
         echo "  behappy"
         echo
-        echo "  uninstall"
+        echo "  reset"
         exit
     }
 
@@ -343,29 +361,6 @@ behappy)
 besad)
     kubectl config use-context $DEV_CLUSTER
     tanzu apps workload apply $PORTAL_WORKLOAD --env SNIFF_THRESHOLD=$SNIFF_THRESHOLD_AGGRESSIVE -n $TEAM_NAMESPACE -y
-    ;;
-supplychains)
-    supplychains
-    ;;
-services)
-    case $2 in
-    dev)
-        data-services $DEV_CLUSTER $DEV1_NAMESPACE tanzu
-        ;;
-    team)
-        data-services $DEV_CLUSTER $TEAM_NAMESPACE tanzu
-        ;;
-    stage)
-        data-services $STAGE_CLUSTER $STAGEPROD_NAMESPACE rds
-        ;;
-    prod)
-        data-services $PROD1_CLUSTER $STAGEPROD_NAMESPACE rds
-        data-services $PROD2_CLUSTER $STAGEPROD_NAMESPACE rds
-        ;;
-    *)
-        incorrect-usage
-        ;;
-    esac
     ;;
 track)
     case $2 in
