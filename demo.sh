@@ -318,15 +318,15 @@
         echo
         scripts/dektecho.sh err "Incorrect usage. Please specify one of the following: "
         echo
-        echo "  info"
+        echo "  info (display packages on all clusters)"
         echo
         echo "  dev"
         echo
         echo "  stage"
         echo
-        echo "  prod"
+        echo "  prod (role out to 2 prod clusters)"
         echo
-        echo "  track team/stage [logs]"
+        echo "  track dev/stage [logs]"
         echo
         echo "  brownfield"
         echo
@@ -364,7 +364,7 @@ besad)
     ;;
 track)
     case $2 in
-    team)
+    dev)
         kubectl config use-context $DEV_CLUSTER
         track-workloads $TEAM_NAMESPACE $3
         ;;

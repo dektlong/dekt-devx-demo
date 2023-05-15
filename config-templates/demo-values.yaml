@@ -2,15 +2,15 @@ clusters:
   view: # TAP view profile installed
     name: 
     provider: #accepted values: aks,eks,gke 
-    nodes: 3
+    nodes: 4
   dev: # TAP interate profile installed
     name: 
     provider: #accepted values: aks,eks,gke  
-    nodes: 5 
-  stage: #TAP build profile installed
+    nodes: 4 
+  stage: #TAP full profile installed
     name: 
     provider: #accepted values: aks,eks,gke 
-    nodes: 5 
+    nodes: 6 
   prod1: # TAP run profile installed
     name: 
     provider: #accepted values: aks,eks,gke  
@@ -57,7 +57,7 @@ tap:
   imageScanSensors:  #accepted values: carbonblack-private-image-scan-template snyk-private-image-scan-template, private-image-scan-template
   imageScanDoctor:  #accepted values: carbonblack-private-image-scan-template snyk-private-image-scan-template, private-image-scan-template
   imageScanPredictor:  #accepted values: carbonblack-private-image-scan-template snyk-private-image-scan-template, private-image-scan-template
-  ingressIssuer:  # verify if you need to update .config/secrets/cluster-issuer.yaml
+  ingressIssuer:  # verify if you need to update .config/secrets/cluster-issuer.yaml (view cluster always uses self-sign cert)
   isvImg: #BYO image name, must be pushed to private_registry/isvs repo
 
 
@@ -102,7 +102,8 @@ gitops:
 dns:
   domain: 
   sysSubDomain: 
-  devSubDomain: 
+  devSubDomain:
+  stageSubDomain: 
   prod1SubDomain: 
   prod2SubDomain: 
   godaddyApiKey: 

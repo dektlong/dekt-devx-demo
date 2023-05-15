@@ -131,17 +131,9 @@ This scripts automated the following:
 ./demo.sh dev
 ```
 
-```
-./demo.sh team
-```
-
   - Track the progress of the supply chains in the TAP gui or CLI
     ```
-    ./demo.sh track team [logs]
-    ```
-  - Track provisioned data services
-    ```
-    ./demo.sh services teams
+    ./demo.sh track dev [logs]
     ```
   - show how the RabbitMQ 'reading' single instance resource created
   - show how the Bitnami Postgres 'inventory' resource provisioned 
@@ -160,16 +152,15 @@ This scripts automated the following:
   - show workload created pointing to ```release``` branch instead of ```dev``` branch
   - show the enhanced supply chain (dekt-src-to-api-with-scan with scanning) progress on multi-cluster Backstage
   - show Deliverables created in your gitops.stage repo, but NO runtime artifacts deployed
-  - Track provisioned data services
-
-    ```
-    ./demo.sh services stage
-    ```
+  - Track provisioned artifacts
+```
+./demo.sh track stage
+```
   - show how the RDS Postgres 'inventory' resource provisioned 
       - note: this will take a few minutes to provision in the RDS console
   - show service claims generated for both data services and mapped to the workload
  
-- 'promote' to Run cluster (Deliverable)  ```./demo.sh prod```
+- 'promote' to Run cluster (Deliverable) 
 ```
 ./demo.sh prod
 ```

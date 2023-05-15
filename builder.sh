@@ -68,7 +68,10 @@
 
         scripts/ingress-handler.sh update-tap-dns $SYSTEM_SUB_DOMAIN $VIEW_CLUSTER_PROVIDER
 
-        add-certs-info
+        #trust self-signed CA by ALV (workaround for issues with acme issuer on view cluster)
+        kubectl get secret appliveview-cert -n app-live-view -o yaml | yq '.data."ca.crt"' | base64 -d > .config/secrets/alv-cert.pem
+        yq '.appliveview_connector.backend.caCertData = load_str(".config/secrets/alv-cert.pem")' .config/tap-profiles/tap-dev.yaml -i
+        rm .config/secrets/alv-cert.pem
 
     }
 
@@ -89,6 +92,8 @@
 
         scripts/ingress-handler.sh update-tap-dns $DEV_SUB_DOMAIN $DEV_CLUSTER_PROVIDER
 
+        kubectl apply -f .config/secrets/cluster-issuer.yaml
+
     }
 
     #install-stage-cluster
@@ -108,6 +113,8 @@
 
         #install-aws-crossplane-provider
 
+        kubectl apply -f .config/secrets/cluster-issuer.yaml
+
     }
     
     #install-prod-cluster1
@@ -125,6 +132,8 @@
 
         scripts/ingress-handler.sh update-tap-dns $PROD1_SUB_DOMAIN $PROD1_CLUSTER_PROVIDER
 
+        kubectl apply -f .config/secrets/cluster-issuer.yaml
+
     }
 
     #install-prod-cluster2
@@ -141,6 +150,8 @@
         install-tap "tap-prod2.yaml"
 
         scripts/ingress-handler.sh update-tap-dns $PROD2_SUB_DOMAIN $PROD2_CLUSTER_PROVIDER
+
+        kubectl apply -f .config/secrets/cluster-issuer.yaml
 
     }
 
@@ -171,12 +182,7 @@
             --values-file .config/tap-profiles/$tap_values_file_name \
             --namespace tap-install
         
-        if test -f ".config/secrets/cluster-issuer.yaml"; then
-            kubectl apply -f .config/secrets/cluster-issuer.yaml
-        fi 
-        
-        
-    }
+      }
 
     #setup-app-ne
     setup-app-ns() {
@@ -277,23 +283,6 @@ EOF
 
         kubectl apply -f .config/secrets/viewer-rbac.yaml
     } 
- 
-    # add-certs-info
-    add-certs-info() {
-
-        kubectl config use-context $VIEW_CLUSTER_NAME
-
-        #ALV certs (!!!no need to specify the ca cert data when enabling TLS for Application Live View back end using ClusterIssuer )
-        #kubectl get secret appliveview-cert -n app-live-view --output go-template='{{ index .data "tls.crt" | base64decode }}' > .config/secrets/alv-cert.pem 
-        #yq '.appliveview_connector.backend.caCertData = load_str(".config/secrets/alv-cert.pem")' .config/tap-profiles/tap-dev.yaml -i
-        #rm .config/secrets/alv-cert.pem
-
-        #WORKAROUND for acme-solver pull image error issue
-         ./scripts/tanzu-handler.sh install-tanzu-package namespace-provisioner.apps.tanzu.vmware.com namespace-provisioner
-         kubectl label namespaces tap-gui apps.tanzu.vmware.com/tap-ns="" 
-         kubectl label namespaces metadata-store apps.tanzu.vmware.com/tap-ns="" 
-         kubectl label namespaces app-live-view apps.tanzu.vmware.com/tap-ns="" 
-    }
 
     #install-aws-crossplane-provider
     install-aws-crossplane-provider() {
