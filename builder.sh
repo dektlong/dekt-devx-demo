@@ -109,6 +109,12 @@
 
         install-tap "tap-stage.yaml"
 
+        ./scripts/tanzu-handler.sh install-tanzu-package services-toolkit.tanzu.vmware.com svc-toolkit
+
+        ./scripts/tanzu-handler.sh install-tanzu-package crossplane.tanzu.vmware.com crossplane
+        
+        ./scripts/tanzu-handler.sh install-tanzu-package bitnami.services.tanzu.vmware.com  bitnami
+        
         #install-aws-crossplane-provider
 
         kubectl apply -f .config/secrets/cluster-issuer.yaml

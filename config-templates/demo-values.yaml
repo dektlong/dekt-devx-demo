@@ -7,7 +7,7 @@ clusters:
     name: 
     provider: #accepted values: aks,eks,gke  
     nodes: 4 
-  stage: #TAP full profile installed
+  stage: #TAP build profile installed
     name: 
     provider: #accepted values: aks,eks,gke 
     nodes: 6 
@@ -80,22 +80,24 @@ gitops:
   
   server: #e.g https://github.com
   owner:
-  token: #must have read/write permissions for repo
-
-  # repo must be created prior to installing the demo and cloned to the same path as the demo repo
-  # supplychains deliverables will be pushed to server/repo/config
-  repo: 
+  token: #must have read/write permissions for all repos below repo
+  resources: # repo must be created prior to installing the demo
+    repo:
+    # subPath needs to be created and contain at least the following resources: 
+    # 1. scan-policy.yaml
+    # 2. tekton-pipeline-golang.yaml
+    # 3. tekton-pipeline-java.yaml
+    # 4. tekton-pipeline-nodejs.yaml
+    # 5. snyk-install.yaml !!make sure the snyk_values["metadataStore"] = {"url" value is updated
+    # 6. carbonblack-install.yaml !!make sure the snyk_values["metadataStore"] = {"url" value is updated
+    #
+    # see example at https://github.com/dektlong/gitops-resources/tree/main/resources
+    subPath:
   
-  # subPath needs to be created and contain at least the following resources: 
-  # 1. scan-policy.yaml
-  # 2. tekton-pipeline-golang.yaml
-  # 3. tekton-pipeline-java.yaml
-  # 4. tekton-pipeline-nodejs.yaml
-  # 5. snyk-install.yaml !!make sure the snyk_values["metadataStore"] = {"url" value is updated
-  # 6. carbonblack-install.yaml !!make sure the snyk_values["metadataStore"] = {"url" value is updated
-  #
-  # see example at https://github.com/dektlong/dekt-gitops/tree/main/resources
-  subPath: 
+  deliverables: # repos must be created prior to installing the demo and cloned to the same path as the demo install 
+    devRepo:  # dev and team supplychains deliverables will be pushed to /config
+    stageRepo: # stage supplychain deliverables will be pushed to /config
+
   
   
 
