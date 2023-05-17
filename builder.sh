@@ -115,7 +115,7 @@
         
         ./scripts/tanzu-handler.sh install-tanzu-package bitnami.services.tanzu.vmware.com  bitnami
         
-        #install-aws-crossplane-provider
+        #install-crossplane-provider $STAGE_CLUSTER_PROVIDER
 
         kubectl apply -f .config/secrets/cluster-issuer.yaml
 
@@ -288,21 +288,40 @@ EOF
         kubectl apply -f .config/secrets/viewer-rbac.yaml
     } 
 
-    #install-aws-crossplane-provider
-    install-aws-crossplane-provider() {
+    #install-crossplane-provider
+    install-crossplane-provider () {
 
-        scripts/dektecho.sh status "Install Crossplane provider to AWS"
-       
-        kubectl apply -f .config/crossplane/crossplane-aws-provider.yaml
-
-        AWS_PROFILE=default && echo -e "[default]\naws_access_key_id = $(aws configure get aws_access_key_id --profile $AWS_PROFILE)\naws_secret_access_key = $(aws configure get aws_secret_access_key --profile $AWS_PROFILE)\naws_session_token = $(aws configure get aws_session_token --profile $AWS_PROFILE)" > .config/secrets/creds.conf
-
-        kubectl create secret generic aws-provider-creds -n crossplane-system --from-file=creds=.config/secrets/creds.conf
-
-        rm -f .config/secrets/creds.conf
+        case $1 in
+        aks) 
+            install-azure-crossplane-provider
+            ;;
+        eks) 
+            install-aws-crossplane-provider
+            ;;
+        gke) 
+            install-gcp-crossplane-provider
+            ;;
+        *)
+            scripts/dektecho.sh err "Unable to install crossplane for provider $1"
+            ;;
+        esac
 
     }
-    
+
+    #install-aws-crossplane-provider
+    install-aws-crossplane-provider () {
+
+        scripts/dektecho.sh status "Installing AWS crossplane provider"
+        
+        AWS_PROFILE=default && echo -e "[default]\naws_access_key_id = $(aws configure get aws_access_key_id --profile $AWS_PROFILE)\naws_secret_access_key = $(aws configure get aws_secret_access_key --profile $AWS_PROFILE)\naws_session_token = $(aws configure get aws_session_token --profile $AWS_PROFILE)" > .config/creds.conf
+
+        kubectl create secret generic aws-provider-creds -n crossplane-system --from-file=creds=.config/creds.conf
+        rm -f .config/creds.conf
+        kubectl apply -f .config/crossplane/provider-config.yaml
+        kubectl apply -f .config/crossplane/service-provider.yaml
+
+    }
+
     #patch-cluster-issuer
     patch-cluster-issuer() {
 

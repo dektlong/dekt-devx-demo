@@ -31,8 +31,8 @@
     IMAGE_SCAN_TEMPLATE_SENSORS=$(yq .tap.imageScanSensors .config/demo-values.yaml)
     IMAGE_SCAN_TEMPLATE_DOCTOR=$(yq .tap.imageScanDoctor .config/demo-values.yaml)
     IMAGE_SCAN_TEMPLATE_PREDICTOR=$(yq .tap.imageScanPredictor .config/demo-values.yaml)
-    DEV_DELIVERABLES_GITOPS_REPO_NAME=$(yq .gitops.deliverables.devRepo .config/demo-values.yaml)
-    STAGE_DELIVERABLES_GITOPS_REPO_NAME=$(yq .gitops.deliverable.stageRepo .config/demo-values.yaml)
+    DEV_GITOPS_REPO=$(yq .gitops.deliverables.devRepo .config/demo-values.yaml)
+    STAGE_GITOPS_REPO=$(yq .gitops.deliverables.stageRepo .config/demo-values.yaml)
     
 
     
@@ -146,13 +146,13 @@
     #prod-roleout
     prod-roleout () {
 
-        scripts/dektecho.sh status "Pulling staging deliverables from $STAGE_DELIVERABLES_GITOPS_REPO_NAME repo"
+        scripts/dektecho.sh status "Pulling staging deliverables from $STAGE_GITOPS_REPO repo"
         
-        pushd ../$STAGE_DELIVERABLES_GITOPS_REPO_NAME
+        pushd ../$STAGE_GITOPS_REPO
         git pull 
         pushd
 
-        scripts/dektecho.sh prompt  "Deliverables pulled to  ../$STAGE_DELIVERABLES_GITOPS_REPO_NAME/config/$STAGEPROD_NAMESPACE. Press 'y' to continue deploying to production clusters" && [ $? -eq 0 ] || exit
+        scripts/dektecho.sh prompt  "Deliverables pulled to  ../$STAGE_GITOPS_REPO/config/$STAGEPROD_NAMESPACE. Press 'y' to continue deploying to production clusters" && [ $? -eq 0 ] || exit
         
         prod-deploy $PROD1_CLUSTER
         prod-deploy $PROD2_CLUSTER
@@ -170,9 +170,9 @@
         tanzu service class-claim create reading --class rabbitmq-unmanaged --parameter replicas=2 --parameter storageGB=1 -n $STAGEPROD_NAMESPACE
         
         scripts/dektecho.sh status "Applying staging deliverables to $clusterName production cluster..."
-        kubectl apply -f ../$STAGE_DELIVERABLES_GITOPS_REPO_NAME/config/$STAGEPROD_NAMESPACE/$MEDICAL_WORKLOAD -n $STAGEPROD_NAMESPACE
-        kubectl apply -f ../$STAGE_DELIVERABLES_GITOPS_REPO_NAME/config/$STAGEPROD_NAMESPACE/$PORTAL_WORKLOAD -n $STAGEPROD_NAMESPACE
-        kubectl apply -f ../$STAGE_DELIVERABLES_GITOPS_REPO_NAME/config/$STAGEPROD_NAMESPACE/$SENSORS_WORKLOAD -n $STAGEPROD_NAMESPACE
+        kubectl apply -f ../$STAGE_GITOPS_REPO/config/$STAGEPROD_NAMESPACE/$MEDICAL_WORKLOAD -n $STAGEPROD_NAMESPACE
+        kubectl apply -f ../$STAGE_GITOPS_REPO/config/$STAGEPROD_NAMESPACE/$PORTAL_WORKLOAD -n $STAGEPROD_NAMESPACE
+        kubectl apply -f ../$STAGE_GITOPS_REPO/config/$STAGEPROD_NAMESPACE/$SENSORS_WORKLOAD -n $STAGEPROD_NAMESPACE
 
     }
 
@@ -293,9 +293,9 @@
         clusterName=$1
 
         kubectl config use-context $clusterName
-        kubectl delete -f ../$STAGE_DELIVERABLE_GITOPS_REPO_NAME/config/$STAGEPROD_NAMESPACE/$MEDICAL_WORKLOAD -n $STAGEPROD_NAMESPACE
-        kubectl delete -f ../$STAGE_DELIVERABLE_GITOPS_REPO_NAME/config/$STAGEPROD_NAMESPACE/$PORTAL_WORKLOAD -n $STAGEPROD_NAMESPACE
-        kubectl delete -f ../$STAGE_DELIVERABLE_GITOPS_REPO_NAME/config/$STAGEPROD_NAMESPACE/$SENSORS_WORKLOAD -n $STAGEPROD_NAMESPACE
+        kubectl delete -f ../$STAGE_GITOPS_REPO/config/$STAGEPROD_NAMESPACE/$MEDICAL_WORKLOAD -n $STAGEPROD_NAMESPACE
+        kubectl delete -f ../$STAGE_GITOPS_REPO/config/$STAGEPROD_NAMESPACE/$PORTAL_WORKLOAD -n $STAGEPROD_NAMESPACE
+        kubectl delete -f ../$STAGE_GITOPS_REPO/config/$STAGEPROD_NAMESPACE/$SENSORS_WORKLOAD -n $STAGEPROD_NAMESPACE
         tanzu service class-claim delete reading -y -n $STAGEPROD_NAMESPACE
         tanzu service class-claim delete inventory -y -n $STAGEPROD_NAMESPACE
       
@@ -305,14 +305,14 @@
     #reset-deliverable-gitops
     reset-deliverable-gitops () {
 
-        pushd ../$STAGE_DELIVERABLES_GITOPS_REPO_NAME
+        pushd ../$DEV_GITOPS_REPO
         git pull 
         git rm -rf config 
         git commit -m "reset" 
         git push 
         pushd
 
-        pushd ../$DEV_DELIVERABLES_GITOPS_REPO_NAME
+        pushd ../$STAGE_GITOPS_REPO
         git pull 
         git rm -rf config 
         git commit -m "reset" 
