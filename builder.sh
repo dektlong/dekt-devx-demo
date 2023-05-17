@@ -52,6 +52,7 @@
  
 #################### functions ################
 
+    
     #install-view-cluster
     install-view-cluster() {
 
@@ -68,10 +69,7 @@
 
         scripts/ingress-handler.sh update-tap-dns $SYSTEM_SUB_DOMAIN $VIEW_CLUSTER_PROVIDER
 
-        #trust self-signed CA by ALV (workaround for issues with acme issuer on view cluster)
-        kubectl get secret appliveview-cert -n app-live-view -o yaml | yq '.data."ca.crt"' | base64 -d > .config/secrets/alv-cert.pem
-        yq '.appliveview_connector.backend.caCertData = load_str(".config/secrets/alv-cert.pem")' .config/tap-profiles/tap-dev.yaml -i
-        rm .config/secrets/alv-cert.pem
+        patch-cluster-issuer
 
     }
 
@@ -296,6 +294,40 @@ EOF
         kubectl create secret generic aws-provider-creds -n crossplane-system --from-file=creds=.config/secrets/creds.conf
 
         rm -f .config/secrets/creds.conf
+
+    }
+    
+    #patch-cluster-issuer
+    patch-cluster-issuer() {
+
+           tanzu secret registry add acme-pull \
+            --server $PRIVATE_REGISTRY_SERVER \
+            --username ${PRIVATE_RGISTRY_USER} \
+            --password ${PRIVATE_RGISTRY_PASSWORD} \
+            --yes \
+            --namespace tap-gui
+
+           tanzu secret registry add acme-pull \
+            --server $PRIVATE_REGISTRY_SERVER \
+            --username ${PRIVATE_RGISTRY_USER} \
+            --password ${PRIVATE_RGISTRY_PASSWORD} \
+            --yes \
+            --namespace metadata-store
+
+          tanzu secret registry add acme-pull \
+            --server $PRIVATE_REGISTRY_SERVER \
+            --username ${PRIVATE_RGISTRY_USER} \
+            --password ${PRIVATE_RGISTRY_PASSWORD} \
+            --yes \
+            --namespace app-live-view
+
+
+        kubectl apply -f .config/secrets/cluster-issuer-patch.yaml
+
+        #if using self-signed CA , need to trust explicitly by ALV (workaround for issues with acme issuer on view cluster)
+        #kubectl get secret appliveview-cert -n app-live-view -o yaml | yq '.data."ca.crt"' | base64 -d > .config/secrets/alv-cert.pem
+        #yq '.appliveview_connector.backend.caCertData = load_str(".config/secrets/alv-cert.pem")' .config/tap-profiles/tap-dev.yaml -i
+        #rm .config/secrets/alv-cert.pem
 
     }
     #add-brownfield-apis

@@ -41,7 +41,6 @@ appliveview_connector:
     sslDeactivated: false
     host: #@ "{}.{}.{}".format("appliveview", data.values.dns.sysSubDomain, data.values.dns.domain)
     ingressEnabled: true
-    caCertData: UPDATE_IN_RUNTIME
 
 api_auto_registration:
   tap_gui_url: #@ "{}.{}.{}".format("https://tap-gui", data.values.dns.sysSubDomain, data.values.dns.domain)
