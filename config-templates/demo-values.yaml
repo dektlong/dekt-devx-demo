@@ -26,6 +26,7 @@ clusters:
 
 clouds:
   azure:
+    subscriptionID:
     location: # US: westus | UK: ukwest | EU: germanynorth | SIN: eastasia | ANZ: australiasoutheast 
     resourceGroup: 
     nodeType: Standard_DS3_v2 
@@ -57,8 +58,10 @@ tap:
   imageScanSensors:  #accepted values: carbonblack-private-image-scan-template snyk-private-image-scan-template, private-image-scan-template
   imageScanDoctor:  #accepted values: carbonblack-private-image-scan-template snyk-private-image-scan-template, private-image-scan-template
   imageScanPredictor:  #accepted values: carbonblack-private-image-scan-template snyk-private-image-scan-template, private-image-scan-template
-  ingressIssuer:  # verify if you need to update .config/secrets/cluster-issuer.yaml 
+  sysIngressIssuer:  # used for system components, accepted values: tap-ingress-selfsigned or your own cert (in which case verify if you need to update .config/secrets/cluster-issue-sys.yaml)
+  appsIngressIssuer:  # used for workloads, accepted values: tap-ingress-selfsigned or your own cert (in which case verify if you need to update .config/secrets/cluster-issue-apps.yaml)
   isvImg: #BYO image name, must be pushed to private_registry/isvs repo
+  cloudDB: #accepted values: rdsPostgresSQL, azurePostgresSQL
 
 
 snyk: 

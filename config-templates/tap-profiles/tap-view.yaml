@@ -3,7 +3,7 @@
 profile: view
 shared:
   ingress_domain: #@ "{}.{}".format(data.values.dns.sysSubDomain, data.values.dns.domain)
-  ingress_issuer: #@ data.values.tap.ingressIssuer
+  ingress_issuer: #@ data.values.tap.sysIngressIssuer
 tap_gui:
   service_type: ClusterIP
   metadataStoreAutoconfiguration: true

@@ -32,6 +32,8 @@
     TANZU_NETWORK_PASSWORD=$(yq .tanzu_network.password .config/demo-values.yaml)
     TAP_VERSION=$(yq .tap.tapVersion .config/demo-values.yaml)
     CARVEL_BUNDLE=$(yq .tap.carvel_bundle .config/demo-values.yaml)
+    SYS_INGRESS_ISSUER=$(yq .tap.sysIngressIssuer .config/demo-values.yaml)
+    APPS_INGRESS_ISSUER=$(yq .tap.appsIngressIssuer .config/demo-values.yaml)
 
     #apps-namespaces
     DEV1_NAMESPACE=$(yq .apps_namespaces.dev1 .config/demo-values.yaml)
@@ -44,9 +46,7 @@
     PROD1_SUB_DOMAIN=$(yq .dns.prod1SubDomain .config/demo-values.yaml)
     PROD2_SUB_DOMAIN=$(yq .dns.prod2SubDomain .config/demo-values.yaml)
     #data-services
-    RDS_PROFILE=$(yq .data-services.rdsProfile .config/demo-values.yaml)
-    TDS_VERSION=$(yq .data_services.tdsVersion .config/demo-values.yaml)       
-    AWS_REGION=$(yq .clouds.aws.region .config/demo-values.yaml)
+    CLOUD_DB=$(yq .tap.cloudDB .config/demo-values.yaml)
     #apis
     GW_INSTALL_DIR=$(yq .brownfield_apis.scgwInstallDirectory .config/demo-values.yaml)
  
@@ -69,7 +69,7 @@
 
         scripts/ingress-handler.sh update-tap-dns $SYSTEM_SUB_DOMAIN $VIEW_CLUSTER_PROVIDER
 
-        patch-cluster-issuer
+        process-view-ingress-issuer
 
     }
 
@@ -90,7 +90,10 @@
 
         scripts/ingress-handler.sh update-tap-dns $DEV_SUB_DOMAIN $DEV_CLUSTER_PROVIDER
 
-        kubectl apply -f .config/secrets/cluster-issuer.yaml
+        if [ "$APPS_INGRESS_ISSUER" != "tap-ingress-selfsigned" ]  
+        then
+            kubectl apply -f .config/secrets/ingress-issuer-apps.yaml
+        fi
 
     }
 
@@ -110,14 +113,15 @@
         install-tap "tap-stage.yaml"
 
         ./scripts/tanzu-handler.sh install-tanzu-package services-toolkit.tanzu.vmware.com svc-toolkit
-
+         
         ./scripts/tanzu-handler.sh install-tanzu-package crossplane.tanzu.vmware.com crossplane
-        
-        ./scripts/tanzu-handler.sh install-tanzu-package bitnami.services.tanzu.vmware.com  bitnami
-        
-        #install-crossplane-provider $STAGE_CLUSTER_PROVIDER
 
-        kubectl apply -f .config/secrets/cluster-issuer.yaml
+        ./scripts/tanzu-handler.sh install-tanzu-package bitnami.services.tanzu.vmware.com bitnami
+
+        if [ "$APPS_INGRESS_ISSUER" != "tap-ingress-selfsigned" ]  
+        then
+            kubectl apply -f .config/secrets/ingress-issuer-apps.yaml
+        fi
 
     }
     
@@ -134,9 +138,14 @@
 
         install-tap "tap-prod1.yaml"
 
+        install-cloud-db
+
         scripts/ingress-handler.sh update-tap-dns $PROD1_SUB_DOMAIN $PROD1_CLUSTER_PROVIDER
 
-        kubectl apply -f .config/secrets/cluster-issuer.yaml
+        if [ "$APPS_INGRESS_ISSUER" != "tap-ingress-selfsigned" ]  
+        then
+            kubectl apply -f .config/secrets/ingress-issuer-apps.yaml
+        fi
 
     }
 
@@ -153,9 +162,14 @@
 
         install-tap "tap-prod2.yaml"
 
+        #install-cloud-db
+
         scripts/ingress-handler.sh update-tap-dns $PROD2_SUB_DOMAIN $PROD2_CLUSTER_PROVIDER
 
-        kubectl apply -f .config/secrets/cluster-issuer.yaml
+         if [ "$APPS_INGRESS_ISSUER" != "tap-ingress-selfsigned" ]  
+         then
+            kubectl apply -f .config/secrets/ingress-issuer-apps.yaml
+         fi
 
     }
 
@@ -288,73 +302,95 @@ EOF
         kubectl apply -f .config/secrets/viewer-rbac.yaml
     } 
 
+    ##install-cloud-db
+    install-cloud-db () {
+
+        
+        case $CLOUD_DB in
+        azurePostgresSQL)
+            install-crossplane-provider "azure"
+            az ad sp create-for-rbac --sdk-auth --role Owner --scopes /subscriptions/$(yq .clouds.azure.subscriptionID .config/demo-values.yaml) > .config/$provider-creds.json
+            ;;
+        rdsPostgresSQL)
+            install-crossplane-provider "aws"
+            AWS_PROFILE=default && echo -e "[default]\naws_access_key_id = $(aws configure get aws_access_key_id --profile $AWS_PROFILE)\naws_secret_access_key = $(aws configure get aws_secret_access_key --profile $AWS_PROFILE)\naws_session_token = $(aws configure get aws_session_token --profile $AWS_PROFILE)" > .config/$provider-creds.json 
+            kubectl apply -f .config/crossplane/aws/rds-postgres-xrd.yaml
+            kubectl apply -f .config/crossplane/aws/rds-postgres-composition.yml
+            kubectl apply -f .config/crossplane/aws/rds-class.yaml
+            kubeclt apply -f .config/crossplane/aws/rds-psql-rbac.yml
+            ;;
+        *)
+            scripts/dektecho.sh err "$CLOUD_DB is not supported "
+            ;;
+        esac
+        
+    }
+
     #install-crossplane-provider
     install-crossplane-provider () {
 
-        case $1 in
-        aks) 
-            install-azure-crossplane-provider
+        provider=$1
+
+        scripts/dektecho.sh status "Installing $provider crossplane provider"
+        
+        kubectl apply -f .config/crossplane/$provider/provider.yaml
+        
+        while [[ $(kubectl get providers/upbound-provider-$provider -o 'jsonpath={..status.conditions[?(@.type=="Healthy")].status}') != "True" ]]; do
+            printf "."
+            sleep 1
+        done
+        
+        case $provider in
+        azure)
+            az ad sp create-for-rbac --sdk-auth --role Owner --scopes /subscriptions/$(yq .clouds.azure.subscriptionID .config/demo-values.yaml) > .config/$provider-creds.json
             ;;
-        eks) 
-            install-aws-crossplane-provider
+        aws)
+            AWS_PROFILE=default && echo -e "[default]\naws_access_key_id = $(aws configure get aws_access_key_id --profile $AWS_PROFILE)\naws_secret_access_key = $(aws configure get aws_secret_access_key --profile $AWS_PROFILE)\naws_session_token = $(aws configure get aws_session_token --profile $AWS_PROFILE)" > .config/$provider-creds.json 
             ;;
-        gke) 
-            install-gcp-crossplane-provider
-            ;;
-        *)
-            scripts/dektecho.sh err "Unable to install crossplane for provider $1"
+        gcp)
+            #!!!TODO generate a GCP service account JSON file.
             ;;
         esac
-
-    }
-
-    #install-aws-crossplane-provider
-    install-aws-crossplane-provider () {
-
-        scripts/dektecho.sh status "Installing AWS crossplane provider"
         
-        AWS_PROFILE=default && echo -e "[default]\naws_access_key_id = $(aws configure get aws_access_key_id --profile $AWS_PROFILE)\naws_secret_access_key = $(aws configure get aws_secret_access_key --profile $AWS_PROFILE)\naws_session_token = $(aws configure get aws_session_token --profile $AWS_PROFILE)" > .config/creds.conf
-
-        kubectl create secret generic aws-provider-creds -n crossplane-system --from-file=creds=.config/creds.conf
-        rm -f .config/creds.conf
-        kubectl apply -f .config/crossplane/provider-config.yaml
-        kubectl apply -f .config/crossplane/service-provider.yaml
+        kubectl create secret generic $provider-creds -n crossplane-system --from-file=creds=.config/$provider-creds.json   
+        
+        kubectl apply -f .config/crossplane/$provider/provider-config.yaml
+        
+        rm -f .config/$provider-creds.json
 
     }
 
-    #patch-cluster-issuer
-    patch-cluster-issuer() {
 
-           tanzu secret registry add acme-pull \
-            --server $PRIVATE_REGISTRY_SERVER \
-            --username ${PRIVATE_RGISTRY_USER} \
-            --password ${PRIVATE_RGISTRY_PASSWORD} \
-            --yes \
-            --namespace tap-gui
+    #process-view-ingress-issuer
+    process-view-ingress-issuer() {
 
-           tanzu secret registry add acme-pull \
+        
+
+        if [ "$SYS_INGRESS_ISSUER" == "tap-ingress-selfsigned" ]   #if using self-signed CA , it needs to be trusted explicitly by ALV
+        then
+            
+            kubectl get secret appliveview-cert -n app-live-view -o yaml | yq '.data."ca.crt"' | base64 -d > .config/secrets/alv-cert.pem
+            yq '.appliveview_connector.backend.caCertData = load_str(".config/secrets/alv-cert.pem")' .config/tap-profiles/tap-dev.yaml -i
+            rm .config/secrets/alv-cert.pem
+        else #workaround for the acme-solver image pull issue
+            yq '.appliveview_connector.backend.caCertData = ""' .config/tap-profiles/tap-dev.yaml -i
+            tanzu secret registry add acme-pull \
             --server $PRIVATE_REGISTRY_SERVER \
             --username ${PRIVATE_RGISTRY_USER} \
             --password ${PRIVATE_RGISTRY_PASSWORD} \
             --yes \
             --namespace metadata-store
-
-          tanzu secret registry add acme-pull \
+            tanzu secret registry add acme-pull \
             --server $PRIVATE_REGISTRY_SERVER \
             --username ${PRIVATE_RGISTRY_USER} \
             --password ${PRIVATE_RGISTRY_PASSWORD} \
             --yes \
             --namespace app-live-view
-
-
-        kubectl apply -f .config/secrets/cluster-issuer-patch.yaml
-
-        #if using self-signed CA , need to trust explicitly by ALV (workaround for issues with acme issuer on view cluster)
-        #kubectl get secret appliveview-cert -n app-live-view -o yaml | yq '.data."ca.crt"' | base64 -d > .config/secrets/alv-cert.pem
-        #yq '.appliveview_connector.backend.caCertData = load_str(".config/secrets/alv-cert.pem")' .config/tap-profiles/tap-dev.yaml -i
-        #rm .config/secrets/alv-cert.pem
+            kubectl apply -f .config/secrets/ingress-issuer-sys.yaml
+        fi
 
     }
+
     #add-brownfield-apis
     add-brownfield-apis () {
         

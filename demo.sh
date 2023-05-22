@@ -176,28 +176,6 @@
 
     }
 
-    provision-rds-postgres() {
-
-        appNamespace=$1
-
-        scripts/dektecho.sh status "Provision inventory-db RDS Postgres instance and service claim in $appNamespace namespace"
-
-        kubectl apply -f .config/crossplane/crossplane-xrd-composition.yaml
-
-        kubectl apply -f .config/crossplane/instance-class.yaml
-
-        kubectl apply -f .config/crossplane/rds-secret.yaml -n $appNamespace 
-        
-        kubectl apply -f .config/crossplane/inventory-db-rds-instance.yaml -n $appNamespace
-
-        tanzu service resource-claim create postgres-claim \
-            --resource-name inventory-db \
-            --resource-kind Secret \
-            --resource-api-version v1 \
-            --resource-namespace $appNamespace \
-            --namespace $appNamespace
-
-    }
     #supplychains
     supplychains () {
 
