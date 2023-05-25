@@ -101,16 +101,6 @@
 
         appNamespace=$1
         sniffThershold=$2
-        sqlClass=$3
-        
-        #postgreSQL inventory db
-        scripts/dektecho.sh cmd "tanzu service class-claim create inventory --class $sqlClass --parameter storageGB=2 -n $appNamespace"
-        tanzu service class-claim create inventory --class $sqlClass --parameter storageGB=2  -n $appNamespace
-
-        #rabbitmq reading queue
-        scripts/dektecho.sh cmd "tanzu service class-claim create reading --class rabbitmq-unmanaged --parameter replicas=2 --parameter storageGB=1 -n $appNamespace"
-        tanzu service class-claim create reading --class rabbitmq-unmanaged --parameter replicas=2 --parameter storageGB=1 -n $appNamespace
-    
 
         #portal workload
         scripts/dektecho.sh cmd "tanzu apps workload create $PORTAL_WORKLOAD -f .config/workloads/mood-portal.yaml -y -n $appNamespace" 
@@ -159,16 +149,33 @@
 
     }
 
+    #create-service-claims
+    create-service-claims () {
+
+        appNamespace=$1
+        dbClass=$2
+        dbStorage=$3
+        rabbitReplicas=$4
+        
+        #postgreSQL inventory db
+        scripts/dektecho.sh cmd "tanzu service class-claim create inventory --class $dbClass --parameter storageGB=$dbStorage -n $appNamespace"
+        tanzu service class-claim create inventory --class $dbClass --parameter storageGB=$dbStorage  -n $appNamespace
+
+        #rabbitmq reading queue
+        scripts/dektecho.sh cmd "tanzu service class-claim create reading --class rabbitmq-unmanaged --parameter replicas=$rabbitReplicas --parameter storageGB=1 -n $appNamespace"
+        tanzu service class-claim create reading --class rabbitmq-unmanaged --parameter replicas=$rabbitReplicas --parameter storageGB=1 -n $appNamespace
+    }
+
+
     #prod-deploy
     prod-deploy() {
 
         clusterName=$1
 
         kubectl config use-context $clusterName
-        scripts/dektecho.sh status "Creating data services in $clusterName production cluster..."
-        tanzu service class-claim create inventory --class aws-rds-psql -p storageGB=30 -n $STAGEPROD_NAMESPACE
-        tanzu service class-claim create reading --class rabbitmq-unmanaged --parameter replicas=2 --parameter storageGB=1 -n $STAGEPROD_NAMESPACE
-        
+    
+        create-service-claims $STAGEPROD_NAMESPACE aws-rds-psql 20 1
+
         scripts/dektecho.sh status "Applying staging deliverables to $clusterName production cluster..."
         kubectl apply -f ../$STAGE_GITOPS_REPO/config/$STAGEPROD_NAMESPACE/$MEDICAL_WORKLOAD -n $STAGEPROD_NAMESPACE
         kubectl apply -f ../$STAGE_GITOPS_REPO/config/$STAGEPROD_NAMESPACE/$PORTAL_WORKLOAD -n $STAGEPROD_NAMESPACE
@@ -331,11 +338,12 @@ info)
 dev)
     kubectl config use-context $DEV_CLUSTER
     create-mydev
-    create-workloads $TEAM_NAMESPACE $SNIFF_THRESHOLD_AGGRESSIVE "postgresql-unmanaged"
+    create-service-claims  $TEAM_NAMESPACE postgresql-unmanaged 2 1
+    create-workloads $TEAM_NAMESPACE $SNIFF_THRESHOLD_AGGRESSIVE
     ;;
 stage)
     kubectl config use-context $STAGE_CLUSTER
-    create-workloads $STAGEPROD_NAMESPACE $SNIFF_THRESHOLD_MILD "aws-rds-psql"
+    create-workloads $STAGEPROD_NAMESPACE $SNIFF_THRESHOLD_MILD
     ;;
 prod)
     prod-roleout

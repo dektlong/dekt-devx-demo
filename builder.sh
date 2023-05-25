@@ -112,12 +112,6 @@
 
         install-tap "tap-stage.yaml"
 
-        ./scripts/tanzu-handler.sh install-tanzu-package services-toolkit.tanzu.vmware.com svc-toolkit
-         
-        ./scripts/tanzu-handler.sh install-tanzu-package crossplane.tanzu.vmware.com crossplane
-
-        ./scripts/tanzu-handler.sh install-tanzu-package bitnami.services.tanzu.vmware.com bitnami
-
         if [ "$APPS_INGRESS_ISSUER" != "tap-ingress-selfsigned" ]  
         then
             kubectl apply -f .config/secrets/ingress-issuer-apps.yaml
@@ -138,7 +132,7 @@
 
         install-tap "tap-prod1.yaml"
 
-        install-cloud-db
+        install-rds-psql
 
         scripts/ingress-handler.sh update-tap-dns $PROD1_SUB_DOMAIN $PROD1_CLUSTER_PROVIDER
 
@@ -162,7 +156,7 @@
 
         install-tap "tap-prod2.yaml"
 
-        #install-cloud-db
+        install-rds-psql
 
         scripts/ingress-handler.sh update-tap-dns $PROD2_SUB_DOMAIN $PROD2_CLUSTER_PROVIDER
 
@@ -302,61 +296,47 @@ EOF
         kubectl apply -f .config/secrets/viewer-rbac.yaml
     } 
 
-    ##install-cloud-db
-    install-cloud-db () {
+    #install-rds-psql
+    install-rds-psql () {
 
+        scripts/dektecho.sh status "Installing rds-postgres DB connector via crossplane"
         
-        case $CLOUD_DB in
-        azurePostgresSQL)
-            install-crossplane-provider "azure"
-            az ad sp create-for-rbac --sdk-auth --role Owner --scopes /subscriptions/$(yq .clouds.azure.subscriptionID .config/demo-values.yaml) > .config/$provider-creds.json
-            ;;
-        rdsPostgresSQL)
-            install-crossplane-provider "aws"
-            AWS_PROFILE=default && echo -e "[default]\naws_access_key_id = $(aws configure get aws_access_key_id --profile $AWS_PROFILE)\naws_secret_access_key = $(aws configure get aws_secret_access_key --profile $AWS_PROFILE)\naws_session_token = $(aws configure get aws_session_token --profile $AWS_PROFILE)" > .config/$provider-creds.json 
-            kubectl apply -f .config/crossplane/aws/rds-postgres-xrd.yaml
-            kubectl apply -f .config/crossplane/aws/rds-postgres-composition.yml
-            kubectl apply -f .config/crossplane/aws/rds-class.yaml
-            kubeclt apply -f .config/crossplane/aws/rds-psql-rbac.yml
-            ;;
-        *)
-            scripts/dektecho.sh err "$CLOUD_DB is not supported "
-            ;;
-        esac
+        kubectl apply -f .config/crossplane/aws/provider.yaml
         
-    }
+        kubectl wait "providers.pkg.crossplane.io/provider-aws" --for=condition=Installed --timeout=180s
+        kubectl wait "providers.pkg.crossplane.io/provider-aws" --for=condition=Healthy --timeout=180s
 
-    #install-crossplane-provider
-    install-crossplane-provider () {
+        AWS_PROFILE=default && echo -e "[default]\naws_access_key_id = $(aws configure get aws_access_key_id --profile $AWS_PROFILE)\naws_secret_access_key = $(aws configure get aws_secret_access_key --profile $AWS_PROFILE)\naws_session_token = $(aws configure get aws_session_token --profile $AWS_PROFILE)" > creds.conf
 
-        provider=$1
+        kubectl create secret generic aws-provider-creds -n crossplane-system --from-file=creds=./creds.conf
 
-        scripts/dektecho.sh status "Installing $provider crossplane provider"
+        rm -f creds.conf
+
+kubectl apply -f -<<EOF
+---
+apiVersion: aws.crossplane.io/v1beta1
+kind: ProviderConfig
+metadata:
+  name: default
+spec:
+  credentials:
+    source: Secret
+    secretRef:
+      namespace: crossplane-system
+      name: aws-provider-creds
+      key: creds
+EOF
+
+ 
         
-        kubectl apply -f .config/crossplane/$provider/provider.yaml
+       kubectl apply -f .config/crossplane/aws/rds-psql-xrd.yaml
+
+       kubectl apply -f .config/crossplane/aws/rds-psql-composition.yaml
+
+       kubectl apply -f .config/crossplane/aws/rds-psql-class.yaml
+
+       kubectl apply -f .config/crossplane/aws/rds-psql-rbac.yaml
         
-        while [[ $(kubectl get providers/upbound-provider-$provider -o 'jsonpath={..status.conditions[?(@.type=="Healthy")].status}') != "True" ]]; do
-            printf "."
-            sleep 1
-        done
-        
-        case $provider in
-        azure)
-            az ad sp create-for-rbac --sdk-auth --role Owner --scopes /subscriptions/$(yq .clouds.azure.subscriptionID .config/demo-values.yaml) > .config/$provider-creds.json
-            ;;
-        aws)
-            AWS_PROFILE=default && echo -e "[default]\naws_access_key_id = $(aws configure get aws_access_key_id --profile $AWS_PROFILE)\naws_secret_access_key = $(aws configure get aws_secret_access_key --profile $AWS_PROFILE)\naws_session_token = $(aws configure get aws_session_token --profile $AWS_PROFILE)" > .config/$provider-creds.json 
-            ;;
-        gcp)
-            #!!!TODO generate a GCP service account JSON file.
-            ;;
-        esac
-        
-        kubectl create secret generic $provider-creds -n crossplane-system --from-file=creds=.config/$provider-creds.json   
-        
-        kubectl apply -f .config/crossplane/$provider/provider-config.yaml
-        
-        rm -f .config/$provider-creds.json
 
     }
 

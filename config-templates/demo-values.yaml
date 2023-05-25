@@ -61,7 +61,6 @@ tap:
   sysIngressIssuer:  # used for system components, accepted values: tap-ingress-selfsigned or your own cert (in which case verify if you need to update .config/secrets/cluster-issue-sys.yaml)
   appsIngressIssuer:  # used for workloads, accepted values: tap-ingress-selfsigned or your own cert (in which case verify if you need to update .config/secrets/cluster-issue-apps.yaml)
   isvImg: #BYO image name, must be pushed to private_registry/isvs repo
-  cloudDB: #accepted values: rdsPostgresSQL, azurePostgresSQL
 
 
 snyk: 
