@@ -120,6 +120,11 @@ generate-config-yamls() {
     ytt -f config-templates/tap-profiles/tap-prod1.yaml --data-values-file=.config/demo-values.yaml > .config/tap-profiles/tap-prod1.yaml
     ytt -f config-templates/tap-profiles/tap-prod2.yaml --data-values-file=.config/demo-values.yaml > .config/tap-profiles/tap-prod2.yaml
 
+    #custom-supplychains
+    mkdir -p .config/custom-supplychains
+    ytt -f config-templates/custom-supplychains/dekt-medical.yaml --data-values-file=.config/demo-values.yaml > .config/custom-supplychains/dekt-medical.yaml
+    ytt -f config-templates/custom-supplychains/dekt-medical-scan.yaml --data-values-file=.config/demo-values.yaml > .config/custom-supplychains/dekt-medical-scan.yaml
+
     #secrets
     mkdir -p .config/secrets
     cp -a config-templates/secrets/ .config/secrets

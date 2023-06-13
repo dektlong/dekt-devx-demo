@@ -3,7 +3,7 @@ kind: Workload
 metadata:
   name: mood-doctor
   labels:
-    apps.tanzu.vmware.com/workload-type: worker
+    apps.tanzu.vmware.com/workload-type: dekt-medical-worker
     app.kubernetes.io/part-of: mood-doctor
     apps.tanzu.vmware.com/has-tests: "true"
 spec:

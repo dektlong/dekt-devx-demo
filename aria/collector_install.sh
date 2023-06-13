@@ -1,20 +1,20 @@
 #!/bin/bash
 
 # BSD 2-Clause License
-#
+# 
 # Copyright (c) 2009-present, Homebrew contributors
 # All rights reserved.
-#
+# 
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions are met:
-#
+# 
 # * Redistributions of source code must retain the above copyright notice, this
 #   list of conditions and the following disclaimer.
-#
+# 
 # * Redistributions in binary form must reproduce the above copyright notice,
 #   this list of conditions and the following disclaimer in the documentation
 #   and/or other materials provided with the distribution.
-#
+# 
 # THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
 # AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
 # IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
@@ -46,34 +46,6 @@ abort() {
   printf "%s\n" "$@" >&2
   exit 1
 }
-
-# Fail fast with a concise message when not using bash
-# Single brackets are needed here for POSIX compatibility
-# shellcheck disable=SC2292
-if [ -z "${BASH_VERSION:-}" ]
-then
-  abort "Bash is required to interpret this script."
-fi
-
-# Check if script is run with force-interactive mode in CI
-if [[ -n "${CI-}" && -n "${INTERACTIVE-}" ]]
-then
-  abort "Cannot run force-interactive mode in CI."
-fi
-
-# Check if both `INTERACTIVE` and `NONINTERACTIVE` are set
-# Always use single-quoted strings with `exp` expressions
-# shellcheck disable=SC2016
-if [[ -n "${INTERACTIVE-}" && -n "${NONINTERACTIVE-}" ]]
-then
-  abort 'Both `$INTERACTIVE` and `$NONINTERACTIVE` are set. Please unset at least one variable and try again.'
-fi
-
-# Check if script is run in POSIX mode
-if [[ -n "${POSIXLY_CORRECT+1}" ]]
-then
-  abort 'Bash must not run in POSIX mode. Please unset POSIXLY_CORRECT and try again.'
-fi
 
 # string formatters
 if [[ -t 1 ]]
@@ -112,43 +84,6 @@ warn() {
   printf "${tty_red}Warning${tty_reset}: %s\n" "$(chomp "$1")"
 }
 
-# Check if script is run non-interactively (e.g. CI)
-# If it is run non-interactively we should not prompt for passwords.
-# Always use single-quoted strings with `exp` expressions
-# shellcheck disable=SC2016
-if [[ -z "${NONINTERACTIVE-}" ]]
-then
-  if [[ -n "${CI-}" ]]
-  then
-    warn 'Running in non-interactive mode because `$CI` is set.'
-    NONINTERACTIVE=1
-  elif [[ ! -t 0 ]]
-  then
-    if [[ -z "${INTERACTIVE-}" ]]
-    then
-      warn 'Running in non-interactive mode because `stdin` is not a TTY.'
-      NONINTERACTIVE=1
-    else
-      warn 'Running in interactive mode despite `stdin` not being a TTY because `$INTERACTIVE` is set.'
-    fi
-  fi
-else
-  ohai 'Running in non-interactive mode because `$NONINTERACTIVE` is set.'
-fi
-
-# First check OS.
-OS="$(uname)"
-if [[ "${OS}" == "Linux" ]]
-then
-  RUNNING_ON_LINUX=1
-elif [[ "${OS}" == "Darwin" ]]
-then
-  # shellcheck disable=SC2034
-  RUNNING_ON_MACOS=1
-else
-  abort "Script is only supported on macOS and Linux."
-fi
-
 # Values you should not change.
 #
 # These are being written as configurable in case we *are* able to modify them in the futuer
@@ -164,12 +99,9 @@ LEGACY_YAML_DEPLOY=0
 VMW_UPGRADE=0
 ## Switch indicating whether chart installs should happen
 VMW_INSTALL=0
-## Switch indicating a dry-run. May read resources, but will not change resources.
-VMW_DRY_RUN=0
 
 # For storing values.yaml files we create for helm.
 VALUES_TMP_DIR="$(mktemp -d)"
-trap 'rm -rf -- "$VALUES_TMP_DIR"' EXIT
 export TMPDIR="${VALUES_TMP_DIR}"
 
 # Optional values
@@ -194,10 +126,31 @@ VMW_DEFAULT_DEPLOY_OLM="true"
 VMW_DEFAULT_CLEANUP_OLD_RESOURCES=1
 VMW_DEFAULT_CLIENT_ID=""
 VMW_DEFAULT_COLLECTOR_CLIENT_SECRET=""
+VMW_DEFAULT_CLUSTER_MANAGED="false"
+VMW_DEFAULT_PEM_MEMORY_LIMIT="2Gi"
+VMW_DEFAULT_DRY_RUN=0
+VMW_DEFAULT_TRACE_ENTITY_ID=0
+VMW_DEFAULT_ACCESS_KEY=""
+VMW_DEFAULT_CLUSTER_CLOUD_ACCOUNT_ID=""
+
+# Version
+#
+# This is the version that the collector reports back to Aria.
+#
+# When the collector gained additional add-on functionality, it was no longer reasonable to consider the k8s-collector
+# container image itself to be the version-source-of-truth due to the extra moving pieces. This variable was added to
+# allow the version reported by the k8s-collector heartbeat back to Aria to be overridden to support the (now) higher
+# level version.
+#
+# You can think of this version as the version of the product if it were represented as an Umbrella Chart in Helm.
+#
+# If you are updating any of the moving parts of this product, this version here should *always* be semantically updated
+# to indicate new-ness or "latest" to the customer.
+VMW_COLLECTOR_VERSION_OVERRIDE="2.4.1"
 
 # Chart versions
-TELEGRAF_CHART_DEFAULT_VERSION="2.0.0"
-K8S_COLLECTOR_CHART_DEFAULT_VERSION="2.0.0"
+TELEGRAF_CHART_DEFAULT_VERSION="${VMW_COLLECTOR_VERSION_OVERRIDE}"
+K8S_COLLECTOR_CHART_DEFAULT_VERSION="${VMW_COLLECTOR_VERSION_OVERRIDE}"
 PIXIE_CHART_DEFAULT_VERSION="0.0.38"
 
 # Override used values with defaults if necessary
@@ -227,159 +180,185 @@ VMW_DEPLOY_OLM="${VMW_DEPLOY_OLM:-"${VMW_DEFAULT_DEPLOY_OLM}"}"
 VMW_CLEANUP_OLD_RESOURCES="${VMW_CLEANUP_OLD_RESOURCES:-"${VMW_DEFAULT_CLEANUP_OLD_RESOURCES}"}"
 VMW_CLIENT_ID="${VMW_CLIENT_ID:-"${VMW_DEFAULT_CLIENT_ID}"}"
 VMW_COLLECTOR_CLIENT_SECRET="${VMW_COLLECTOR_CLIENT_SECRET:-"${VMW_DEFAULT_COLLECTOR_CLIENT_SECRET}"}"
+VMW_CLUSTER_MANAGED="${VMW_CLUSTER_MANAGED:-"${VMW_DEFAULT_CLUSTER_MANAGED}"}"
+VMW_PEM_MEMORY_LIMIT="${VMW_PEM_MEMORY_LIMIT:-"${VMW_DEFAULT_PEM_MEMORY_LIMIT}"}"
+VMW_DRY_RUN="${VMW_DRY_RUN:-"${VMW_DEFAULT_DRY_RUN}"}"
+VMW_TRACE_ENTITY_ID="${VMW_TRACE_ENTITY_ID:-"${VMW_DEFAULT_TRACE_ENTITY_ID}"}"
+VMW_ACCESS_KEY="${VMW_ACCESS_KEY:-"${VMW_DEFAULT_ACCESS_KEY}"}"
+VMW_CLUSTER_CLOUD_ACCOUNT_ID="${CLUSTER_CLOUD_ACCOUNT_ID:-"${VMW_DEFAULT_CLUSTER_CLOUD_ACCOUNT_ID}"}"
 
 # Prefer later Helm version (with oci:// support)
 REQUIRED_HELM_VERSION=3.9.0
 REQUIRED_KUBECTL_VERSION=1.20.0
 
-while [[ $# -gt 0 ]]; do
-  case $1 in
-    --collector-id)
-      VMW_COLLECTOR_ID="$2"
-      shift # past argument
-      shift # past value
-      ;;
-    --cluster-name)
-      VMW_CLUSTER_NAME="$2"
-      shift # past argument
-      shift # past value
-      ;;
-    --cluster-cloud-account-id)
-      VMW_CLUSTER_CLOUD_ACCOUNT_ID="$2"
-      shift # past argument
-      shift # past value
-      ;;
-    --cluster-cloud-provider)
-      VMW_CLUSTER_CLOUD_PROVIDER="$2"
-      shift # past argument
-      shift # past value
-      ;;
-    --cluster-region)
-      VMW_CLUSTER_REGION="$2"
-      shift # past argument
-      shift # past value
-      ;;
-    --environment)
-      VMW_ENVIRONMENT="$2"
-      shift # past argument
-      shift # past value
-      ;;
-    --collector-client-secret)
-      VMW_COLLECTOR_CLIENT_SECRET="$2"
-      shift # past argument
-      shift # past value
-      ;;
-    --org-id)
-      VMW_ORG_ID="$2"
-      shift # past argument
-      shift # past value
-      ;;
-    --client-id)
-      VMW_CLIENT_ID="$2"
-      shift # past argument
-      shift # past value
-      ;;
-    --access-key)
-      VMW_ACCESS_KEY="$2"
-      shift # past argument
-      shift # past value
-      ;;
-    --telegraf-chart-version)
-      TELEGRAF_CHART_VERSION="$2"
-      shift # past argument
-      shift # past value
-      ;;
-    --k8s-collector-chart-version)
-      K8S_COLLECTOR_CHART_VERSION="$2"
-      shift # past argument
-      shift # past value
-      ;;
-    --pixie-chart-version)
-      PIXIE_CHART_VERSION="$2"
-      shift # past argument
-      shift # past value
-      ;;
-    --csp-host)
-      VMW_CSP_HOST="$2"
-      shift # past argument
-      shift # past value
-      ;;
-    --metrics-domain)
-      VMW_METRICS_DOMAIN="$2"
-      shift # past argument
-      shift # past value
-      ;;
-    --metrics-storage-policy)
-      VMW_METRICS_STORAGE_POLICY="$2"
-      shift # past argument
-      shift # past value
-      ;;
-    --http-ingestion-url)
-      VMW_HTTP_INGESTION_URL="$2"
-      shift # past argument
-      shift # past value
-      ;;
-    --node-limit)
-      VMW_NODE_LIMIT="$2"
-      shift # past argument
-      shift # past value
-      ;;
-    --debug)
-      VMW_DEBUG=1
-      shift # past argument
-      ;;
-    --no-cleanup-old-resources)
-      VMW_CLEANUP_OLD_RESOURCES=0
-      shift # past argument
-      ;;
-    --deploy-olm)
-      VMW_DEPLOY_OLM=1
-      shift # past argument
-      ;;
-    --dry-run)
-      VMW_DRY_RUN=1
-      shift # past argument
-      ;;
-    --wait)
-      VMW_HELM_WAIT=1
-      shift # past argument
-      ;;
-    --use-etcd-operator)
-      VMW_USE_ETCD_OPERATOR="true"
-      shift # past argument
-      ;;
-    *)
-      shift # past argument
-      ;;
-  esac
-done
+parse_args() {
+  while [[ $# -gt 0 ]]; do
+    case $1 in
+      --collector-id)
+        VMW_COLLECTOR_ID="$2"
+        shift # past argument
+        shift # past value
+        ;;
+      --cluster-name)
+        VMW_CLUSTER_NAME="$2"
+        shift # past argument
+        shift # past value
+        ;;
+      --cluster-cloud-account-id)
+        VMW_CLUSTER_CLOUD_ACCOUNT_ID="$2"
+        shift # past argument
+        shift # past value
+        ;;
+      --cluster-cloud-provider)
+        VMW_CLUSTER_CLOUD_PROVIDER="$2"
+        shift # past argument
+        shift # past value
+        ;;
+      --cluster-region)
+        VMW_CLUSTER_REGION="$2"
+        shift # past argument
+        shift # past value
+        ;;
+      --cluster-managed)
+        VMW_CLUSTER_MANAGED="true"
+        shift # past argument
+        ;;
+      --environment)
+        VMW_ENVIRONMENT="$2"
+        shift # past argument
+        shift # past value
+        ;;
+      --collector-client-secret)
+        VMW_COLLECTOR_CLIENT_SECRET="$2"
+        shift # past argument
+        shift # past value
+        ;;
+      --org-id)
+        VMW_ORG_ID="$2"
+        shift # past argument
+        shift # past value
+        ;;
+      --client-id)
+        VMW_CLIENT_ID="$2"
+        shift # past argument
+        shift # past value
+        ;;
+      --access-key)
+        VMW_ACCESS_KEY="$2"
+        shift # past argument
+        shift # past value
+        ;;
+      --telegraf-chart-version)
+        TELEGRAF_CHART_VERSION="$2"
+        shift # past argument
+        shift # past value
+        ;;
+      --k8s-collector-chart-version)
+        K8S_COLLECTOR_CHART_VERSION="$2"
+        shift # past argument
+        shift # past value
+        ;;
+      --pixie-chart-version)
+        PIXIE_CHART_VERSION="$2"
+        shift # past argument
+        shift # past value
+        ;;
+      --cloud-addr)
+        VMW_CLOUD_ADDR="$2"
+        shift # past argument
+        shift # past value
+        ;;
+      --pem-memory-limit)
+        VMW_PEM_MEMORY_LIMIT="$2"
+        shift # past argument
+        shift # past value
+        ;;
+      --csp-host)
+        VMW_CSP_HOST="$2"
+        shift # past argument
+        shift # past value
+        ;;
+      --metrics-domain)
+        VMW_METRICS_DOMAIN="$2"
+        shift # past argument
+        shift # past value
+        ;;
+      --metrics-storage-policy)
+        VMW_METRICS_STORAGE_POLICY="$2"
+        shift # past argument
+        shift # past value
+        ;;
+      --namespace)
+        ARIA_NAMESPACE="$2"
+        shift # past argument
+        shift # past value
+        ;;
+      --http-ingestion-url)
+        VMW_HTTP_INGESTION_URL="$2"
+        shift # past argument
+        shift # past value
+        ;;
+      --node-limit)
+        VMW_NODE_LIMIT="$2"
+        shift # past argument
+        shift # past value
+        ;;
+      --debug)
+        VMW_DEBUG=1
+        shift # past argument
+        ;;
+      --no-cleanup-old-resources)
+        VMW_CLEANUP_OLD_RESOURCES=0
+        shift # past argument
+        ;;
+      --no-deploy-olm)
+        VMW_DEPLOY_OLM="false"
+        shift # past argument
+        ;;
+      --dry-run)
+        VMW_DRY_RUN=1
+        shift # past argument
+        ;;
+      --trace-entity-id)
+        VMW_TRACE_ENTITY_ID=1
+        shift # past argument
+        ;;
+      --no-wait)
+        VMW_HELM_WAIT=0
+        shift # past argument
+        ;;
+      --use-etcd-operator)
+        VMW_USE_ETCD_OPERATOR="true"
+        shift # past argument
+        ;;
+      *)
+        shift # past argument
+        ;;
+    esac
+  done
+}
 
-# Single brackets are needed here for POSIX compatibility
-# shellcheck disable=SC2292
-if [ -z "${VMW_CLUSTER_NAME:-}" ]; then
-  abort "Cluster Name is required to interpret this script."
-fi
+check_global_required_args() {
+  # Single brackets are needed here for POSIX compatibility
+  # shellcheck disable=SC2292
+  if [ -z "${VMW_CLUSTER_NAME:-}" ]; then
+    abort "Cluster Name is required to interpret this script."
+  fi
 
-if [ -z "${VMW_CLUSTER_CLOUD_ACCOUNT_ID:-}" ]; then
-  abort "Cluster Cloud Account ID is required to interpret this script."
-fi
+  if [ -z "${VMW_CLUSTER_CLOUD_ACCOUNT_ID:-}" ]; then
+    abort "Cluster Cloud Account ID is required to interpret this script."
+  fi
 
-if [ -z "${VMW_CLUSTER_REGION:-}" ]; then
-  abort "Cluster Region is required to interpret this script."
-fi
+  if [ -z "${VMW_CLUSTER_REGION:-}" ]; then
+    abort "Cluster Region is required to interpret this script."
+  fi
 
-if [ -z "${VMW_COLLECTOR_ID:-}" ]; then
-  abort "Collector ID is required to interpret this script."
-fi
+  if [ -z "${VMW_COLLECTOR_ID:-}" ]; then
+    abort "Collector ID is required to interpret this script."
+  fi
 
-if [ -z "${VMW_ORG_ID:-}" ]; then
-  abort "CSP Org ID is required to interpret this script."
-fi
-
-execute() {
-  if ! "$@"
-  then
-    abort "$(printf "Failed during: %s" "$(shell_join "$@")")"
+  if [ -z "${VMW_ORG_ID:-}" ]; then
+    abort "CSP Org ID is required to interpret this script."
   fi
 }
 
@@ -413,17 +392,10 @@ wait_for_user() {
 
 check_legacy_yaml_deploy() {
   local kubectl_get_output
-  kubectl_get_output="$("$USABLE_KUBECTL" get po --namespace "${ARIA_NAMESPACE}" -l app=aria-k8s 2> /dev/null | grep -cv NAME 2> /dev/null)"
-  if [[ -z "${kubectl_get_output}" ]]
-  then
-    return 1
+  kubectl_get_output="$("$USABLE_KUBECTL" get po --namespace "${ARIA_NAMESPACE}" -l app=aria-k8s 2> /dev/null | grep -cv NAME 2> /dev/null || true)"
+  if [ "${kubectl_get_output}" = "1" ]; then
+    LEGACY_YAML_DEPLOY=1
   fi
-  if [[ $kubectl_get_output -eq 0 ]]
-  then
-    return 1
-  fi
-
-  LEGACY_YAML_DEPLOY=1
 }
 
 read_client_secret() {
@@ -435,8 +407,7 @@ read_client_secret() {
 
   local kubectl_get_output
   kubectl_get_output="$("$USABLE_KUBECTL" get secret --namespace "${ARIA_NAMESPACE}" collector-client-secret -o=jsonpath='{.data.COLLECTOR_CLIENT_SECRET}' 2> /dev/null)"
-  if [[ -z "${kubectl_get_output}" ]]
-  then
+  if [[ -z "${kubectl_get_output}" ]]; then
     return 1
   fi
   ohai "Re-using Collector Client Secret from legacy YAML deployment"
@@ -451,7 +422,7 @@ read_client_id() {
   fi
 
   local kubectl_get_output
-  kubectl_get_output="$("$USABLE_KUBECTL" get deploy --namespace "${ARIA_NAMESPACE}" aria-k8s -o=jsonpath='{.spec.template.spec.containers[*].env[?(@.name == "CLIENT_ID")].value}' 2> /dev/null)"
+  kubectl_get_output="$("$USABLE_KUBECTL" get deploy --namespace "${ARIA_NAMESPACE}" aria-k8s -o=jsonpath='{.spec.template.spec.containers[*].env[?(@.name == "CLIENT_ID")].value}' 2> /dev/null || true)"
   if [[ -z "${kubectl_get_output}" ]]; then
     return 1
   fi
@@ -466,14 +437,12 @@ major_minor() {
   )"
 }
 
-version_gt() {
-  [[ "${1%.*}" -gt "${2%.*}" ]] || [[ "${1%.*}" -eq "${2%.*}" && "${1#*.}" -gt "${2#*.}" ]]
-}
 version_ge() {
-  [[ "${1%.*}" -gt "${2%.*}" ]] || [[ "${1%.*}" -eq "${2%.*}" && "${1#*.}" -ge "${2#*.}" ]]
+  [[ "$1" == "$(echo -e "$1\n$2" | sort -V | tail -n1)" ]]
 }
+
 version_lt() {
-  [[ "${1%.*}" -lt "${2%.*}" ]] || [[ "${1%.*}" -eq "${2%.*}" && "${1#*.}" -lt "${2#*.}" ]]
+  [[ "$1" != "$(echo -e "$1\n$2" | sort -V | tail -n1)" ]]
 }
 
 charts_need_upgrade() {
@@ -593,11 +562,11 @@ has_k8s_resource() {
 }
 
 remove_old_k8s_resources() {
-  run $USABLE_KUBECTL delete clusterrole -l app=aria-k8s
-  run $USABLE_KUBECTL delete clusterrolebinding -l app=aria-k8s
-  run $USABLE_KUBECTL delete deployment -n "${ARIA_NAMESPACE}" -l "app=${OLD_ARIA_K8S_LABEL}"
-  run $USABLE_KUBECTL delete serviceaccount -n "${ARIA_NAMESPACE}" -l "app=${OLD_ARIA_K8S_LABEL}"
-  run $USABLE_KUBECTL delete secret -n "${ARIA_NAMESPACE}" collector-client-secret
+  run_command "${USABLE_KUBECTL}" delete clusterrole -l app=aria-k8s
+  run_command "${USABLE_KUBECTL}" delete clusterrolebinding -l app=aria-k8s
+  run_command "${USABLE_KUBECTL}" delete deployment -n "${ARIA_NAMESPACE}" -l "app=${OLD_ARIA_K8S_LABEL}"
+  run_command "${USABLE_KUBECTL}" delete serviceaccount -n "${ARIA_NAMESPACE}" -l "app=${OLD_ARIA_K8S_LABEL}"
+  run_command "${USABLE_KUBECTL}" delete secret -n "${ARIA_NAMESPACE}" collector-client-secret
 }
 
 has_old_resources() {
@@ -691,6 +660,16 @@ print_work_to_do() {
   fi
 }
 
+print_work_to_do_wrapper() {
+  if [[ $VMW_INSTALL -eq 1 ]]; then
+    ohai "This script will install:"
+    print_work_to_do
+  elif [[ $VMW_UPGRADE -eq 1 ]]; then
+    ohai "This script will upgrade:"
+    print_work_to_do
+  fi
+}
+
 k8s_collector_values_file() {
   local temp_file
   temp_file=$(mktemp)
@@ -699,6 +678,7 @@ k8s_collector_values_file() {
 config:
   clusterCloudAccountId: "${VMW_CLUSTER_CLOUD_ACCOUNT_ID}"
   clusterCloudProvider: "${VMW_CLUSTER_CLOUD_PROVIDER}"
+  clusterManaged: "${VMW_CLUSTER_MANAGED}"
   clusterName: "${VMW_CLUSTER_NAME}"
   clusterRegion: "${VMW_CLUSTER_REGION}"
   collectorId: "${VMW_COLLECTOR_ID}"
@@ -712,6 +692,7 @@ collector:
   extraEnvironmentVars:
     NETWORK_MAP_METRICS_COLLECT_INTERVAL_SECONDS: "${VMW_NETWORK_MAP_METRICS_COLLECT_INTERVAL_SECONDS}"
     NETWORK_MAP_METRICS_ENDPOINT: "${VMW_NETWORK_MAP_METRICS_ENDPOINT}"
+    COLLECTOR_VERSION_OVERRIDE: "${VMW_COLLECTOR_VERSION_OVERRIDE}"
   volumeMounts:
     - name: "aria-k8s-collector"
       mountPath: "/etc/aria-k8s-csp-secret"
@@ -740,6 +721,7 @@ telegraf:
     METRICS_DOMAIN: "${VMW_METRICS_DOMAIN}"
     METRICS_STORAGE_POLICY: "${VMW_METRICS_STORAGE_POLICY}"
     ORG_ID: "${VMW_ORG_ID}"
+    TRACE_ENTITY_ID: "${VMW_TRACE_ENTITY_ID}"
 EOF
   echo "${temp_file}"
 }
@@ -762,7 +744,7 @@ disableAutoUpdate: false
 useEtcdOperator: ${VMW_USE_ETCD_OPERATOR}
 cloudAddr: "${VMW_CLOUD_ADDR}"
 devCloudNamespace: ""
-pemMemoryLimit: ""
+pemMemoryLimit: "${VMW_PEM_MEMORY_LIMIT}"
 pemMemoryRequest: ""
 dataAccess: "Full"
 pod:
@@ -774,63 +756,62 @@ EOF
   echo "${temp_file}"
 }
 
-run() {
-  if [ $VMW_DRY_RUN -eq 1 ]; then
+run_command() {
+  if [ "$VMW_DRY_RUN" -eq 1 ]; then
     echo "DRYRUN: Not executing $*"
     return 0
   fi
   # shellcheck disable=SC2294
-  eval "$@"
+  if ! eval "$@"
+  then
+    abort "$(printf "Failed during: %s" "$(shell_join "$@")")"
+  fi
 }
 
-if no_usable_helm; then
-  abort "$(
-    cat <<EOABORT
-This script requires Helm ${REQUIRED_HELM_VERSION} which was not found on your system.
-Please install Helm ${REQUIRED_HELM_VERSION} and add its location to your PATH.
-EOABORT
-  )"
-fi
-
-# Things can fail later if `pwd` doesn't exist.
-# Also sudo prints a warning message for no good reason
-cd "/usr" || exit 1
-
-####################################################################### script
-USABLE_HELM="$(command -v helm)"
-if [[ -z "${USABLE_HELM}" ]]; then
-  abort "$(
-    cat <<EOABORT
-You must install Helm before running this script. See:
-  ${tty_underline}https://helm.sh/docs/intro/install/${tty_reset}
-EOABORT
-  )"
-elif [[ -n "${RUNNING_ON_LINUX-}" ]]
-then
-  USABLE_HELM="$(find_tool helm)"
+set_usable_helm() {
+  USABLE_HELM="$(command -v helm)"
   if [[ -z "${USABLE_HELM}" ]]; then
     abort "$(
       cat <<EOABORT
+You must install Helm before running this script. See:
+  ${tty_underline}https://helm.sh/docs/intro/install/${tty_reset}
+EOABORT
+    )"
+  elif [[ -n "${RUNNING_ON_LINUX-}" ]]
+  then
+    USABLE_HELM="$(find_tool helm)"
+    if [[ -z "${USABLE_HELM}" ]]; then
+      abort "$(
+        cat <<EOABORT
 The version of Helm that was found does not satisfy script requirements.
 Please install Helm ${REQUIRED_HELM_VERSION} or newer and add it to your PATH.
 EOABORT
-    )"
-  elif [[ "${USABLE_HELM}" != /usr/bin/helm ]]; then
-    export USABLE_HELM_PATH="${USABLE_HELM}"
-    ohai "Found Helm: ${USABLE_HELM_PATH}"
+      )"
+    elif [[ "${USABLE_HELM}" != /usr/bin/helm ]]; then
+      export USABLE_HELM_PATH="${USABLE_HELM}"
+      ohai "Found Helm: ${USABLE_HELM_PATH}"
+    fi
   fi
-fi
+}
 
-USABLE_KUBECTL="$(command -v kubectl)"
-if [[ -z "${USABLE_KUBECTL}" ]]; then
-  abort "$(
-    cat <<EOABORT
-You must install Kubectl before running this script. See:
-  ${tty_underline}https://kubernetes.io/docs/tasks/tools/#kubectl${tty_reset}
-EOABORT
-  )"
-elif [[ -n "${RUNNING_ON_LINUX-}" ]]; then
-  USABLE_KUBECTL="$(find_tool kubectl)"
+check_bash() {
+  # Fail fast with a concise message when not using bash
+  # Single brackets are needed here for POSIX compatibility
+  # shellcheck disable=SC2292
+  if [ -z "${BASH_VERSION:-}" ]; then
+    abort "Bash is required to interpret this script."
+  fi
+}
+
+check_force_interactive() {
+  # Check if script is run with force-interactive mode in CI
+  if [[ -n "${CI-}" && -n "${INTERACTIVE-}" ]]; then
+    abort "Cannot run force-interactive mode in CI."
+  fi
+}
+
+set_usable_kubectl() {
+  USABLE_KUBECTL="$(command -v kubectl)"
   if [[ -z "${USABLE_KUBECTL}" ]]; then
     abort "$(
       cat <<EOABORT
@@ -838,72 +819,30 @@ You must install Kubectl before running this script. See:
   ${tty_underline}https://kubernetes.io/docs/tasks/tools/#kubectl${tty_reset}
 EOABORT
     )"
-  elif [[ "${USABLE_KUBECTL}" != /usr/bin/kubectl ]]; then
-    export USABLE_KUBECTL_PATH="${USABLE_KUBECTL}"
-    ohai "Found Kubectl: ${USABLE_KUBECTL_PATH}"
+  elif [[ -n "${RUNNING_ON_LINUX-}" ]]; then
+    USABLE_KUBECTL="$(find_tool kubectl)"
+    if [[ -z "${USABLE_KUBECTL}" ]]; then
+      abort "$(
+        cat <<EOABORT
+You must install Kubectl before running this script. See:
+  ${tty_underline}https://kubernetes.io/docs/tasks/tools/#kubectl${tty_reset}
+EOABORT
+      )"
+    elif [[ "${USABLE_KUBECTL}" != /usr/bin/kubectl ]]; then
+      export USABLE_KUBECTL_PATH="${USABLE_KUBECTL}"
+      ohai "Found Kubectl: ${USABLE_KUBECTL_PATH}"
+    fi
   fi
-fi
+}
 
-check_legacy_yaml_deploy
-charts_need_upgrade
-charts_need_install
-
-if [[ $LEGACY_YAML_DEPLOY -eq 1 && $VMW_INSTALL -eq 1 ]]; then
-  # fresh helm install; legacy yaml deployed
-
-  # Attempt to read generated data from the existing installation because these will not presently be known by Helm.
-  # Reading existing content will be skipped if the user provided arguments for that content
-  if [ "${VMW_DEFAULT_COLLECTOR_CLIENT_SECRET}" = "${VMW_COLLECTOR_CLIENT_SECRET}" ]; then
-    read_client_secret
-  else
-    ohai "Skipping lookup of existing client secret because it was provided on the command line"
+print_legacy_yaml_mesg() {
+  if [[ $LEGACY_YAML_DEPLOY -eq 1 ]]; then
+    echo ""
+    ohai "An existing legacy YAML deployment was found and will be removed."
   fi
-  if [ "${VMW_DEFAULT_CLIENT_ID}" = "${VMW_CLIENT_ID}" ]; then
-    read_client_id
-  else
-    ohai "Skipping lookup of existing client ID because it was provided on the command line"
-  fi
-  check_required_args
-elif [[ $LEGACY_YAML_DEPLOY -eq 1 && $VMW_UPGRADE -eq 1 ]]; then
-  # fresh helm install; legacy yaml deployed; failed prior helm install
-  :
-elif [[ $LEGACY_YAML_DEPLOY -eq 0 && $VMW_INSTALL -eq 1 ]]; then
-  # fresh helm install
-  check_required_args
-elif [[ $LEGACY_YAML_DEPLOY -eq 0 && $VMW_UPGRADE -eq 1 ]]; then
-  # existing helm install, upgrade chart
-  :
-fi
+}
 
-if [[ $VMW_INSTALL -eq 1 ]]; then
-  ohai "This script will install:"
-  print_work_to_do
-elif [[ $VMW_UPGRADE -eq 1 ]]; then
-  ohai "This script will upgrade:"
-  print_work_to_do
-fi
-
-if [[ $LEGACY_YAML_DEPLOY -eq 1 ]]; then
-  echo ""
-  ohai "An existing legacy YAML deployment was found and will be removed."
-fi
-
-if [[ -z "${NONINTERACTIVE-}" ]]; then
-  ring_bell
-  wait_for_user
-fi
-
-if "should_install_addons" "${VMW_NODE_LIMIT}"; then
-  ohai "Deploying Aria Kubernetes Collector and add-ons..."
-else
-  ohai "Deploying Aria Kubernetes Collector"
-fi
-
-(
-  # pixie is not yet distributed via oci images
-  run ${USABLE_HELM} repo add pixie-operator "${PIXIE_HELM_REPO}"
-  run ${USABLE_HELM} repo update
-
+set_helm_opts() {
   if [[ $VMW_DEBUG -ne 0 ]]; then
     HELM_DEBUG_OPT="--debug "
   else
@@ -915,6 +854,147 @@ fi
   else
     HELM_WAIT_OPT=""
   fi
+}
+
+print_resources_to_cleanup() {
+  if "has_k8s_resource" "clusterrole"; then
+    echo "ClusterRole with label '${OLD_ARIA_K8S_LABEL}'"
+  fi
+  if "has_k8s_resource" "clusterrolebinding"; then
+    echo "ClusterRoleBinding with label '${OLD_ARIA_K8S_LABEL}'"
+  fi
+  if "has_k8s_resource" "deployment"; then
+    echo "Deployment with label '${OLD_ARIA_K8S_LABEL}'"
+  fi
+  if "has_k8s_resource" "serviceaccount"; then
+    echo "ServiceAccount with label '${OLD_ARIA_K8S_LABEL}'"
+  fi
+  if "has_k8s_resource" "secret"; then
+    echo "Secret with label '${OLD_ARIA_K8S_LABEL}'"
+  fi
+}
+
+main() {
+  trap 'rm -rf -- "$VALUES_TMP_DIR"' EXIT
+
+  # Things can fail later if `pwd` doesn't exist.
+  # Also sudo prints a warning message for no good reason
+  cd "/usr" || exit 1
+
+  check_bash
+  check_force_interactive
+
+  # Check if both `INTERACTIVE` and `NONINTERACTIVE` are set
+  # Always use single-quoted strings with `exp` expressions
+  # shellcheck disable=SC2016
+  if [[ -n "${INTERACTIVE-}" && -n "${NONINTERACTIVE-}" ]]
+  then
+    abort 'Both `$INTERACTIVE` and `$NONINTERACTIVE` are set. Please unset at least one variable and try again.'
+  fi
+
+  # Check if script is run in POSIX mode
+  if [[ -n "${POSIXLY_CORRECT+1}" ]]
+  then
+    abort 'Bash must not run in POSIX mode. Please unset POSIXLY_CORRECT and try again.'
+  fi
+
+  # Check if script is run non-interactively (e.g. CI)
+  # If it is run non-interactively we should not prompt for passwords.
+  # Always use single-quoted strings with `exp` expressions
+  # shellcheck disable=SC2016
+  if [[ -z "${NONINTERACTIVE-}" ]]
+  then
+    if [[ -n "${CI-}" ]]
+    then
+      warn 'Running in non-interactive mode because `$CI` is set.'
+      NONINTERACTIVE=1
+    elif [[ ! -t 0 ]]
+    then
+      if [[ -z "${INTERACTIVE-}" ]]
+      then
+        warn 'Running in non-interactive mode because `stdin` is not a TTY.'
+        NONINTERACTIVE=1
+      else
+        warn 'Running in interactive mode despite `stdin` not being a TTY because `$INTERACTIVE` is set.'
+      fi
+    fi
+  else
+    ohai 'Running in non-interactive mode because `$NONINTERACTIVE` is set.'
+  fi
+
+  # First check OS.
+  OS="$(uname)"
+  if [[ "${OS}" == "Linux" ]]
+  then
+    RUNNING_ON_LINUX=1
+  elif [[ "${OS}" == "Darwin" ]]
+  then
+    # shellcheck disable=SC2034
+    RUNNING_ON_MACOS=1
+  else
+    abort "Script is only supported on macOS and Linux."
+  fi
+
+  # Helm will re-use values except in times of upgrade where we might want to set new values.
+  if [[ $VMW_INSTALL -eq 1 ]]; then
+    check_global_required_args
+  fi
+
+  set_usable_helm
+  set_usable_kubectl
+
+  check_legacy_yaml_deploy
+  charts_need_upgrade
+  charts_need_install
+
+  if [[ $LEGACY_YAML_DEPLOY -eq 1 && $VMW_INSTALL -eq 1 ]]; then
+    # fresh helm install; legacy yaml deployed
+
+    # Attempt to read generated data from the existing installation because these will not presently be known by Helm.
+    # Reading existing content will be skipped if the user provided arguments for that content
+    if [ "${VMW_DEFAULT_COLLECTOR_CLIENT_SECRET}" = "${VMW_COLLECTOR_CLIENT_SECRET}" ]; then
+      read_client_secret
+    else
+      ohai "Skipping lookup of existing client secret because it was provided on the command line"
+    fi
+    if [ "${VMW_DEFAULT_CLIENT_ID}" = "${VMW_CLIENT_ID}" ]; then
+      read_client_id
+    else
+      ohai "Skipping lookup of existing client ID because it was provided on the command line"
+    fi
+
+    check_required_args
+  elif [[ $LEGACY_YAML_DEPLOY -eq 1 && $VMW_UPGRADE -eq 1 ]]; then
+    # fresh helm install; legacy yaml deployed; failed prior helm install
+    :
+  elif [[ $LEGACY_YAML_DEPLOY -eq 0 && $VMW_INSTALL -eq 1 ]]; then
+    # fresh helm install
+    check_required_args
+  elif [[ $LEGACY_YAML_DEPLOY -eq 0 && $VMW_UPGRADE -eq 1 ]]; then
+    # existing helm install, upgrade chart
+    :
+  fi
+
+  print_work_to_do_wrapper
+  print_legacy_yaml_mesg
+
+  if [[ -z "${NONINTERACTIVE-}" ]]; then
+    ring_bell
+    wait_for_user
+  fi
+
+if "should_install_addons" "${VMW_NODE_LIMIT}"; then
+  ohai "Deploying Aria Kubernetes Collector and add-ons..."
+else
+  ohai "Deploying Aria Kubernetes Collector"
+fi
+
+(
+  # pixie is not yet distributed via oci images
+  run_command "${USABLE_HELM}" repo add pixie-operator "${PIXIE_HELM_REPO}"
+  run_command "${USABLE_HELM}" repo update
+
+  set_helm_opts
 
   if "should_install_addons" "${VMW_NODE_LIMIT}"
   then
@@ -923,7 +1003,7 @@ fi
       then
         # install vmw version of telegraf collector helm. includes consistent variable naming across vmw charts
         # shellcheck disable=SC2086
-        run ${USABLE_HELM} install aria-telegraf-collector "${TELEGRAF_HELM_REPO}" \
+        run_command ${USABLE_HELM} install aria-telegraf-collector "${TELEGRAF_HELM_REPO}" \
           --create-namespace \
           ${HELM_DEBUG_OPT} \
           --namespace "${ARIA_NAMESPACE}" \
@@ -934,7 +1014,7 @@ fi
     else
       # Upgrade the chart
       # shellcheck disable=SC2086
-      run ${USABLE_HELM} upgrade aria-telegraf-collector "${TELEGRAF_HELM_REPO}" \
+      run_command ${USABLE_HELM} upgrade aria-telegraf-collector "${TELEGRAF_HELM_REPO}" \
         ${HELM_DEBUG_OPT} \
         --namespace "${ARIA_NAMESPACE}" \
         --version "${TELEGRAF_CHART_VERSION}" \
@@ -945,7 +1025,7 @@ fi
       if "should_helm_install" "pixie" "pl"
       then
         # shellcheck disable=SC2086
-        run ${USABLE_HELM} install pixie pixie-operator/pixie-operator-chart \
+        run_command ${USABLE_HELM} install pixie pixie-operator/pixie-operator-chart \
           --create-namespace \
           ${HELM_DEBUG_OPT} \
           --namespace "${PIXIE_NAMESPACE}" \
@@ -955,7 +1035,7 @@ fi
       fi
     else
       # shellcheck disable=SC2086
-      run ${USABLE_HELM} upgrade pixie pixie-operator/pixie-operator-chart \
+      run_command ${USABLE_HELM} upgrade pixie pixie-operator/pixie-operator-chart \
         ${HELM_DEBUG_OPT} \
         --namespace "${PIXIE_NAMESPACE}" \
         --version "${PIXIE_CHART_VERSION}" \
@@ -968,7 +1048,7 @@ fi
     then
       # the aria-k8s-collector is installed via OCI images; requires Helm >= 3.8
       # shellcheck disable=SC2086
-      run ${USABLE_HELM} install aria-k8s-collector "${K8S_COLLECTOR_HELM_REPO}" \
+      run_command ${USABLE_HELM} install aria-k8s-collector "${K8S_COLLECTOR_HELM_REPO}" \
         --create-namespace \
         ${HELM_DEBUG_OPT} \
         --namespace "${ARIA_NAMESPACE}" \
@@ -978,7 +1058,7 @@ fi
     fi
   else
     # shellcheck disable=SC2086
-    run ${USABLE_HELM} upgrade aria-k8s-collector "${K8S_COLLECTOR_HELM_REPO}" \
+    run_command ${USABLE_HELM} upgrade aria-k8s-collector "${K8S_COLLECTOR_HELM_REPO}" \
       ${HELM_DEBUG_OPT} \
       --namespace "${ARIA_NAMESPACE}" \
       --version "${K8S_COLLECTOR_CHART_VERSION}" \
@@ -995,21 +1075,8 @@ if [ "${VMW_CLEANUP_OLD_RESOURCES}" -eq 1 ] && [ "$(has_old_resources)" ]
 then
   ohai "Old resources were found which will be deleted:"
 
-  if "has_k8s_resource" "clusterrole"; then
-    echo "ClusterRole with label '${OLD_ARIA_K8S_LABEL}'"
-  fi
-  if "has_k8s_resource" "clusterrolebinding"; then
-    echo "ClusterRoleBinding with label '${OLD_ARIA_K8S_LABEL}'"
-  fi
-  if "has_k8s_resource" "deployment"; then
-    echo "Deployment with label '${OLD_ARIA_K8S_LABEL}'"
-  fi
-  if "has_k8s_resource" "serviceaccount"; then
-    echo "ServiceAccount with label '${OLD_ARIA_K8S_LABEL}'"
-  fi
-  if "has_k8s_resource" "secret"; then
-    echo "Secret with label '${OLD_ARIA_K8S_LABEL}'"
-  fi
+  print_resources_to_cleanup
+
   if [[ -z "${NONINTERACTIVE-}" ]]
   then
     ring_bell
@@ -1027,3 +1094,9 @@ cat <<EOS
     ${tty_underline}https://docs.vmware.com/${tty_reset}
 
 EOS
+}
+
+if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then
+  parse_args "$@"
+  main "$@"
+fi

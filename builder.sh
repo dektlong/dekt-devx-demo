@@ -88,6 +88,8 @@
 
         install-tap "tap-dev.yaml"
 
+        kubectl apply -f .config/custom-supplychains/dekt-medical.yaml
+
         scripts/ingress-handler.sh update-tap-dns $DEV_SUB_DOMAIN $DEV_CLUSTER_PROVIDER
 
         if [ "$APPS_INGRESS_ISSUER" != "tap-ingress-selfsigned" ]  
@@ -111,6 +113,8 @@
         setup-app-ns $STAGEPROD_NAMESPACE with-scans
 
         install-tap "tap-stage.yaml"
+
+        kubectl apply -f .config/custom-supplychains/dekt-medical-scan.yaml
 
         if [ "$APPS_INGRESS_ISSUER" != "tap-ingress-selfsigned" ]  
         then
