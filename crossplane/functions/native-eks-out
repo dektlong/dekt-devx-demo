@@ -1,0 +1,2690 @@
+apiVersion: apiextensions.crossplane.io/v1
+kind: Composition
+metadata:
+  annotations:
+    kubectl.kubernetes.io/last-applied-configuration: |
+      {"apiVersion":"apiextensions.crossplane.io/v1","kind":"Composition","metadata":{"annotations":{},"labels":{"cluster":"eks","crossplane.io/xrd":"xmanagedclusters.xp.tanzu.vmware.com","provider":"native"},"name":"native-eks"},"spec":{"compositeTypeRef":{"apiVersion":"xp.tanzu.vmware.com/v1alpha1","kind":"XManagedCluster"},"functions":[{"container":{"image":"parasubvert/xpfunc:13"},"name":"update-view-cluster","type":"Container"}],"patchSets":[{"name":"metadata","patches":[{"fromFieldPath":"metadata.labels"}]},{"name":"tap-profile-cm","patches":[{"combine":{"strategy":"string","string":{"fmt":"profile: run\nshared:\n  ingress_domain: \"%s.%s\"\n  ingress_issuer: tap-ingress-selfsigned\ncnrs:\n  domain_template: '{{.Name}}.{{.Domain}}'\ncontour:\n  envoy:\n    service:\n      type: LoadBalancer\nappliveview_connector:\n  backend:\n    host: \"appliveview.%s.%s\"\n    ingressEnabled: true\n    sslDeactivated: true\nceip_policy_disclosed: true\n"},"variables":[{"fromFieldPath":"spec.parameters.subDomain"},{"fromFieldPath":"spec.parameters.domain"},{"fromFieldPath":"spec.parameters.subDomain"},{"fromFieldPath":"spec.parameters.domain"}]},"policy":{"fromFieldPath":"Required"},"toFieldPath":"spec.forProvider.manifest.data[tap.yaml]","type":"CombineFromComposite"},{"fromFieldPath":"spec.forProvider.manifest.data[tap.yaml]","toFieldPath":"status.tapProfile","type":"ToCompositeFieldPath"}]},{"name":"tap-profile-secret","patches":[{"fromFieldPath":"status.tapProfile","toFieldPath":"spec.forProvider.manifest.data[tap.yaml]","transforms":[{"string":{"convert":"ToBase64","type":"Convert"},"type":"string"}]}]},{"name":"region","patches":[{"fromFieldPath":"spec.parameters.region","toFieldPath":"spec.forProvider.region","transforms":[{"map":{"afs":"af-south-1","ape":"ap-east-1","apne1":"ap-northeast-1","apne2":"ap-northeast-2","apne3":"ap-northeast-3","aps1":"ap-south-1","apse1":"ap-southeast-1","apse2":"ap-southeast-2","apse3":"ap-southeast-3","cac":"ca-central-1","euc":"eu-central-1","eun":"eu-north-1","eus":"eu-south-1","euw1":"eu-west-1","euw2":"eu-west-2","euw3":"eu-west-3","sae":"sa-east-1","use1":"us-east-1","use2":"us-east-2","usw1":"us-west-1","usw2":"us-west-2"},"type":"map"}]}]},{"name":"snet-zone-1","patches":[{"fromFieldPath":"spec.parameters.region","toFieldPath":"metadata.labels.zone","transforms":[{"map":{"afs":"af-south-1a","ape":"ap-east-1a","apne1":"ap-northeast-1a","apne2":"ap-northeast-2a","apne3":"ap-northeast-3a","aps1":"ap-south-1a","apse1":"ap-southeast-1a","apse2":"ap-southeast-2a","apse3":"ap-southeast-3a","cac":"ca-central-1a","euc":"eu-central-1a","eun":"eu-north-1a","eus":"eu-south-1a","euw1":"eu-west-1a","euw2":"eu-west-2a","euw3":"eu-west-3a","sae":"sa-east-1a","use1":"us-east-1a","use2":"us-east-2a","usw1":"us-west-1b","usw2":"us-west-2a"},"type":"map"}]},{"fromFieldPath":"spec.parameters.region","toFieldPath":"spec.forProvider.availabilityZone","transforms":[{"map":{"afs":"af-south-1a","ape":"ap-east-1a","apne1":"ap-northeast-1a","apne2":"ap-northeast-2a","apne3":"ap-northeast-3a","aps1":"ap-south-1a","apse1":"ap-southeast-1a","apse2":"ap-southeast-2a","apse3":"ap-southeast-3a","cac":"ca-central-1a","euc":"eu-central-1a","eun":"eu-north-1a","eus":"eu-south-1a","euw1":"eu-west-1a","euw2":"eu-west-2a","euw3":"eu-west-3a","sae":"sa-east-1a","use1":"us-east-1a","use2":"us-east-2a","usw1":"us-west-1b","usw2":"us-west-2a"},"type":"map"}]}]},{"name":"snet-zone-2","patches":[{"fromFieldPath":"spec.parameters.region","toFieldPath":"metadata.labels.zone","transforms":[{"map":{"afs":"af-south-1b","ape":"ap-east-1b","apne1":"ap-northeast-1d","apne2":"ap-northeast-2b","apne3":"ap-northeast-3b","aps1":"ap-south-1b","apse1":"ap-southeast-1b","apse2":"ap-southeast-2b","apse3":"ap-southeast-3b","cac":"ca-central-1b","euc":"eu-central-1b","eun":"eu-north-1b","eus":"eu-south-1b","euw1":"eu-west-1b","euw2":"eu-west-2b","euw3":"eu-west-3b","sae":"sa-east-1b","use1":"us-east-1b","use2":"us-east-2b","usw1":"us-west-1c","usw2":"us-west-2b"},"type":"map"}]},{"fromFieldPath":"spec.parameters.region","toFieldPath":"spec.forProvider.availabilityZone","transforms":[{"map":{"afs":"af-south-1b","ape":"ap-east-1b","apne1":"ap-northeast-1d","apne2":"ap-northeast-2b","apne3":"ap-northeast-3b","aps1":"ap-south-1b","apse1":"ap-southeast-1b","apse2":"ap-southeast-2b","apse3":"ap-southeast-3b","cac":"ca-central-1b","euc":"eu-central-1b","eun":"eu-north-1b","eus":"eu-south-1b","euw1":"eu-west-1b","euw2":"eu-west-2b","euw3":"eu-west-3b","sae":"sa-east-1b","use1":"us-east-1b","use2":"us-east-2b","usw1":"us-west-1c","usw2":"us-west-2b"},"type":"map"}]}]},{"name":"snet-zone-3","patches":[{"fromFieldPath":"spec.parameters.region","toFieldPath":"metadata.labels.zone","transforms":[{"map":{"afs":"af-south-1c","ape":"ap-east-1c","apne1":"ap-northeast-1c","apne2":"ap-northeast-2c","apne3":"ap-northeast-3c","aps1":"ap-south-1c","apse1":"ap-southeast-1c","apse2":"ap-southeast-2c","apse3":"ap-southeast-3c","cac":"ca-central-1b","euc":"eu-central-1c","eun":"eu-north-1c","eus":"eu-south-1c","euw1":"eu-west-1c","euw2":"eu-west-2c","euw3":"eu-west-3c","sae":"sa-east-1c","use1":"us-east-1c","use2":"us-east-2c","usw1":"us-west-1c","usw2":"us-west-2c"},"type":"map"}]},{"fromFieldPath":"spec.parameters.region","toFieldPath":"spec.forProvider.availabilityZone","transforms":[{"map":{"afs":"af-south-1c","ape":"ap-east-1c","apne1":"ap-northeast-1c","apne2":"ap-northeast-2c","apne3":"ap-northeast-3c","aps1":"ap-south-1c","apse1":"ap-southeast-1c","apse2":"ap-southeast-2c","apse3":"ap-southeast-3c","cac":"ca-central-1b","euc":"eu-central-1c","eun":"eu-north-1c","eus":"eu-south-1c","euw1":"eu-west-1c","euw2":"eu-west-2c","euw3":"eu-west-3c","sae":"sa-east-1c","use1":"us-east-1c","use2":"us-east-2c","usw1":"us-west-1c","usw2":"us-west-2c"},"type":"map"}]}]},{"name":"route-zones","patches":[{"fromFieldPath":"spec.parameters.region","toFieldPath":"spec.forProvider.associations[0].subnetIdSelector.matchLabels.zone","transforms":[{"map":{"afs":"af-south-1a","ape":"ap-east-1a","apne1":"ap-northeast-1a","apne2":"ap-northeast-2a","apne3":"ap-northeast-3a","aps1":"ap-south-1a","apse1":"ap-southeast-1a","apse2":"ap-southeast-2a","apse3":"ap-southeast-3a","cac":"ca-central-1a","euc":"eu-central-1a","eun":"eu-north-1a","eus":"eu-south-1a","euw1":"eu-west-1a","euw2":"eu-west-2a","euw3":"eu-west-3a","sae":"sa-east-1a","use1":"us-east-1a","use2":"us-east-2a","usw1":"us-west-1b","usw2":"us-west-2a"},"type":"map"}]},{"fromFieldPath":"spec.parameters.region","toFieldPath":"spec.forProvider.associations[1].subnetIdSelector.matchLabels.zone","transforms":[{"map":{"afs":"af-south-1b","ape":"ap-east-1b","apne1":"ap-northeast-1d","apne2":"ap-northeast-2b","apne3":"ap-northeast-3b","aps1":"ap-south-1b","apse1":"ap-southeast-1b","apse2":"ap-southeast-2b","apse3":"ap-southeast-3b","cac":"ca-central-1b","euc":"eu-central-1b","eun":"eu-north-1b","eus":"eu-south-1b","euw1":"eu-west-1b","euw2":"eu-west-2b","euw3":"eu-west-3b","sae":"sa-east-1b","use1":"us-east-1b","use2":"us-east-2b","usw1":"us-west-1c","usw2":"us-west-2b"},"type":"map"}]},{"fromFieldPath":"spec.parameters.region","toFieldPath":"spec.forProvider.associations[2].subnetIdSelector.matchLabels.zone","transforms":[{"map":{"afs":"af-south-1c","ape":"ap-east-1c","apne1":"ap-northeast-1c","apne2":"ap-northeast-2c","apne3":"ap-northeast-3c","aps1":"ap-south-1c","apse1":"ap-southeast-1c","apse2":"ap-southeast-2c","apse3":"ap-southeast-3c","cac":"ca-central-1b","euc":"eu-central-1c","eun":"eu-north-1c","eus":"eu-south-1c","euw1":"eu-west-1c","euw2":"eu-west-2c","euw3":"eu-west-3c","sae":"sa-east-1c","use1":"us-east-1c","use2":"us-east-2c","usw1":"us-west-1c","usw2":"us-west-2c"},"type":"map"}]}]}],"resources":[{"base":{"apiVersion":"iam.aws.crossplane.io/v1beta1","kind":"Policy","spec":{"providerConfigRef":{"name":"aws-xp-provider"}}},"name":"iampolicy-tanzuappworkload","patches":[{"fromFieldPath":"spec.id","toFieldPath":"metadata.name","transforms":[{"string":{"fmt":"%s-tanzuappworkload"},"type":"string"}]},{"fromFieldPath":"spec.id","toFieldPath":"spec.forProvider.name","transforms":[{"string":{"fmt":"%s-tanzuappworkload"},"type":"string"}]},{"fromFieldPath":"spec.id","toFieldPath":"metadata.labels.policy","transforms":[{"string":{"fmt":"%s-tanzuappworkload"},"type":"string"}]},{"combine":{"strategy":"string","string":{"fmt":"{\n    \"Version\": \"2012-10-17\",\n    \"Statement\": [\n        {\n            \"Action\": [\n                \"ecr:DescribeRegistry\",\n                \"ecr:GetAuthorizationToken\",\n                \"ecr:GetRegistryPolicy\",\n                \"ecr:PutRegistryPolicy\",\n                \"ecr:PutReplicationConfiguration\",\n                \"ecr:DeleteRegistryPolicy\"\n            ],\n            \"Resource\": \"*\",\n            \"Effect\": \"Allow\",\n            \"Sid\": \"TAPEcrWorkloadGlobal\"\n        },\n        {\n            \"Action\": [\n                \"ecr:DescribeImages\",\n                \"ecr:ListImages\",\n                \"ecr:BatchCheckLayerAvailability\",\n                \"ecr:BatchGetImage\",\n                \"ecr:BatchGetRepositoryScanningConfiguration\",\n                \"ecr:DescribeImageReplicationStatus\",\n                \"ecr:DescribeImageScanFindings\",\n                \"ecr:DescribeRepositories\",\n                \"ecr:GetDownloadUrlForLayer\",\n                \"ecr:GetLifecyclePolicy\",\n                \"ecr:GetLifecyclePolicyPreview\",\n                \"ecr:GetRegistryScanningConfiguration\",\n                \"ecr:GetRepositoryPolicy\",\n                \"ecr:ListTagsForResource\",\n                \"ecr:TagResource\",\n                \"ecr:UntagResource\",\n                \"ecr:BatchDeleteImage\",\n                \"ecr:BatchImportUpstreamImage\",\n                \"ecr:CompleteLayerUpload\",\n                \"ecr:CreatePullThroughCacheRule\",\n                \"ecr:CreateRepository\",\n                \"ecr:DeleteLifecyclePolicy\",\n                \"ecr:DeletePullThroughCacheRule\",\n                \"ecr:DeleteRepository\",\n                \"ecr:InitiateLayerUpload\",\n                \"ecr:PutImage\",\n                \"ecr:PutImageScanningConfiguration\",\n                \"ecr:PutImageTagMutability\",\n                \"ecr:PutLifecyclePolicy\",\n                \"ecr:PutRegistryScanningConfiguration\",\n                \"ecr:ReplicateImage\",\n                \"ecr:StartImageScan\",\n                \"ecr:StartLifecyclePolicyPreview\",\n                \"ecr:UploadLayerPart\",\n                \"ecr:DeleteRepositoryPolicy\",\n                \"ecr:SetRepositoryPolicy\"\n            ],\n            \"Resource\": [\n                \"arn:aws:ecr:%s:%s:repository/tap-build-service\",\n                \"arn:aws:ecr:%s:%s:repository/tap-apps/*\"\n            ],\n            \"Effect\": \"Allow\",\n            \"Sid\": \"TAPEcrWorkloadScoped\"\n        }\n      ]\n     }   \n"},"variables":[{"fromFieldPath":"spec.parameters.registryRegion"},{"fromFieldPath":"status.accountID"},{"fromFieldPath":"spec.parameters.registryRegion"},{"fromFieldPath":"status.accountID"}]},"policy":{"fromFieldPath":"Required"},"toFieldPath":"spec.forProvider.document","type":"CombineFromComposite"}]},{"base":{"apiVersion":"iam.aws.crossplane.io/v1beta1","kind":"Role","spec":{"forProvider":{"assumeRolePolicyDocument":"{\n  \"Version\": \"2012-10-17\",\n  \"Statement\": [\n      {\n          \"Effect\": \"Allow\",\n          \"Principal\": {\n              \"Service\": [\n                  \"eks.amazonaws.com\"\n              ]\n          },\n          \"Action\": [\n              \"sts:AssumeRole\"\n          ]\n      }\n  ]\n}\n"},"providerConfigRef":{"name":"aws-xp-provider"}}},"name":"iamrole-controlplane","patches":[{"fromFieldPath":"spec.id","toFieldPath":"metadata.name","transforms":[{"string":{"fmt":"%s-controlplane"},"type":"string"}]},{"fromFieldPath":"spec.id","toFieldPath":"metadata.labels.role","transforms":[{"string":{"fmt":"%s-controlplane"},"type":"string"}]}]},{"base":{"apiVersion":"iam.aws.crossplane.io/v1beta1","kind":"Role","spec":{"forProvider":{"assumeRolePolicyDocument":"{\n  \"Version\": \"2012-10-17\",\n  \"Statement\": [\n      {\n          \"Effect\": \"Allow\",\n          \"Principal\": {\n              \"Service\": [\n                  \"ec2.amazonaws.com\"\n              ]\n          },\n          \"Action\": [\n              \"sts:AssumeRole\"\n          ]\n      }\n  ]\n}\n"},"providerConfigRef":{"name":"aws-xp-provider"}}},"name":"iamrole-nodegroup","patches":[{"fromFieldPath":"spec.id","toFieldPath":"metadata.name","transforms":[{"string":{"fmt":"%s-nodegroup"},"type":"string"}]},{"fromFieldPath":"spec.id","toFieldPath":"metadata.labels.role","transforms":[{"string":{"fmt":"%s-nodegroup"},"type":"string"}]}]},{"base":{"apiVersion":"iam.aws.crossplane.io/v1beta1","kind":"Role","spec":{"forProvider":{"assumeRolePolicyDocument":"{\n      \"Version\": \"2012-10-17\",\n      \"Statement\": [\n          {\n              \"Effect\": \"Allow\",\n              \"Principal\": {\n                  \"Service\": [\n                      \"eks-fargate-pods.amazonaws.com\"\n                  ]\n              },\n              \"Action\": [\n                  \"sts:AssumeRole\"\n              ]\n          }\n      ]\n}\n"},"providerConfigRef":{"name":"aws-xp-provider"}}},"name":"iamrole-fargateprofile","patches":[{"fromFieldPath":"spec.id","toFieldPath":"metadata.name","transforms":[{"string":{"fmt":"%s-fargateprofile"},"type":"string"}]},{"fromFieldPath":"spec.id","toFieldPath":"metadata.labels.role","transforms":[{"string":{"fmt":"%s-fargateprofile"},"type":"string"}]}]},{"base":{"apiVersion":"iam.aws.crossplane.io/v1beta1","kind":"Role","spec":{"providerConfigRef":{"name":"aws-xp-provider"}}},"name":"iamrole-csi","patches":[{"fromFieldPath":"spec.id","toFieldPath":"metadata.name","transforms":[{"string":{"fmt":"%s-csi"},"type":"string"}]},{"fromFieldPath":"spec.id","toFieldPath":"metadata.labels.role","transforms":[{"string":{"fmt":"%s-csi"},"type":"string"}]},{"combine":{"strategy":"string","string":{"fmt":"{\n    \"Version\": \"2012-10-17\",\n    \"Statement\": [\n        {\n            \"Effect\": \"Allow\",\n            \"Principal\": {\n                \"Federated\": \"arn:aws:iam::%s:oidc-provider/%s\"\n            },\n            \"Action\": \"sts:AssumeRoleWithWebIdentity\",\n            \"Condition\": {\n                \"StringEquals\": {\n                    \"%s:aud\": \"sts.amazonaws.com\",\n                    \"%s:sub\": \"system:serviceaccount:kube-system:ebs-csi-controller-sa\"\n                }\n            }\n        }\n    ]\n   }\n   \n"},"variables":[{"fromFieldPath":"status.accountID"},{"fromFieldPath":"status.oidcIssuerID"},{"fromFieldPath":"status.oidcIssuerID"},{"fromFieldPath":"status.oidcIssuerID"}]},"policy":{"fromFieldPath":"Required"},"toFieldPath":"spec.forProvider.assumeRolePolicyDocument","type":"CombineFromComposite"}]},{"base":{"apiVersion":"iam.aws.crossplane.io/v1beta1","kind":"Role","spec":{"providerConfigRef":{"name":"aws-xp-provider"}}},"name":"iamrole-cluster-essentials","patches":[{"fromFieldPath":"spec.id","toFieldPath":"metadata.name","transforms":[{"string":{"fmt":"%s-cluster-essentials"},"type":"string"}]},{"fromFieldPath":"spec.id","toFieldPath":"metadata.labels.role","transforms":[{"string":{"fmt":"%s-cluster-essentials"},"type":"string"}]},{"combine":{"strategy":"string","string":{"fmt":"{\n\"Version\": \"2012-10-17\",\n\"Statement\": [\n    {\n        \"Effect\": \"Allow\",\n        \"Principal\": {\n            \"Federated\": \"arn:aws:iam::%s:oidc-provider/%s\"\n        },\n        \"Action\": \"sts:AssumeRoleWithWebIdentity\",\n        \"Condition\": {\n            \"StringEquals\": {\n                \"%s:aud\": \"sts.amazonaws.com\",\n                \"%s:sub\": \"system:serviceaccount:cluster-essentials:default\"\n            }\n        }\n     }\n   ]\n}        \n"},"variables":[{"fromFieldPath":"status.accountID"},{"fromFieldPath":"status.oidcIssuerID"},{"fromFieldPath":"status.oidcIssuerID"},{"fromFieldPath":"status.oidcIssuerID"}]},"policy":{"fromFieldPath":"Required"},"toFieldPath":"spec.forProvider.assumeRolePolicyDocument","type":"CombineFromComposite"}]},{"base":{"apiVersion":"iam.aws.crossplane.io/v1beta1","kind":"Role","spec":{"providerConfigRef":{"name":"aws-xp-provider"}}},"name":"iamrole-workload","patches":[{"fromFieldPath":"spec.id","toFieldPath":"metadata.name","transforms":[{"string":{"fmt":"%s-workload"},"type":"string"}]},{"fromFieldPath":"spec.id","toFieldPath":"metadata.labels.role","transforms":[{"string":{"fmt":"%s-workload"},"type":"string"}]},{"combine":{"strategy":"string","string":{"fmt":"{\n  \"Version\": \"2012-10-17\",\n  \"Statement\": [\n      {\n          \"Effect\": \"Allow\",\n          \"Principal\": {\n              \"Federated\": \"arn:aws:iam::%s:oidc-provider/%s\"\n          },\n          \"Action\": \"sts:AssumeRoleWithWebIdentity\",\n          \"Condition\": {\n              \"StringEquals\": {\n                  \"%s:sub\": [ \"system:serviceaccount:dev:default\",\n                              \"system:serviceaccount:team:default\",\n                              \"system:serviceaccount:application:default\"],\n                  \"%s:aud\": \"sts.amazonaws.com\"\n              }\n          }\n      }\n  ]\n}\n"},"variables":[{"fromFieldPath":"status.accountID"},{"fromFieldPath":"status.oidcIssuerID"},{"fromFieldPath":"status.oidcIssuerID"},{"fromFieldPath":"status.oidcIssuerID"}]},"policy":{"fromFieldPath":"Required"},"toFieldPath":"spec.forProvider.assumeRolePolicyDocument","type":"CombineFromComposite"}]},{"base":{"apiVersion":"iam.aws.crossplane.io/v1beta1","kind":"RolePolicyAttachment","spec":{"forProvider":{"policyArn":"arn:aws:iam::aws:policy/AmazonEKSClusterPolicy","roleNameSelector":{"matchControllerRef":true}},"providerConfigRef":{"name":"aws-xp-provider"}}},"name":"iamattachment-controlplane","patches":[{"fromFieldPath":"spec.id","toFieldPath":"metadata.name","transforms":[{"string":{"fmt":"%s-controlplane"},"type":"string"}]},{"fromFieldPath":"spec.id","toFieldPath":"spec.forProvider.roleNameSelector.matchLabels.role","transforms":[{"string":{"fmt":"%s-controlplane"},"type":"string"}]}]},{"base":{"apiVersion":"iam.aws.crossplane.io/v1beta1","kind":"RolePolicyAttachment","spec":{"forProvider":{"policyArn":"arn:aws:iam::aws:policy/AmazonEKSServicePolicy","roleNameSelector":{"matchControllerRef":true}},"providerConfigRef":{"name":"aws-xp-provider"}}},"name":"iamattachment-service","patches":[{"fromFieldPath":"spec.id","toFieldPath":"metadata.name","transforms":[{"string":{"fmt":"%s-service"},"type":"string"}]},{"fromFieldPath":"spec.id","toFieldPath":"spec.forProvider.roleNameSelector.matchLabels.role","transforms":[{"string":{"fmt":"%s-controlplane"},"type":"string"}]}]},{"base":{"apiVersion":"iam.aws.crossplane.io/v1beta1","kind":"RolePolicyAttachment","spec":{"forProvider":{"policyArn":"arn:aws:iam::aws:policy/AmazonEBSCSIDriverPolicy","roleNameSelector":{"matchControllerRef":true}},"providerConfigRef":{"name":"aws-xp-provider"}}},"name":"iamattachment-csi","patches":[{"fromFieldPath":"spec.id","toFieldPath":"metadata.name","transforms":[{"string":{"fmt":"%s-csi"},"type":"string"}]},{"fromFieldPath":"spec.id","toFieldPath":"spec.forProvider.roleNameSelector.matchLabels.role","transforms":[{"string":{"fmt":"%s-controlplane"},"type":"string"}]}]},{"base":{"apiVersion":"iam.aws.crossplane.io/v1beta1","kind":"RolePolicyAttachment","spec":{"forProvider":{"policyArn":"arn:aws:iam::aws:policy/AmazonEKSWorkerNodePolicy","roleNameSelector":{"matchControllerRef":true}},"providerConfigRef":{"name":"aws-xp-provider"}}},"name":"iamattachment-worker","patches":[{"fromFieldPath":"spec.id","toFieldPath":"metadata.name","transforms":[{"string":{"fmt":"%s-worker"},"type":"string"}]},{"fromFieldPath":"spec.id","toFieldPath":"spec.forProvider.roleNameSelector.matchLabels.role","transforms":[{"string":{"fmt":"%s-nodegroup"},"type":"string"}]}]},{"base":{"apiVersion":"iam.aws.crossplane.io/v1beta1","kind":"RolePolicyAttachment","spec":{"forProvider":{"policyArn":"arn:aws:iam::aws:policy/AmazonEKS_CNI_Policy","roleNameSelector":{"matchControllerRef":true}},"providerConfigRef":{"name":"aws-xp-provider"}}},"name":"iamattachment-cni","patches":[{"fromFieldPath":"spec.id","toFieldPath":"metadata.name","transforms":[{"string":{"fmt":"%s-cni"},"type":"string"}]},{"fromFieldPath":"spec.id","toFieldPath":"spec.forProvider.roleNameSelector.matchLabels.role","transforms":[{"string":{"fmt":"%s-nodegroup"},"type":"string"}]}]},{"base":{"apiVersion":"iam.aws.crossplane.io/v1beta1","kind":"RolePolicyAttachment","spec":{"forProvider":{"policyArn":"arn:aws:iam::aws:policy/AmazonEC2ContainerRegistryReadOnly","roleNameSelector":{"matchControllerRef":true}},"providerConfigRef":{"name":"aws-xp-provider"}}},"name":"iamattachment-registry","patches":[{"fromFieldPath":"spec.id","toFieldPath":"metadata.name","transforms":[{"string":{"fmt":"%s-registry"},"type":"string"}]},{"fromFieldPath":"spec.id","toFieldPath":"spec.forProvider.roleNameSelector.matchLabels.role","transforms":[{"string":{"fmt":"%s-nodegroup"},"type":"string"}]}]},{"base":{"apiVersion":"iam.aws.crossplane.io/v1beta1","kind":"RolePolicyAttachment","spec":{"forProvider":{"policyArn":"arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore","roleNameSelector":{"matchControllerRef":true}},"providerConfigRef":{"name":"aws-xp-provider"}}},"name":"iamattachment-ssm","patches":[{"fromFieldPath":"spec.id","toFieldPath":"metadata.name","transforms":[{"string":{"fmt":"%s-ssm"},"type":"string"}]},{"fromFieldPath":"spec.id","toFieldPath":"spec.forProvider.roleNameSelector.matchLabels.role","transforms":[{"string":{"fmt":"%s-nodegroup"},"type":"string"}]}]},{"base":{"apiVersion":"iam.aws.crossplane.io/v1beta1","kind":"RolePolicyAttachment","spec":{"forProvider":{"policyArn":"arn:aws:iam::aws:policy/AmazonEC2ContainerRegistryReadOnly","roleNameSelector":{"matchControllerRef":true}},"providerConfigRef":{"name":"aws-xp-provider"}}},"name":"iamattachment-cluster-essentials","patches":[{"fromFieldPath":"spec.id","toFieldPath":"metadata.name","transforms":[{"string":{"fmt":"%s-cluster-essentials"},"type":"string"}]},{"fromFieldPath":"spec.id","toFieldPath":"spec.forProvider.roleNameSelector.matchLabels.role","transforms":[{"string":{"fmt":"%s-cluster-essentials"},"type":"string"}]}]},{"base":{"apiVersion":"iam.aws.crossplane.io/v1beta1","kind":"RolePolicyAttachment","spec":{"forProvider":{"policyArn":"arn:aws:iam::aws:policy/AmazonEKSFargatePodExecutionRolePolicy","roleNameSelector":{"matchControllerRef":true}},"providerConfigRef":{"name":"aws-xp-provider"}}},"name":"iamattachment-fargate","patches":[{"fromFieldPath":"spec.id","toFieldPath":"metadata.name","transforms":[{"string":{"fmt":"%s-fargate"},"type":"string"}]},{"fromFieldPath":"spec.id","toFieldPath":"spec.forProvider.roleNameSelector.matchLabels.role","transforms":[{"string":{"fmt":"%s-fargateprofile"},"type":"string"}]}]},{"base":{"apiVersion":"iam.aws.crossplane.io/v1beta1","kind":"RolePolicyAttachment","spec":{"forProvider":{"roleNameSelector":{"matchControllerRef":true}},"providerConfigRef":{"name":"aws-xp-provider"}}},"name":"iamcustomattachment-workload","patches":[{"fromFieldPath":"spec.id","toFieldPath":"metadata.name","transforms":[{"string":{"fmt":"%s-workload"},"type":"string"}]},{"combine":{"strategy":"string","string":{"fmt":"arn:aws:iam::%s:policy/%s-tanzuappworkload"},"variables":[{"fromFieldPath":"status.accountID"},{"fromFieldPath":"spec.id"}]},"policy":{"fromFieldPath":"Required"},"toFieldPath":"spec.forProvider.policyArn","type":"CombineFromComposite"},{"fromFieldPath":"spec.id","toFieldPath":"spec.forProvider.roleNameSelector.matchLabels.role","transforms":[{"string":{"fmt":"%s-workload"},"type":"string"}]}]},{"base":{"apiVersion":"ec2.aws.crossplane.io/v1beta1","kind":"VPC","spec":{"forProvider":{"cidrBlock":"10.0.0.0/16","tags":[{"key":"Name","value":"eks-vpc"}]},"providerConfigRef":{"name":"aws-xp-provider"}}},"name":"ec2vpc","patches":[{"patchSetName":"region","type":"PatchSet"},{"fromFieldPath":"spec.id","toFieldPath":"metadata.name"}]},{"base":{"apiVersion":"ec2.aws.crossplane.io/v1beta1","kind":"SecurityGroup","spec":{"forProvider":{"description":"Cluster communication with worker nodes","egress":[{"ipProtocol":"-1","ipRanges":[{"cidrIp":"0.0.0.0/0"}]}],"groupName":"ekscluster-sg","vpcIdSelector":{"matchControllerRef":true}},"providerConfigRef":{"name":"aws-xp-provider"}}},"name":"ec2sg-ng","patches":[{"patchSetName":"region","type":"PatchSet"},{"fromFieldPath":"spec.id","toFieldPath":"metadata.name","transforms":[{"string":{"fmt":"%s-sg"},"type":"string"}]}]},{"base":{"apiVersion":"ec2.aws.crossplane.io/v1beta1","kind":"Subnet","metadata":{"labels":{"access":"public"}},"spec":{"forProvider":{"cidrBlock":"10.0.0.0/24","mapPublicIPOnLaunch":true,"tags":[{"key":"Name","value":"eks-snet-pub"},{"key":"kubernetes.io/role/elb","value":"1"}],"vpcIdSelector":{"matchControllerRef":true}},"providerConfigRef":{"name":"aws-xp-provider"}}},"name":"ec2net-pub-z1","patches":[{"patchSetName":"region","type":"PatchSet"},{"patchSetName":"snet-zone-1","type":"PatchSet"},{"fromFieldPath":"spec.id","toFieldPath":"metadata.name","transforms":[{"string":{"fmt":"%s-pub-z1"},"type":"string"}]}]},{"base":{"apiVersion":"ec2.aws.crossplane.io/v1beta1","kind":"Subnet","metadata":{"labels":{"access":"public"}},"spec":{"forProvider":{"cidrBlock":"10.0.1.0/24","mapPublicIPOnLaunch":true,"tags":[{"key":"Name","value":"eks-snet-pub"},{"key":"kubernetes.io/role/elb","value":"1"}],"vpcIdSelector":{"matchControllerRef":true}},"providerConfigRef":{"name":"aws-xp-provider"}}},"name":"ec2net-pub-z2","patches":[{"patchSetName":"region","type":"PatchSet"},{"patchSetName":"snet-zone-2","type":"PatchSet"},{"fromFieldPath":"spec.id","toFieldPath":"metadata.name","transforms":[{"string":{"fmt":"%s-pub-z2"},"type":"string"}]}]},{"base":{"apiVersion":"ec2.aws.crossplane.io/v1beta1","kind":"Subnet","metadata":{"labels":{"access":"public"}},"spec":{"forProvider":{"cidrBlock":"10.0.2.0/24","mapPublicIPOnLaunch":true,"tags":[{"key":"Name","value":"eks-snet-pub"},{"key":"kubernetes.io/role/elb","value":"1"}],"vpcIdSelector":{"matchControllerRef":true}},"providerConfigRef":{"name":"aws-xp-provider"}}},"name":"ec2net-pub-z3","patches":[{"patchSetName":"region","type":"PatchSet"},{"patchSetName":"snet-zone-3","type":"PatchSet"},{"fromFieldPath":"spec.id","toFieldPath":"metadata.name","transforms":[{"string":{"fmt":"%s-pub-z3"},"type":"string"}]}]},{"base":{"apiVersion":"ec2.aws.crossplane.io/v1beta1","kind":"Subnet","metadata":{"labels":{"access":"private"}},"spec":{"forProvider":{"cidrBlock":"10.0.100.0/24","mapPublicIPOnLaunch":true,"tags":[{"key":"Name","value":"eks-snet-prv"}],"vpcIdSelector":{"matchControllerRef":true}},"providerConfigRef":{"name":"aws-xp-provider"}}},"name":"ec2net-prv-z1","patches":[{"patchSetName":"region","type":"PatchSet"},{"patchSetName":"snet-zone-1","type":"PatchSet"},{"fromFieldPath":"spec.id","toFieldPath":"metadata.name","transforms":[{"string":{"fmt":"%s-prv-z1"},"type":"string"}]}]},{"base":{"apiVersion":"ec2.aws.crossplane.io/v1beta1","kind":"Subnet","metadata":{"labels":{"access":"private"}},"spec":{"forProvider":{"cidrBlock":"10.0.101.0/24","mapPublicIPOnLaunch":true,"tags":[{"key":"Name","value":"eks-snet-prv"}],"vpcIdSelector":{"matchControllerRef":true}},"providerConfigRef":{"name":"aws-xp-provider"}}},"name":"ec2net-prv-z2","patches":[{"patchSetName":"region","type":"PatchSet"},{"patchSetName":"snet-zone-2","type":"PatchSet"},{"fromFieldPath":"spec.id","toFieldPath":"metadata.name","transforms":[{"string":{"fmt":"%s-prv-z2"},"type":"string"}]}]},{"base":{"apiVersion":"ec2.aws.crossplane.io/v1beta1","kind":"Subnet","metadata":{"labels":{"access":"private"}},"spec":{"forProvider":{"cidrBlock":"10.0.102.0/24","mapPublicIPOnLaunch":true,"tags":[{"key":"Name","value":"eks-snet-prv"}],"vpcIdSelector":{"matchControllerRef":true}},"providerConfigRef":{"name":"aws-xp-provider"}}},"name":"ec2net-prv-z3","patches":[{"patchSetName":"region","type":"PatchSet"},{"patchSetName":"snet-zone-3","type":"PatchSet"},{"fromFieldPath":"spec.id","toFieldPath":"metadata.name","transforms":[{"string":{"fmt":"%s-prv-z3"},"type":"string"}]}]},{"base":{"apiVersion":"ec2.aws.crossplane.io/v1beta1","kind":"InternetGateway","spec":{"forProvider":{"vpcIdSelector":{"matchControllerRef":true}},"providerConfigRef":{"name":"aws-xp-provider"}}},"name":"ec2-ig","patches":[{"patchSetName":"region","type":"PatchSet"},{"fromFieldPath":"spec.id","toFieldPath":"metadata.name"}]},{"base":{"apiVersion":"ec2.aws.crossplane.io/v1beta1","kind":"RouteTable","spec":{"forProvider":{"associations":[{"subnetIdSelector":{"matchControllerRef":true,"matchLabels":{"access":"public","zone":"a"}}},{"subnetIdSelector":{"matchControllerRef":true,"matchLabels":{"access":"public","zone":"b"}}},{"subnetIdSelector":{"matchControllerRef":true,"matchLabels":{"access":"public","zone":"c"}}}],"routes":[{"destinationCidrBlock":"0.0.0.0/0","gatewayIdSelector":{"matchControllerRef":true}}],"vpcIdSelector":{"matchControllerRef":true}},"providerConfigRef":{"name":"aws-xp-provider"}}},"name":"ec2-rt","patches":[{"patchSetName":"region","type":"PatchSet"},{"patchSetName":"route-zones","type":"PatchSet"},{"fromFieldPath":"spec.id","toFieldPath":"metadata.name","transforms":[{"string":{"fmt":"%s-rt"},"type":"string"}]}]},{"base":{"apiVersion":"eks.aws.crossplane.io/v1beta1","kind":"Cluster","spec":{"forProvider":{"resourcesVpcConfig":{"endpointPrivateAccess":true,"endpointPublicAccess":true,"subnetIdSelector":{"matchControllerRef":true}},"roleArnSelector":{"matchControllerRef":true}},"providerConfigRef":{"name":"aws-xp-provider"},"writeConnectionSecretToRef":{"namespace":"crossplane-system"}}},"connectionDetails":[{"fromConnectionSecretKey":"kubeconfig"}],"name":"ekscluster","patches":[{"patchSetName":"region","type":"PatchSet"},{"fromFieldPath":"spec.id","toFieldPath":"metadata.name","transforms":[{"string":{"fmt":"cluster-%s"},"type":"string"}]},{"fromFieldPath":"spec.id","toFieldPath":"spec.forProvider.roleArnSelector.matchLabels.role","transforms":[{"string":{"fmt":"%s-controlplane"},"type":"string"}]},{"fromFieldPath":"spec.parameters.version","toFieldPath":"spec.forProvider.version"},{"fromFieldPath":"spec.id","toFieldPath":"spec.writeConnectionSecretToRef.name","transforms":[{"string":{"fmt":"%s-ekscluster"},"type":"string"}]},{"fromFieldPath":"metadata.name","toFieldPath":"status.clusterName","type":"ToCompositeFieldPath"},{"fromFieldPath":"status.atProvider.identity.oidc.issuer","policy":{"fromFieldPath":"Optional"},"toFieldPath":"status.oidcIssuerURL","type":"ToCompositeFieldPath"},{"fromFieldPath":"status.atProvider.identity.oidc.issuer","policy":{"fromFieldPath":"Optional"},"toFieldPath":"status.oidcIssuerID","transforms":[{"string":{"regexp":{"group":1,"match":"^https?:\\/\\/(.*)"},"type":"Regexp"},"type":"string"}],"type":"ToCompositeFieldPath"},{"fromFieldPath":"spec.forProvider.roleArn","policy":{"fromFieldPath":"Required"},"toFieldPath":"status.accountID","transforms":[{"string":{"regexp":{"group":1,"match":"arn:aws:iam::(\\d+):.*"},"type":"Regexp"},"type":"string"}],"type":"ToCompositeFieldPath"},{"fromFieldPath":"status.atProvider.status","toFieldPath":"status.controlPlaneStatus","type":"ToCompositeFieldPath"},{"fromFieldPath":"status.atProvider.endpoint","toFieldPath":"status.endpoint","type":"ToCompositeFieldPath"}],"readinessChecks":[{"fieldPath":"status.atProvider.status","matchString":"ACTIVE","type":"MatchString"}]},{"base":{"apiVersion":"eks.aws.crossplane.io/v1alpha1","kind":"Addon","spec":{"forProvider":{"addonName":"aws-ebs-csi-driver"},"providerConfigRef":{"name":"aws-xp-provider"}}},"name":"ekscsi","patches":[{"fromFieldPath":"spec.id","toFieldPath":"metadata.name","transforms":[{"string":{"fmt":"%s-csi"},"type":"string"}]},{"patchSetName":"region","type":"PatchSet"},{"fromFieldPath":"status.clusterName","toFieldPath":"spec.forProvider.clusterNameRef.name"},{"combine":{"strategy":"string","string":{"fmt":"arn:aws:iam::%s:role/%s-csi"},"variables":[{"fromFieldPath":"status.accountID"},{"fromFieldPath":"spec.id"}]},"policy":{"fromFieldPath":"Required"},"toFieldPath":"spec.forProvider.serviceAccountRoleARN","type":"CombineFromComposite"}]},{"base":{"apiVersion":"eks.aws.crossplane.io/v1alpha1","kind":"NodeGroup","spec":{"forProvider":{"clusterNameSelector":{"matchControllerRef":true},"nodeRoleSelector":{"matchControllerRef":true},"scalingConfig":{"maxSize":10},"subnetSelector":{"matchControllerRef":true,"matchLabels":{"access":"public"}}},"providerConfigRef":{"name":"aws-xp-provider"}}},"name":"eksnode","patches":[{"patchSetName":"region","type":"PatchSet"},{"fromFieldPath":"spec.id","toFieldPath":"metadata.name"},{"fromFieldPath":"spec.parameters.nodeSize","toFieldPath":"spec.forProvider.instanceTypes[0]","transforms":[{"map":{"large":"t3.large","medium":"t3.medium","small":"t3.small"},"type":"map"}]},{"fromFieldPath":"spec.parameters.nodeCount","toFieldPath":"spec.forProvider.scalingConfig.minSize"},{"fromFieldPath":"spec.parameters.minNodeCount","toFieldPath":"spec.forProvider.scalingConfig.desiredSize"},{"fromFieldPath":"spec.id","toFieldPath":"spec.forProvider.nodeRoleSelector.matchLabels.role","transforms":[{"string":{"fmt":"%s-nodegroup"},"type":"string"}]},{"fromFieldPath":"status.atProvider.status","toFieldPath":"status.nodePoolStatus","type":"ToCompositeFieldPath"}],"readinessChecks":[{"fieldPath":"status.atProvider.status","matchString":"ACTIVE","type":"MatchString"}]},{"base":{"apiVersion":"iam.aws.crossplane.io/v1beta1","kind":"OpenIDConnectProvider","spec":{"forProvider":{"clientIDList":["sts.amazonaws.com"],"thumbprintList":["9e99a48a9960b14926bb7f3b02e22da2b0ab7280"]},"providerConfigRef":{"name":"aws-xp-provider"}}},"name":"eksoidcprovider","patches":[{"fromFieldPath":"status.oidcIssuerURL","policy":{"fromFieldPath":"Required"},"toFieldPath":"spec.forProvider.url"},{"fromFieldPath":"spec.id","toFieldPath":"metadata.name","transforms":[{"string":{"fmt":"%s-oidc-provider"},"type":"string"}]}]},{"base":{"apiVersion":"eks.aws.crossplane.io/v1alpha1","kind":"IdentityProviderConfig","spec":{"forProvider":{"oidc":{"clientId":"sts.amazonaws.com"}},"providerConfigRef":{"name":"aws-xp-provider"}}},"name":"eksidproviderconfig","patches":[{"patchSetName":"region","type":"PatchSet"},{"fromFieldPath":"status.oidcIssuerURL","policy":{"fromFieldPath":"Required"},"toFieldPath":"spec.forProvider.oidc.issuerUrl"},{"fromFieldPath":"status.clusterName","policy":{"fromFieldPath":"Required"},"toFieldPath":"spec.forProvider.clusterNameRef.name"},{"fromFieldPath":"spec.id","toFieldPath":"metadata.name","transforms":[{"string":{"fmt":"%s-idproviderconfig"},"type":"string"}]}]},{"base":{"apiVersion":"eks.aws.crossplane.io/v1beta1","kind":"FargateProfile","spec":{"forProvider":{"clusterNameSelector":{"matchControllerRef":true},"podExecutionRoleArnSelector":{"matchControllerRef":true},"subnetSelector":{"matchControllerRef":true,"matchLabels":{"access":"private"}}},"providerConfigRef":{"name":"aws-xp-provider"}}},"name":"eksfargate","patches":[{"patchSetName":"region","type":"PatchSet"},{"fromFieldPath":"spec.id","toFieldPath":"metadata.name"},{"fromFieldPath":"spec.parameters.fargateNamespace","toFieldPath":"spec.forProvider.selectors[0].namespace"},{"fromFieldPath":"spec.id","toFieldPath":"spec.forProvider.podExecutionRoleArnSelector.matchLabels.role","transforms":[{"string":{"fmt":"%s-fargateprofile"},"type":"string"}]},{"fromFieldPath":"status.atProvider.status","toFieldPath":"status.fargateProfileStatus","type":"ToCompositeFieldPath"}],"readinessChecks":[{"fieldPath":"status.atProvider.status","matchString":"ACTIVE","type":"MatchString"}]},{"base":{"apiVersion":"kubernetes.crossplane.io/v1alpha1","kind":"ProviderConfig","spec":{"credentials":{"secretRef":{"key":"kubeconfig"},"source":"Secret"}}},"name":"kubernetes","patches":[{"fromFieldPath":"spec.id","toFieldPath":"metadata.name"},{"fromFieldPath":"spec.writeConnectionSecretToRef.namespace","toFieldPath":"spec.credentials.secretRef.namespace"},{"fromFieldPath":"spec.id","toFieldPath":"spec.credentials.secretRef.name","transforms":[{"string":{"fmt":"%s-ekscluster"},"type":"string"}]}],"readinessChecks":[{"type":"None"}]},{"base":{"apiVersion":"kubernetes.crossplane.io/v1alpha1","kind":"Object","spec":{"forProvider":{"manifest":{"apiVersion":"v1","kind":"Namespace","metadata":{"name":"crossplane-system"}}}}},"name":"k8s-ns-xp","patches":[{"fromFieldPath":"spec.id","toFieldPath":"metadata.name","transforms":[{"string":{"fmt":"%s-ns-xp"},"type":"string"}]},{"fromFieldPath":"spec.id","toFieldPath":"spec.providerConfigRef.name"}]},{"base":{"apiVersion":"helm.crossplane.io/v1beta1","kind":"ProviderConfig","spec":{"credentials":{"secretRef":{"key":"kubeconfig"},"source":"Secret"}}},"name":"helm","patches":[{"fromFieldPath":"spec.id","toFieldPath":"metadata.name"},{"fromFieldPath":"spec.writeConnectionSecretToRef.namespace","toFieldPath":"spec.credentials.secretRef.namespace"},{"fromFieldPath":"spec.id","toFieldPath":"spec.credentials.secretRef.name","transforms":[{"string":{"fmt":"%s-ekscluster"},"type":"string"}]}],"readinessChecks":[{"type":"None"}]},{"base":{"apiVersion":"helm.crossplane.io/v1beta1","kind":"Release","spec":{"forProvider":{"chart":{"name":"crossplane","repository":"https://charts.crossplane.io/stable","version":"1.11.1"},"namespace":"crossplane-system"},"rollbackLimit":3}},"name":"helm-xp","patches":[{"fromFieldPath":"spec.id","toFieldPath":"metadata.name","transforms":[{"string":{"fmt":"%s-crossplane"},"type":"string"}]},{"fromFieldPath":"spec.id","toFieldPath":"spec.providerConfigRef.name"}]},{"base":{"apiVersion":"kubernetes.crossplane.io/v1alpha1","kind":"Object","spec":{"forProvider":{"manifest":{"apiVersion":"v1","kind":"Namespace","metadata":{"name":"cluster-essentials"}}}}},"name":"k8s-ns-tanzu-cluster-essentials","patches":[{"fromFieldPath":"spec.id","toFieldPath":"metadata.name","transforms":[{"string":{"fmt":"%s-ns-tanzu-cluster-essentials"},"type":"string"}]},{"fromFieldPath":"spec.id","toFieldPath":"spec.providerConfigRef.name"}]},{"base":{"apiVersion":"kubernetes.crossplane.io/v1alpha1","kind":"Object","spec":{"forProvider":{"manifest":{"apiVersion":"rbac.authorization.k8s.io/v1","kind":"ClusterRoleBinding","metadata":{"name":"cluster-essentials-admin"},"roleRef":{"apiGroup":"rbac.authorization.k8s.io","kind":"ClusterRole","name":"cluster-admin"},"subjects":[{"kind":"ServiceAccount","name":"default","namespace":"cluster-essentials"}]}}}},"name":"k8s-crb-tanzu-cluster-essentials","patches":[{"fromFieldPath":"spec.id","toFieldPath":"metadata.name","transforms":[{"string":{"fmt":"%s-crb-tanzu-cluster-essentials"},"type":"string"}]},{"fromFieldPath":"spec.id","toFieldPath":"spec.providerConfigRef.name"}]},{"base":{"apiVersion":"kubernetes.crossplane.io/v1alpha1","kind":"Object","spec":{"forProvider":{"manifest":{"apiVersion":"v1","data":{"repo":"dGFwLWltYWdlcy9jbHVzdGVyLWVzc2VudGlhbHMtYnVuZGxl","sha256":"c2hhMjU2OjIzNTQ2ODhlNDZkNGJiNDA2MGY3NGZjYTA2OTUxM2M5YjQyZmZhMTdhMGE2ZDViMGRiYjgxZWQ1MjI0MmVhNDQ=","use_iaas_auth":"dHJ1ZQ=="},"kind":"Secret","metadata":{"name":"ce-registry","namespace":"cluster-essentials"}}}}},"name":"k8s-secret-tanzu-cluster-essentials","patches":[{"fromFieldPath":"spec.id","toFieldPath":"metadata.name","transforms":[{"string":{"fmt":"%s-secret-tanzu-cluster-essentials"},"type":"string"}]},{"fromFieldPath":"spec.id","toFieldPath":"spec.providerConfigRef.name"},{"fromFieldPath":"spec.parameters.registryHost","policy":{"fromFieldPath":"Required"},"toFieldPath":"spec.forProvider.manifest.data.host","transforms":[{"string":{"convert":"ToBase64","type":"Convert"},"type":"string"}]},{"fromFieldPath":"spec.parameters.registryRegion","policy":{"fromFieldPath":"Required"},"toFieldPath":"spec.forProvider.manifest.data.region","transforms":[{"string":{"convert":"ToBase64","type":"Convert"},"type":"string"}]}]},{"base":{"apiVersion":"kubernetes.crossplane.io/v1alpha1","kind":"Object","spec":{"forProvider":{"manifest":{"apiVersion":"v1","kind":"ServiceAccount","metadata":{"name":"default","namespace":"cluster-essentials"}}}}},"name":"k8s-sa-tanzu-cluster-essentials","patches":[{"fromFieldPath":"spec.id","toFieldPath":"metadata.name","transforms":[{"string":{"fmt":"%s-sa-tanzu-cluster-essentials"},"type":"string"}]},{"fromFieldPath":"spec.id","toFieldPath":"spec.providerConfigRef.name"},{"combine":{"strategy":"string","string":{"fmt":"arn:aws:iam::%s:role/%s-cluster-essentials"},"variables":[{"fromFieldPath":"status.accountID"},{"fromFieldPath":"spec.id"}]},"policy":{"fromFieldPath":"Required"},"toFieldPath":"spec.forProvider.manifest.metadata.annotations[eks.amazonaws.com/role-arn]","type":"CombineFromComposite"}]},{"base":{"apiVersion":"kubernetes.crossplane.io/v1alpha1","kind":"Object","spec":{"forProvider":{"manifest":{"apiVersion":"v1","data":{"install.sh":"#!/bin/bash\n\nset -e -o pipefail\nexport HOME=/root \nexport ns_name=cluster-essentials\n\necho \"## Pulling bundle from $INSTALL_REGISTRY_HOSTNAME\"\n\n[ -z \"$INSTALL_REGISTRY_HOSTNAME\" ] \u0026\u0026 { echo \"INSTALL_REGISTRY_HOSTNAME env var must not be empty\"; exit 1; }\n[ -z \"$CLUSTER_ESSENTIALS_REPO\" ] \u0026\u0026 { echo \"CLUSTER_ESSENTIALS_REPO env var must not be empty\"; exit 1; }\n[ -z \"$CLUSTER_ESSENTIALS_SHA256\" ] \u0026\u0026 { echo \"CLUSTER_ESSENTIALS_SHA256  env var must not be empty\"; exit 1; }\nINSTALL_BUNDLE=${INSTALL_REGISTRY_HOSTNAME}/${CLUSTER_ESSENTIALS_REPO}@${CLUSTER_ESSENTIALS_SHA256}\nif [ -z \"$USE_IAAS_AUTH\" ] || [ \"$USE_IAAS_AUTH\" != true ]; then\n  [ -z \"$INSTALL_REGISTRY_USERNAME\" ] \u0026\u0026 { echo \"INSTALL_REGISTRY_USERNAME env var must not be empty\"; exit 1; }\n  [ -z \"$INSTALL_REGISTRY_PASSWORD\" ] \u0026\u0026 { echo \"INSTALL_REGISTRY_PASSWORD env var must not be empty\"; exit 1; }\nelse\n  export INSTALL_REGISTRY_USERNAME=AWS\n  export INSTALL_REGISTRY_PASSWORD=$(aws ecr get-login-password --region $AWS_REGION)\nfi\nexport IMGPKG_REGISTRY_HOSTNAME_0=$INSTALL_REGISTRY_HOSTNAME\nexport IMGPKG_REGISTRY_USERNAME_0=$INSTALL_REGISTRY_USERNAME\nexport IMGPKG_REGISTRY_PASSWORD_0=$INSTALL_REGISTRY_PASSWORD\nexport YTT_registry__server=$INSTALL_REGISTRY_HOSTNAME\nexport YTT_registry__username=$INSTALL_REGISTRY_USERNAME\nexport YTT_registry__password=$INSTALL_REGISTRY_PASSWORD\n\nKUBECONFIG=kubeconfig\nkubectl config set-cluster default --server=https://kubernetes.default.svc.cluster.local --certificate-authority /var/run/secrets/kubernetes.io/serviceaccount/ca.crt \nkubectl config set-credentials cluster-essentials-default --token=$(cat /var/run/secrets/kubernetes.io/serviceaccount/token)\nkubectl config set-context default --cluster=default --user=cluster-essentials-default\nkubectl config use-context default\nkubectl cluster-info\n\nimgpkg pull -b $INSTALL_BUNDLE -o ./bundle/\n\necho \"## Deploying kapp-controller\"\n(ytt -f ./bundle/kapp-controller/config/ -f ./bundle/registry-creds/ --data-values-env YTT --data-value-yaml kappController.deployment.concurrency=10 | kbld -f- -f ./bundle/.imgpkg/images.yml) \u003e output.yml\nkapp deploy -a kapp-controller -n $ns_name -f output.yml \"$@\"\n\necho \"## Deploying secretgen-controller\"\n(ytt -f ./bundle/secretgen-controller/config/ -f ./bundle/registry-creds/ --data-values-env YTT | kbld -f- -f ./bundle/.imgpkg/images.yml) \u003e output.yml\nkapp deploy -a secretgen-controller -n $ns_name -f output.yml \"$@\"\n"},"kind":"ConfigMap","metadata":{"name":"scripts","namespace":"cluster-essentials"}}}}},"name":"k8s-cm-tanzu-cluster-essentials","patches":[{"fromFieldPath":"spec.id","toFieldPath":"metadata.name","transforms":[{"string":{"fmt":"%s-cm-tanzu-cluster-essentials"},"type":"string"}]},{"fromFieldPath":"spec.id","toFieldPath":"spec.providerConfigRef.name"}]},{"base":{"apiVersion":"kubernetes.crossplane.io/v1alpha1","kind":"Object","spec":{"forProvider":{"manifest":{"apiVersion":"batch/v1","kind":"Job","metadata":{"name":"install-cluster-essentials","namespace":"cluster-essentials"},"spec":{"activeDeadlineSeconds":3600,"backoffLimit":0,"template":{"spec":{"containers":[{"args":["/scripts/install.sh","--yes"],"command":["/bin/bash"],"env":[{"name":"USE_IAAS_AUTH","valueFrom":{"secretKeyRef":{"key":"use_iaas_auth","name":"ce-registry","optional":true}}},{"name":"INSTALL_REGISTRY_HOSTNAME","valueFrom":{"secretKeyRef":{"key":"host","name":"ce-registry","optional":false}}},{"name":"INSTALL_REGISTRY_USERNAME","valueFrom":{"secretKeyRef":{"key":"username","name":"ce-registry","optional":true}}},{"name":"INSTALL_REGISTRY_PASSWORD","valueFrom":{"secretKeyRef":{"key":"password","name":"ce-registry","optional":true}}},{"name":"CLUSTER_ESSENTIALS_REPO","valueFrom":{"secretKeyRef":{"key":"repo","name":"ce-registry","optional":false}}},{"name":"CLUSTER_ESSENTIALS_SHA256","valueFrom":{"secretKeyRef":{"key":"sha256","name":"ce-registry","optional":false}}},{"name":"AWS_REGION","valueFrom":{"secretKeyRef":{"key":"region","name":"ce-registry","optional":false}}}],"name":"install-cluster-essentials","resources":{"requests":{"cpu":"1000m","memory":"256Mi"}},"volumeMounts":[{"mountPath":"/scripts","name":"scripts-volume"}]}],"restartPolicy":"Never","volumes":[{"configMap":{"name":"scripts"},"name":"scripts-volume"}]}},"ttlSecondsAfterFinished":3600}}}}},"name":"k8s-job-tanzu-cluster-essentials","patches":[{"fromFieldPath":"spec.id","toFieldPath":"metadata.name","transforms":[{"string":{"fmt":"%s-job-tanzu-cluster-essentials"},"type":"string"}]},{"fromFieldPath":"spec.id","toFieldPath":"spec.providerConfigRef.name"},{"fromFieldPath":"spec.parameters.registryHost","toFieldPath":"spec.forProvider.manifest.spec.template.spec.containers[0].image","transforms":[{"string":{"fmt":"%s/tap-images/carvel-docker-image:latest"},"type":"string"}]}]},{"base":{"apiVersion":"kubernetes.crossplane.io/v1alpha1","kind":"Object","spec":{"forProvider":{"manifest":{"apiVersion":"v1","kind":"Namespace","metadata":{"name":"tap-install"}}}}},"name":"k8s-ns-tap","patches":[{"fromFieldPath":"spec.id","toFieldPath":"metadata.name","transforms":[{"string":{"fmt":"%s-ns-tap"},"type":"string"}]},{"fromFieldPath":"spec.id","toFieldPath":"spec.providerConfigRef.name"}]},{"base":{"apiVersion":"kubernetes.crossplane.io/v1alpha1","kind":"Object","spec":{"forProvider":{"manifest":{"apiVersion":"packaging.carvel.dev/v1alpha1","kind":"PackageRepository","metadata":{"name":"tanzu-tap-repository","namespace":"tap-install"}}}}},"name":"k8s-packagerepo-tap","patches":[{"fromFieldPath":"spec.id","toFieldPath":"metadata.name","transforms":[{"string":{"fmt":"%s-packagerepo-tap"},"type":"string"}]},{"fromFieldPath":"spec.id","toFieldPath":"spec.providerConfigRef.name"},{"fromFieldPath":"spec.parameters.registryHost","toFieldPath":"spec.forProvider.manifest.spec.fetch.imgpkgBundle.image","transforms":[{"string":{"fmt":"%s/tap-images/tap-packages:1.4.2"},"type":"string"}]}]},{"base":{"apiVersion":"kubernetes.crossplane.io/v1alpha1","kind":"Object","spec":{"forProvider":{"manifest":{"apiVersion":"v1","kind":"ConfigMap","metadata":{"name":"tap-install-values","namespace":"tap-install"}}}}},"name":"k8s-cm-tap-install-values","patches":[{"fromFieldPath":"spec.id","toFieldPath":"metadata.name","transforms":[{"string":{"fmt":"%s-cm-tap-install-values"},"type":"string"}]},{"fromFieldPath":"spec.id","toFieldPath":"spec.providerConfigRef.name"},{"patchSetName":"tap-profile-cm","type":"PatchSet"}]},{"base":{"apiVersion":"kubernetes.crossplane.io/v1alpha1","kind":"Object","spec":{"forProvider":{"manifest":{"apiVersion":"v1","kind":"Secret","metadata":{"name":"tap-install-values","namespace":"tap-install"}}}}},"name":"k8s-secret-tap-install-values","patches":[{"fromFieldPath":"spec.id","toFieldPath":"metadata.name","transforms":[{"string":{"fmt":"%s-secret-tap-install-values"},"type":"string"}]},{"fromFieldPath":"spec.id","toFieldPath":"spec.providerConfigRef.name"},{"patchSetName":"tap-profile-secret","type":"PatchSet"}]},{"base":{"apiVersion":"kubernetes.crossplane.io/v1alpha1","kind":"Object","spec":{"forProvider":{"manifest":{"apiVersion":"rbac.authorization.k8s.io/v1","kind":"ClusterRoleBinding","metadata":{"name":"tap-install-cluster-admin"},"roleRef":{"apiGroup":"rbac.authorization.k8s.io","kind":"ClusterRole","name":"cluster-admin"},"subjects":[{"kind":"ServiceAccount","name":"default","namespace":"tap-install"}]}}}},"name":"k8s-crb-tap-install","patches":[{"fromFieldPath":"spec.id","toFieldPath":"metadata.name","transforms":[{"string":{"fmt":"%s-crb-tap-install"},"type":"string"}]},{"fromFieldPath":"spec.id","toFieldPath":"spec.providerConfigRef.name"}]},{"base":{"apiVersion":"kubernetes.crossplane.io/v1alpha1","kind":"Object","spec":{"forProvider":{"manifest":{"apiVersion":"packaging.carvel.dev/v1alpha1","kind":"PackageInstall","metadata":{"name":"tap","namespace":"tap-install"},"spec":{"packageRef":{"refName":"tap.tanzu.vmware.com","versionSelection":{"constraints":"1.4.2","prereleases":{}}},"serviceAccountName":"default","values":[{"secretRef":{"name":"tap-install-values"}}]}}}}},"name":"k8s-packageinstall-tap","patches":[{"fromFieldPath":"spec.id","toFieldPath":"metadata.name","transforms":[{"string":{"fmt":"%s-packageinstall-tap"},"type":"string"}]},{"fromFieldPath":"spec.id","toFieldPath":"spec.providerConfigRef.name"}]},{"base":{"apiVersion":"kubernetes.crossplane.io/v1alpha1","kind":"Object","spec":{"forProvider":{"manifest":{"apiVersion":"v1","kind":"Namespace","metadata":{"name":"tap-gui"}}}}},"name":"k8s-tap-gui-ns","patches":[{"fromFieldPath":"spec.id","toFieldPath":"metadata.name","transforms":[{"string":{"fmt":"%s-gui-ns-tap"},"type":"string"}]},{"fromFieldPath":"spec.id","toFieldPath":"spec.providerConfigRef.name"}]},{"base":{"apiVersion":"kubernetes.crossplane.io/v1alpha1","kind":"Object","spec":{"forProvider":{"manifest":{"apiVersion":"v1","kind":"Namespace","metadata":{"name":"application"}}}}},"name":"k8s-tap-appspace-app-ns","patches":[{"fromFieldPath":"spec.id","toFieldPath":"metadata.name","transforms":[{"string":{"fmt":"%s-appspace-ns-tap"},"type":"string"}]},{"fromFieldPath":"spec.id","toFieldPath":"spec.providerConfigRef.name"}]},{"base":{"apiVersion":"kubernetes.crossplane.io/v1alpha1","kind":"Object","spec":{"forProvider":{"manifest":{"apiVersion":"v1","kind":"ServiceAccount","metadata":{"name":"tap-gui-viewer","namespace":"tap-gui"}}}}},"name":"k8s-tap-gui-viewer-sa","patches":[{"fromFieldPath":"spec.id","toFieldPath":"metadata.name","transforms":[{"string":{"fmt":"%s-gui-viewer-sa-tap"},"type":"string"}]},{"fromFieldPath":"spec.id","toFieldPath":"spec.providerConfigRef.name"}]},{"base":{"apiVersion":"kubernetes.crossplane.io/v1alpha1","kind":"Object","spec":{"forProvider":{"manifest":{"apiVersion":"v1","kind":"Secret","metadata":{"annotations":{"kubernetes.io/service-account.name":"tap-gui-viewer"},"name":"tap-gui-viewer","namespace":"tap-gui"},"type":"kubernetes.io/service-account-token"}}}},"name":"k8s-tap-gui-viewer-secret","patches":[{"fromFieldPath":"spec.id","toFieldPath":"metadata.name","transforms":[{"string":{"fmt":"%s-gui-viewer-secret-tap"},"type":"string"}]},{"fromFieldPath":"spec.id","toFieldPath":"spec.providerConfigRef.name"}]},{"base":{"apiVersion":"kubernetes.crossplane.io/v1alpha1","kind":"Object","spec":{"forProvider":{"manifest":{"apiVersion":"rbac.authorization.k8s.io/v1","kind":"ClusterRole","metadata":{"name":"k8s-reader"},"rules":[{"apiGroups":[""],"resources":["pods","pods/log","services","configmaps","limitranges"],"verbs":["get","watch","list"]},{"apiGroups":["metrics.k8s.io"],"resources":["pods"],"verbs":["get","watch","list"]},{"apiGroups":["apps"],"resources":["deployments","replicasets","statefulsets","daemonsets"],"verbs":["get","watch","list"]},{"apiGroups":["autoscaling"],"resources":["horizontalpodautoscalers"],"verbs":["get","watch","list"]},{"apiGroups":["networking.k8s.io"],"resources":["ingresses"],"verbs":["get","watch","list"]},{"apiGroups":["networking.internal.knative.dev"],"resources":["serverlessservices"],"verbs":["get","watch","list"]},{"apiGroups":["autoscaling.internal.knative.dev"],"resources":["podautoscalers"],"verbs":["get","watch","list"]},{"apiGroups":["serving.knative.dev"],"resources":["configurations","revisions","routes","services"],"verbs":["get","watch","list"]},{"apiGroups":["carto.run"],"resources":["clusterconfigtemplates","clusterdeliveries","clusterdeploymenttemplates","clusterimagetemplates","clusterruntemplates","clustersourcetemplates","clustersupplychains","clustertemplates","deliverables","runnables","workloads"],"verbs":["get","watch","list"]},{"apiGroups":["source.toolkit.fluxcd.io"],"resources":["gitrepositories"],"verbs":["get","watch","list"]},{"apiGroups":["source.apps.tanzu.vmware.com"],"resources":["imagerepositories","mavenartifacts"],"verbs":["get","watch","list"]},{"apiGroups":["conventions.apps.tanzu.vmware.com"],"resources":["podintents"],"verbs":["get","watch","list"]},{"apiGroups":["kpack.io"],"resources":["images","builds"],"verbs":["get","watch","list"]},{"apiGroups":["scanning.apps.tanzu.vmware.com"],"resources":["sourcescans","imagescans","scanpolicies"],"verbs":["get","watch","list"]},{"apiGroups":["tekton.dev"],"resources":["taskruns","pipelineruns"],"verbs":["get","watch","list"]},{"apiGroups":["kappctrl.k14s.io"],"resources":["apps"],"verbs":["get","watch","list"]},{"apiGroups":["batch"],"resources":["jobs","cronjobs"],"verbs":["get","watch","list"]}]}}}},"name":"k8s-tap-gui-viewer-clusterrole","patches":[{"fromFieldPath":"spec.id","toFieldPath":"metadata.name","transforms":[{"string":{"fmt":"%s-gui-viewer-clusterrole-tap"},"type":"string"}]},{"fromFieldPath":"spec.id","toFieldPath":"spec.providerConfigRef.name"}]},{"base":{"apiVersion":"kubernetes.crossplane.io/v1alpha1","kind":"Object","spec":{"forProvider":{"manifest":{"apiVersion":"rbac.authorization.k8s.io/v1","kind":"ClusterRoleBinding","metadata":{"name":"tap-gui-read-k8s"},"roleRef":{"apiGroup":"rbac.authorization.k8s.io","kind":"ClusterRole","name":"k8s-reader"},"subjects":[{"kind":"ServiceAccount","name":"tap-gui-viewer","namespace":"tap-gui"}]}}}},"name":"k8s-tap-gui-viewer-crb","patches":[{"fromFieldPath":"spec.id","toFieldPath":"metadata.name","transforms":[{"string":{"fmt":"%s-gui-viewer-crb-tap"},"type":"string"}]},{"fromFieldPath":"spec.id","toFieldPath":"spec.providerConfigRef.name"}]},{"base":{"apiVersion":"kubernetes.crossplane.io/v1alpha1","kind":"Object","spec":{"forProvider":{"manifest":{"apiVersion":"v1","kind":"Secret","metadata":{"annotations":{"tekton.dev/git-0":"https://github.com"},"name":"gitops-credentials","namespace":"application"},"stringData":{"password":"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","username":"svrc"},"type":"kubernetes.io/basic-auth"}}}},"name":"k8s-tap-appspace-gitops-secret","patches":[{"fromFieldPath":"spec.id","toFieldPath":"metadata.name","transforms":[{"string":{"fmt":"%s-appspace-gitops-secret-tap"},"type":"string"}]},{"fromFieldPath":"spec.id","toFieldPath":"spec.providerConfigRef.name"}]},{"base":{"apiVersion":"kubernetes.crossplane.io/v1alpha1","kind":"Object","spec":{"forProvider":{"manifest":{"apiVersion":"v1","kind":"ServiceAccount","metadata":{"annotations":{"eks.amazonaws.com/role-arn":"ARN_PATCHED_IN"},"name":"default","namespace":"application"},"secrets":[{"name":"gitops-credentials"}]}}}},"name":"k8s-tap-appspace-sa","patches":[{"fromFieldPath":"spec.id","toFieldPath":"metadata.name","transforms":[{"string":{"fmt":"%s-appspace-sa-tap"},"type":"string"}]},{"fromFieldPath":"spec.id","toFieldPath":"spec.providerConfigRef.name"},{"combine":{"strategy":"string","string":{"fmt":"arn:aws:iam::%s:role/%s-workload"},"variables":[{"fromFieldPath":"status.accountID"},{"fromFieldPath":"spec.id"}]},"policy":{"fromFieldPath":"Required"},"toFieldPath":"spec.forProvider.manifest.metadata.annotations[eks.amazonaws.com/role-arn]","type":"CombineFromComposite"}]},{"base":{"apiVersion":"kubernetes.crossplane.io/v1alpha1","kind":"Object","spec":{"forProvider":{"manifest":{"apiVersion":"rbac.authorization.k8s.io/v1","kind":"RoleBinding","metadata":{"name":"default-permit-deliverable","namespace":"application"},"roleRef":{"apiGroup":"rbac.authorization.k8s.io","kind":"ClusterRole","name":"deliverable"},"subjects":[{"kind":"ServiceAccount","name":"default"}]}}}},"name":"k8s-appspace-rb-deliverable-tap","patches":[{"fromFieldPath":"spec.id","toFieldPath":"metadata.name","transforms":[{"string":{"fmt":"%s-appspace-rb-deliverable-tap"},"type":"string"}]},{"fromFieldPath":"spec.id","toFieldPath":"spec.providerConfigRef.name"}]},{"base":{"apiVersion":"kubernetes.crossplane.io/v1alpha1","kind":"Object","spec":{"forProvider":{"manifest":{"apiVersion":"rbac.authorization.k8s.io/v1","kind":"RoleBinding","metadata":{"name":"default-permit-workload","namespace":"application"},"roleRef":{"apiGroup":"rbac.authorization.k8s.io","kind":"ClusterRole","name":"workload"},"subjects":[{"kind":"ServiceAccount","name":"default"}]}}}},"name":"k8s-appspace-tap-rb-workload","patches":[{"fromFieldPath":"spec.id","toFieldPath":"metadata.name","transforms":[{"string":{"fmt":"%s-appspace-rb-workload-tap"},"type":"string"}]},{"fromFieldPath":"spec.id","toFieldPath":"spec.providerConfigRef.name"}]},{"base":{"apiVersion":"kubernetes.crossplane.io/v1alpha1","kind":"Object","spec":{"forProvider":{"manifest":{"apiVersion":"cert-manager.io/v1","kind":"ClusterIssuer","metadata":{"name":"dekt-letsencrypt"},"spec":{"acme":{"email":"certificate-notices@dekt.io","privateKeySecretRef":{"name":"dekt-letsencrypt"},"server":"https://acme-v02.api.letsencrypt.org/directory","solvers":[{"http01":{"ingress":{"class":"contour"}}}]}}}}}},"name":"k8s-appspace-issuer-tap","patches":[{"fromFieldPath":"spec.id","toFieldPath":"metadata.name","transforms":[{"string":{"fmt":"%s-appspace-issuer-tap"},"type":"string"}]},{"fromFieldPath":"spec.id","toFieldPath":"spec.providerConfigRef.name"}]},{"base":{"apiVersion":"kubernetes.crossplane.io/v1alpha1","kind":"Object","spec":{"forProvider":{"manifest":{"apiVersion":"v1","kind":"Service","metadata":{"name":"envoy","namespace":"tanzu-system-ingress"}}},"managementPolicy":"Observe"}},"name":"k8s-appspace-observe-lb-tap","patches":[{"fromFieldPath":"spec.id","toFieldPath":"metadata.name","transforms":[{"string":{"fmt":"%s-appspace-observe-lb-tap"},"type":"string"}]},{"fromFieldPath":"spec.id","toFieldPath":"spec.providerConfigRef.name"},{"fromFieldPath":"status.atProvider.manifest.status.loadBalancer.ingress[0].hostname","toFieldPath":"status.tapLoadBalancerHostname","type":"ToCompositeFieldPath"}]},{"base":{"apiVersion":"kubernetes.crossplane.io/v1alpha1","kind":"Object","spec":{"forProvider":{"manifest":{"apiVersion":"v1","kind":"Secret","metadata":{"name":"tap-tap-install-values","namespace":"tap-install"}}},"managementPolicy":"ObserveCreateUpdate","providerConfigRef":{"name":"kubernetes-provider"}}},"name":"k8s-view-cluster-observe-secret","patches":[{"fromFieldPath":"spec.id","toFieldPath":"metadata.name","transforms":[{"string":{"fmt":"%s-view-cluster-observe-secret"},"type":"string"}]}]},{"base":{"apiVersion":"route53.aws.crossplane.io/v1alpha1","kind":"ResourceRecordSet","spec":{"forProvider":{"name":"*.domain","providerConfigRef":{"name":"aws-xp-provider"},"records":["hostname"],"ttl":300,"type":"CNAME","zoneId":"ZVQGIUL8IP3S"}}},"name":"aws-appspace-route53-record","patches":[{"fromFieldPath":"spec.id","toFieldPath":"spec.forProvider.subDomain","transforms":[{"string":{"fmt":"*.%s.tap.ycf.link"},"type":"string"}]},{"fromFieldPath":"spec.id","toFieldPath":"metadata.name","transforms":[{"string":{"fmt":"%s-appspace-record-route53-aws"},"type":"string"}]},{"fromFieldPath":"status.tapLoadBalancerHostname","toFieldPath":"spec.forProvider.records[0]"}]}],"writeConnectionSecretsToNamespace":"crossplane-system"}}
+  creationTimestamp: "2023-04-18T15:07:29Z"
+  generation: 25
+  labels:
+    cluster: eks
+    crossplane.io/xrd: xmanagedclusters.xp.tanzu.vmware.com
+    provider: native
+  name: native-eks
+  resourceVersion: "2480491"
+  uid: 7fe8746f-90a1-485b-9674-f6602a542967
+spec:
+  compositeTypeRef:
+    apiVersion: xp.tanzu.vmware.com/v1alpha1
+    kind: XManagedCluster
+  functions:
+  - container:
+      image: parasubvert/xpfunc:13
+      imagePullPolicy: IfNotPresent
+      timeout: 20s
+    name: update-view-cluster
+    type: Container
+  patchSets:
+  - name: metadata
+    patches:
+    - fromFieldPath: metadata.labels
+      type: FromCompositeFieldPath
+  - name: tap-profile-cm
+    patches:
+    - combine:
+        strategy: string
+        string:
+          fmt: |
+            profile: run
+            shared:
+              ingress_domain: "%s.%s"
+              ingress_issuer: tap-ingress-selfsigned
+            cnrs:
+              domain_template: '{{.Name}}.{{.Domain}}'
+            contour:
+              envoy:
+                service:
+                  type: LoadBalancer
+            appliveview_connector:
+              backend:
+                host: "appliveview.%s.%s"
+                ingressEnabled: true
+                sslDeactivated: true
+            ceip_policy_disclosed: true
+        variables:
+        - fromFieldPath: spec.parameters.subDomain
+        - fromFieldPath: spec.parameters.domain
+        - fromFieldPath: spec.parameters.subDomain
+        - fromFieldPath: spec.parameters.domain
+      policy:
+        fromFieldPath: Required
+      toFieldPath: spec.forProvider.manifest.data[tap.yaml]
+      type: CombineFromComposite
+    - fromFieldPath: spec.forProvider.manifest.data[tap.yaml]
+      toFieldPath: status.tapProfile
+      type: ToCompositeFieldPath
+  - name: tap-profile-secret
+    patches:
+    - fromFieldPath: status.tapProfile
+      toFieldPath: spec.forProvider.manifest.data[tap.yaml]
+      transforms:
+      - string:
+          convert: ToBase64
+          type: Convert
+        type: string
+      type: FromCompositeFieldPath
+  - name: region
+    patches:
+    - fromFieldPath: spec.parameters.region
+      toFieldPath: spec.forProvider.region
+      transforms:
+      - map:
+          afs: af-south-1
+          ape: ap-east-1
+          apne1: ap-northeast-1
+          apne2: ap-northeast-2
+          apne3: ap-northeast-3
+          aps1: ap-south-1
+          apse1: ap-southeast-1
+          apse2: ap-southeast-2
+          apse3: ap-southeast-3
+          cac: ca-central-1
+          euc: eu-central-1
+          eun: eu-north-1
+          eus: eu-south-1
+          euw1: eu-west-1
+          euw2: eu-west-2
+          euw3: eu-west-3
+          sae: sa-east-1
+          use1: us-east-1
+          use2: us-east-2
+          usw1: us-west-1
+          usw2: us-west-2
+        type: map
+      type: FromCompositeFieldPath
+  - name: snet-zone-1
+    patches:
+    - fromFieldPath: spec.parameters.region
+      toFieldPath: metadata.labels.zone
+      transforms:
+      - map:
+          afs: af-south-1a
+          ape: ap-east-1a
+          apne1: ap-northeast-1a
+          apne2: ap-northeast-2a
+          apne3: ap-northeast-3a
+          aps1: ap-south-1a
+          apse1: ap-southeast-1a
+          apse2: ap-southeast-2a
+          apse3: ap-southeast-3a
+          cac: ca-central-1a
+          euc: eu-central-1a
+          eun: eu-north-1a
+          eus: eu-south-1a
+          euw1: eu-west-1a
+          euw2: eu-west-2a
+          euw3: eu-west-3a
+          sae: sa-east-1a
+          use1: us-east-1a
+          use2: us-east-2a
+          usw1: us-west-1b
+          usw2: us-west-2a
+        type: map
+      type: FromCompositeFieldPath
+    - fromFieldPath: spec.parameters.region
+      toFieldPath: spec.forProvider.availabilityZone
+      transforms:
+      - map:
+          afs: af-south-1a
+          ape: ap-east-1a
+          apne1: ap-northeast-1a
+          apne2: ap-northeast-2a
+          apne3: ap-northeast-3a
+          aps1: ap-south-1a
+          apse1: ap-southeast-1a
+          apse2: ap-southeast-2a
+          apse3: ap-southeast-3a
+          cac: ca-central-1a
+          euc: eu-central-1a
+          eun: eu-north-1a
+          eus: eu-south-1a
+          euw1: eu-west-1a
+          euw2: eu-west-2a
+          euw3: eu-west-3a
+          sae: sa-east-1a
+          use1: us-east-1a
+          use2: us-east-2a
+          usw1: us-west-1b
+          usw2: us-west-2a
+        type: map
+      type: FromCompositeFieldPath
+  - name: snet-zone-2
+    patches:
+    - fromFieldPath: spec.parameters.region
+      toFieldPath: metadata.labels.zone
+      transforms:
+      - map:
+          afs: af-south-1b
+          ape: ap-east-1b
+          apne1: ap-northeast-1d
+          apne2: ap-northeast-2b
+          apne3: ap-northeast-3b
+          aps1: ap-south-1b
+          apse1: ap-southeast-1b
+          apse2: ap-southeast-2b
+          apse3: ap-southeast-3b
+          cac: ca-central-1b
+          euc: eu-central-1b
+          eun: eu-north-1b
+          eus: eu-south-1b
+          euw1: eu-west-1b
+          euw2: eu-west-2b
+          euw3: eu-west-3b
+          sae: sa-east-1b
+          use1: us-east-1b
+          use2: us-east-2b
+          usw1: us-west-1c
+          usw2: us-west-2b
+        type: map
+      type: FromCompositeFieldPath
+    - fromFieldPath: spec.parameters.region
+      toFieldPath: spec.forProvider.availabilityZone
+      transforms:
+      - map:
+          afs: af-south-1b
+          ape: ap-east-1b
+          apne1: ap-northeast-1d
+          apne2: ap-northeast-2b
+          apne3: ap-northeast-3b
+          aps1: ap-south-1b
+          apse1: ap-southeast-1b
+          apse2: ap-southeast-2b
+          apse3: ap-southeast-3b
+          cac: ca-central-1b
+          euc: eu-central-1b
+          eun: eu-north-1b
+          eus: eu-south-1b
+          euw1: eu-west-1b
+          euw2: eu-west-2b
+          euw3: eu-west-3b
+          sae: sa-east-1b
+          use1: us-east-1b
+          use2: us-east-2b
+          usw1: us-west-1c
+          usw2: us-west-2b
+        type: map
+      type: FromCompositeFieldPath
+  - name: snet-zone-3
+    patches:
+    - fromFieldPath: spec.parameters.region
+      toFieldPath: metadata.labels.zone
+      transforms:
+      - map:
+          afs: af-south-1c
+          ape: ap-east-1c
+          apne1: ap-northeast-1c
+          apne2: ap-northeast-2c
+          apne3: ap-northeast-3c
+          aps1: ap-south-1c
+          apse1: ap-southeast-1c
+          apse2: ap-southeast-2c
+          apse3: ap-southeast-3c
+          cac: ca-central-1b
+          euc: eu-central-1c
+          eun: eu-north-1c
+          eus: eu-south-1c
+          euw1: eu-west-1c
+          euw2: eu-west-2c
+          euw3: eu-west-3c
+          sae: sa-east-1c
+          use1: us-east-1c
+          use2: us-east-2c
+          usw1: us-west-1c
+          usw2: us-west-2c
+        type: map
+      type: FromCompositeFieldPath
+    - fromFieldPath: spec.parameters.region
+      toFieldPath: spec.forProvider.availabilityZone
+      transforms:
+      - map:
+          afs: af-south-1c
+          ape: ap-east-1c
+          apne1: ap-northeast-1c
+          apne2: ap-northeast-2c
+          apne3: ap-northeast-3c
+          aps1: ap-south-1c
+          apse1: ap-southeast-1c
+          apse2: ap-southeast-2c
+          apse3: ap-southeast-3c
+          cac: ca-central-1b
+          euc: eu-central-1c
+          eun: eu-north-1c
+          eus: eu-south-1c
+          euw1: eu-west-1c
+          euw2: eu-west-2c
+          euw3: eu-west-3c
+          sae: sa-east-1c
+          use1: us-east-1c
+          use2: us-east-2c
+          usw1: us-west-1c
+          usw2: us-west-2c
+        type: map
+      type: FromCompositeFieldPath
+  - name: route-zones
+    patches:
+    - fromFieldPath: spec.parameters.region
+      toFieldPath: spec.forProvider.associations[0].subnetIdSelector.matchLabels.zone
+      transforms:
+      - map:
+          afs: af-south-1a
+          ape: ap-east-1a
+          apne1: ap-northeast-1a
+          apne2: ap-northeast-2a
+          apne3: ap-northeast-3a
+          aps1: ap-south-1a
+          apse1: ap-southeast-1a
+          apse2: ap-southeast-2a
+          apse3: ap-southeast-3a
+          cac: ca-central-1a
+          euc: eu-central-1a
+          eun: eu-north-1a
+          eus: eu-south-1a
+          euw1: eu-west-1a
+          euw2: eu-west-2a
+          euw3: eu-west-3a
+          sae: sa-east-1a
+          use1: us-east-1a
+          use2: us-east-2a
+          usw1: us-west-1b
+          usw2: us-west-2a
+        type: map
+      type: FromCompositeFieldPath
+    - fromFieldPath: spec.parameters.region
+      toFieldPath: spec.forProvider.associations[1].subnetIdSelector.matchLabels.zone
+      transforms:
+      - map:
+          afs: af-south-1b
+          ape: ap-east-1b
+          apne1: ap-northeast-1d
+          apne2: ap-northeast-2b
+          apne3: ap-northeast-3b
+          aps1: ap-south-1b
+          apse1: ap-southeast-1b
+          apse2: ap-southeast-2b
+          apse3: ap-southeast-3b
+          cac: ca-central-1b
+          euc: eu-central-1b
+          eun: eu-north-1b
+          eus: eu-south-1b
+          euw1: eu-west-1b
+          euw2: eu-west-2b
+          euw3: eu-west-3b
+          sae: sa-east-1b
+          use1: us-east-1b
+          use2: us-east-2b
+          usw1: us-west-1c
+          usw2: us-west-2b
+        type: map
+      type: FromCompositeFieldPath
+    - fromFieldPath: spec.parameters.region
+      toFieldPath: spec.forProvider.associations[2].subnetIdSelector.matchLabels.zone
+      transforms:
+      - map:
+          afs: af-south-1c
+          ape: ap-east-1c
+          apne1: ap-northeast-1c
+          apne2: ap-northeast-2c
+          apne3: ap-northeast-3c
+          aps1: ap-south-1c
+          apse1: ap-southeast-1c
+          apse2: ap-southeast-2c
+          apse3: ap-southeast-3c
+          cac: ca-central-1b
+          euc: eu-central-1c
+          eun: eu-north-1c
+          eus: eu-south-1c
+          euw1: eu-west-1c
+          euw2: eu-west-2c
+          euw3: eu-west-3c
+          sae: sa-east-1c
+          use1: us-east-1c
+          use2: us-east-2c
+          usw1: us-west-1c
+          usw2: us-west-2c
+        type: map
+      type: FromCompositeFieldPath
+  publishConnectionDetailsWithStoreConfigRef:
+    name: default
+  resources:
+  - base:
+      apiVersion: iam.aws.crossplane.io/v1beta1
+      kind: Policy
+      spec:
+        providerConfigRef:
+          name: aws-xp-provider
+    name: iampolicy-tanzuappworkload
+    patches:
+    - fromFieldPath: spec.id
+      toFieldPath: metadata.name
+      transforms:
+      - string:
+          fmt: '%s-tanzuappworkload'
+          type: Format
+        type: string
+      type: FromCompositeFieldPath
+    - fromFieldPath: spec.id
+      toFieldPath: spec.forProvider.name
+      transforms:
+      - string:
+          fmt: '%s-tanzuappworkload'
+          type: Format
+        type: string
+      type: FromCompositeFieldPath
+    - fromFieldPath: spec.id
+      toFieldPath: metadata.labels.policy
+      transforms:
+      - string:
+          fmt: '%s-tanzuappworkload'
+          type: Format
+        type: string
+      type: FromCompositeFieldPath
+    - combine:
+        strategy: string
+        string:
+          fmt: "{\n    \"Version\": \"2012-10-17\",\n    \"Statement\": [\n        {\n
+            \           \"Action\": [\n                \"ecr:DescribeRegistry\",\n
+            \               \"ecr:GetAuthorizationToken\",\n                \"ecr:GetRegistryPolicy\",\n
+            \               \"ecr:PutRegistryPolicy\",\n                \"ecr:PutReplicationConfiguration\",\n
+            \               \"ecr:DeleteRegistryPolicy\"\n            ],\n            \"Resource\":
+            \"*\",\n            \"Effect\": \"Allow\",\n            \"Sid\": \"TAPEcrWorkloadGlobal\"\n
+            \       },\n        {\n            \"Action\": [\n                \"ecr:DescribeImages\",\n
+            \               \"ecr:ListImages\",\n                \"ecr:BatchCheckLayerAvailability\",\n
+            \               \"ecr:BatchGetImage\",\n                \"ecr:BatchGetRepositoryScanningConfiguration\",\n
+            \               \"ecr:DescribeImageReplicationStatus\",\n                \"ecr:DescribeImageScanFindings\",\n
+            \               \"ecr:DescribeRepositories\",\n                \"ecr:GetDownloadUrlForLayer\",\n
+            \               \"ecr:GetLifecyclePolicy\",\n                \"ecr:GetLifecyclePolicyPreview\",\n
+            \               \"ecr:GetRegistryScanningConfiguration\",\n                \"ecr:GetRepositoryPolicy\",\n
+            \               \"ecr:ListTagsForResource\",\n                \"ecr:TagResource\",\n
+            \               \"ecr:UntagResource\",\n                \"ecr:BatchDeleteImage\",\n
+            \               \"ecr:BatchImportUpstreamImage\",\n                \"ecr:CompleteLayerUpload\",\n
+            \               \"ecr:CreatePullThroughCacheRule\",\n                \"ecr:CreateRepository\",\n
+            \               \"ecr:DeleteLifecyclePolicy\",\n                \"ecr:DeletePullThroughCacheRule\",\n
+            \               \"ecr:DeleteRepository\",\n                \"ecr:InitiateLayerUpload\",\n
+            \               \"ecr:PutImage\",\n                \"ecr:PutImageScanningConfiguration\",\n
+            \               \"ecr:PutImageTagMutability\",\n                \"ecr:PutLifecyclePolicy\",\n
+            \               \"ecr:PutRegistryScanningConfiguration\",\n                \"ecr:ReplicateImage\",\n
+            \               \"ecr:StartImageScan\",\n                \"ecr:StartLifecyclePolicyPreview\",\n
+            \               \"ecr:UploadLayerPart\",\n                \"ecr:DeleteRepositoryPolicy\",\n
+            \               \"ecr:SetRepositoryPolicy\"\n            ],\n            \"Resource\":
+            [\n                \"arn:aws:ecr:%s:%s:repository/tap-build-service\",\n
+            \               \"arn:aws:ecr:%s:%s:repository/tap-apps/*\"\n            ],\n
+            \           \"Effect\": \"Allow\",\n            \"Sid\": \"TAPEcrWorkloadScoped\"\n
+            \       }\n      ]\n     }   \n"
+        variables:
+        - fromFieldPath: spec.parameters.registryRegion
+        - fromFieldPath: status.accountID
+        - fromFieldPath: spec.parameters.registryRegion
+        - fromFieldPath: status.accountID
+      policy:
+        fromFieldPath: Required
+      toFieldPath: spec.forProvider.document
+      type: CombineFromComposite
+  - base:
+      apiVersion: iam.aws.crossplane.io/v1beta1
+      kind: Role
+      spec:
+        forProvider:
+          assumeRolePolicyDocument: |
+            {
+              "Version": "2012-10-17",
+              "Statement": [
+                  {
+                      "Effect": "Allow",
+                      "Principal": {
+                          "Service": [
+                              "eks.amazonaws.com"
+                          ]
+                      },
+                      "Action": [
+                          "sts:AssumeRole"
+                      ]
+                  }
+              ]
+            }
+        providerConfigRef:
+          name: aws-xp-provider
+    name: iamrole-controlplane
+    patches:
+    - fromFieldPath: spec.id
+      toFieldPath: metadata.name
+      transforms:
+      - string:
+          fmt: '%s-controlplane'
+          type: Format
+        type: string
+      type: FromCompositeFieldPath
+    - fromFieldPath: spec.id
+      toFieldPath: metadata.labels.role
+      transforms:
+      - string:
+          fmt: '%s-controlplane'
+          type: Format
+        type: string
+      type: FromCompositeFieldPath
+  - base:
+      apiVersion: iam.aws.crossplane.io/v1beta1
+      kind: Role
+      spec:
+        forProvider:
+          assumeRolePolicyDocument: |
+            {
+              "Version": "2012-10-17",
+              "Statement": [
+                  {
+                      "Effect": "Allow",
+                      "Principal": {
+                          "Service": [
+                              "ec2.amazonaws.com"
+                          ]
+                      },
+                      "Action": [
+                          "sts:AssumeRole"
+                      ]
+                  }
+              ]
+            }
+        providerConfigRef:
+          name: aws-xp-provider
+    name: iamrole-nodegroup
+    patches:
+    - fromFieldPath: spec.id
+      toFieldPath: metadata.name
+      transforms:
+      - string:
+          fmt: '%s-nodegroup'
+          type: Format
+        type: string
+      type: FromCompositeFieldPath
+    - fromFieldPath: spec.id
+      toFieldPath: metadata.labels.role
+      transforms:
+      - string:
+          fmt: '%s-nodegroup'
+          type: Format
+        type: string
+      type: FromCompositeFieldPath
+  - base:
+      apiVersion: iam.aws.crossplane.io/v1beta1
+      kind: Role
+      spec:
+        forProvider:
+          assumeRolePolicyDocument: |
+            {
+                  "Version": "2012-10-17",
+                  "Statement": [
+                      {
+                          "Effect": "Allow",
+                          "Principal": {
+                              "Service": [
+                                  "eks-fargate-pods.amazonaws.com"
+                              ]
+                          },
+                          "Action": [
+                              "sts:AssumeRole"
+                          ]
+                      }
+                  ]
+            }
+        providerConfigRef:
+          name: aws-xp-provider
+    name: iamrole-fargateprofile
+    patches:
+    - fromFieldPath: spec.id
+      toFieldPath: metadata.name
+      transforms:
+      - string:
+          fmt: '%s-fargateprofile'
+          type: Format
+        type: string
+      type: FromCompositeFieldPath
+    - fromFieldPath: spec.id
+      toFieldPath: metadata.labels.role
+      transforms:
+      - string:
+          fmt: '%s-fargateprofile'
+          type: Format
+        type: string
+      type: FromCompositeFieldPath
+  - base:
+      apiVersion: iam.aws.crossplane.io/v1beta1
+      kind: Role
+      spec:
+        providerConfigRef:
+          name: aws-xp-provider
+    name: iamrole-csi
+    patches:
+    - fromFieldPath: spec.id
+      toFieldPath: metadata.name
+      transforms:
+      - string:
+          fmt: '%s-csi'
+          type: Format
+        type: string
+      type: FromCompositeFieldPath
+    - fromFieldPath: spec.id
+      toFieldPath: metadata.labels.role
+      transforms:
+      - string:
+          fmt: '%s-csi'
+          type: Format
+        type: string
+      type: FromCompositeFieldPath
+    - combine:
+        strategy: string
+        string:
+          fmt: "{\n    \"Version\": \"2012-10-17\",\n    \"Statement\": [\n        {\n
+            \           \"Effect\": \"Allow\",\n            \"Principal\": {\n                \"Federated\":
+            \"arn:aws:iam::%s:oidc-provider/%s\"\n            },\n            \"Action\":
+            \"sts:AssumeRoleWithWebIdentity\",\n            \"Condition\": {\n                \"StringEquals\":
+            {\n                    \"%s:aud\": \"sts.amazonaws.com\",\n                    \"%s:sub\":
+            \"system:serviceaccount:kube-system:ebs-csi-controller-sa\"\n                }\n
+            \           }\n        }\n    ]\n   }\n   \n"
+        variables:
+        - fromFieldPath: status.accountID
+        - fromFieldPath: status.oidcIssuerID
+        - fromFieldPath: status.oidcIssuerID
+        - fromFieldPath: status.oidcIssuerID
+      policy:
+        fromFieldPath: Required
+      toFieldPath: spec.forProvider.assumeRolePolicyDocument
+      type: CombineFromComposite
+  - base:
+      apiVersion: iam.aws.crossplane.io/v1beta1
+      kind: Role
+      spec:
+        providerConfigRef:
+          name: aws-xp-provider
+    name: iamrole-cluster-essentials
+    patches:
+    - fromFieldPath: spec.id
+      toFieldPath: metadata.name
+      transforms:
+      - string:
+          fmt: '%s-cluster-essentials'
+          type: Format
+        type: string
+      type: FromCompositeFieldPath
+    - fromFieldPath: spec.id
+      toFieldPath: metadata.labels.role
+      transforms:
+      - string:
+          fmt: '%s-cluster-essentials'
+          type: Format
+        type: string
+      type: FromCompositeFieldPath
+    - combine:
+        strategy: string
+        string:
+          fmt: "{\n\"Version\": \"2012-10-17\",\n\"Statement\": [\n    {\n        \"Effect\":
+            \"Allow\",\n        \"Principal\": {\n            \"Federated\": \"arn:aws:iam::%s:oidc-provider/%s\"\n
+            \       },\n        \"Action\": \"sts:AssumeRoleWithWebIdentity\",\n        \"Condition\":
+            {\n            \"StringEquals\": {\n                \"%s:aud\": \"sts.amazonaws.com\",\n
+            \               \"%s:sub\": \"system:serviceaccount:cluster-essentials:default\"\n
+            \           }\n        }\n     }\n   ]\n}        \n"
+        variables:
+        - fromFieldPath: status.accountID
+        - fromFieldPath: status.oidcIssuerID
+        - fromFieldPath: status.oidcIssuerID
+        - fromFieldPath: status.oidcIssuerID
+      policy:
+        fromFieldPath: Required
+      toFieldPath: spec.forProvider.assumeRolePolicyDocument
+      type: CombineFromComposite
+  - base:
+      apiVersion: iam.aws.crossplane.io/v1beta1
+      kind: Role
+      spec:
+        providerConfigRef:
+          name: aws-xp-provider
+    name: iamrole-workload
+    patches:
+    - fromFieldPath: spec.id
+      toFieldPath: metadata.name
+      transforms:
+      - string:
+          fmt: '%s-workload'
+          type: Format
+        type: string
+      type: FromCompositeFieldPath
+    - fromFieldPath: spec.id
+      toFieldPath: metadata.labels.role
+      transforms:
+      - string:
+          fmt: '%s-workload'
+          type: Format
+        type: string
+      type: FromCompositeFieldPath
+    - combine:
+        strategy: string
+        string:
+          fmt: |
+            {
+              "Version": "2012-10-17",
+              "Statement": [
+                  {
+                      "Effect": "Allow",
+                      "Principal": {
+                          "Federated": "arn:aws:iam::%s:oidc-provider/%s"
+                      },
+                      "Action": "sts:AssumeRoleWithWebIdentity",
+                      "Condition": {
+                          "StringEquals": {
+                              "%s:sub": [ "system:serviceaccount:dev:default",
+                                          "system:serviceaccount:team:default",
+                                          "system:serviceaccount:application:default"],
+                              "%s:aud": "sts.amazonaws.com"
+                          }
+                      }
+                  }
+              ]
+            }
+        variables:
+        - fromFieldPath: status.accountID
+        - fromFieldPath: status.oidcIssuerID
+        - fromFieldPath: status.oidcIssuerID
+        - fromFieldPath: status.oidcIssuerID
+      policy:
+        fromFieldPath: Required
+      toFieldPath: spec.forProvider.assumeRolePolicyDocument
+      type: CombineFromComposite
+  - base:
+      apiVersion: iam.aws.crossplane.io/v1beta1
+      kind: RolePolicyAttachment
+      spec:
+        forProvider:
+          policyArn: arn:aws:iam::aws:policy/AmazonEKSClusterPolicy
+          roleNameSelector:
+            matchControllerRef: true
+        providerConfigRef:
+          name: aws-xp-provider
+    name: iamattachment-controlplane
+    patches:
+    - fromFieldPath: spec.id
+      toFieldPath: metadata.name
+      transforms:
+      - string:
+          fmt: '%s-controlplane'
+          type: Format
+        type: string
+      type: FromCompositeFieldPath
+    - fromFieldPath: spec.id
+      toFieldPath: spec.forProvider.roleNameSelector.matchLabels.role
+      transforms:
+      - string:
+          fmt: '%s-controlplane'
+          type: Format
+        type: string
+      type: FromCompositeFieldPath
+  - base:
+      apiVersion: iam.aws.crossplane.io/v1beta1
+      kind: RolePolicyAttachment
+      spec:
+        forProvider:
+          policyArn: arn:aws:iam::aws:policy/AmazonEKSServicePolicy
+          roleNameSelector:
+            matchControllerRef: true
+        providerConfigRef:
+          name: aws-xp-provider
+    name: iamattachment-service
+    patches:
+    - fromFieldPath: spec.id
+      toFieldPath: metadata.name
+      transforms:
+      - string:
+          fmt: '%s-service'
+          type: Format
+        type: string
+      type: FromCompositeFieldPath
+    - fromFieldPath: spec.id
+      toFieldPath: spec.forProvider.roleNameSelector.matchLabels.role
+      transforms:
+      - string:
+          fmt: '%s-controlplane'
+          type: Format
+        type: string
+      type: FromCompositeFieldPath
+  - base:
+      apiVersion: iam.aws.crossplane.io/v1beta1
+      kind: RolePolicyAttachment
+      spec:
+        forProvider:
+          policyArn: arn:aws:iam::aws:policy/AmazonEBSCSIDriverPolicy
+          roleNameSelector:
+            matchControllerRef: true
+        providerConfigRef:
+          name: aws-xp-provider
+    name: iamattachment-csi
+    patches:
+    - fromFieldPath: spec.id
+      toFieldPath: metadata.name
+      transforms:
+      - string:
+          fmt: '%s-csi'
+          type: Format
+        type: string
+      type: FromCompositeFieldPath
+    - fromFieldPath: spec.id
+      toFieldPath: spec.forProvider.roleNameSelector.matchLabels.role
+      transforms:
+      - string:
+          fmt: '%s-controlplane'
+          type: Format
+        type: string
+      type: FromCompositeFieldPath
+  - base:
+      apiVersion: iam.aws.crossplane.io/v1beta1
+      kind: RolePolicyAttachment
+      spec:
+        forProvider:
+          policyArn: arn:aws:iam::aws:policy/AmazonEKSWorkerNodePolicy
+          roleNameSelector:
+            matchControllerRef: true
+        providerConfigRef:
+          name: aws-xp-provider
+    name: iamattachment-worker
+    patches:
+    - fromFieldPath: spec.id
+      toFieldPath: metadata.name
+      transforms:
+      - string:
+          fmt: '%s-worker'
+          type: Format
+        type: string
+      type: FromCompositeFieldPath
+    - fromFieldPath: spec.id
+      toFieldPath: spec.forProvider.roleNameSelector.matchLabels.role
+      transforms:
+      - string:
+          fmt: '%s-nodegroup'
+          type: Format
+        type: string
+      type: FromCompositeFieldPath
+  - base:
+      apiVersion: iam.aws.crossplane.io/v1beta1
+      kind: RolePolicyAttachment
+      spec:
+        forProvider:
+          policyArn: arn:aws:iam::aws:policy/AmazonEKS_CNI_Policy
+          roleNameSelector:
+            matchControllerRef: true
+        providerConfigRef:
+          name: aws-xp-provider
+    name: iamattachment-cni
+    patches:
+    - fromFieldPath: spec.id
+      toFieldPath: metadata.name
+      transforms:
+      - string:
+          fmt: '%s-cni'
+          type: Format
+        type: string
+      type: FromCompositeFieldPath
+    - fromFieldPath: spec.id
+      toFieldPath: spec.forProvider.roleNameSelector.matchLabels.role
+      transforms:
+      - string:
+          fmt: '%s-nodegroup'
+          type: Format
+        type: string
+      type: FromCompositeFieldPath
+  - base:
+      apiVersion: iam.aws.crossplane.io/v1beta1
+      kind: RolePolicyAttachment
+      spec:
+        forProvider:
+          policyArn: arn:aws:iam::aws:policy/AmazonEC2ContainerRegistryReadOnly
+          roleNameSelector:
+            matchControllerRef: true
+        providerConfigRef:
+          name: aws-xp-provider
+    name: iamattachment-registry
+    patches:
+    - fromFieldPath: spec.id
+      toFieldPath: metadata.name
+      transforms:
+      - string:
+          fmt: '%s-registry'
+          type: Format
+        type: string
+      type: FromCompositeFieldPath
+    - fromFieldPath: spec.id
+      toFieldPath: spec.forProvider.roleNameSelector.matchLabels.role
+      transforms:
+      - string:
+          fmt: '%s-nodegroup'
+          type: Format
+        type: string
+      type: FromCompositeFieldPath
+  - base:
+      apiVersion: iam.aws.crossplane.io/v1beta1
+      kind: RolePolicyAttachment
+      spec:
+        forProvider:
+          policyArn: arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore
+          roleNameSelector:
+            matchControllerRef: true
+        providerConfigRef:
+          name: aws-xp-provider
+    name: iamattachment-ssm
+    patches:
+    - fromFieldPath: spec.id
+      toFieldPath: metadata.name
+      transforms:
+      - string:
+          fmt: '%s-ssm'
+          type: Format
+        type: string
+      type: FromCompositeFieldPath
+    - fromFieldPath: spec.id
+      toFieldPath: spec.forProvider.roleNameSelector.matchLabels.role
+      transforms:
+      - string:
+          fmt: '%s-nodegroup'
+          type: Format
+        type: string
+      type: FromCompositeFieldPath
+  - base:
+      apiVersion: iam.aws.crossplane.io/v1beta1
+      kind: RolePolicyAttachment
+      spec:
+        forProvider:
+          policyArn: arn:aws:iam::aws:policy/AmazonEC2ContainerRegistryReadOnly
+          roleNameSelector:
+            matchControllerRef: true
+        providerConfigRef:
+          name: aws-xp-provider
+    name: iamattachment-cluster-essentials
+    patches:
+    - fromFieldPath: spec.id
+      toFieldPath: metadata.name
+      transforms:
+      - string:
+          fmt: '%s-cluster-essentials'
+          type: Format
+        type: string
+      type: FromCompositeFieldPath
+    - fromFieldPath: spec.id
+      toFieldPath: spec.forProvider.roleNameSelector.matchLabels.role
+      transforms:
+      - string:
+          fmt: '%s-cluster-essentials'
+          type: Format
+        type: string
+      type: FromCompositeFieldPath
+  - base:
+      apiVersion: iam.aws.crossplane.io/v1beta1
+      kind: RolePolicyAttachment
+      spec:
+        forProvider:
+          policyArn: arn:aws:iam::aws:policy/AmazonEKSFargatePodExecutionRolePolicy
+          roleNameSelector:
+            matchControllerRef: true
+        providerConfigRef:
+          name: aws-xp-provider
+    name: iamattachment-fargate
+    patches:
+    - fromFieldPath: spec.id
+      toFieldPath: metadata.name
+      transforms:
+      - string:
+          fmt: '%s-fargate'
+          type: Format
+        type: string
+      type: FromCompositeFieldPath
+    - fromFieldPath: spec.id
+      toFieldPath: spec.forProvider.roleNameSelector.matchLabels.role
+      transforms:
+      - string:
+          fmt: '%s-fargateprofile'
+          type: Format
+        type: string
+      type: FromCompositeFieldPath
+  - base:
+      apiVersion: iam.aws.crossplane.io/v1beta1
+      kind: RolePolicyAttachment
+      spec:
+        forProvider:
+          roleNameSelector:
+            matchControllerRef: true
+        providerConfigRef:
+          name: aws-xp-provider
+    name: iamcustomattachment-workload
+    patches:
+    - fromFieldPath: spec.id
+      toFieldPath: metadata.name
+      transforms:
+      - string:
+          fmt: '%s-workload'
+          type: Format
+        type: string
+      type: FromCompositeFieldPath
+    - combine:
+        strategy: string
+        string:
+          fmt: arn:aws:iam::%s:policy/%s-tanzuappworkload
+        variables:
+        - fromFieldPath: status.accountID
+        - fromFieldPath: spec.id
+      policy:
+        fromFieldPath: Required
+      toFieldPath: spec.forProvider.policyArn
+      type: CombineFromComposite
+    - fromFieldPath: spec.id
+      toFieldPath: spec.forProvider.roleNameSelector.matchLabels.role
+      transforms:
+      - string:
+          fmt: '%s-workload'
+          type: Format
+        type: string
+      type: FromCompositeFieldPath
+  - base:
+      apiVersion: ec2.aws.crossplane.io/v1beta1
+      kind: VPC
+      spec:
+        forProvider:
+          cidrBlock: 10.0.0.0/16
+          tags:
+          - key: Name
+            value: eks-vpc
+        providerConfigRef:
+          name: aws-xp-provider
+    name: ec2vpc
+    patches:
+    - patchSetName: region
+      type: PatchSet
+    - fromFieldPath: spec.id
+      toFieldPath: metadata.name
+      type: FromCompositeFieldPath
+  - base:
+      apiVersion: ec2.aws.crossplane.io/v1beta1
+      kind: SecurityGroup
+      spec:
+        forProvider:
+          description: Cluster communication with worker nodes
+          egress:
+          - ipProtocol: "-1"
+            ipRanges:
+            - cidrIp: 0.0.0.0/0
+          groupName: ekscluster-sg
+          vpcIdSelector:
+            matchControllerRef: true
+        providerConfigRef:
+          name: aws-xp-provider
+    name: ec2sg-ng
+    patches:
+    - patchSetName: region
+      type: PatchSet
+    - fromFieldPath: spec.id
+      toFieldPath: metadata.name
+      transforms:
+      - string:
+          fmt: '%s-sg'
+          type: Format
+        type: string
+      type: FromCompositeFieldPath
+  - base:
+      apiVersion: ec2.aws.crossplane.io/v1beta1
+      kind: Subnet
+      metadata:
+        labels:
+          access: public
+      spec:
+        forProvider:
+          cidrBlock: 10.0.0.0/24
+          mapPublicIPOnLaunch: true
+          tags:
+          - key: Name
+            value: eks-snet-pub
+          - key: kubernetes.io/role/elb
+            value: "1"
+          vpcIdSelector:
+            matchControllerRef: true
+        providerConfigRef:
+          name: aws-xp-provider
+    name: ec2net-pub-z1
+    patches:
+    - patchSetName: region
+      type: PatchSet
+    - patchSetName: snet-zone-1
+      type: PatchSet
+    - fromFieldPath: spec.id
+      toFieldPath: metadata.name
+      transforms:
+      - string:
+          fmt: '%s-pub-z1'
+          type: Format
+        type: string
+      type: FromCompositeFieldPath
+  - base:
+      apiVersion: ec2.aws.crossplane.io/v1beta1
+      kind: Subnet
+      metadata:
+        labels:
+          access: public
+      spec:
+        forProvider:
+          cidrBlock: 10.0.1.0/24
+          mapPublicIPOnLaunch: true
+          tags:
+          - key: Name
+            value: eks-snet-pub
+          - key: kubernetes.io/role/elb
+            value: "1"
+          vpcIdSelector:
+            matchControllerRef: true
+        providerConfigRef:
+          name: aws-xp-provider
+    name: ec2net-pub-z2
+    patches:
+    - patchSetName: region
+      type: PatchSet
+    - patchSetName: snet-zone-2
+      type: PatchSet
+    - fromFieldPath: spec.id
+      toFieldPath: metadata.name
+      transforms:
+      - string:
+          fmt: '%s-pub-z2'
+          type: Format
+        type: string
+      type: FromCompositeFieldPath
+  - base:
+      apiVersion: ec2.aws.crossplane.io/v1beta1
+      kind: Subnet
+      metadata:
+        labels:
+          access: public
+      spec:
+        forProvider:
+          cidrBlock: 10.0.2.0/24
+          mapPublicIPOnLaunch: true
+          tags:
+          - key: Name
+            value: eks-snet-pub
+          - key: kubernetes.io/role/elb
+            value: "1"
+          vpcIdSelector:
+            matchControllerRef: true
+        providerConfigRef:
+          name: aws-xp-provider
+    name: ec2net-pub-z3
+    patches:
+    - patchSetName: region
+      type: PatchSet
+    - patchSetName: snet-zone-3
+      type: PatchSet
+    - fromFieldPath: spec.id
+      toFieldPath: metadata.name
+      transforms:
+      - string:
+          fmt: '%s-pub-z3'
+          type: Format
+        type: string
+      type: FromCompositeFieldPath
+  - base:
+      apiVersion: ec2.aws.crossplane.io/v1beta1
+      kind: Subnet
+      metadata:
+        labels:
+          access: private
+      spec:
+        forProvider:
+          cidrBlock: 10.0.100.0/24
+          mapPublicIPOnLaunch: true
+          tags:
+          - key: Name
+            value: eks-snet-prv
+          vpcIdSelector:
+            matchControllerRef: true
+        providerConfigRef:
+          name: aws-xp-provider
+    name: ec2net-prv-z1
+    patches:
+    - patchSetName: region
+      type: PatchSet
+    - patchSetName: snet-zone-1
+      type: PatchSet
+    - fromFieldPath: spec.id
+      toFieldPath: metadata.name
+      transforms:
+      - string:
+          fmt: '%s-prv-z1'
+          type: Format
+        type: string
+      type: FromCompositeFieldPath
+  - base:
+      apiVersion: ec2.aws.crossplane.io/v1beta1
+      kind: Subnet
+      metadata:
+        labels:
+          access: private
+      spec:
+        forProvider:
+          cidrBlock: 10.0.101.0/24
+          mapPublicIPOnLaunch: true
+          tags:
+          - key: Name
+            value: eks-snet-prv
+          vpcIdSelector:
+            matchControllerRef: true
+        providerConfigRef:
+          name: aws-xp-provider
+    name: ec2net-prv-z2
+    patches:
+    - patchSetName: region
+      type: PatchSet
+    - patchSetName: snet-zone-2
+      type: PatchSet
+    - fromFieldPath: spec.id
+      toFieldPath: metadata.name
+      transforms:
+      - string:
+          fmt: '%s-prv-z2'
+          type: Format
+        type: string
+      type: FromCompositeFieldPath
+  - base:
+      apiVersion: ec2.aws.crossplane.io/v1beta1
+      kind: Subnet
+      metadata:
+        labels:
+          access: private
+      spec:
+        forProvider:
+          cidrBlock: 10.0.102.0/24
+          mapPublicIPOnLaunch: true
+          tags:
+          - key: Name
+            value: eks-snet-prv
+          vpcIdSelector:
+            matchControllerRef: true
+        providerConfigRef:
+          name: aws-xp-provider
+    name: ec2net-prv-z3
+    patches:
+    - patchSetName: region
+      type: PatchSet
+    - patchSetName: snet-zone-3
+      type: PatchSet
+    - fromFieldPath: spec.id
+      toFieldPath: metadata.name
+      transforms:
+      - string:
+          fmt: '%s-prv-z3'
+          type: Format
+        type: string
+      type: FromCompositeFieldPath
+  - base:
+      apiVersion: ec2.aws.crossplane.io/v1beta1
+      kind: InternetGateway
+      spec:
+        forProvider:
+          vpcIdSelector:
+            matchControllerRef: true
+        providerConfigRef:
+          name: aws-xp-provider
+    name: ec2-ig
+    patches:
+    - patchSetName: region
+      type: PatchSet
+    - fromFieldPath: spec.id
+      toFieldPath: metadata.name
+      type: FromCompositeFieldPath
+  - base:
+      apiVersion: ec2.aws.crossplane.io/v1beta1
+      kind: RouteTable
+      spec:
+        forProvider:
+          associations:
+          - subnetIdSelector:
+              matchControllerRef: true
+              matchLabels:
+                access: public
+                zone: a
+          - subnetIdSelector:
+              matchControllerRef: true
+              matchLabels:
+                access: public
+                zone: b
+          - subnetIdSelector:
+              matchControllerRef: true
+              matchLabels:
+                access: public
+                zone: c
+          routes:
+          - destinationCidrBlock: 0.0.0.0/0
+            gatewayIdSelector:
+              matchControllerRef: true
+          vpcIdSelector:
+            matchControllerRef: true
+        providerConfigRef:
+          name: aws-xp-provider
+    name: ec2-rt
+    patches:
+    - patchSetName: region
+      type: PatchSet
+    - patchSetName: route-zones
+      type: PatchSet
+    - fromFieldPath: spec.id
+      toFieldPath: metadata.name
+      transforms:
+      - string:
+          fmt: '%s-rt'
+          type: Format
+        type: string
+      type: FromCompositeFieldPath
+  - base:
+      apiVersion: eks.aws.crossplane.io/v1beta1
+      kind: Cluster
+      spec:
+        forProvider:
+          resourcesVpcConfig:
+            endpointPrivateAccess: true
+            endpointPublicAccess: true
+            subnetIdSelector:
+              matchControllerRef: true
+          roleArnSelector:
+            matchControllerRef: true
+        providerConfigRef:
+          name: aws-xp-provider
+        writeConnectionSecretToRef:
+          namespace: crossplane-system
+    connectionDetails:
+    - fromConnectionSecretKey: kubeconfig
+    name: ekscluster
+    patches:
+    - patchSetName: region
+      type: PatchSet
+    - fromFieldPath: spec.id
+      toFieldPath: metadata.name
+      transforms:
+      - string:
+          fmt: cluster-%s
+          type: Format
+        type: string
+      type: FromCompositeFieldPath
+    - fromFieldPath: spec.id
+      toFieldPath: spec.forProvider.roleArnSelector.matchLabels.role
+      transforms:
+      - string:
+          fmt: '%s-controlplane'
+          type: Format
+        type: string
+      type: FromCompositeFieldPath
+    - fromFieldPath: spec.parameters.version
+      toFieldPath: spec.forProvider.version
+      type: FromCompositeFieldPath
+    - fromFieldPath: spec.id
+      toFieldPath: spec.writeConnectionSecretToRef.name
+      transforms:
+      - string:
+          fmt: '%s-ekscluster'
+          type: Format
+        type: string
+      type: FromCompositeFieldPath
+    - fromFieldPath: metadata.name
+      toFieldPath: status.clusterName
+      type: ToCompositeFieldPath
+    - fromFieldPath: status.atProvider.identity.oidc.issuer
+      policy:
+        fromFieldPath: Optional
+      toFieldPath: status.oidcIssuerURL
+      type: ToCompositeFieldPath
+    - fromFieldPath: status.atProvider.identity.oidc.issuer
+      policy:
+        fromFieldPath: Optional
+      toFieldPath: status.oidcIssuerID
+      transforms:
+      - string:
+          regexp:
+            group: 1
+            match: ^https?:\/\/(.*)
+          type: Regexp
+        type: string
+      type: ToCompositeFieldPath
+    - fromFieldPath: spec.forProvider.roleArn
+      policy:
+        fromFieldPath: Required
+      toFieldPath: status.accountID
+      transforms:
+      - string:
+          regexp:
+            group: 1
+            match: arn:aws:iam::(\d+):.*
+          type: Regexp
+        type: string
+      type: ToCompositeFieldPath
+    - fromFieldPath: status.atProvider.status
+      toFieldPath: status.controlPlaneStatus
+      type: ToCompositeFieldPath
+    - fromFieldPath: status.atProvider.endpoint
+      toFieldPath: status.endpoint
+      type: ToCompositeFieldPath
+    readinessChecks:
+    - fieldPath: status.atProvider.status
+      matchString: ACTIVE
+      type: MatchString
+  - base:
+      apiVersion: eks.aws.crossplane.io/v1alpha1
+      kind: Addon
+      spec:
+        forProvider:
+          addonName: aws-ebs-csi-driver
+        providerConfigRef:
+          name: aws-xp-provider
+    name: ekscsi
+    patches:
+    - fromFieldPath: spec.id
+      toFieldPath: metadata.name
+      transforms:
+      - string:
+          fmt: '%s-csi'
+          type: Format
+        type: string
+      type: FromCompositeFieldPath
+    - patchSetName: region
+      type: PatchSet
+    - fromFieldPath: status.clusterName
+      toFieldPath: spec.forProvider.clusterNameRef.name
+      type: FromCompositeFieldPath
+    - combine:
+        strategy: string
+        string:
+          fmt: arn:aws:iam::%s:role/%s-csi
+        variables:
+        - fromFieldPath: status.accountID
+        - fromFieldPath: spec.id
+      policy:
+        fromFieldPath: Required
+      toFieldPath: spec.forProvider.serviceAccountRoleARN
+      type: CombineFromComposite
+  - base:
+      apiVersion: eks.aws.crossplane.io/v1alpha1
+      kind: NodeGroup
+      spec:
+        forProvider:
+          clusterNameSelector:
+            matchControllerRef: true
+          nodeRoleSelector:
+            matchControllerRef: true
+          scalingConfig:
+            maxSize: 10
+          subnetSelector:
+            matchControllerRef: true
+            matchLabels:
+              access: public
+        providerConfigRef:
+          name: aws-xp-provider
+    name: eksnode
+    patches:
+    - patchSetName: region
+      type: PatchSet
+    - fromFieldPath: spec.id
+      toFieldPath: metadata.name
+      type: FromCompositeFieldPath
+    - fromFieldPath: spec.parameters.nodeSize
+      toFieldPath: spec.forProvider.instanceTypes[0]
+      transforms:
+      - map:
+          large: t3.large
+          medium: t3.medium
+          small: t3.small
+        type: map
+      type: FromCompositeFieldPath
+    - fromFieldPath: spec.parameters.nodeCount
+      toFieldPath: spec.forProvider.scalingConfig.minSize
+      type: FromCompositeFieldPath
+    - fromFieldPath: spec.parameters.minNodeCount
+      toFieldPath: spec.forProvider.scalingConfig.desiredSize
+      type: FromCompositeFieldPath
+    - fromFieldPath: spec.id
+      toFieldPath: spec.forProvider.nodeRoleSelector.matchLabels.role
+      transforms:
+      - string:
+          fmt: '%s-nodegroup'
+          type: Format
+        type: string
+      type: FromCompositeFieldPath
+    - fromFieldPath: status.atProvider.status
+      toFieldPath: status.nodePoolStatus
+      type: ToCompositeFieldPath
+    readinessChecks:
+    - fieldPath: status.atProvider.status
+      matchString: ACTIVE
+      type: MatchString
+  - base:
+      apiVersion: iam.aws.crossplane.io/v1beta1
+      kind: OpenIDConnectProvider
+      spec:
+        forProvider:
+          clientIDList:
+          - sts.amazonaws.com
+          thumbprintList:
+          - 9e99a48a9960b14926bb7f3b02e22da2b0ab7280
+        providerConfigRef:
+          name: aws-xp-provider
+    name: eksoidcprovider
+    patches:
+    - fromFieldPath: status.oidcIssuerURL
+      policy:
+        fromFieldPath: Required
+      toFieldPath: spec.forProvider.url
+      type: FromCompositeFieldPath
+    - fromFieldPath: spec.id
+      toFieldPath: metadata.name
+      transforms:
+      - string:
+          fmt: '%s-oidc-provider'
+          type: Format
+        type: string
+      type: FromCompositeFieldPath
+  - base:
+      apiVersion: eks.aws.crossplane.io/v1alpha1
+      kind: IdentityProviderConfig
+      spec:
+        forProvider:
+          oidc:
+            clientId: sts.amazonaws.com
+        providerConfigRef:
+          name: aws-xp-provider
+    name: eksidproviderconfig
+    patches:
+    - patchSetName: region
+      type: PatchSet
+    - fromFieldPath: status.oidcIssuerURL
+      policy:
+        fromFieldPath: Required
+      toFieldPath: spec.forProvider.oidc.issuerUrl
+      type: FromCompositeFieldPath
+    - fromFieldPath: status.clusterName
+      policy:
+        fromFieldPath: Required
+      toFieldPath: spec.forProvider.clusterNameRef.name
+      type: FromCompositeFieldPath
+    - fromFieldPath: spec.id
+      toFieldPath: metadata.name
+      transforms:
+      - string:
+          fmt: '%s-idproviderconfig'
+          type: Format
+        type: string
+      type: FromCompositeFieldPath
+  - base:
+      apiVersion: eks.aws.crossplane.io/v1beta1
+      kind: FargateProfile
+      spec:
+        forProvider:
+          clusterNameSelector:
+            matchControllerRef: true
+          podExecutionRoleArnSelector:
+            matchControllerRef: true
+          subnetSelector:
+            matchControllerRef: true
+            matchLabels:
+              access: private
+        providerConfigRef:
+          name: aws-xp-provider
+    name: eksfargate
+    patches:
+    - patchSetName: region
+      type: PatchSet
+    - fromFieldPath: spec.id
+      toFieldPath: metadata.name
+      type: FromCompositeFieldPath
+    - fromFieldPath: spec.parameters.fargateNamespace
+      toFieldPath: spec.forProvider.selectors[0].namespace
+      type: FromCompositeFieldPath
+    - fromFieldPath: spec.id
+      toFieldPath: spec.forProvider.podExecutionRoleArnSelector.matchLabels.role
+      transforms:
+      - string:
+          fmt: '%s-fargateprofile'
+          type: Format
+        type: string
+      type: FromCompositeFieldPath
+    - fromFieldPath: status.atProvider.status
+      toFieldPath: status.fargateProfileStatus
+      type: ToCompositeFieldPath
+    readinessChecks:
+    - fieldPath: status.atProvider.status
+      matchString: ACTIVE
+      type: MatchString
+  - base:
+      apiVersion: kubernetes.crossplane.io/v1alpha1
+      kind: ProviderConfig
+      spec:
+        credentials:
+          secretRef:
+            key: kubeconfig
+          source: Secret
+    name: kubernetes
+    patches:
+    - fromFieldPath: spec.id
+      toFieldPath: metadata.name
+      type: FromCompositeFieldPath
+    - fromFieldPath: spec.writeConnectionSecretToRef.namespace
+      toFieldPath: spec.credentials.secretRef.namespace
+      type: FromCompositeFieldPath
+    - fromFieldPath: spec.id
+      toFieldPath: spec.credentials.secretRef.name
+      transforms:
+      - string:
+          fmt: '%s-ekscluster'
+          type: Format
+        type: string
+      type: FromCompositeFieldPath
+    readinessChecks:
+    - type: None
+  - base:
+      apiVersion: kubernetes.crossplane.io/v1alpha1
+      kind: Object
+      spec:
+        forProvider:
+          manifest:
+            apiVersion: v1
+            kind: Namespace
+            metadata:
+              name: crossplane-system
+    name: k8s-ns-xp
+    patches:
+    - fromFieldPath: spec.id
+      toFieldPath: metadata.name
+      transforms:
+      - string:
+          fmt: '%s-ns-xp'
+          type: Format
+        type: string
+      type: FromCompositeFieldPath
+    - fromFieldPath: spec.id
+      toFieldPath: spec.providerConfigRef.name
+      type: FromCompositeFieldPath
+  - base:
+      apiVersion: helm.crossplane.io/v1beta1
+      kind: ProviderConfig
+      spec:
+        credentials:
+          secretRef:
+            key: kubeconfig
+          source: Secret
+    name: helm
+    patches:
+    - fromFieldPath: spec.id
+      toFieldPath: metadata.name
+      type: FromCompositeFieldPath
+    - fromFieldPath: spec.writeConnectionSecretToRef.namespace
+      toFieldPath: spec.credentials.secretRef.namespace
+      type: FromCompositeFieldPath
+    - fromFieldPath: spec.id
+      toFieldPath: spec.credentials.secretRef.name
+      transforms:
+      - string:
+          fmt: '%s-ekscluster'
+          type: Format
+        type: string
+      type: FromCompositeFieldPath
+    readinessChecks:
+    - type: None
+  - base:
+      apiVersion: helm.crossplane.io/v1beta1
+      kind: Release
+      spec:
+        forProvider:
+          chart:
+            name: crossplane
+            repository: https://charts.crossplane.io/stable
+            version: 1.11.1
+          namespace: crossplane-system
+        rollbackLimit: 3
+    name: helm-xp
+    patches:
+    - fromFieldPath: spec.id
+      toFieldPath: metadata.name
+      transforms:
+      - string:
+          fmt: '%s-crossplane'
+          type: Format
+        type: string
+      type: FromCompositeFieldPath
+    - fromFieldPath: spec.id
+      toFieldPath: spec.providerConfigRef.name
+      type: FromCompositeFieldPath
+  - base:
+      apiVersion: kubernetes.crossplane.io/v1alpha1
+      kind: Object
+      spec:
+        forProvider:
+          manifest:
+            apiVersion: v1
+            kind: Namespace
+            metadata:
+              name: cluster-essentials
+    name: k8s-ns-tanzu-cluster-essentials
+    patches:
+    - fromFieldPath: spec.id
+      toFieldPath: metadata.name
+      transforms:
+      - string:
+          fmt: '%s-ns-tanzu-cluster-essentials'
+          type: Format
+        type: string
+      type: FromCompositeFieldPath
+    - fromFieldPath: spec.id
+      toFieldPath: spec.providerConfigRef.name
+      type: FromCompositeFieldPath
+  - base:
+      apiVersion: kubernetes.crossplane.io/v1alpha1
+      kind: Object
+      spec:
+        forProvider:
+          manifest:
+            apiVersion: rbac.authorization.k8s.io/v1
+            kind: ClusterRoleBinding
+            metadata:
+              name: cluster-essentials-admin
+            roleRef:
+              apiGroup: rbac.authorization.k8s.io
+              kind: ClusterRole
+              name: cluster-admin
+            subjects:
+            - kind: ServiceAccount
+              name: default
+              namespace: cluster-essentials
+    name: k8s-crb-tanzu-cluster-essentials
+    patches:
+    - fromFieldPath: spec.id
+      toFieldPath: metadata.name
+      transforms:
+      - string:
+          fmt: '%s-crb-tanzu-cluster-essentials'
+          type: Format
+        type: string
+      type: FromCompositeFieldPath
+    - fromFieldPath: spec.id
+      toFieldPath: spec.providerConfigRef.name
+      type: FromCompositeFieldPath
+  - base:
+      apiVersion: kubernetes.crossplane.io/v1alpha1
+      kind: Object
+      spec:
+        forProvider:
+          manifest:
+            apiVersion: v1
+            data:
+              repo: dGFwLWltYWdlcy9jbHVzdGVyLWVzc2VudGlhbHMtYnVuZGxl
+              sha256: c2hhMjU2OjIzNTQ2ODhlNDZkNGJiNDA2MGY3NGZjYTA2OTUxM2M5YjQyZmZhMTdhMGE2ZDViMGRiYjgxZWQ1MjI0MmVhNDQ=
+              use_iaas_auth: dHJ1ZQ==
+            kind: Secret
+            metadata:
+              name: ce-registry
+              namespace: cluster-essentials
+    name: k8s-secret-tanzu-cluster-essentials
+    patches:
+    - fromFieldPath: spec.id
+      toFieldPath: metadata.name
+      transforms:
+      - string:
+          fmt: '%s-secret-tanzu-cluster-essentials'
+          type: Format
+        type: string
+      type: FromCompositeFieldPath
+    - fromFieldPath: spec.id
+      toFieldPath: spec.providerConfigRef.name
+      type: FromCompositeFieldPath
+    - fromFieldPath: spec.parameters.registryHost
+      policy:
+        fromFieldPath: Required
+      toFieldPath: spec.forProvider.manifest.data.host
+      transforms:
+      - string:
+          convert: ToBase64
+          type: Convert
+        type: string
+      type: FromCompositeFieldPath
+    - fromFieldPath: spec.parameters.registryRegion
+      policy:
+        fromFieldPath: Required
+      toFieldPath: spec.forProvider.manifest.data.region
+      transforms:
+      - string:
+          convert: ToBase64
+          type: Convert
+        type: string
+      type: FromCompositeFieldPath
+  - base:
+      apiVersion: kubernetes.crossplane.io/v1alpha1
+      kind: Object
+      spec:
+        forProvider:
+          manifest:
+            apiVersion: v1
+            kind: ServiceAccount
+            metadata:
+              name: default
+              namespace: cluster-essentials
+    name: k8s-sa-tanzu-cluster-essentials
+    patches:
+    - fromFieldPath: spec.id
+      toFieldPath: metadata.name
+      transforms:
+      - string:
+          fmt: '%s-sa-tanzu-cluster-essentials'
+          type: Format
+        type: string
+      type: FromCompositeFieldPath
+    - fromFieldPath: spec.id
+      toFieldPath: spec.providerConfigRef.name
+      type: FromCompositeFieldPath
+    - combine:
+        strategy: string
+        string:
+          fmt: arn:aws:iam::%s:role/%s-cluster-essentials
+        variables:
+        - fromFieldPath: status.accountID
+        - fromFieldPath: spec.id
+      policy:
+        fromFieldPath: Required
+      toFieldPath: spec.forProvider.manifest.metadata.annotations[eks.amazonaws.com/role-arn]
+      type: CombineFromComposite
+  - base:
+      apiVersion: kubernetes.crossplane.io/v1alpha1
+      kind: Object
+      spec:
+        forProvider:
+          manifest:
+            apiVersion: v1
+            data:
+              install.sh: "#!/bin/bash\n\nset -e -o pipefail\nexport HOME=/root \nexport
+                ns_name=cluster-essentials\n\necho \"## Pulling bundle from $INSTALL_REGISTRY_HOSTNAME\"\n\n[
+                -z \"$INSTALL_REGISTRY_HOSTNAME\" ] && { echo \"INSTALL_REGISTRY_HOSTNAME
+                env var must not be empty\"; exit 1; }\n[ -z \"$CLUSTER_ESSENTIALS_REPO\"
+                ] && { echo \"CLUSTER_ESSENTIALS_REPO env var must not be empty\";
+                exit 1; }\n[ -z \"$CLUSTER_ESSENTIALS_SHA256\" ] && { echo \"CLUSTER_ESSENTIALS_SHA256
+                \ env var must not be empty\"; exit 1; }\nINSTALL_BUNDLE=${INSTALL_REGISTRY_HOSTNAME}/${CLUSTER_ESSENTIALS_REPO}@${CLUSTER_ESSENTIALS_SHA256}\nif
+                [ -z \"$USE_IAAS_AUTH\" ] || [ \"$USE_IAAS_AUTH\" != true ]; then\n
+                \ [ -z \"$INSTALL_REGISTRY_USERNAME\" ] && { echo \"INSTALL_REGISTRY_USERNAME
+                env var must not be empty\"; exit 1; }\n  [ -z \"$INSTALL_REGISTRY_PASSWORD\"
+                ] && { echo \"INSTALL_REGISTRY_PASSWORD env var must not be empty\";
+                exit 1; }\nelse\n  export INSTALL_REGISTRY_USERNAME=AWS\n  export
+                INSTALL_REGISTRY_PASSWORD=$(aws ecr get-login-password --region $AWS_REGION)\nfi\nexport
+                IMGPKG_REGISTRY_HOSTNAME_0=$INSTALL_REGISTRY_HOSTNAME\nexport IMGPKG_REGISTRY_USERNAME_0=$INSTALL_REGISTRY_USERNAME\nexport
+                IMGPKG_REGISTRY_PASSWORD_0=$INSTALL_REGISTRY_PASSWORD\nexport YTT_registry__server=$INSTALL_REGISTRY_HOSTNAME\nexport
+                YTT_registry__username=$INSTALL_REGISTRY_USERNAME\nexport YTT_registry__password=$INSTALL_REGISTRY_PASSWORD\n\nKUBECONFIG=kubeconfig\nkubectl
+                config set-cluster default --server=https://kubernetes.default.svc.cluster.local
+                --certificate-authority /var/run/secrets/kubernetes.io/serviceaccount/ca.crt
+                \nkubectl config set-credentials cluster-essentials-default --token=$(cat
+                /var/run/secrets/kubernetes.io/serviceaccount/token)\nkubectl config
+                set-context default --cluster=default --user=cluster-essentials-default\nkubectl
+                config use-context default\nkubectl cluster-info\n\nimgpkg pull -b
+                $INSTALL_BUNDLE -o ./bundle/\n\necho \"## Deploying kapp-controller\"\n(ytt
+                -f ./bundle/kapp-controller/config/ -f ./bundle/registry-creds/ --data-values-env
+                YTT --data-value-yaml kappController.deployment.concurrency=10 | kbld
+                -f- -f ./bundle/.imgpkg/images.yml) > output.yml\nkapp deploy -a kapp-controller
+                -n $ns_name -f output.yml \"$@\"\n\necho \"## Deploying secretgen-controller\"\n(ytt
+                -f ./bundle/secretgen-controller/config/ -f ./bundle/registry-creds/
+                --data-values-env YTT | kbld -f- -f ./bundle/.imgpkg/images.yml) >
+                output.yml\nkapp deploy -a secretgen-controller -n $ns_name -f output.yml
+                \"$@\"\n"
+            kind: ConfigMap
+            metadata:
+              name: scripts
+              namespace: cluster-essentials
+    name: k8s-cm-tanzu-cluster-essentials
+    patches:
+    - fromFieldPath: spec.id
+      toFieldPath: metadata.name
+      transforms:
+      - string:
+          fmt: '%s-cm-tanzu-cluster-essentials'
+          type: Format
+        type: string
+      type: FromCompositeFieldPath
+    - fromFieldPath: spec.id
+      toFieldPath: spec.providerConfigRef.name
+      type: FromCompositeFieldPath
+  - base:
+      apiVersion: kubernetes.crossplane.io/v1alpha1
+      kind: Object
+      spec:
+        forProvider:
+          manifest:
+            apiVersion: batch/v1
+            kind: Job
+            metadata:
+              name: install-cluster-essentials
+              namespace: cluster-essentials
+            spec:
+              activeDeadlineSeconds: 3600
+              backoffLimit: 0
+              template:
+                spec:
+                  containers:
+                  - args:
+                    - /scripts/install.sh
+                    - --yes
+                    command:
+                    - /bin/bash
+                    env:
+                    - name: USE_IAAS_AUTH
+                      valueFrom:
+                        secretKeyRef:
+                          key: use_iaas_auth
+                          name: ce-registry
+                          optional: true
+                    - name: INSTALL_REGISTRY_HOSTNAME
+                      valueFrom:
+                        secretKeyRef:
+                          key: host
+                          name: ce-registry
+                          optional: false
+                    - name: INSTALL_REGISTRY_USERNAME
+                      valueFrom:
+                        secretKeyRef:
+                          key: username
+                          name: ce-registry
+                          optional: true
+                    - name: INSTALL_REGISTRY_PASSWORD
+                      valueFrom:
+                        secretKeyRef:
+                          key: password
+                          name: ce-registry
+                          optional: true
+                    - name: CLUSTER_ESSENTIALS_REPO
+                      valueFrom:
+                        secretKeyRef:
+                          key: repo
+                          name: ce-registry
+                          optional: false
+                    - name: CLUSTER_ESSENTIALS_SHA256
+                      valueFrom:
+                        secretKeyRef:
+                          key: sha256
+                          name: ce-registry
+                          optional: false
+                    - name: AWS_REGION
+                      valueFrom:
+                        secretKeyRef:
+                          key: region
+                          name: ce-registry
+                          optional: false
+                    name: install-cluster-essentials
+                    resources:
+                      requests:
+                        cpu: 1000m
+                        memory: 256Mi
+                    volumeMounts:
+                    - mountPath: /scripts
+                      name: scripts-volume
+                  restartPolicy: Never
+                  volumes:
+                  - configMap:
+                      name: scripts
+                    name: scripts-volume
+              ttlSecondsAfterFinished: 3600
+    name: k8s-job-tanzu-cluster-essentials
+    patches:
+    - fromFieldPath: spec.id
+      toFieldPath: metadata.name
+      transforms:
+      - string:
+          fmt: '%s-job-tanzu-cluster-essentials'
+          type: Format
+        type: string
+      type: FromCompositeFieldPath
+    - fromFieldPath: spec.id
+      toFieldPath: spec.providerConfigRef.name
+      type: FromCompositeFieldPath
+    - fromFieldPath: spec.parameters.registryHost
+      toFieldPath: spec.forProvider.manifest.spec.template.spec.containers[0].image
+      transforms:
+      - string:
+          fmt: '%s/tap-images/carvel-docker-image:latest'
+          type: Format
+        type: string
+      type: FromCompositeFieldPath
+  - base:
+      apiVersion: kubernetes.crossplane.io/v1alpha1
+      kind: Object
+      spec:
+        forProvider:
+          manifest:
+            apiVersion: v1
+            kind: Namespace
+            metadata:
+              name: tap-install
+    name: k8s-ns-tap
+    patches:
+    - fromFieldPath: spec.id
+      toFieldPath: metadata.name
+      transforms:
+      - string:
+          fmt: '%s-ns-tap'
+          type: Format
+        type: string
+      type: FromCompositeFieldPath
+    - fromFieldPath: spec.id
+      toFieldPath: spec.providerConfigRef.name
+      type: FromCompositeFieldPath
+  - base:
+      apiVersion: kubernetes.crossplane.io/v1alpha1
+      kind: Object
+      spec:
+        forProvider:
+          manifest:
+            apiVersion: packaging.carvel.dev/v1alpha1
+            kind: PackageRepository
+            metadata:
+              name: tanzu-tap-repository
+              namespace: tap-install
+    name: k8s-packagerepo-tap
+    patches:
+    - fromFieldPath: spec.id
+      toFieldPath: metadata.name
+      transforms:
+      - string:
+          fmt: '%s-packagerepo-tap'
+          type: Format
+        type: string
+      type: FromCompositeFieldPath
+    - fromFieldPath: spec.id
+      toFieldPath: spec.providerConfigRef.name
+      type: FromCompositeFieldPath
+    - fromFieldPath: spec.parameters.registryHost
+      toFieldPath: spec.forProvider.manifest.spec.fetch.imgpkgBundle.image
+      transforms:
+      - string:
+          fmt: '%s/tap-images/tap-packages:1.4.2'
+          type: Format
+        type: string
+      type: FromCompositeFieldPath
+  - base:
+      apiVersion: kubernetes.crossplane.io/v1alpha1
+      kind: Object
+      spec:
+        forProvider:
+          manifest:
+            apiVersion: v1
+            kind: ConfigMap
+            metadata:
+              name: tap-install-values
+              namespace: tap-install
+    name: k8s-cm-tap-install-values
+    patches:
+    - fromFieldPath: spec.id
+      toFieldPath: metadata.name
+      transforms:
+      - string:
+          fmt: '%s-cm-tap-install-values'
+          type: Format
+        type: string
+      type: FromCompositeFieldPath
+    - fromFieldPath: spec.id
+      toFieldPath: spec.providerConfigRef.name
+      type: FromCompositeFieldPath
+    - patchSetName: tap-profile-cm
+      type: PatchSet
+  - base:
+      apiVersion: kubernetes.crossplane.io/v1alpha1
+      kind: Object
+      spec:
+        forProvider:
+          manifest:
+            apiVersion: v1
+            kind: Secret
+            metadata:
+              name: tap-install-values
+              namespace: tap-install
+    name: k8s-secret-tap-install-values
+    patches:
+    - fromFieldPath: spec.id
+      toFieldPath: metadata.name
+      transforms:
+      - string:
+          fmt: '%s-secret-tap-install-values'
+          type: Format
+        type: string
+      type: FromCompositeFieldPath
+    - fromFieldPath: spec.id
+      toFieldPath: spec.providerConfigRef.name
+      type: FromCompositeFieldPath
+    - patchSetName: tap-profile-secret
+      type: PatchSet
+  - base:
+      apiVersion: kubernetes.crossplane.io/v1alpha1
+      kind: Object
+      spec:
+        forProvider:
+          manifest:
+            apiVersion: rbac.authorization.k8s.io/v1
+            kind: ClusterRoleBinding
+            metadata:
+              name: tap-install-cluster-admin
+            roleRef:
+              apiGroup: rbac.authorization.k8s.io
+              kind: ClusterRole
+              name: cluster-admin
+            subjects:
+            - kind: ServiceAccount
+              name: default
+              namespace: tap-install
+    name: k8s-crb-tap-install
+    patches:
+    - fromFieldPath: spec.id
+      toFieldPath: metadata.name
+      transforms:
+      - string:
+          fmt: '%s-crb-tap-install'
+          type: Format
+        type: string
+      type: FromCompositeFieldPath
+    - fromFieldPath: spec.id
+      toFieldPath: spec.providerConfigRef.name
+      type: FromCompositeFieldPath
+  - base:
+      apiVersion: kubernetes.crossplane.io/v1alpha1
+      kind: Object
+      spec:
+        forProvider:
+          manifest:
+            apiVersion: packaging.carvel.dev/v1alpha1
+            kind: PackageInstall
+            metadata:
+              name: tap
+              namespace: tap-install
+            spec:
+              packageRef:
+                refName: tap.tanzu.vmware.com
+                versionSelection:
+                  constraints: 1.4.2
+                  prereleases: {}
+              serviceAccountName: default
+              values:
+              - secretRef:
+                  name: tap-install-values
+    name: k8s-packageinstall-tap
+    patches:
+    - fromFieldPath: spec.id
+      toFieldPath: metadata.name
+      transforms:
+      - string:
+          fmt: '%s-packageinstall-tap'
+          type: Format
+        type: string
+      type: FromCompositeFieldPath
+    - fromFieldPath: spec.id
+      toFieldPath: spec.providerConfigRef.name
+      type: FromCompositeFieldPath
+  - base:
+      apiVersion: kubernetes.crossplane.io/v1alpha1
+      kind: Object
+      spec:
+        forProvider:
+          manifest:
+            apiVersion: v1
+            kind: Namespace
+            metadata:
+              name: tap-gui
+    name: k8s-tap-gui-ns
+    patches:
+    - fromFieldPath: spec.id
+      toFieldPath: metadata.name
+      transforms:
+      - string:
+          fmt: '%s-gui-ns-tap'
+          type: Format
+        type: string
+      type: FromCompositeFieldPath
+    - fromFieldPath: spec.id
+      toFieldPath: spec.providerConfigRef.name
+      type: FromCompositeFieldPath
+  - base:
+      apiVersion: kubernetes.crossplane.io/v1alpha1
+      kind: Object
+      spec:
+        forProvider:
+          manifest:
+            apiVersion: v1
+            kind: Namespace
+            metadata:
+              name: application
+    name: k8s-tap-appspace-app-ns
+    patches:
+    - fromFieldPath: spec.id
+      toFieldPath: metadata.name
+      transforms:
+      - string:
+          fmt: '%s-appspace-ns-tap'
+          type: Format
+        type: string
+      type: FromCompositeFieldPath
+    - fromFieldPath: spec.id
+      toFieldPath: spec.providerConfigRef.name
+      type: FromCompositeFieldPath
+  - base:
+      apiVersion: kubernetes.crossplane.io/v1alpha1
+      kind: Object
+      spec:
+        forProvider:
+          manifest:
+            apiVersion: v1
+            kind: ServiceAccount
+            metadata:
+              name: tap-gui-viewer
+              namespace: tap-gui
+    name: k8s-tap-gui-viewer-sa
+    patches:
+    - fromFieldPath: spec.id
+      toFieldPath: metadata.name
+      transforms:
+      - string:
+          fmt: '%s-gui-viewer-sa-tap'
+          type: Format
+        type: string
+      type: FromCompositeFieldPath
+    - fromFieldPath: spec.id
+      toFieldPath: spec.providerConfigRef.name
+      type: FromCompositeFieldPath
+  - base:
+      apiVersion: kubernetes.crossplane.io/v1alpha1
+      kind: Object
+      spec:
+        forProvider:
+          manifest:
+            apiVersion: v1
+            kind: Secret
+            metadata:
+              annotations:
+                kubernetes.io/service-account.name: tap-gui-viewer
+              name: tap-gui-viewer
+              namespace: tap-gui
+            type: kubernetes.io/service-account-token
+    name: k8s-tap-gui-viewer-secret
+    patches:
+    - fromFieldPath: spec.id
+      toFieldPath: metadata.name
+      transforms:
+      - string:
+          fmt: '%s-gui-viewer-secret-tap'
+          type: Format
+        type: string
+      type: FromCompositeFieldPath
+    - fromFieldPath: spec.id
+      toFieldPath: spec.providerConfigRef.name
+      type: FromCompositeFieldPath
+  - base:
+      apiVersion: kubernetes.crossplane.io/v1alpha1
+      kind: Object
+      spec:
+        forProvider:
+          manifest:
+            apiVersion: rbac.authorization.k8s.io/v1
+            kind: ClusterRole
+            metadata:
+              name: k8s-reader
+            rules:
+            - apiGroups:
+              - ""
+              resources:
+              - pods
+              - pods/log
+              - services
+              - configmaps
+              - limitranges
+              verbs:
+              - get
+              - watch
+              - list
+            - apiGroups:
+              - metrics.k8s.io
+              resources:
+              - pods
+              verbs:
+              - get
+              - watch
+              - list
+            - apiGroups:
+              - apps
+              resources:
+              - deployments
+              - replicasets
+              - statefulsets
+              - daemonsets
+              verbs:
+              - get
+              - watch
+              - list
+            - apiGroups:
+              - autoscaling
+              resources:
+              - horizontalpodautoscalers
+              verbs:
+              - get
+              - watch
+              - list
+            - apiGroups:
+              - networking.k8s.io
+              resources:
+              - ingresses
+              verbs:
+              - get
+              - watch
+              - list
+            - apiGroups:
+              - networking.internal.knative.dev
+              resources:
+              - serverlessservices
+              verbs:
+              - get
+              - watch
+              - list
+            - apiGroups:
+              - autoscaling.internal.knative.dev
+              resources:
+              - podautoscalers
+              verbs:
+              - get
+              - watch
+              - list
+            - apiGroups:
+              - serving.knative.dev
+              resources:
+              - configurations
+              - revisions
+              - routes
+              - services
+              verbs:
+              - get
+              - watch
+              - list
+            - apiGroups:
+              - carto.run
+              resources:
+              - clusterconfigtemplates
+              - clusterdeliveries
+              - clusterdeploymenttemplates
+              - clusterimagetemplates
+              - clusterruntemplates
+              - clustersourcetemplates
+              - clustersupplychains
+              - clustertemplates
+              - deliverables
+              - runnables
+              - workloads
+              verbs:
+              - get
+              - watch
+              - list
+            - apiGroups:
+              - source.toolkit.fluxcd.io
+              resources:
+              - gitrepositories
+              verbs:
+              - get
+              - watch
+              - list
+            - apiGroups:
+              - source.apps.tanzu.vmware.com
+              resources:
+              - imagerepositories
+              - mavenartifacts
+              verbs:
+              - get
+              - watch
+              - list
+            - apiGroups:
+              - conventions.apps.tanzu.vmware.com
+              resources:
+              - podintents
+              verbs:
+              - get
+              - watch
+              - list
+            - apiGroups:
+              - kpack.io
+              resources:
+              - images
+              - builds
+              verbs:
+              - get
+              - watch
+              - list
+            - apiGroups:
+              - scanning.apps.tanzu.vmware.com
+              resources:
+              - sourcescans
+              - imagescans
+              - scanpolicies
+              verbs:
+              - get
+              - watch
+              - list
+            - apiGroups:
+              - tekton.dev
+              resources:
+              - taskruns
+              - pipelineruns
+              verbs:
+              - get
+              - watch
+              - list
+            - apiGroups:
+              - kappctrl.k14s.io
+              resources:
+              - apps
+              verbs:
+              - get
+              - watch
+              - list
+            - apiGroups:
+              - batch
+              resources:
+              - jobs
+              - cronjobs
+              verbs:
+              - get
+              - watch
+              - list
+    name: k8s-tap-gui-viewer-clusterrole
+    patches:
+    - fromFieldPath: spec.id
+      toFieldPath: metadata.name
+      transforms:
+      - string:
+          fmt: '%s-gui-viewer-clusterrole-tap'
+          type: Format
+        type: string
+      type: FromCompositeFieldPath
+    - fromFieldPath: spec.id
+      toFieldPath: spec.providerConfigRef.name
+      type: FromCompositeFieldPath
+  - base:
+      apiVersion: kubernetes.crossplane.io/v1alpha1
+      kind: Object
+      spec:
+        forProvider:
+          manifest:
+            apiVersion: rbac.authorization.k8s.io/v1
+            kind: ClusterRoleBinding
+            metadata:
+              name: tap-gui-read-k8s
+            roleRef:
+              apiGroup: rbac.authorization.k8s.io
+              kind: ClusterRole
+              name: k8s-reader
+            subjects:
+            - kind: ServiceAccount
+              name: tap-gui-viewer
+              namespace: tap-gui
+    name: k8s-tap-gui-viewer-crb
+    patches:
+    - fromFieldPath: spec.id
+      toFieldPath: metadata.name
+      transforms:
+      - string:
+          fmt: '%s-gui-viewer-crb-tap'
+          type: Format
+        type: string
+      type: FromCompositeFieldPath
+    - fromFieldPath: spec.id
+      toFieldPath: spec.providerConfigRef.name
+      type: FromCompositeFieldPath
+  - base:
+      apiVersion: kubernetes.crossplane.io/v1alpha1
+      kind: Object
+      spec:
+        forProvider:
+          manifest:
+            apiVersion: v1
+            kind: Secret
+            metadata:
+              annotations:
+                tekton.dev/git-0: https://github.com
+              name: gitops-credentials
+              namespace: application
+            stringData:
+              password: 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
+              username: svrc
+            type: kubernetes.io/basic-auth
+    name: k8s-tap-appspace-gitops-secret
+    patches:
+    - fromFieldPath: spec.id
+      toFieldPath: metadata.name
+      transforms:
+      - string:
+          fmt: '%s-appspace-gitops-secret-tap'
+          type: Format
+        type: string
+      type: FromCompositeFieldPath
+    - fromFieldPath: spec.id
+      toFieldPath: spec.providerConfigRef.name
+      type: FromCompositeFieldPath
+  - base:
+      apiVersion: kubernetes.crossplane.io/v1alpha1
+      kind: Object
+      spec:
+        forProvider:
+          manifest:
+            apiVersion: v1
+            kind: ServiceAccount
+            metadata:
+              annotations:
+                eks.amazonaws.com/role-arn: ARN_PATCHED_IN
+              name: default
+              namespace: application
+            secrets:
+            - name: gitops-credentials
+    name: k8s-tap-appspace-sa
+    patches:
+    - fromFieldPath: spec.id
+      toFieldPath: metadata.name
+      transforms:
+      - string:
+          fmt: '%s-appspace-sa-tap'
+          type: Format
+        type: string
+      type: FromCompositeFieldPath
+    - fromFieldPath: spec.id
+      toFieldPath: spec.providerConfigRef.name
+      type: FromCompositeFieldPath
+    - combine:
+        strategy: string
+        string:
+          fmt: arn:aws:iam::%s:role/%s-workload
+        variables:
+        - fromFieldPath: status.accountID
+        - fromFieldPath: spec.id
+      policy:
+        fromFieldPath: Required
+      toFieldPath: spec.forProvider.manifest.metadata.annotations[eks.amazonaws.com/role-arn]
+      type: CombineFromComposite
+  - base:
+      apiVersion: kubernetes.crossplane.io/v1alpha1
+      kind: Object
+      spec:
+        forProvider:
+          manifest:
+            apiVersion: rbac.authorization.k8s.io/v1
+            kind: RoleBinding
+            metadata:
+              name: default-permit-deliverable
+              namespace: application
+            roleRef:
+              apiGroup: rbac.authorization.k8s.io
+              kind: ClusterRole
+              name: deliverable
+            subjects:
+            - kind: ServiceAccount
+              name: default
+    name: k8s-appspace-rb-deliverable-tap
+    patches:
+    - fromFieldPath: spec.id
+      toFieldPath: metadata.name
+      transforms:
+      - string:
+          fmt: '%s-appspace-rb-deliverable-tap'
+          type: Format
+        type: string
+      type: FromCompositeFieldPath
+    - fromFieldPath: spec.id
+      toFieldPath: spec.providerConfigRef.name
+      type: FromCompositeFieldPath
+  - base:
+      apiVersion: kubernetes.crossplane.io/v1alpha1
+      kind: Object
+      spec:
+        forProvider:
+          manifest:
+            apiVersion: rbac.authorization.k8s.io/v1
+            kind: RoleBinding
+            metadata:
+              name: default-permit-workload
+              namespace: application
+            roleRef:
+              apiGroup: rbac.authorization.k8s.io
+              kind: ClusterRole
+              name: workload
+            subjects:
+            - kind: ServiceAccount
+              name: default
+    name: k8s-appspace-tap-rb-workload
+    patches:
+    - fromFieldPath: spec.id
+      toFieldPath: metadata.name
+      transforms:
+      - string:
+          fmt: '%s-appspace-rb-workload-tap'
+          type: Format
+        type: string
+      type: FromCompositeFieldPath
+    - fromFieldPath: spec.id
+      toFieldPath: spec.providerConfigRef.name
+      type: FromCompositeFieldPath
+  - base:
+      apiVersion: kubernetes.crossplane.io/v1alpha1
+      kind: Object
+      spec:
+        forProvider:
+          manifest:
+            apiVersion: cert-manager.io/v1
+            kind: ClusterIssuer
+            metadata:
+              name: dekt-letsencrypt
+            spec:
+              acme:
+                email: certificate-notices@dekt.io
+                privateKeySecretRef:
+                  name: dekt-letsencrypt
+                server: https://acme-v02.api.letsencrypt.org/directory
+                solvers:
+                - http01:
+                    ingress:
+                      class: contour
+    name: k8s-appspace-issuer-tap
+    patches:
+    - fromFieldPath: spec.id
+      toFieldPath: metadata.name
+      transforms:
+      - string:
+          fmt: '%s-appspace-issuer-tap'
+          type: Format
+        type: string
+      type: FromCompositeFieldPath
+    - fromFieldPath: spec.id
+      toFieldPath: spec.providerConfigRef.name
+      type: FromCompositeFieldPath
+  - base:
+      apiVersion: kubernetes.crossplane.io/v1alpha1
+      kind: Object
+      spec:
+        forProvider:
+          manifest:
+            apiVersion: v1
+            kind: Service
+            metadata:
+              name: envoy
+              namespace: tanzu-system-ingress
+        managementPolicy: Observe
+    name: k8s-appspace-observe-lb-tap
+    patches:
+    - fromFieldPath: spec.id
+      toFieldPath: metadata.name
+      transforms:
+      - string:
+          fmt: '%s-appspace-observe-lb-tap'
+          type: Format
+        type: string
+      type: FromCompositeFieldPath
+    - fromFieldPath: spec.id
+      toFieldPath: spec.providerConfigRef.name
+      type: FromCompositeFieldPath
+    - fromFieldPath: status.atProvider.manifest.status.loadBalancer.ingress[0].hostname
+      toFieldPath: status.tapLoadBalancerHostname
+      type: ToCompositeFieldPath
+  - base:
+      apiVersion: kubernetes.crossplane.io/v1alpha1
+      kind: Object
+      spec:
+        forProvider:
+          manifest:
+            apiVersion: v1
+            kind: Secret
+            metadata:
+              name: tap-tap-install-values
+              namespace: tap-install
+        managementPolicy: ObserveCreateUpdate
+        providerConfigRef:
+          name: kubernetes-provider
+    name: k8s-view-cluster-observe-secret
+    patches:
+    - fromFieldPath: spec.id
+      toFieldPath: metadata.name
+      transforms:
+      - string:
+          fmt: '%s-view-cluster-observe-secret'
+          type: Format
+        type: string
+      type: FromCompositeFieldPath
+  - base:
+      apiVersion: route53.aws.crossplane.io/v1alpha1
+      kind: ResourceRecordSet
+      spec:
+        forProvider:
+          name: '*.domain'
+          providerConfigRef:
+            name: aws-xp-provider
+          records:
+          - hostname
+          ttl: 300
+          type: CNAME
+          zoneId: ZVQGIUL8IP3S
+    name: aws-appspace-route53-record
+    patches:
+    - fromFieldPath: spec.id
+      toFieldPath: spec.forProvider.subDomain
+      transforms:
+      - string:
+          fmt: '*.%s.tap.ycf.link'
+          type: Format
+        type: string
+      type: FromCompositeFieldPath
+    - fromFieldPath: spec.id
+      toFieldPath: metadata.name
+      transforms:
+      - string:
+          fmt: '%s-appspace-record-route53-aws'
+          type: Format
+        type: string
+      type: FromCompositeFieldPath
+    - fromFieldPath: status.tapLoadBalancerHostname
+      toFieldPath: spec.forProvider.records[0]
+      type: FromCompositeFieldPath
+  writeConnectionSecretsToNamespace: crossplane-system

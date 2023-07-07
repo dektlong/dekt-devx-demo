@@ -1,0 +1,18 @@
+#@ load("@ytt:data", "data")
+
+---
+apiVersion: apiextensions.crossplane.io/v1
+kind: Composition
+metadata:
+  name: workload-space
+  labels:
+    crossplane.io/xrd: XWorkloadSpace.xp.tanzu.vmware.com
+    provider: native
+    cluster: eks
+spec:
+  compositeTypeRef:
+    apiVersion: xp.tanzu.vmware.com/v1alpha1
+    kind: XWorkloadSpace
+  writeConnectionSecretsToNamespace: crossplane-system
+  functions:
+  

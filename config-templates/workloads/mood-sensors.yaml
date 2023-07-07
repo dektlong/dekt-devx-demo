@@ -12,7 +12,7 @@ spec:
   #source code
   source:
     git:
-      url: https://github.com/dektlong/mood-sensors
+      url: https://github.com/svrc/mood-sensors
       ref:
         branch: main
   

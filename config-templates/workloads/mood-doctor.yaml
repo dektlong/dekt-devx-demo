@@ -10,7 +10,7 @@ spec:
   #source code
   source:
     git:
-      url: https://github.com/dektlong/mood-doctor
+      url: https://github.com/svrc/mood-doctor
       ref:
         branch: main
         

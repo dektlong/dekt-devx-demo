@@ -1,0 +1,1238 @@
+#@ load("@ytt:data", "data")
+
+---
+apiVersion: apiextensions.crossplane.io/v1
+kind: Composition
+metadata:
+  name: native-eks
+  labels:
+    crossplane.io/xrd: xmanagedclusters.xp.tanzu.vmware.com
+    provider: native
+    cluster: eks
+spec:
+  compositeTypeRef:
+    apiVersion: xp.tanzu.vmware.com/v1alpha1
+    kind: XManagedCluster
+  writeConnectionSecretsToNamespace: crossplane-system
+  patchSets:
+  - name: metadata
+    patches:
+    - fromFieldPath: metadata.labels
+  - name: tap-profile-cm
+    patches:
+    - type: CombineFromComposite
+      toFieldPath: spec.forProvider.manifest.data[tap.yaml]  
+      policy:
+        fromFieldPath: Required
+      combine:
+        variables:
+        - fromFieldPath: spec.parameters.subDomain    
+        - fromFieldPath: spec.parameters.domain
+        - fromFieldPath: spec.parameters.subDomain    
+        - fromFieldPath: spec.parameters.domain      
+        strategy: string
+        string:
+          fmt: #@ data.values.tap.profile
+    - type: ToCompositeFieldPath
+      fromFieldPath: spec.forProvider.manifest.data[tap.yaml]  
+      toFieldPath: status.tapProfile
+      
+      
+  - name: tap-profile-secret
+    patches:
+    - fromFieldPath: status.tapProfile
+      toFieldPath: spec.forProvider.manifest.data[tap.yaml]  
+      transforms:
+      - type: string
+        string:
+          type: Convert
+          convert: ToBase64 
+      
+  - name: region
+    patches:
+    - fromFieldPath: spec.parameters.region
+      toFieldPath: spec.forProvider.region
+      transforms:
+      - type: map
+        map: #@ dict(data.values.aws.regionMap)
+  - name: snet-zone-1
+    patches:
+    - fromFieldPath: spec.parameters.region
+      toFieldPath: metadata.labels.zone
+      transforms:
+      - type: map
+        map: #@ dict(data.values.aws.zoneMap.z1)
+    - fromFieldPath: spec.parameters.region
+      toFieldPath: spec.forProvider.availabilityZone
+      transforms:
+      - type: map
+        map: #@ dict(data.values.aws.zoneMap.z1)
+  - name: snet-zone-2
+    patches:
+    - fromFieldPath: spec.parameters.region
+      toFieldPath: metadata.labels.zone
+      transforms:
+      - type: map
+        map: #@ dict(data.values.aws.zoneMap.z2)
+    - fromFieldPath: spec.parameters.region
+      toFieldPath: spec.forProvider.availabilityZone
+      transforms:
+      - type: map
+        map: #@ dict(data.values.aws.zoneMap.z2)
+  - name: snet-zone-3
+    patches:
+    - fromFieldPath: spec.parameters.region
+      toFieldPath: metadata.labels.zone
+      transforms:
+      - type: map
+        map: #@ dict(data.values.aws.zoneMap.z3)
+    - fromFieldPath: spec.parameters.region
+      toFieldPath: spec.forProvider.availabilityZone
+      transforms:
+      - type: map
+        map: #@ dict(data.values.aws.zoneMap.z3)
+  - name: route-zones
+    patches:
+    - fromFieldPath: spec.parameters.region
+      toFieldPath: spec.forProvider.associations[0].subnetIdSelector.matchLabels.zone
+      transforms:
+      - type: map
+        map: #@ dict(data.values.aws.zoneMap.z1)
+    - fromFieldPath: spec.parameters.region
+      toFieldPath: spec.forProvider.associations[1].subnetIdSelector.matchLabels.zone
+      transforms:
+      - type: map
+        map: #@ dict(data.values.aws.zoneMap.z2)
+    - fromFieldPath: spec.parameters.region
+      toFieldPath: spec.forProvider.associations[2].subnetIdSelector.matchLabels.zone
+      transforms:
+      - type: map
+        map: #@ dict(data.values.aws.zoneMap.z3)
+        
+  resources:
+  #@ for policy in data.values.aws.policies:
+  - name: #@ 'iampolicy-' + policy
+    base:
+      apiVersion: iam.aws.crossplane.io/v1beta1
+      kind: Policy
+      spec:
+        providerConfigRef:
+          name: aws-xp-provider
+    patches:
+    - fromFieldPath: spec.id
+      toFieldPath: metadata.name
+      transforms:
+      - type: string
+        string:
+          fmt: #@ '%s-' + policy
+    - fromFieldPath: spec.id
+      toFieldPath: spec.forProvider.name
+      transforms:
+      - type: string
+        string:
+          fmt: #@ '%s-' + policy
+    - fromFieldPath: spec.id
+      toFieldPath: metadata.labels.policy
+      transforms:
+      - type: string
+        string:
+          fmt: #@ '%s-' + policy
+    - type: CombineFromComposite
+      toFieldPath: spec.forProvider.document
+      policy:
+        fromFieldPath: Required
+      combine:
+        variables:
+        #@ for fromField in data.values.aws.policies[policy].templateFields:
+        - fromFieldPath: #@ fromField
+        #@ end
+        strategy: string
+        string: 
+          fmt: #@ data.values.aws.policies[policy]['documentTemplate']          
+  #@ end
+  #@ for role in data.values.aws.roles:
+  - name: #@ 'iamrole-' + role
+    base:
+      apiVersion: iam.aws.crossplane.io/v1beta1
+      kind: Role
+      spec:
+        forProvider:
+          assumeRolePolicyDocument: #@ data.values.aws.roles[role]['assumeRolePolicyDocument']
+        providerConfigRef:
+          name: aws-xp-provider
+    patches:
+    - fromFieldPath: spec.id
+      toFieldPath: metadata.name
+      transforms:
+      - type: string
+        string:
+          fmt: #@ '%s-' + role
+    - fromFieldPath: spec.id
+      toFieldPath: metadata.labels.role
+      transforms:
+      - type: string
+        string:
+          fmt: #@ '%s-' + role
+  #@ end
+  #@ for role in data.values.aws.oidcroles:
+  - name: #@ 'iamrole-' + role
+    base:
+      apiVersion: iam.aws.crossplane.io/v1beta1
+      kind: Role
+      spec:
+        providerConfigRef:
+          name: aws-xp-provider
+    patches:
+    - fromFieldPath: spec.id
+      toFieldPath: metadata.name
+      transforms:
+      - type: string
+        string:
+          fmt: #@ '%s-' + role
+    - fromFieldPath: spec.id
+      toFieldPath: metadata.labels.role
+      transforms:
+      - type: string
+        string:
+          fmt: #@ '%s-' + role
+    - type: CombineFromComposite
+      toFieldPath: spec.forProvider.assumeRolePolicyDocument
+      policy:
+        fromFieldPath: Required
+      combine:
+        variables:
+        #@ for fromField in data.values.aws.oidcroles[role].templateFields:
+        - fromFieldPath: #@ fromField
+        #@ end
+        strategy: string
+        string: 
+          fmt:  #@ data.values.aws.oidcroles[role]['rolePolicyTemplate']
+  #@ end
+  #@ for att in data.values.aws.iamAttachments:
+  - name: #@ 'iamattachment-' + att
+    base:
+      apiVersion: iam.aws.crossplane.io/v1beta1
+      kind: RolePolicyAttachment
+      spec:
+        forProvider:
+          policyArn: #@ data.values.aws.iamAttachments[att]['policyArn']
+          roleNameSelector:
+            matchControllerRef: true
+        providerConfigRef:
+          name: aws-xp-provider
+    patches:
+    - fromFieldPath: spec.id
+      toFieldPath: metadata.name
+      transforms:
+      - type: string
+        string:
+          fmt: #@ '%s-' + att
+    - fromFieldPath: spec.id
+      toFieldPath: spec.forProvider.roleNameSelector.matchLabels.role
+      transforms:
+      - type: string
+        string:
+          fmt: #@ '%s-' + data.values.aws.iamAttachments[att]['roleSelector']
+  #@ end
+  #@ for att in data.values.aws.iamCustomAttachments:
+  - name: #@ 'iamcustomattachment-' + att
+    base:
+      apiVersion: iam.aws.crossplane.io/v1beta1
+      kind: RolePolicyAttachment
+      spec:
+        forProvider:
+          roleNameSelector:
+            matchControllerRef: true
+        providerConfigRef:
+          name: aws-xp-provider
+    patches:
+    - fromFieldPath: spec.id
+      toFieldPath: metadata.name
+      transforms:
+      - type: string
+        string:
+          fmt: #@ '%s-' + att
+    - type: CombineFromComposite
+      toFieldPath: spec.forProvider.policyArn
+      policy:
+        fromFieldPath: Required
+      combine:
+        variables:
+        #@ for fromField in data.values.aws.iamCustomAttachments[att].templateFields:
+        - fromFieldPath: #@ fromField
+        #@ end
+        strategy: string
+        string: 
+          fmt:  #@ data.values.aws.iamCustomAttachments[att]['policyArnTemplate']          
+          
+    - fromFieldPath: spec.id
+      toFieldPath: spec.forProvider.roleNameSelector.matchLabels.role
+      transforms:
+      - type: string
+        string:
+          fmt: #@ '%s-' + data.values.aws.iamCustomAttachments[att]['roleSelector']
+  #@ end
+  - name: ec2vpc
+    base:
+      apiVersion: ec2.aws.crossplane.io/v1beta1
+      kind: VPC
+      spec:
+        forProvider:
+          cidrBlock: #@ data.values.aws.vpcBlock
+          tags:
+          - key: Name
+            value: eks-vpc
+        providerConfigRef:
+          name: aws-xp-provider
+    patches:
+    - type: PatchSet
+      patchSetName: region
+    - fromFieldPath: spec.id
+      toFieldPath: metadata.name
+
+  - name: ec2sg-ng
+    base:
+      apiVersion: ec2.aws.crossplane.io/v1beta1
+      kind: SecurityGroup
+      spec:
+        forProvider:
+          description: Cluster communication with worker nodes
+          groupName: ekscluster-sg
+          vpcIdSelector:
+            matchControllerRef: true
+          egress:
+          - ipProtocol: "-1"
+            ipRanges:
+            - cidrIp: #@ data.values.aws.securityGroupEgressRange
+        providerConfigRef:
+          name: aws-xp-provider
+    patches:
+    - type: PatchSet
+      patchSetName: region
+    - fromFieldPath: spec.id
+      toFieldPath: metadata.name
+      transforms:
+      - type: string
+        string:
+          fmt: "%s-sg"
+
+  #@ for i in range(len(data.values.aws.subnets.public)):
+  - name: #@ "ec2net-pub-z" + str(i + 1) 
+    base:
+      apiVersion: ec2.aws.crossplane.io/v1beta1
+      kind: Subnet
+      metadata:
+        labels:
+          access: public
+      spec:
+        forProvider:
+          cidrBlock: #@ data.values.aws.subnets.public[i].cidrBlock
+          vpcIdSelector:
+            matchControllerRef: true
+          mapPublicIPOnLaunch: true
+          tags:
+          - key: Name
+            value: eks-snet-pub
+          - key: kubernetes.io/role/elb
+            value: "1"
+        providerConfigRef:
+          name: aws-xp-provider
+    patches:
+    - type: PatchSet
+      patchSetName: region
+    - type: PatchSet
+      patchSetName: #@ 'snet-zone-' + str(i + 1)
+    - fromFieldPath: spec.id
+      toFieldPath: metadata.name
+      transforms:
+      - type: string
+        string:
+          fmt: #@ "%s-pub-z" + str(i + 1)  
+  #@ end
+  #@ for i in range(len(data.values.aws.subnets.private)):
+  - name: #@ "ec2net-prv-z" + str(i + 1) 
+    base:
+      apiVersion: ec2.aws.crossplane.io/v1beta1
+      kind: Subnet
+      metadata:
+        labels:
+          access: private
+      spec:
+        forProvider:
+          cidrBlock: #@ data.values.aws.subnets.private[i].cidrBlock
+          vpcIdSelector:
+            matchControllerRef: true
+          mapPublicIPOnLaunch: true
+          tags:
+          - key: Name
+            value: eks-snet-prv
+        providerConfigRef:
+          name: aws-xp-provider
+    patches:
+    - type: PatchSet
+      patchSetName: region
+    - type: PatchSet
+      patchSetName: #@ 'snet-zone-' + str(i + 1)
+    - fromFieldPath: spec.id
+      toFieldPath: metadata.name
+      transforms:
+      - type: string
+        string:
+          fmt: #@ "%s-prv-z" + str(i + 1)  
+  #@ end 
+ 
+  - name: ec2-ig
+    base:
+      apiVersion: ec2.aws.crossplane.io/v1beta1
+      kind: InternetGateway
+      spec:
+        forProvider:
+          vpcIdSelector:
+            matchControllerRef: true
+        providerConfigRef:
+          name: aws-xp-provider
+    patches:
+    - type: PatchSet
+      patchSetName: region
+    - fromFieldPath: spec.id
+      toFieldPath: metadata.name
+
+  - name: ec2-rt
+    base:
+      apiVersion: ec2.aws.crossplane.io/v1beta1
+      kind: RouteTable
+      spec:
+        forProvider:
+          vpcIdSelector:
+            matchControllerRef: true
+          routes:
+            - destinationCidrBlock: 0.0.0.0/0
+              gatewayIdSelector:
+                matchControllerRef: true
+          associations:
+            - subnetIdSelector:
+                matchControllerRef: true
+                matchLabels:
+                  zone: a
+                  access: public
+            - subnetIdSelector:
+                matchControllerRef: true
+                matchLabels:
+                  zone: b
+                  access: public
+            - subnetIdSelector:
+                matchControllerRef: true
+                matchLabels:
+                  zone: c
+                  access: public
+        providerConfigRef:
+          name: aws-xp-provider
+    patches:
+    - type: PatchSet
+      patchSetName: region
+    - type: PatchSet
+      patchSetName: route-zones
+    - fromFieldPath: spec.id
+      toFieldPath: metadata.name
+      transforms:
+      - type: string
+        string:
+          fmt: "%s-rt"
+
+  - name: ekscluster
+    base:
+      apiVersion: eks.aws.crossplane.io/v1beta1
+      kind: Cluster
+      spec:
+        forProvider:
+          roleArnSelector:
+            matchControllerRef: true
+          resourcesVpcConfig:
+            endpointPrivateAccess: true
+            endpointPublicAccess: true
+            subnetIdSelector:
+              matchControllerRef: true
+        writeConnectionSecretToRef:
+          namespace: crossplane-system
+        providerConfigRef:
+          name: aws-xp-provider
+    patches:
+    - type: PatchSet
+      patchSetName: region
+    - fromFieldPath: spec.id
+      toFieldPath: metadata.name
+      transforms:
+      - type: string
+        string:
+          fmt: "cluster-%s"
+    - fromFieldPath: spec.id
+      toFieldPath: spec.forProvider.roleArnSelector.matchLabels.role
+      transforms:
+        - type: string
+          string:
+            fmt: "%s-controlplane"
+    - fromFieldPath: spec.parameters.version
+      toFieldPath: spec.forProvider.version
+    - fromFieldPath: spec.id
+      toFieldPath: spec.writeConnectionSecretToRef.name
+      transforms:
+        - type: string
+          string:
+            fmt: "%s-ekscluster"
+    - type: ToCompositeFieldPath
+      fromFieldPath: metadata.name
+      toFieldPath: status.clusterName
+    - type: ToCompositeFieldPath
+      fromFieldPath: status.atProvider.identity.oidc.issuer
+      toFieldPath: status.oidcIssuerURL
+      policy:
+        fromFieldPath: Optional
+    - type: ToCompositeFieldPath
+      fromFieldPath: status.atProvider.identity.oidc.issuer
+      toFieldPath: status.oidcIssuerID
+      policy:
+        fromFieldPath: Optional
+      transforms:
+        - type: string
+          string:
+            type: Regexp
+            regexp:
+              match: '^https?:\/\/(.*)'
+              group: 1
+    - type: ToCompositeFieldPath
+      fromFieldPath: spec.forProvider.roleArn
+      toFieldPath: status.accountID
+      policy:
+        fromFieldPath: Required
+      transforms:
+        - type: string
+          string:
+            type: Regexp
+            regexp:
+              match: 'arn:aws:iam::(\d+):.*'
+              group: 1
+    - type: ToCompositeFieldPath
+      fromFieldPath: status.atProvider.status
+      toFieldPath: status.controlPlaneStatus
+    connectionDetails:
+    - fromConnectionSecretKey: kubeconfig
+    readinessChecks:
+    - type: MatchString
+      fieldPath: status.atProvider.status
+      matchString: ACTIVE
+
+  - name: ekscsi
+    base:
+      apiVersion: eks.aws.crossplane.io/v1alpha1
+      kind: Addon
+      spec:
+        forProvider:
+          addonName: aws-ebs-csi-driver
+        providerConfigRef:
+          name: aws-xp-provider
+    patches:
+    - fromFieldPath: spec.id
+      toFieldPath: metadata.name
+      transforms:
+        - type: string
+          string:
+            fmt: "%s-csi"
+    - type: PatchSet
+      patchSetName: region
+    - fromFieldPath: status.clusterName
+      toFieldPath: spec.forProvider.clusterNameRef.name
+    - type: CombineFromComposite
+      toFieldPath: spec.forProvider.serviceAccountRoleARN
+      policy:
+        fromFieldPath: Required
+      combine:
+        variables:
+        - fromFieldPath: status.accountID     
+        - fromFieldPath: spec.id
+        strategy: string
+        string: 
+          fmt: "arn:aws:iam::%s:role/%s-csi"
+ 
+  - name: eksnode
+    base:
+      apiVersion: eks.aws.crossplane.io/v1alpha1
+      kind: NodeGroup
+      spec:
+        forProvider:
+          clusterNameSelector:
+            matchControllerRef: true
+          nodeRoleSelector:
+            matchControllerRef: true
+          subnetSelector:
+            matchControllerRef: true
+            matchLabels:
+              access: public
+          scalingConfig:
+            maxSize: #@ data.values.aws.nodeGroup.maxSize
+        providerConfigRef:
+          name: aws-xp-provider
+    patches:
+    - type: PatchSet
+      patchSetName: region
+    - fromFieldPath: spec.id
+      toFieldPath: metadata.name
+    - fromFieldPath: spec.parameters.nodeSize
+      toFieldPath: spec.forProvider.instanceTypes[0]
+      transforms:
+        - type: map
+          map: #@ dict(data.values.aws.nodeSizes)
+    - fromFieldPath: spec.parameters.nodeCount
+      toFieldPath: spec.forProvider.scalingConfig.minSize
+    - fromFieldPath: spec.parameters.minNodeCount
+      toFieldPath: spec.forProvider.scalingConfig.desiredSize
+    - fromFieldPath: spec.id
+      toFieldPath: spec.forProvider.nodeRoleSelector.matchLabels.role
+      transforms:
+        - type: string
+          string:
+            fmt: "%s-nodegroup"
+    - type: ToCompositeFieldPath
+      fromFieldPath: status.atProvider.status
+      toFieldPath: status.nodePoolStatus
+    readinessChecks:
+    - type: MatchString
+      fieldPath: status.atProvider.status
+      matchString: ACTIVE
+
+  - name: eksoidcprovider
+    base:
+      apiVersion: iam.aws.crossplane.io/v1beta1
+      kind: OpenIDConnectProvider
+      spec:
+        forProvider:
+          clientIDList:
+            - sts.amazonaws.com
+          thumbprintList:
+            - "9e99a48a9960b14926bb7f3b02e22da2b0ab7280"
+        providerConfigRef:
+          name: aws-xp-provider
+    patches:
+      - fromFieldPath: status.oidcIssuerURL
+        toFieldPath: spec.forProvider.url
+        policy:
+          fromFieldPath: Required
+      - fromFieldPath: spec.id
+        toFieldPath: metadata.name
+        transforms:
+          - type: string
+            string:
+              fmt: "%s-oidc-provider"
+
+  - name: eksidproviderconfig
+    base:
+      apiVersion: eks.aws.crossplane.io/v1alpha1
+      kind: IdentityProviderConfig
+      spec:
+        forProvider:
+          oidc:
+            clientId: sts.amazonaws.com            
+        providerConfigRef:
+          name: aws-xp-provider
+    patches:
+      - type: PatchSet
+        patchSetName: region
+      - fromFieldPath: status.oidcIssuerURL
+        toFieldPath: spec.forProvider.oidc.issuerUrl
+        policy:
+          fromFieldPath: Required
+      - fromFieldPath: status.clusterName
+        toFieldPath: spec.forProvider.clusterNameRef.name
+        policy:
+          fromFieldPath: Required
+      - fromFieldPath: spec.id
+        toFieldPath: metadata.name
+        transforms:
+          - type: string
+            string:
+              fmt: "%s-idproviderconfig"
+              
+
+  - name: eksfargate
+    base:
+      apiVersion: eks.aws.crossplane.io/v1beta1
+      kind: FargateProfile
+      spec:
+        forProvider:
+          clusterNameSelector:
+            matchControllerRef: true
+          podExecutionRoleArnSelector:
+            matchControllerRef: true
+          subnetSelector:
+            matchControllerRef: true
+            matchLabels:
+              access: private
+        providerConfigRef:
+          name: aws-xp-provider
+    patches:
+    - type: PatchSet
+      patchSetName: region
+    - fromFieldPath: spec.id
+      toFieldPath: metadata.name
+    - fromFieldPath: spec.parameters.fargateNamespace
+      toFieldPath: spec.forProvider.selectors[0].namespace
+    - fromFieldPath: spec.id
+      toFieldPath: spec.forProvider.podExecutionRoleArnSelector.matchLabels.role
+      transforms:
+        - type: string
+          string:
+            fmt: "%s-fargateprofile"
+    - type: ToCompositeFieldPath
+      fromFieldPath: status.atProvider.status
+      toFieldPath: status.fargateProfileStatus
+    readinessChecks:
+    - type: MatchString
+      fieldPath: status.atProvider.status
+      matchString: ACTIVE
+
+  - name: kubernetes
+    base:
+      apiVersion: kubernetes.crossplane.io/v1alpha1
+      kind: ProviderConfig
+      spec:
+        credentials:
+          source: Secret
+          secretRef:
+            key: kubeconfig
+    patches:
+    - fromFieldPath: spec.id
+      toFieldPath: metadata.name
+    - fromFieldPath: spec.writeConnectionSecretToRef.namespace
+      toFieldPath: spec.credentials.secretRef.namespace
+    - fromFieldPath: spec.id
+      toFieldPath: spec.credentials.secretRef.name
+      transforms:
+        - type: string
+          string:
+            fmt: "%s-ekscluster"
+    readinessChecks:
+      - type: None
+
+  - name: k8s-ns-xp
+    base:
+      apiVersion: kubernetes.crossplane.io/v1alpha1
+      kind: Object
+      spec:
+        forProvider:
+          manifest:
+            apiVersion: v1
+            kind: Namespace
+            metadata:
+              name: crossplane-system
+    patches:
+    - fromFieldPath: spec.id
+      toFieldPath: metadata.name
+      transforms:
+        - type: string
+          string:
+            fmt: "%s-ns-xp"
+    - fromFieldPath: spec.id
+      toFieldPath: spec.providerConfigRef.name
+
+
+  - name: helm
+    base:
+        apiVersion: helm.crossplane.io/v1beta1
+        kind: ProviderConfig
+        spec:
+          credentials:
+            source: Secret
+            secretRef:
+              key: kubeconfig
+    patches:
+      - fromFieldPath: spec.id
+        toFieldPath: metadata.name
+      - fromFieldPath: spec.writeConnectionSecretToRef.namespace
+        toFieldPath: spec.credentials.secretRef.namespace
+      - fromFieldPath: spec.id
+        toFieldPath: spec.credentials.secretRef.name
+        transforms:
+          - type: string
+            string:
+              fmt: "%s-ekscluster"
+    readinessChecks:
+      - type: None
+
+  - name: helm-xp
+    base:
+        apiVersion: helm.crossplane.io/v1beta1
+        kind: Release
+        spec:
+          rollbackLimit: 3
+          forProvider:
+            namespace: crossplane-system
+            chart:
+              name: crossplane
+              repository: https://charts.crossplane.io/stable
+              version: "1.11.1"
+    patches:
+    - fromFieldPath: spec.id
+      toFieldPath: metadata.name
+      transforms:
+        - type: string
+          string:
+            fmt: "%s-crossplane"
+    - fromFieldPath: spec.id
+      toFieldPath: spec.providerConfigRef.name
+      
+  - name: k8s-ns-tanzu-cluster-essentials
+    base:
+      apiVersion: kubernetes.crossplane.io/v1alpha1
+      kind: Object
+      spec:
+        forProvider:
+          manifest:
+            apiVersion: v1
+            kind: Namespace
+            metadata:
+              name: cluster-essentials
+    patches:
+    - fromFieldPath: spec.id
+      toFieldPath: metadata.name
+      transforms:
+        - type: string
+          string:
+            fmt: "%s-ns-tanzu-cluster-essentials"
+    - fromFieldPath: spec.id
+      toFieldPath: spec.providerConfigRef.name
+      
+  - name: k8s-crb-tanzu-cluster-essentials
+    base:
+      apiVersion: kubernetes.crossplane.io/v1alpha1
+      kind: Object
+      spec:
+        forProvider:
+          manifest:
+            apiVersion: rbac.authorization.k8s.io/v1
+            kind: ClusterRoleBinding
+            metadata:
+              name: cluster-essentials-admin
+            roleRef:
+              apiGroup: rbac.authorization.k8s.io
+              kind: ClusterRole
+              name: cluster-admin
+            subjects:
+            - kind: ServiceAccount
+              name: default
+              namespace: cluster-essentials
+    patches:
+    - fromFieldPath: spec.id
+      toFieldPath: metadata.name
+      transforms:
+        - type: string
+          string:
+            fmt: "%s-crb-tanzu-cluster-essentials"
+    - fromFieldPath: spec.id
+      toFieldPath: spec.providerConfigRef.name
+      
+     
+  - name: k8s-secret-tanzu-cluster-essentials
+    base:
+      apiVersion: kubernetes.crossplane.io/v1alpha1
+      kind: Object
+      spec:
+        forProvider:
+          manifest:
+            apiVersion: v1
+            kind: Secret
+            metadata:
+              namespace: cluster-essentials
+              name: ce-registry
+            data:
+              repo: dGFwLWltYWdlcy9jbHVzdGVyLWVzc2VudGlhbHMtYnVuZGxl
+              sha256: c2hhMjU2OjIzNTQ2ODhlNDZkNGJiNDA2MGY3NGZjYTA2OTUxM2M5YjQyZmZhMTdhMGE2ZDViMGRiYjgxZWQ1MjI0MmVhNDQ=
+              use_iaas_auth: dHJ1ZQ==    
+    patches:
+    - fromFieldPath: spec.id
+      toFieldPath: metadata.name
+      transforms:
+        - type: string
+          string:
+            fmt: "%s-secret-tanzu-cluster-essentials"
+    - fromFieldPath: spec.id
+      toFieldPath: spec.providerConfigRef.name
+    - fromFieldPath: spec.parameters.registryHost
+      toFieldPath: spec.forProvider.manifest.data.host 
+      policy:
+        fromFieldPath: Required
+      transforms:
+      - type: string
+        string:
+          type: Convert
+          convert: ToBase64 
+    - fromFieldPath: spec.parameters.registryRegion
+      toFieldPath: spec.forProvider.manifest.data.region 
+      policy:
+        fromFieldPath: Required
+      transforms:     
+      - type: string
+        string:
+          type: Convert
+          convert: ToBase64           
+     
+  - name: k8s-sa-tanzu-cluster-essentials
+    base:
+      apiVersion: kubernetes.crossplane.io/v1alpha1
+      kind: Object
+      spec:
+        forProvider:
+          manifest:
+            apiVersion: v1
+            kind: ServiceAccount
+            metadata:
+              namespace: cluster-essentials
+              name: default
+    patches:
+    - fromFieldPath: spec.id
+      toFieldPath: metadata.name
+      transforms:
+        - type: string
+          string:
+            fmt: "%s-sa-tanzu-cluster-essentials"
+    - fromFieldPath: spec.id
+      toFieldPath: spec.providerConfigRef.name
+    - type: CombineFromComposite
+      toFieldPath: spec.forProvider.manifest.metadata.annotations[eks.amazonaws.com/role-arn]
+      policy:
+        fromFieldPath: Required
+      combine:
+        variables:
+        - fromFieldPath: status.accountID     
+        - fromFieldPath: spec.id
+        strategy: string
+        string: 
+          fmt: "arn:aws:iam::%s:role/%s-cluster-essentials"
+          
+      
+      
+  - name: k8s-cm-tanzu-cluster-essentials
+    base:
+      apiVersion: kubernetes.crossplane.io/v1alpha1
+      kind: Object
+      spec:
+        forProvider:
+          manifest:
+            apiVersion: v1
+            kind: ConfigMap
+            metadata:
+              name: scripts
+              namespace: cluster-essentials
+            data:
+              install.sh: |
+                #!/bin/bash
+  
+                set -e -o pipefail
+                export HOME=/root 
+                export ns_name=cluster-essentials
+                
+                echo "## Pulling bundle from $INSTALL_REGISTRY_HOSTNAME"
+
+                [ -z "$INSTALL_REGISTRY_HOSTNAME" ] && { echo "INSTALL_REGISTRY_HOSTNAME env var must not be empty"; exit 1; }
+                [ -z "$CLUSTER_ESSENTIALS_REPO" ] && { echo "CLUSTER_ESSENTIALS_REPO env var must not be empty"; exit 1; }
+                [ -z "$CLUSTER_ESSENTIALS_SHA256" ] && { echo "CLUSTER_ESSENTIALS_SHA256  env var must not be empty"; exit 1; }
+                INSTALL_BUNDLE=${INSTALL_REGISTRY_HOSTNAME}/${CLUSTER_ESSENTIALS_REPO}@${CLUSTER_ESSENTIALS_SHA256}
+                if [ -z "$USE_IAAS_AUTH" ] || [ "$USE_IAAS_AUTH" != true ]; then
+                  [ -z "$INSTALL_REGISTRY_USERNAME" ] && { echo "INSTALL_REGISTRY_USERNAME env var must not be empty"; exit 1; }
+                  [ -z "$INSTALL_REGISTRY_PASSWORD" ] && { echo "INSTALL_REGISTRY_PASSWORD env var must not be empty"; exit 1; }
+                else
+                  export INSTALL_REGISTRY_USERNAME=AWS
+                  export INSTALL_REGISTRY_PASSWORD=$(aws ecr get-login-password --region $AWS_REGION)
+                fi
+                export IMGPKG_REGISTRY_HOSTNAME_0=$INSTALL_REGISTRY_HOSTNAME
+                export IMGPKG_REGISTRY_USERNAME_0=$INSTALL_REGISTRY_USERNAME
+                export IMGPKG_REGISTRY_PASSWORD_0=$INSTALL_REGISTRY_PASSWORD
+                export YTT_registry__server=$INSTALL_REGISTRY_HOSTNAME
+                export YTT_registry__username=$INSTALL_REGISTRY_USERNAME
+                export YTT_registry__password=$INSTALL_REGISTRY_PASSWORD
+    
+                KUBECONFIG=kubeconfig
+                kubectl config set-cluster default --server=https://kubernetes.default.svc.cluster.local --certificate-authority /var/run/secrets/kubernetes.io/serviceaccount/ca.crt 
+                kubectl config set-credentials cluster-essentials-default --token=$(cat /var/run/secrets/kubernetes.io/serviceaccount/token)
+                kubectl config set-context default --cluster=default --user=cluster-essentials-default
+                kubectl config use-context default
+                kubectl cluster-info
+
+                imgpkg pull -b $INSTALL_BUNDLE -o ./bundle/
+
+                echo "## Deploying kapp-controller"
+                (ytt -f ./bundle/kapp-controller/config/ -f ./bundle/registry-creds/ --data-values-env YTT --data-value-yaml kappController.deployment.concurrency=10 | kbld -f- -f ./bundle/.imgpkg/images.yml) > output.yml
+                kapp deploy -a kapp-controller -n $ns_name -f output.yml "$@"
+
+                echo "## Deploying secretgen-controller"
+                (ytt -f ./bundle/secretgen-controller/config/ -f ./bundle/registry-creds/ --data-values-env YTT | kbld -f- -f ./bundle/.imgpkg/images.yml) > output.yml
+                kapp deploy -a secretgen-controller -n $ns_name -f output.yml "$@"
+
+
+    patches:
+    - fromFieldPath: spec.id
+      toFieldPath: metadata.name
+      transforms:
+        - type: string
+          string:
+            fmt: "%s-cm-tanzu-cluster-essentials"
+    - fromFieldPath: spec.id
+      toFieldPath: spec.providerConfigRef.name
+
+     
+  - name: k8s-job-tanzu-cluster-essentials
+    base:
+      apiVersion: kubernetes.crossplane.io/v1alpha1
+      kind: Object
+      spec:
+        forProvider:
+          manifest:
+            apiVersion: batch/v1
+            kind: Job
+            metadata:
+              name: install-cluster-essentials
+              namespace: cluster-essentials
+            spec:
+              backoffLimit: 0
+              activeDeadlineSeconds: 3600
+              ttlSecondsAfterFinished: 3600
+              template:
+                spec:
+                  restartPolicy: Never
+                  volumes:
+                    - name: scripts-volume
+                      configMap:
+                        name: scripts
+                  containers:
+                  - name: install-cluster-essentials
+                    command: ["/bin/bash"]
+                    args: 
+                    - /scripts/install.sh
+                    - "--yes"
+                    resources:
+                      requests:
+                        cpu: "1000m"
+                        memory: "256Mi"
+                    volumeMounts:
+                    - name: scripts-volume
+                      mountPath: /scripts
+                    env:
+                    - name: USE_IAAS_AUTH
+                      valueFrom:
+                        secretKeyRef:
+                          name: ce-registry
+                          key: use_iaas_auth
+                          optional: true
+                    - name: INSTALL_REGISTRY_HOSTNAME
+                      valueFrom:
+                        secretKeyRef:
+                          name: ce-registry
+                          key: host
+                          optional: false
+                    - name: INSTALL_REGISTRY_USERNAME
+                      valueFrom:
+                        secretKeyRef:
+                          name: ce-registry
+                          key: username
+                          optional: true
+                    - name: INSTALL_REGISTRY_PASSWORD
+                      valueFrom:
+                        secretKeyRef:
+                          name: ce-registry
+                          key: password
+                          optional: true
+                    - name: CLUSTER_ESSENTIALS_REPO
+                      valueFrom:
+                        secretKeyRef:
+                          name: ce-registry
+                          key: repo
+                          optional: false
+                    - name: CLUSTER_ESSENTIALS_SHA256
+                      valueFrom:
+                        secretKeyRef:
+                          name: ce-registry
+                          key: sha256
+                          optional: false
+                    - name: AWS_REGION
+                      valueFrom:
+                        secretKeyRef:
+                          name: ce-registry
+                          key: region
+                          optional: false
+
+        
+    patches:
+    - fromFieldPath: spec.id
+      toFieldPath: metadata.name
+      transforms:
+        - type: string
+          string:
+            fmt: "%s-job-tanzu-cluster-essentials"
+    - fromFieldPath: spec.id
+      toFieldPath: spec.providerConfigRef.name
+    - fromFieldPath: spec.parameters.registryHost
+      toFieldPath: spec.forProvider.manifest.spec.template.spec.containers[0].image
+      transforms:
+      - type: string
+        string:
+          fmt: "%s/tap-images/carvel-docker-image:latest"
+
+  - name: k8s-ns-tap
+    base:
+      apiVersion: kubernetes.crossplane.io/v1alpha1
+      kind: Object
+      spec:
+        forProvider:
+          manifest:
+            apiVersion: v1
+            kind: Namespace
+            metadata:
+              name: tap-install
+    patches:
+    - fromFieldPath: spec.id
+      toFieldPath: metadata.name
+      transforms:
+        - type: string
+          string:
+            fmt: "%s-ns-tap"
+    - fromFieldPath: spec.id
+      toFieldPath: spec.providerConfigRef.name
+          
+  - name: k8s-packagerepo-tap
+    base:
+      apiVersion: kubernetes.crossplane.io/v1alpha1
+      kind: Object
+      spec:
+        forProvider:
+          manifest:
+            apiVersion: packaging.carvel.dev/v1alpha1
+            kind: PackageRepository
+            metadata:
+              name: tanzu-tap-repository
+              namespace: tap-install
+    patches:
+    - fromFieldPath: spec.id
+      toFieldPath: metadata.name
+      transforms:
+        - type: string
+          string:
+            fmt: "%s-packagerepo-tap"
+    - fromFieldPath: spec.id
+      toFieldPath: spec.providerConfigRef.name                 
+    - fromFieldPath: spec.parameters.registryHost
+      toFieldPath: spec.forProvider.manifest.spec.fetch.imgpkgBundle.image
+      transforms:
+      - type: string
+        string:
+          fmt: #@ "%s/tap-images/tap-packages:" + data.values.tap.version
+
+  - name: k8s-cm-tap-install-values
+    base:
+      apiVersion: kubernetes.crossplane.io/v1alpha1
+      kind: Object
+      spec:
+        forProvider:
+          manifest:
+            apiVersion: v1
+            kind: ConfigMap
+            metadata:
+              namespace: tap-install
+              name: tap-install-values 
+ 
+    patches:
+    - fromFieldPath: spec.id
+      toFieldPath: metadata.name
+      transforms:
+        - type: string
+          string:
+            fmt: "%s-cm-tap-install-values"
+    - fromFieldPath: spec.id
+      toFieldPath: spec.providerConfigRef.name
+    - type: PatchSet
+      patchSetName: tap-profile-cm
+      
+           
+  - name: k8s-secret-tap-install-values
+    base:
+      apiVersion: kubernetes.crossplane.io/v1alpha1
+      kind: Object
+      spec:
+        forProvider:
+          manifest:
+            apiVersion: v1
+            kind: Secret
+            metadata:
+              namespace: tap-install
+              name: tap-install-values 
+ 
+    patches:
+    - fromFieldPath: spec.id
+      toFieldPath: metadata.name
+      transforms:
+        - type: string
+          string:
+            fmt: "%s-secret-tap-install-values"
+    - fromFieldPath: spec.id
+      toFieldPath: spec.providerConfigRef.name
+    - type: PatchSet
+      patchSetName: tap-profile-secret
+      
+  - name: k8s-crb-tap-install
+    base:
+      apiVersion: kubernetes.crossplane.io/v1alpha1
+      kind: Object
+      spec:
+        forProvider:
+          manifest:
+            apiVersion: rbac.authorization.k8s.io/v1
+            kind: ClusterRoleBinding
+            metadata:
+              name: tap-install-cluster-admin
+            roleRef:
+              apiGroup: rbac.authorization.k8s.io
+              kind: ClusterRole
+              name: cluster-admin
+            subjects:
+            - kind: ServiceAccount
+              name: default
+              namespace: tap-install
+    patches:
+    - fromFieldPath: spec.id
+      toFieldPath: metadata.name
+      transforms:
+        - type: string
+          string:
+            fmt: "%s-crb-tap-install"
+    - fromFieldPath: spec.id
+      toFieldPath: spec.providerConfigRef.name
+      
+     
+  - name: k8s-packageinstall-tap
+    base:
+      apiVersion: kubernetes.crossplane.io/v1alpha1
+      kind: Object
+      spec:
+        forProvider:
+          manifest:
+            apiVersion: packaging.carvel.dev/v1alpha1
+            kind: PackageInstall
+            metadata:          
+              name: tap
+              namespace: tap-install             
+            spec:
+              packageRef:
+                refName: tap.tanzu.vmware.com
+                versionSelection:
+                  constraints: #@ data.values.tap.version
+                  prereleases: {}
+              serviceAccountName: default
+              values:
+              - secretRef:
+                  name: tap-install-values  
+    patches:
+    - fromFieldPath: spec.id
+      toFieldPath: metadata.name
+      transforms:
+        - type: string
+          string:
+            fmt: "%s-packageinstall-tap"
+    - fromFieldPath: spec.id
+      toFieldPath: spec.providerConfigRef.name                 

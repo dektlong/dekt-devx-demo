@@ -1,0 +1,75 @@
+#@ load("@ytt:data", "data")
+---
+apiVersion: apiextensions.crossplane.io/v1
+kind: CompositeResourceDefinition
+metadata:
+  name: xWorkloadSpaces.xp.tanzu.vmware.com
+  annotations:
+          
+spec:
+  defaultCompositionRef:
+    name: xpspace
+  group: xp.tanzu.vmware.com
+  names:
+    kind: XWorkloadSpace
+    plural: xWorkloadSpaces
+  claimNames:
+    kind: WorkloadSpace
+    plural: WorkloadSpaces
+  versions:
+  - name: v1alpha1
+    served: true
+    referenceable: true
+    schema:
+      openAPIV3Schema:
+        type: object
+        properties:
+          spec:
+            type: object
+            properties:
+              id:
+                type: string
+                description: Space ID that other objects refer to
+              clusterNamespaces:
+                type: array
+                description: cluster/namespace combos that the space owns
+                items:                
+                  type: object
+                  properties:
+                    id:
+                      type: string
+                      description: Cluster ID in Crossplane
+                    namespace:
+                      type: string
+                      description: Namespace name to provision RBAC
+                      
+              registry:
+                type: object
+                description: OCI registry for images or bundle relocation
+                properties:
+                  host: 
+                    type: string
+                    description: registry hostname
+                  
+                  
+            required:
+            - id
+            - clusterNamespaces
+            
+           
+          status:
+            type: object
+            properties:
+              clusters:
+                description: Cluster statuses
+                type: array
+                items:
+                  type: object
+                  properties:
+                    id:
+                      type: string
+                    status:
+                      type: string
+              
+              
+

@@ -418,13 +418,13 @@ EOF
     #install-prod()
     install-prod() {
 
-        install-prod-cluster1 
+    #    install-prod-cluster1 
         install-prod-cluster2
-        add-brownfield-apis
+     #   add-brownfield-apis
         
-        scripts/tanzu-handler.sh tmc-cluster attach $PROD1_CLUSTER_NAME
+     #   scripts/tanzu-handler.sh tmc-cluster attach $PROD1_CLUSTER_NAME
         scripts/tanzu-handler.sh tmc-cluster attach $PROD2_CLUSTER_NAME
-        scripts/tanzu-handler.sh tmc-cluster attach $BROWNFIELD_CLUSTER_NAME
+#        scripts/tanzu-handler.sh tmc-cluster attach $BROWNFIELD_CLUSTER_NAME
 
     }
 

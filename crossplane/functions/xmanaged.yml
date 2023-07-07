@@ -1,0 +1,281 @@
+apiVersion: xp.tanzu.vmware.com/v1alpha1
+kind: XManagedCluster
+metadata:
+  annotations:
+    kubectl.kubernetes.io/last-applied-configuration: |
+      {"apiVersion":"xp.tanzu.vmware.com/v1alpha1","kind":"ManagedCluster","metadata":{"annotations":{},"labels":{"owner":"stu"},"name":"stu-testeks8","namespace":"managed"},"spec":{"compositionSelector":{"matchLabels":{"cluster":"eks","provider":"native"}},"id":"stu-testeks8","parameters":{"fargateNamespace":"default","nodeCount":5,"nodeSize":"large","region":"use1","subDomain":"cluster2","version":"1.24"},"writeConnectionSecretToRef":{"name":"stu-testeks8"}}}
+  creationTimestamp: "2023-04-22T13:32:09Z"
+  finalizers:
+  - composite.apiextensions.crossplane.io
+  generateName: stu-testeks8-
+  generation: 19
+  labels:
+    crossplane.io/claim-name: stu-testeks8
+    crossplane.io/claim-namespace: managed
+    crossplane.io/composite: stu-testeks8-hckjb
+    owner: stu
+  name: stu-testeks8-hckjb
+  resourceVersion: "2376912"
+  uid: 35320bb2-ad8d-43d4-abb2-2d62a12189ab
+spec:
+  claimRef:
+    apiVersion: xp.tanzu.vmware.com/v1alpha1
+    kind: ManagedCluster
+    name: stu-testeks8
+    namespace: managed
+  compositionRef:
+    name: native-eks
+  compositionRevisionRef:
+    name: native-eks-b5e008e
+  compositionSelector:
+    matchLabels:
+      cluster: eks
+      provider: native
+  compositionUpdatePolicy: Automatic
+  id: stu-testeks8
+  parameters:
+    domain: tap.ycf.link
+    fargateNamespace: default
+    nodeCount: 5
+    nodeSize: large
+    profile: run
+    region: use1
+    registryHost: 897143170532.dkr.ecr.us-west-1.amazonaws.com
+    registryRegion: us-west-1
+    subDomain: cluster2
+    version: "1.24"
+  resourceRefs:
+  - apiVersion: ec2.aws.crossplane.io/v1beta1
+    kind: InternetGateway
+    name: stu-testeks8
+  - apiVersion: ec2.aws.crossplane.io/v1beta1
+    kind: RouteTable
+    name: stu-testeks8-rt
+  - apiVersion: ec2.aws.crossplane.io/v1beta1
+    kind: SecurityGroup
+    name: stu-testeks8-sg
+  - apiVersion: ec2.aws.crossplane.io/v1beta1
+    kind: Subnet
+    name: stu-testeks8-prv-z1
+  - apiVersion: ec2.aws.crossplane.io/v1beta1
+    kind: Subnet
+    name: stu-testeks8-prv-z2
+  - apiVersion: ec2.aws.crossplane.io/v1beta1
+    kind: Subnet
+    name: stu-testeks8-prv-z3
+  - apiVersion: ec2.aws.crossplane.io/v1beta1
+    kind: Subnet
+    name: stu-testeks8-pub-z1
+  - apiVersion: ec2.aws.crossplane.io/v1beta1
+    kind: Subnet
+    name: stu-testeks8-pub-z2
+  - apiVersion: ec2.aws.crossplane.io/v1beta1
+    kind: Subnet
+    name: stu-testeks8-pub-z3
+  - apiVersion: ec2.aws.crossplane.io/v1beta1
+    kind: VPC
+    name: stu-testeks8
+  - apiVersion: eks.aws.crossplane.io/v1alpha1
+    kind: Addon
+    name: stu-testeks8-csi
+  - apiVersion: eks.aws.crossplane.io/v1alpha1
+    kind: IdentityProviderConfig
+    name: stu-testeks8-idproviderconfig
+  - apiVersion: eks.aws.crossplane.io/v1alpha1
+    kind: NodeGroup
+    name: stu-testeks8
+  - apiVersion: eks.aws.crossplane.io/v1beta1
+    kind: Cluster
+    name: cluster-stu-testeks8
+  - apiVersion: eks.aws.crossplane.io/v1beta1
+    kind: FargateProfile
+    name: stu-testeks8
+  - apiVersion: helm.crossplane.io/v1beta1
+    kind: ProviderConfig
+    name: stu-testeks8
+  - apiVersion: helm.crossplane.io/v1beta1
+    kind: Release
+    name: stu-testeks8-crossplane
+  - apiVersion: iam.aws.crossplane.io/v1beta1
+    kind: OpenIDConnectProvider
+    name: stu-testeks8-oidc-provider
+  - apiVersion: iam.aws.crossplane.io/v1beta1
+    kind: Policy
+    name: stu-testeks8-tanzuappworkload
+  - apiVersion: iam.aws.crossplane.io/v1beta1
+    kind: RolePolicyAttachment
+    name: stu-testeks8-cluster-essentials
+  - apiVersion: iam.aws.crossplane.io/v1beta1
+    kind: RolePolicyAttachment
+    name: stu-testeks8-cni
+  - apiVersion: iam.aws.crossplane.io/v1beta1
+    kind: RolePolicyAttachment
+    name: stu-testeks8-controlplane
+  - apiVersion: iam.aws.crossplane.io/v1beta1
+    kind: RolePolicyAttachment
+    name: stu-testeks8-csi
+  - apiVersion: iam.aws.crossplane.io/v1beta1
+    kind: RolePolicyAttachment
+    name: stu-testeks8-fargate
+  - apiVersion: iam.aws.crossplane.io/v1beta1
+    kind: RolePolicyAttachment
+    name: stu-testeks8-registry
+  - apiVersion: iam.aws.crossplane.io/v1beta1
+    kind: RolePolicyAttachment
+    name: stu-testeks8-service
+  - apiVersion: iam.aws.crossplane.io/v1beta1
+    kind: RolePolicyAttachment
+    name: stu-testeks8-ssm
+  - apiVersion: iam.aws.crossplane.io/v1beta1
+    kind: RolePolicyAttachment
+    name: stu-testeks8-worker
+  - apiVersion: iam.aws.crossplane.io/v1beta1
+    kind: RolePolicyAttachment
+    name: stu-testeks8-workload
+  - apiVersion: iam.aws.crossplane.io/v1beta1
+    kind: Role
+    name: stu-testeks8-cluster-essentials
+  - apiVersion: iam.aws.crossplane.io/v1beta1
+    kind: Role
+    name: stu-testeks8-controlplane
+  - apiVersion: iam.aws.crossplane.io/v1beta1
+    kind: Role
+    name: stu-testeks8-csi
+  - apiVersion: iam.aws.crossplane.io/v1beta1
+    kind: Role
+    name: stu-testeks8-fargateprofile
+  - apiVersion: iam.aws.crossplane.io/v1beta1
+    kind: Role
+    name: stu-testeks8-nodegroup
+  - apiVersion: iam.aws.crossplane.io/v1beta1
+    kind: Role
+    name: stu-testeks8-workload
+  - apiVersion: kubernetes.crossplane.io/v1alpha1
+    kind: Object
+    name: stu-testeks8-appspace-gitops-secret-tap
+  - apiVersion: kubernetes.crossplane.io/v1alpha1
+    kind: Object
+    name: stu-testeks8-appspace-issuer-tap
+  - apiVersion: kubernetes.crossplane.io/v1alpha1
+    kind: Object
+    name: stu-testeks8-appspace-ns-tap
+  - apiVersion: kubernetes.crossplane.io/v1alpha1
+    kind: Object
+    name: stu-testeks8-appspace-observe-lb-tap
+  - apiVersion: kubernetes.crossplane.io/v1alpha1
+    kind: Object
+    name: stu-testeks8-appspace-rb-deliverable-tap
+  - apiVersion: kubernetes.crossplane.io/v1alpha1
+    kind: Object
+    name: stu-testeks8-appspace-rb-workload-tap
+  - apiVersion: kubernetes.crossplane.io/v1alpha1
+    kind: Object
+    name: stu-testeks8-appspace-sa-tap
+  - apiVersion: kubernetes.crossplane.io/v1alpha1
+    kind: Object
+    name: stu-testeks8-cm-tanzu-cluster-essentials
+  - apiVersion: kubernetes.crossplane.io/v1alpha1
+    kind: Object
+    name: stu-testeks8-cm-tap-install-values
+  - apiVersion: kubernetes.crossplane.io/v1alpha1
+    kind: Object
+    name: stu-testeks8-crb-tanzu-cluster-essentials
+  - apiVersion: kubernetes.crossplane.io/v1alpha1
+    kind: Object
+    name: stu-testeks8-crb-tap-install
+  - apiVersion: kubernetes.crossplane.io/v1alpha1
+    kind: Object
+    name: stu-testeks8-gui-ns-tap
+  - apiVersion: kubernetes.crossplane.io/v1alpha1
+    kind: Object
+    name: stu-testeks8-gui-viewer-clusterrole-tap
+  - apiVersion: kubernetes.crossplane.io/v1alpha1
+    kind: Object
+    name: stu-testeks8-gui-viewer-crb-tap
+  - apiVersion: kubernetes.crossplane.io/v1alpha1
+    kind: Object
+    name: stu-testeks8-gui-viewer-sa-tap
+  - apiVersion: kubernetes.crossplane.io/v1alpha1
+    kind: Object
+    name: stu-testeks8-gui-viewer-secret-tap
+  - apiVersion: kubernetes.crossplane.io/v1alpha1
+    kind: Object
+    name: stu-testeks8-job-tanzu-cluster-essentials
+  - apiVersion: kubernetes.crossplane.io/v1alpha1
+    kind: Object
+    name: stu-testeks8-ns-tanzu-cluster-essentials
+  - apiVersion: kubernetes.crossplane.io/v1alpha1
+    kind: Object
+    name: stu-testeks8-ns-tap
+  - apiVersion: kubernetes.crossplane.io/v1alpha1
+    kind: Object
+    name: stu-testeks8-ns-xp
+  - apiVersion: kubernetes.crossplane.io/v1alpha1
+    kind: Object
+    name: stu-testeks8-packageinstall-tap
+  - apiVersion: kubernetes.crossplane.io/v1alpha1
+    kind: Object
+    name: stu-testeks8-packagerepo-tap
+  - apiVersion: kubernetes.crossplane.io/v1alpha1
+    kind: Object
+    name: stu-testeks8-sa-tanzu-cluster-essentials
+  - apiVersion: kubernetes.crossplane.io/v1alpha1
+    kind: Object
+    name: stu-testeks8-secret-tanzu-cluster-essentials
+  - apiVersion: kubernetes.crossplane.io/v1alpha1
+    kind: Object
+    name: stu-testeks8-secret-tap-install-values
+  - apiVersion: kubernetes.crossplane.io/v1alpha1
+    kind: Object
+    name: stu-testeks8-view-cluster-observe-secret
+  - apiVersion: kubernetes.crossplane.io/v1alpha1
+    kind: ProviderConfig
+    name: stu-testeks8
+  - apiVersion: route53.aws.crossplane.io/v1alpha1
+    kind: ResourceRecordSet
+    name: stu-testeks8-appspace-record-route53-aws
+  writeConnectionSecretToRef:
+    name: 35320bb2-ad8d-43d4-abb2-2d62a12189ab
+    namespace: crossplane-system
+status:
+  accountID: "897143170532"
+  clusterName: cluster-stu-testeks8
+  conditions:
+  - lastTransitionTime: "2023-04-22T19:51:08Z"
+    message: 'cannot compose resources: cannot run Composition Function pipeline:
+      cannot run function "update-view-cluster": cannot run container: rpc error:
+      code = Unknown desc = exit status 1: xfn: error: spark.Command.Run(): OCI runtime
+      error: exit status 2'
+    reason: ReconcileError
+    status: "False"
+    type: Synced
+  - lastTransitionTime: "2023-04-22T13:32:27Z"
+    reason: Creating
+    status: "False"
+    type: Ready
+  connectionDetails:
+    lastPublishedTime: "2023-04-22T19:03:41Z"
+  controlPlaneStatus: ACTIVE
+  endpoint: https://21B7AEB9991B57AF63A1E1DD5C9176A4.gr7.us-east-1.eks.amazonaws.com
+  fargateProfileStatus: ACTIVE
+  nodePoolStatus: ACTIVE
+  oidcIssuerID: oidc.eks.us-east-1.amazonaws.com/id/21B7AEB9991B57AF63A1E1DD5C9176A4
+  oidcIssuerURL: https://oidc.eks.us-east-1.amazonaws.com/id/21B7AEB9991B57AF63A1E1DD5C9176A4
+  tapLoadBalancerHostname: a145053fb448d4483a9420837baad4df-1313100325.us-east-1.elb.amazonaws.com
+  tapProfile: |
+    profile: run
+    shared:
+      ingress_domain: "cluster2.tap.ycf.link"
+      ingress_issuer: tap-ingress-selfsigned
+    cnrs:
+      domain_template: '{{.Name}}.{{.Domain}}'
+    contour:
+      envoy:
+        service:
+          type: LoadBalancer
+    appliveview_connector:
+      backend:
+        host: "appliveview.cluster2.tap.ycf.link"
+        ingressEnabled: true
+        sslDeactivated: true
+    ceip_policy_disclosed: true
