@@ -32,8 +32,6 @@ create-aks-cluster() {
 		--node-count $number_of_nodes \
 		--node-vm-size $AZURE_NODE_TYPE \
 		--generate-ssh-keys
-
-	az aks get-credentials --overwrite-existing --resource-group $AZURE_RESOURCE_GROUP --name $clusterName
 }
 
 #delete-aks-cluster
@@ -80,9 +78,6 @@ create-eks-cluster () {
 		--cluster $cluster_name \
 		--service-account-role-arn arn:aws:iam::$AWS_ACCOUNT_ID:role/AmazonEKS_EBS_CSI_DriverRole-$cluster_name \
 		--force
-
-	kubectl config rename-context $AWS_IAM_USER@$clusterName.$AWS_REGION.eksctl.io $clusterName
-
 }
 
 #delete-eks-cluster
@@ -112,8 +107,6 @@ create-gke-cluster () {
 	gcloud container clusters get-credentials $cluster_name --region $GCP_REGION --project $GCP_PROJECT_ID 
 
 	gcloud components install gke-gcloud-auth-plugin
-
-	kubectl config rename-context gke_$GCP_PROJECT_ID"_"$GCP_REGION"_"$cluster_name $cluster_name
 }
 
 #delete-eks-cluster
@@ -189,6 +182,22 @@ create)
 		;;
 	gke)
 		create-gke-cluster $clusterName $numOfNodes
+		;;
+	*)
+		incorrect-usage
+		;;
+	esac
+	;;
+set-context)
+	case $clusterProvider in
+	aks)
+  		az aks get-credentials --overwrite-existing --resource-group $AZURE_RESOURCE_GROUP --name $clusterName
+    	;;
+	eks)
+		kubectl config rename-context $AWS_IAM_USER@$clusterName.$AWS_REGION.eksctl.io $clusterName
+		;;
+	gke)
+		kubectl config rename-context gke_$GCP_PROJECT_ID"_"$GCP_REGION"_"$cluster_name $cluster_name
 		;;
 	*)
 		incorrect-usage

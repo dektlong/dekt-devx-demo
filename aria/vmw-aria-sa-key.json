@@ -1,0 +1,13 @@
+{
+  "type": "service_account",
+  "project_id": "fe-asaikali",
+  "private_key_id": "0d61f759f73dbb2df07e1577912750f90682c8b2",
+  "private_key": "-----BEGIN PRIVATE KEY-----\nMIIEvgIBADANBgkqhkiG9w0BAQEFAASCBKgwggSkAgEAAoIBAQDXgoOYOjoab4P/\nKGO46DZDjJv6kHXHWRGkx5xZVfP6N0sDww1mWg2rBXD8I0nFUjTsjk/LXhYdkJWq\nIdBOvTnzRM9prqVaboSHV+plo+5GmDf7gKPj2hye0qpY+54shB7eo9S1sAvWBkap\nUE2/nmsFPzOFy/+X63Kmv9/or4SvhajqOhg3iB4peJKPoTRXYFyuEzyPtVfaxvOm\nHS5HasDKmlTTZUjJaafFSJU3lVCodkgZotNzzhdtEtmCDbe5QO/sklvEwrmwrb0m\nVE3bNQw1SArI3x6QyRH9yTmef7VELfJu40gPoLdpcfw8bXoEfJw/Sbaop0lM/GmQ\nFY+lIz8zAgMBAAECggEAQSTsJ39uYeBUu7QXVOUoxgmCet7hI2Xarf9C1URksD23\nmMcEzWwqVoiaCzWVjqaXZexs1XI26C/09c0r3SlZE564vd7zj975g7oBGkFP/Rn1\nTjqoD++2GBJhOO2ydg1oEW/flB5HraYPBQ5HukUmX5sntWmhdOhQq3QzuHAaAT4t\nZ5CSny2zCHekzR55Hdg1NsfpgQ1DvEmTG5HtfSmacUwTGOKc0CuusL+MAwMg1eBC\nhIyznWuLA8EMoVbe6wSGwX96Hi8RSabCo1wip4fhHd13pgA+m6OHkVOwq6v+Rypf\nlZxcBi2r8PZM0G8r2sqHo9orMdePlssuQzsXSFvlUQKBgQDzEKhS8s7tNrus3DIU\nisavAgWMXsAVCjsdzESw8buQl8beOFIgUFeS5rbmxp+fGuvoITFJHJDxQtg1z9/X\nEc9UESBFCl939YcZDKTWI8mn6oSgiJEBoA/+d90U46LO7yvlqQWdkB02+S08WhPB\nY5ewZ3aj5W7JIgIXivebPkVlEQKBgQDi+na6W9Fv+1DrnAp5iPXGoB4zDqiOXxib\neNLShKzzirloFNpraFK9oYORFlA/4W6I7JWXhSTPfYUS/fGGxFvEMBWqfn1kjDj0\ncAXudxC4NQvMx1vjD+3KapGaOPiKnpR4iIllo/CDjRbEl2TgQXGxWD5kv7V+bNwA\n7SXUq+IQAwKBgQCi6txX1MWbu97pSyIKIMZxUSKU5oFK2POs0liMXUqB7Slvk0KA\nxDkejqOzZRhiVXIfwfe98Ha6LzqqPu3iwt47k8sUW5KH3jsyMAZgPdaRRSCmVUMU\nWsu9nWvC750VpLvAkJzh8lGSokuOszWgnvdyVrbvvf2WtMPAMfYqyP9McQKBgQDV\nXShaipFYOOCaenaGRK705fM9f5wHKXGSRIO5jSqfTVp4cpHXwZt10uxAaL9LLXig\nkfUVF/3AZne/oKN4UgEJbUIQoRLyf7XSYbPRtG8tGgBboVPJIGIhkwgH92H7vJJI\ns+CkgPVIVEqAxuf2vs5HLXKJdoT/sQkmfcbAIktBTQKBgE+XmI3JQMN+lCVzccJJ\nU6w2NTARwyKiDk5P21FBG1uDPNRBJ14dEsgN+zCAk4iZlyVof8PVHj4e1oKLAmQ/\n/avFMyzMnba0jafIEkOwJz/UlG3ZYs+L/gJehOsuXUMT4IN1kAy46ghHAKP/1C7C\nik/JzIRbtbTf5XAncdUOoii4\n-----END PRIVATE KEY-----\n",
+  "client_email": "vmware-secure-state-account@fe-asaikali.iam.gserviceaccount.com",
+  "client_id": "112383004992382836075",
+  "auth_uri": "https://accounts.google.com/o/oauth2/auth",
+  "token_uri": "https://oauth2.googleapis.com/token",
+  "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
+  "client_x509_cert_url": "https://www.googleapis.com/robot/v1/metadata/x509/vmware-secure-state-account%40fe-asaikali.iam.gserviceaccount.com",
+  "universe_domain": "googleapis.com"
+}

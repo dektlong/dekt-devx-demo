@@ -1,0 +1,17 @@
+#@ load("@ytt:data", "data")
+---
+apiVersion: carto.run/v1alpha1
+kind: Workload
+metadata:
+  name: mood-painter
+  labels:
+    apps.tanzu.vmware.com/workload-type: server
+    app.kubernetes.io/part-of: mood-painter
+spec:
+  #image param is set in runtime
+  serviceClaims:
+  - name: reading-claim
+    ref:
+      apiVersion: services.apps.tanzu.vmware.com/v1alpha1
+      kind: ClassClaim
+      name: reading

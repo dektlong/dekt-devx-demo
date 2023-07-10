@@ -13,8 +13,13 @@ spec:
       url: https://github.com/dektlong/mood-doctor
       ref:
         branch: main
-        
-  #ServiceClaims are added in runtime
+
+  serviceClaims:       
+  - name: reading-claim
+    ref:
+      apiVersion: services.apps.tanzu.vmware.com/v1alpha1
+      kind: ClassClaim
+      name: reading
 
   params:
   - name: testing_pipeline_matching_labels

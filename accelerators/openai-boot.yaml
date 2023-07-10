@@ -1,0 +1,10 @@
+apiVersion: accelerator.apps.tanzu.vmware.com/v1alpha1
+kind: Accelerator
+metadata:
+  name: openai-boot
+spec:
+  git:
+    interval: 10s
+    url: https://github.com/dektlong/mood-predictor-openai
+    ref:
+      branch: main

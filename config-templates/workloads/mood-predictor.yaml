@@ -1,15 +1,31 @@
-#@ load("@ytt:data", "data")
----
 apiVersion: carto.run/v1alpha1
 kind: Workload
 metadata:
   name: mood-predictor
   labels:
-    apps.tanzu.vmware.com/workload-type: server
+    apps.tanzu.vmware.com/workload-type: worker
+    apps.tanzu.vmware.com/has-tests: "true"
     app.kubernetes.io/part-of: mood-predictor
 spec:
-  #image param is set in runtime
+  source:
+    git:
+      url: https://github.com/dektlong/mood-predictor-openai
+      ref:
+        branch: main
+  build:
+    env:
+    - name: BP_JVM_VERSION
+      value: "17"
+  params:
+    - name: testing_pipeline_matching_labels
+      value:
+        apps.tanzu.vmware.com/language: java
   serviceClaims:
+  - name: predictor-openai
+    ref:
+      apiVersion: services.apps.tanzu.vmware.com/v1alpha1
+      kind: ResourceClaim
+      name: openai-claim
   - name: reading-claim
     ref:
       apiVersion: services.apps.tanzu.vmware.com/v1alpha1

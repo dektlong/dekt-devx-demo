@@ -54,16 +54,19 @@ tap:
   
   tapVersion: 1.5.0
   carvelBundle: "sha256:79abddbc3b49b44fc368fede0dab93c266ff7c1fe305e2d555ed52d00361b446"
-  imageScanPortal: #accepted values: carbonblack-private-image-scan-template snyk-private-image-scan-template, private-image-scan-template
-  imageScanSensors:  #accepted values: carbonblack-private-image-scan-template snyk-private-image-scan-template, private-image-scan-template
-  imageScanDoctor:  #accepted values: carbonblack-private-image-scan-template snyk-private-image-scan-template, private-image-scan-template
-  imageScanPredictor:  #accepted values: carbonblack-private-image-scan-template snyk-private-image-scan-template, private-image-scan-template
-  sysIngressIssuer:  # used for system components, accepted values: tap-ingress-selfsigned or your own cert (in which case verify if you need to update .config/secrets/cluster-issue-sys.yaml)
+    scanTemplates: #accepted values: carbonblack-private-image-scan-template snyk-private-image-scan-template, private-image-scan-template
+    portal: snyk-private-image-scan-template 
+    sensors: carbonblack-private-image-scan-template 
+    doctor: snyk-private-image-scan-template 
+    predictor: private-image-scan-template
+    painter: carbonblack-private-image-scan-template 
   appsIngressIssuer:  # used for workloads, accepted values: tap-ingress-selfsigned or your own cert (in which case verify if you need to update .config/secrets/cluster-issue-apps.yaml)
   isvImg: #BYO image name, must be pushed to private_registry/isvs repo
 
-
 snyk: 
+  token: 
+
+openai: 
   token: 
 
 carbonblack:

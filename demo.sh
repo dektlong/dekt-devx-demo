@@ -9,12 +9,6 @@
     PROD2_CLUSTER=$(yq .clusters.prod2.name .config/demo-values.yaml)
     BROWNFIELD_CLUSTER=$(yq .clusters.brownfield.name .config/demo-values.yaml)
     PRIVATE_CLUSTER=$(yq .brownfield_apis.privateClusterContext .config/demo-values.yaml)
-    PORTAL_WORKLOAD="mood-portal"
-    SENSORS_WORKLOAD="mood-sensors"
-    MEDICAL_WORKLOAD="mood-doctor"
-    PREDICTOR_WORKLOAD="mood-predictor"
-    DEV1_WORKLOAD="myportal"
-    DEV2_WORKLOAD="mysensors"
     DEV_SUB_DOMAIN=$(yq .dns.devSubDomain .config/demo-values.yaml)
     PROD1_SUB_DOMAIN=$(yq .dns.prod1SubDomain .config/demo-values.yaml)
     PROD2_SUB_DOMAIN=$(yq .dns.prod2SubDomain .config/demo-values.yaml)
@@ -26,11 +20,12 @@
     STAGEPROD_NAMESPACE=$(yq .apps_namespaces.stageProd .config/demo-values.yaml)
     SNIFF_THRESHOLD_MILD=15
     SNIFF_THRESHOLD_AGGRESSIVE=50
-    PREDICTOR_IMAGE=$(yq .private_registry.host .config/demo-values.yaml)/isvs/$(yq .tap.isvImg .config/demo-values.yaml)
-    IMAGE_SCAN_TEMPLATE_PORTAL=$(yq .tap.imageScanPortal .config/demo-values.yaml)
-    IMAGE_SCAN_TEMPLATE_SENSORS=$(yq .tap.imageScanSensors .config/demo-values.yaml)
-    IMAGE_SCAN_TEMPLATE_DOCTOR=$(yq .tap.imageScanDoctor .config/demo-values.yaml)
-    IMAGE_SCAN_TEMPLATE_PREDICTOR=$(yq .tap.imageScanPredictor .config/demo-values.yaml)
+    IMAGE_SCAN_TEMPLATE_PORTAL=$(yq .tap.scanTemplates.portal .config/demo-values.yaml)
+    IMAGE_SCAN_TEMPLATE_SENSORS=$(yq .tap.scanTemplates.sensors .config/demo-values.yaml)
+    IMAGE_SCAN_TEMPLATE_DOCTOR=$(yq .tap.scanTemplates.doctor .config/demo-values.yaml)
+    IMAGE_SCAN_TEMPLATE_PREDICTOR=$(yq .tap.scanTemplates.predictor .config/demo-values.yaml)
+    IMAGE_SCAN_TEMPLATE_PAINTER=$(yq .tap.scanTemplates.painter .config/demo-values.yaml)
+    ISV_IMAGE=$(yq .private_registry.host .config/demo-values.yaml)/isvs/$(yq .tap.isvImg .config/demo-values.yaml)
     DEV_GITOPS_REPO=$(yq .gitops.deliverables.devRepo .config/demo-values.yaml)
     STAGE_GITOPS_REPO=$(yq .gitops.deliverables.stageRepo .config/demo-values.yaml)
     
@@ -87,13 +82,13 @@
     create-mydev() {
 
         #dev1 workload
-        scripts/dektecho.sh cmd "tanzu apps workload create $DEV1_WORKLOAD -f .config/workloads/mood-portal.yaml -y -n $DEV1_NAMESPACE"
-        tanzu apps workload create $DEV1_WORKLOAD -f .config/workloads/mood-portal.yaml \
+        scripts/dektecho.sh cmd "tanzu apps workload create myportal -f .config/workloads/mood-portal.yaml -y -n $DEV1_NAMESPACE"
+        tanzu apps workload create myportal -f .config/workloads/mood-portal.yaml \
             --env SNIFF_THRESHOLD=$SNIFF_THRESHOLD_AGGRESSIVE \
             -y -n $DEV1_NAMESPACE
 
         #dev2 workload (updated via VS Code)
-        #tanzu apps workload create $DEV2_WORKLOAD -f .config/workloads/mood-sensors.yaml -y -n $DEV2_NAMESPACE
+        #tanzu apps workload create mysensor -f .config/workloads/mood-sensors.yaml -y -n $DEV2_NAMESPACE
     }
 
     #create-workloads
@@ -103,32 +98,36 @@
         sniffThershold=$2
 
         #portal workload
-        scripts/dektecho.sh cmd "tanzu apps workload create $PORTAL_WORKLOAD -f .config/workloads/mood-portal.yaml -y -n $appNamespace" 
-        tanzu apps workload create $PORTAL_WORKLOAD -f .config/workloads/mood-portal.yaml \
+        scripts/dektecho.sh cmd "tanzu apps workload create -f .config/workloads/mood-portal.yaml -y -n $appNamespace" 
+        tanzu apps workload create -f .config/workloads/mood-portal.yaml \
             --param scanning_image_template=$IMAGE_SCAN_TEMPLATE_PORTAL \
             --env SNIFF_THRESHOLD=$sniffThershold \
             -y -n $appNamespace
 
         #sensors workload
-        scripts/dektecho.sh cmd "tanzu apps workload create $SENSORS_WORKLOAD -f .config/workloads/mood-sensors.yaml -y -n $appNamespace"
-         tanzu apps workload create $SENSORS_WORKLOAD -f .config/workloads/mood-sensors.yaml \
+        scripts/dektecho.sh cmd "tanzu apps workload create -f .config/workloads/mood-sensors.yaml -y -n $appNamespace"
+         tanzu apps workload create -f .config/workloads/mood-sensors.yaml \
             --param scanning_image_template=$IMAGE_SCAN_TEMPLATE_SENSORS \
-            --service-ref inventory-claim=services.apps.tanzu.vmware.com/v1alpha1:ClassClaim:inventory \
-            --service-ref reading-claim=services.apps.tanzu.vmware.com/v1alpha1:ClassClaim:reading \
-            -y -n $appNamespace
+             -y -n $appNamespace
 
         #doctor workload
-        scripts/dektecho.sh cmd "tanzu apps workload create $MEDICAL_WORKLOAD -f .config/workloads/mood-doctor.yaml -y -n $appNamespace"
-        tanzu apps workload create $MEDICAL_WORKLOAD -f .config/workloads/mood-doctor.yaml \
+        scripts/dektecho.sh cmd "tanzu apps workload create -f .config/workloads/mood-doctor.yaml -y -n $appNamespace"
+        tanzu apps workload create -f .config/workloads/mood-doctor.yaml \
             --param scanning_image_template=$IMAGE_SCAN_TEMPLATE_DOCTOR \
-            --service-ref reading-claim=services.apps.tanzu.vmware.com/v1alpha1:ClassClaim:reading \
             -y -n $appNamespace
 
         #predictor workload 
-        scripts/dektecho.sh cmd "tanzu apps workload create $PREDICTOR_WORKLOAD -f .config/workloads/mood-predictor.yaml -y -n $appNamespace"
-        tanzu apps workload create $PREDICTOR_WORKLOAD -f .config/workloads/mood-predictor.yaml \
-            --image $PREDICTOR_IMAGE \
+        kubectl apply -f .config/secrets/openai-creds.yaml -n $appNamespace
+        scripts/dektecho.sh cmd "tanzu apps workload create -f .config/workloads/mood-predictor.yaml -y -n $appNamespace"
+        tanzu apps workload create -f .config/workloads/mood-predictor.yaml \
             --param scanning_image_template=$IMAGE_SCAN_TEMPLATE_PREDICTOR \
+            -y -n $appNamespace
+
+        #painter workload 
+        scripts/dektecho.sh cmd "tanzu apps workload create -f .config/workloads/mood-painter.yaml -y -n $appNamespace"
+        tanzu apps workload create -f .config/workloads/mood-painter.yaml \
+            --image $ISV_IMAGE \
+            --param scanning_image_template=$IMAGE_SCAN_TEMPLATE_PAINTER \
             -y -n $appNamespace
 
     }
@@ -164,6 +163,7 @@
         #rabbitmq reading queue
         scripts/dektecho.sh cmd "tanzu service class-claim create reading --class rabbitmq-unmanaged --parameter replicas=$rabbitReplicas --parameter storageGB=1 -n $appNamespace"
         tanzu service class-claim create reading --class rabbitmq-unmanaged --parameter replicas=$rabbitReplicas --parameter storageGB=1 -n $appNamespace
+
     }
 
 
@@ -177,9 +177,10 @@
         create-service-claims $STAGEPROD_NAMESPACE aws-rds-psql 20 1
 
         scripts/dektecho.sh status "Applying staging deliverables to $clusterName production cluster..."
-        kubectl apply -f ../$STAGE_GITOPS_REPO/config/$STAGEPROD_NAMESPACE/$MEDICAL_WORKLOAD -n $STAGEPROD_NAMESPACE
-        kubectl apply -f ../$STAGE_GITOPS_REPO/config/$STAGEPROD_NAMESPACE/$PORTAL_WORKLOAD -n $STAGEPROD_NAMESPACE
-        kubectl apply -f ../$STAGE_GITOPS_REPO/config/$STAGEPROD_NAMESPACE/$SENSORS_WORKLOAD -n $STAGEPROD_NAMESPACE
+        kubectl apply -f ../$STAGE_GITOPS_REPO/config/$STAGEPROD_NAMESPACE/mood-portal -n $STAGEPROD_NAMESPACE
+        kubectl apply -f ../$STAGE_GITOPS_REPO/config/$STAGEPROD_NAMESPACE/mood-sensors -n $STAGEPROD_NAMESPACE
+        kubectl apply -f ../$STAGE_GITOPS_REPO/config/$STAGEPROD_NAMESPACE/mood-predictor -n $STAGEPROD_NAMESPACE
+        kubectl apply -f ../$STAGE_GITOPS_REPO/config/$STAGEPROD_NAMESPACE/mood-painter -n $STAGEPROD_NAMESPACE
 
     }
 
@@ -189,28 +190,6 @@
         scripts/dektecho.sh cmd "tanzu apps cluster-supply-chain list"
         
         tanzu apps cluster-supply-chain list
-    }
-
-    #track-workloads
-    track-workloads () {
-
-        appNamespace=$1
-        showLogs=$2
-
-        scripts/dektecho.sh cmd "tanzu apps workload get $PORTAL_WORKLOAD -n $appNamespace"
-        tanzu apps workload get $PORTAL_WORKLOAD -n $appNamespace
-
-        scripts/dektecho.sh cmd "tanzu apps workload get $MEDICAL_WORKLOAD -n $appNamespace"
-        tanzu apps workload get $MEDICAL_WORKLOAD -n $appNamespace
-
-        scripts/dektecho.sh cmd "tanzu apps workload get $SENSORS_WORKLOAD -n $appNamespace"
-        tanzu apps workload get $SENSORS_WORKLOAD -n $appNamespace
-        
-        if [ "$showLogs" == "logs" ]; then
-            scripts/dektecho.sh cmd "tanzu apps workload tail $SENSORS_WORKLOAD --since 100m --timestamp  -n $appNamespace"
-            
-            tanzu apps workload tail $SENSORS_WORKLOAD --since 100m --timestamp  -n $appNamespace
-        fi
     }
 
     
@@ -252,8 +231,8 @@
     reset-dev () {
 
         kubectl config use-context $DEV_CLUSTER
-        tanzu apps workload delete $DEV1_WORKLOAD -n $DEV1_NAMESPACE -y
-        tanzu apps workload delete $DEV2_WORKLOAD -n $DEV2_NAMESPACE -y
+        tanzu apps workload delete myportal -n $DEV1_NAMESPACE -y
+        tanzu apps workload delete mysensors -n $DEV2_NAMESPACE -y
     }
     
     #reset-team-stage
@@ -264,10 +243,7 @@
         
         kubectl config use-context $clusterName
 
-        tanzu apps workload delete $MEDICAL_WORKLOAD -n $appNamespace -y
-        tanzu apps workload delete $PREDICTOR_WORKLOAD -n $appNamespace -y
-        tanzu apps workload delete $PORTAL_WORKLOAD -n $appNamespace -y
-        tanzu apps workload delete $SENSORS_WORKLOAD -n $appNamespace -y
+        kubectl delete -f .config/workloads -n $appNamespace
         tanzu service class-claim delete reading -y -n $appNamespace
         tanzu service class-claim delete inventory -y -n $appNamespace
     }
@@ -278,9 +254,7 @@
         clusterName=$1
 
         kubectl config use-context $clusterName
-        kubectl delete -f ../$STAGE_GITOPS_REPO/config/$STAGEPROD_NAMESPACE/$MEDICAL_WORKLOAD -n $STAGEPROD_NAMESPACE
-        kubectl delete -f ../$STAGE_GITOPS_REPO/config/$STAGEPROD_NAMESPACE/$PORTAL_WORKLOAD -n $STAGEPROD_NAMESPACE
-        kubectl delete -f ../$STAGE_GITOPS_REPO/config/$STAGEPROD_NAMESPACE/$SENSORS_WORKLOAD -n $STAGEPROD_NAMESPACE
+        kubectl delete -f ../$STAGE_GITOPS_REPO/config/$STAGEPROD_NAMESPACE -n $STAGEPROD_NAMESPACE
         tanzu service class-claim delete reading -y -n $STAGEPROD_NAMESPACE
         tanzu service class-claim delete inventory -y -n $STAGEPROD_NAMESPACE
       
@@ -350,11 +324,11 @@ prod)
     ;;
 behappy)
     kubectl config use-context $DEV_CLUSTER
-    tanzu apps workload apply $PORTAL_WORKLOAD --env SNIFF_THRESHOLD=$SNIFF_THRESHOLD_MILD -n $TEAM_NAMESPACE -y
+    tanzu apps workload apply mood-portal --env SNIFF_THRESHOLD=$SNIFF_THRESHOLD_MILD -n $TEAM_NAMESPACE -y
     ;;   
 besad)
     kubectl config use-context $DEV_CLUSTER
-    tanzu apps workload apply $PORTAL_WORKLOAD --env SNIFF_THRESHOLD=$SNIFF_THRESHOLD_AGGRESSIVE -n $TEAM_NAMESPACE -y
+    tanzu apps workload apply  mood-portal --env SNIFF_THRESHOLD=$SNIFF_THRESHOLD_AGGRESSIVE -n $TEAM_NAMESPACE -y
     ;;
 track)
     case $2 in

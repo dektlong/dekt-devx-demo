@@ -130,6 +130,7 @@ generate-config-yamls() {
     cp -a config-templates/secrets/ .config/secrets
     ytt -f config-templates/secrets/carbonblack-creds.yaml --data-values-file=.config/demo-values.yaml > .config/secrets/carbonblack-creds.yaml
     ytt -f config-templates/secrets/snyk-creds.yaml --data-values-file=.config/demo-values.yaml > .config/secrets/snyk-creds.yaml
+    ytt -f config-templates/secrets/openai-creds.yaml --data-values-file=.config/demo-values.yaml > .config/secrets/openai-creds.yaml
     ytt -f config-templates/secrets/git-creds.yaml --data-values-file=.config/demo-values.yaml > .config/secrets/git-creds.yaml
     ytt -f config-templates/secrets/ingress-issuer-sys.yaml --data-values-file=.config/demo-values.yaml > .config/secrets/ingress-issuer-sys.yaml
     ytt -f config-templates/secrets/ingress-issuer-apps.yaml --data-values-file=.config/demo-values.yaml > .config/secrets/ingress-issuer-apps.yaml
@@ -137,7 +138,6 @@ generate-config-yamls() {
     #crossplane
     mkdir -p .config/crossplane
     cp -a config-templates/crossplane/ .config/crossplane
-    ytt -f config-templates/crossplane/inventory-db-composition.yml --data-values-file=.config/demo-values.yaml > .config/crossplane/inventory-db-composition.yml
     
     #workloads
     mkdir -p .config/workloads

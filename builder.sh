@@ -464,6 +464,10 @@ EOF
     #install-devstage
     install-devstage () {
         
+        scripts/k8s-handler.sh set-context $VIEW_CLUSTER_PROVIDER $VIEW_CLUSTER_NAME
+        scripts/k8s-handler.sh set-context $DEV_CLUSTER_PROVIDER $DEV_CLUSTER_NAME
+        scripts/k8s-handler.sh set-context $STAGE_CLUSTER_PROVIDER $STAGE_CLUSTER_NAME
+
         install-view-cluster
         install-dev-cluster
         install-stage-cluster
@@ -476,6 +480,11 @@ EOF
 
     #install-prod()
     install-prod() {
+
+        scripts/k8s-handler.sh set-context $PROD1_CLUSTER_PROVIDER $PROD1_CLUSTER_NAME
+        scripts/k8s-handler.sh set-context $PROD2_CLUSTER_PROVIDER $PROD2_CLUSTER_NAME
+        scripts/k8s-handler.sh set-context $BROWNFIELD_CLUSTER_PROVIDER $BROWNFIELD_CLUSTER_NAME
+
 
         install-prod-cluster1 
         install-prod-cluster2
@@ -541,7 +550,7 @@ install)
         install-devstage
         install-prod
         ;;
-    devstage) 
+    devstage)
         install-devstage
         ;;
     prod)
