@@ -22,7 +22,7 @@ create-aks-cluster() {
 	cluster_name=$1
 	number_of_nodes=$2
 
-	scripts/dektecho.sh info "Creating AKS cluster named $cluster_name with $number_of_nodes nodes"
+	scripts/dektecho.sh info "Creating AKS cluster $cluster_name with $number_of_nodes nodes"
 		
 	#make sure your run 'az login' and use WorkspaceOn SSO prior to running this
 	
