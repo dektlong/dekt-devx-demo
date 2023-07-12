@@ -2,6 +2,7 @@
 
 #azure configs
 AZURE_LOCATION=$(yq .clouds.azure.location .config/demo-values.yaml)
+AZURE_SUBSCRIPTION_ID=$(yq .clouds.azure.subscriptionID .config/demo-values.yaml)
 AZURE_RESOURCE_GROUP=$(yq .clouds.azure.resourceGroup .config/demo-values.yaml)
 AZURE_NODE_TYPE=$(yq .clouds.azure.nodeType .config/demo-values.yaml)
 #aws configs
@@ -125,6 +126,91 @@ delete-gke-cluster () {
 
 }
 
+#setup-rds-crossplane
+setup-rds-crossplane () {
+
+        scripts/dektecho.sh status "Installing crossplane provider for AWS and configure RDS Postgres access"
+        
+        kubectl apply -f .config/crossplane/aws/aws-provider.yaml
+        	kubectl wait "providers.pkg.crossplane.io/provider-aws" --for=condition=Healthy --timeout=3m
+		
+		awsProfile=default && echo -e "[default]\naws_access_key_id = $(aws configure get aws_access_key_id --profile $awsProfile)\naws_secret_access_key = $(aws configure get aws_secret_access_key --profile $awsProfile)\naws_session_token = $(aws configure get aws_session_token --profile $awsProfile)" > .config/creds-aws.conf
+    	kubectl create secret generic aws-provider-creds -n crossplane-system --from-file=creds=.config/creds-aws.conf
+    	rm -f .config/creds-aws.conf
+
+		kubectl apply -f .config/crossplane/aws/aws-provider-config.yaml
+		kubectl apply -f .config/crossplane/aws/rds-postgres-xrd.yaml
+		kubectl apply -f .config/crossplane/aws/rds-postgres-composition.yaml
+		kubectl apply -f .config/crossplane/aws/rds-postgres-class.yaml
+		kubectl apply -f .config/crossplane/aws/rds-postgres-rbac.yaml
+
+   
+}
+
+#setup-azuresql-crossplane
+setup-azuresql-crossplane () {
+
+	scripts/dektecho.sh status "Installing crossplane provider for Azure and configure AzureSQL Postgres access"
+
+	kubectl apply -f .config/crossplane/azure/azure-provider.yaml
+		kubectl -n crossplane-system wait provider/provider-jet-azure --for=condition=Healthy=True --timeout=3m
+	
+	azureSpName='sql-crossplane-demo'
+	kubectl create secret generic jet-azure-creds -o yaml --dry-run=client --from-literal=creds="$(
+	az ad sp create-for-rbac -n "${azureSpName}" \
+	--sdk-auth \
+	--role "Contributor" \
+	--scopes "/subscriptions/${AZURE_SUBSCRIPTION_ID}" \
+	-o json
+	)" | kubectl apply -n crossplane-system -f -
+
+	kubectl apply -f .config/crossplane/azure/azure-provider-config.yaml
+
+	serviceAccount=$(kubectl -n crossplane-system get sa -o name | grep provider-kubernetes | sed -e 's|serviceaccount\/|crossplane-system:|g')
+	kubectl create role -n crossplane-system password-manager --resource=passwords.secretgen.k14s.io --verb=create,get,update,delete
+	kubectl create rolebinding -n crossplane-system provider-kubernetes-password-manager --role password-manager --serviceaccount="${serviceAccount}"
+
+kubectl apply -f - <<'EOF'
+apiVersion: kubernetes.crossplane.io/v1alpha1
+kind: ProviderConfig
+metadata:
+  name: default
+spec:
+  credentials:
+    source: InjectedIdentity
+EOF
+	
+	kubectl apply -f .config/crossplane/azure/azuresql-postgres-xrd.yaml
+	kubectl apply -f .config/crossplane/azure/azuresql-postgres-composition.yaml
+	kubectl apply -f .config/crossplane/azure/azuresql-postgres-class.yaml
+	kubectl apply -f .config/crossplane/azure/azuresql-postgres-rbac.yaml
+
+}
+
+#setup-cloudsql-crossplane
+setup-cloudsql-crossplane () {
+
+	scripts/dektecho.sh status "Installing crossplane provider for GCP and configure CloudSQL Postgres access"
+
+	kubectl apply -f .config/crossplane/gcp/gcp-provider.yaml
+		kubectl wait "providers.pkg.crossplane.io/provider-gcp" --for=condition=Healthy --timeout=3m
+
+	SA_NAME=crossplane-cloudsql
+    gcloud iam service-accounts create "${SA_NAME}" --project "${GCP_PROJECT_ID}"
+    gcloud projects add-iam-policy-binding "${GCP_PROJECT_ID}" \
+        --role="roles/cloudsql.admin" \
+        --member "serviceAccount:${SA_NAME}@${GCP_PROJECT_ID}.iam.gserviceaccount.com"
+    gcloud iam service-accounts keys create creds-gcp.json --project "${GCP_PROJECT_ID}" --iam-account "${SA_NAME}@${GCP_PROJECT_ID}.iam.gserviceaccount.com"
+    kubectl create secret generic gcp-creds -n crossplane-system --from-file=creds=.config/creds-gcp.json
+	rm -f .config/creds-gcp.json
+
+	kubectl apply -f .config/crossplane/gcp/gcp-provider-config.yaml
+	kubectl apply -f .config/crossplane/gcp/cloudsql-postgres-xrd.yaml
+	kubectl apply -f .config/crossplane/gcp/cloudsql-postgres-composition.yaml
+	kubectl apply -f .config/crossplane/gcp/cloudsql-postgres-class.yaml
+	kubectl apply -f .config/crossplane/gcp/cloudsql-postgres-rbac.yaml
+
+}
 
 #install-krew
 install-krew () {
@@ -197,7 +283,7 @@ set-context)
 		kubectl config rename-context $AWS_IAM_USER@$clusterName.$AWS_REGION.eksctl.io $clusterName
 		;;
 	gke)
-		kubectl config rename-context gke_$GCP_PROJECT_ID"_"$GCP_REGION"_"$cluster_name $cluster_name
+		kubectl config rename-context gke_$GCP_PROJECT_ID"_"$GCP_REGION"_"$clusterName $clusterName
 		;;
 	*)
 		incorrect-usage
@@ -219,7 +305,23 @@ delete)
 		incorrect-usage
 		;;
 	esac
-	;;	
+	;;
+setup-crossplane)
+	case $clusterProvider in
+	aks)
+  		setup-azuresql-crossplane
+    	;;
+	eks)
+		setup-rds-crossplane
+		;;
+	gke)
+		setup-cloudsql-crossplane
+		;;
+	*)
+		incorrect-usage
+		;;
+	esac
+	;;
 install-krew)
 	install-krew
 	;;

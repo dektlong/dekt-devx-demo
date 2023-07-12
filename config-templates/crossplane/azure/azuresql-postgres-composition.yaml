@@ -1,0 +1,100 @@
+#@ load("@ytt:data", "data")
+---
+apiVersion: apiextensions.crossplane.io/v1
+kind: Composition
+metadata:
+  labels:
+    provider: azure
+  name: xpostgresqlinstances.bindable.gcp.database.example.org
+spec:
+  compositeTypeRef:
+    apiVersion: bindable.database.example.org/v1alpha1
+    kind: XPostgreSQLInstance
+  publishConnectionDetailsWithStoreConfigRef:
+    name: default
+  resources:
+  - name: dbinstance
+    base:
+      apiVersion: dbforpostgresql.azure.jet.crossplane.io/v1alpha2
+      kind: FlexibleServer
+      spec:
+        forProvider:
+          administratorLogin: myPgAdmin
+          administratorPasswordSecretRef:
+            name: ""
+            namespace: crossplane-system
+            key: password
+          location: #@ data.values.clouds.azure.location
+          skuName: GP_Standard_D2s_v3
+          version: "12" 
+          resourceGroupName: tap-psql-demo
+        writeConnectionSecretToRef:
+          namespace: crossplane-system
+    connectionDetails:
+    - name: type
+      value: postgresql
+    - name: provider
+      value: azure
+    - name: database
+      value: postgres
+    - name: username
+      fromFieldPath: spec.forProvider.administratorLogin
+    - name: password
+      fromConnectionSecretKey: "attribute.administrator_password"
+    - name: host
+      fromFieldPath: status.atProvider.fqdn
+    - name: port
+      type: FromValue
+      value: "5432"
+    patches:
+    - fromFieldPath: metadata.uid
+      toFieldPath: spec.writeConnectionSecretToRef.name
+      transforms:
+      - string:
+          fmt: '%s-postgresql'
+          type: Format
+        type: string
+      type: FromCompositeFieldPath
+    - type: FromCompositeFieldPath
+      fromFieldPath: metadata.name
+      toFieldPath: spec.forProvider.administratorPasswordSecretRef.name
+    - fromFieldPath: spec.parameters.storageGB
+      toFieldPath: spec.forProvider.storageMb
+      type: FromCompositeFieldPath
+      transforms:
+      - type: math
+        math:
+          multiply: 1024
+  - name: dbfwrule
+    base:
+      apiVersion: dbforpostgresql.azure.jet.crossplane.io/v1alpha2
+      kind: FlexibleServerFirewallRule
+      spec:
+        forProvider:
+          serverIdSelector:
+            matchControllerRef: true
+          #! not recommended for production deployments!
+          startIpAddress: 0.0.0.0
+          endIpAddress: 255.255.255.255
+  - name: password
+    base:
+      apiVersion: kubernetes.crossplane.io/v1alpha1
+      kind: Object
+      spec:
+        forProvider:
+          manifest:
+            apiVersion: secretgen.k14s.io/v1alpha1
+            kind: Password
+            metadata:
+              name: ""
+              namespace: crossplane-system
+            spec:
+              length: 64
+              secretTemplate:
+                type: Opaque
+                stringData:
+                  password: $(value)
+    patches:
+    - type: FromCompositeFieldPath
+      fromFieldPath: metadata.name
+      toFieldPath: spec.forProvider.manifest.metadata.name

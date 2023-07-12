@@ -1,12 +1,14 @@
+#@ load("@ytt:data", "data")
 ---
-apiVersion: aws.crossplane.io/v1beta1
+apiVersion: gcp.crossplane.io/v1beta1
 kind: ProviderConfig
 metadata:
   name: default
 spec:
+  projectID: #@ data.values.clouds.gcp.projectID
   credentials:
     source: Secret
     secretRef:
       namespace: crossplane-system
-      name: aws-provider-creds
+      name: gcp-secret
       key: creds

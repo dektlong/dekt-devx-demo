@@ -1,0 +1,16 @@
+apiVersion: pkg.crossplane.io/v1alpha1
+kind: ControllerConfig
+metadata:
+  name: jet-azure-config
+spec:
+  image: crossplane/provider-jet-azure-controller:v0.12.0
+  args: ["-d"]
+---
+apiVersion: pkg.crossplane.io/v1
+kind: Provider
+metadata:
+  name: provider-jet-azure
+spec:
+  package: crossplane/provider-jet-azure:v0.12.0
+  controllerConfigRef:
+    name: jet-azure-config

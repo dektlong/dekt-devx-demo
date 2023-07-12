@@ -5,8 +5,11 @@
     VIEW_CLUSTER=$(yq .clusters.view.name .config/demo-values.yaml)
     DEV_CLUSTER=$(yq .clusters.dev.name .config/demo-values.yaml)
     STAGE_CLUSTER=$(yq .clusters.stage.name .config/demo-values.yaml)
+    STAGE_CLUSTER_PROVIDER=$(yq .clusters.stage.provider .config/demo-values.yaml)
     PROD1_CLUSTER=$(yq .clusters.prod1.name .config/demo-values.yaml)
+    PROD1_CLUSTER_PROVIDER=$(yq .clusters.prod1.provider .config/demo-values.yaml)
     PROD2_CLUSTER=$(yq .clusters.prod2.name .config/demo-values.yaml)
+    PROD2_CLUSTER_PROVIDER=$(yq .clusters.prod2.provider .config/demo-values.yaml)
     BROWNFIELD_CLUSTER=$(yq .clusters.brownfield.name .config/demo-values.yaml)
     PRIVATE_CLUSTER=$(yq .brownfield_apis.privateClusterContext .config/demo-values.yaml)
     DEV_SUB_DOMAIN=$(yq .dns.devSubDomain .config/demo-values.yaml)
@@ -143,40 +146,80 @@
 
         scripts/dektecho.sh prompt  "Deliverables pulled to  ../$STAGE_GITOPS_REPO/config/$STAGEPROD_NAMESPACE. Press 'y' to continue deploying to production clusters" && [ $? -eq 0 ] || exit
         
-        prod-deploy $PROD1_CLUSTER
-        prod-deploy $PROD2_CLUSTER
+        scripts/dektecho.sh status "Deploying services and workloads to $PROD1_CLUSTER production cluster..."
+        kubectl config use-context $PROD1_CLUSTER
+        create-stageprod-data-services $PROD1_CLUSTER_PROVIDER
+        apply-prod-deliverables
+
+        scripts/dektecho.sh status "Deploying services and workloads to $PROD1_CLUSTER production cluster..."
+        kubectl config use-context $PROD2_CLUSTER
+        create-stageprod-data-services $PROD2_CLUSTER_PROVIDER
+        apply-prod-deliverables
 
     }
 
-    #create-service-claims
-    create-service-claims () {
+    #create-team-data-services
+    create-team-data-services () {
 
-        appNamespace=$1
-        dbClass=$2
-        dbStorage=$3
-        rabbitReplicas=$4
+        scripts/dektecho.sh status "Creating data services in development team configuration"
+
+        tanzu service class-claim create reading \
+            --class rabbitmq-unmanaged \
+            --parameter replicas=1 \
+            --parameter storageGB=1 \
+            --namespace $TEAM_NAMESPACE 
+
+        tanzu service class-claim create inventory \
+            --class postgresql-unmanaged \
+            --parameter storageGB=2 \
+            --namespace $TEAM_NAMESPACE 
+
+    }
+
+    #create-stageprod-data-services
+    create-stageprod-data-services () {
+
+        provider=$1
+
+        scripts/dektecho.sh status "Creating RabbitMQ HA on-cluster instance"
+
+        tanzu service class-claim create reading \
+            --class rabbitmq-unmanaged \
+            --parameter replicas=2 \
+            --parameter storageGB=1 \
+            --namespace $STAGEPROD_NAMESPACE
         
-        #postgreSQL inventory db
-        scripts/dektecho.sh cmd "tanzu service class-claim create inventory --class $dbClass --parameter storageGB=$dbStorage -n $appNamespace"
-        tanzu service class-claim create inventory --class $dbClass --parameter storageGB=$dbStorage  -n $appNamespace
+        case $provider in
+            eks) 
+                scripts/dektecho.sh status "Creating Amazon rds postgres database instance"
+                kubectl apply -f .config/crossplane/aws/rds-postgres-instance.yaml -n $STAGEPROD_NAMESPACE
+                ;;
+            gke) 
+                scripts/dektecho.sh status "Creating Google cloudsql postgres database instance"
+                kubectl apply -f .config/crossplane/gcp/cloudsql-postgres-instance.yaml -n $STAGEPROD_NAMESPACE
+                ;;
+            aks) 
+                scripts/dektecho.sh status "Creating Microsoft azuresql postgres database instance"
+                kubectl apply -f .config/crossplane/azure/azuresql-postgres-instance.yaml -n $STAGEPROD_NAMESPACE
+                ;;
+            *)
+                scripts/dektecho.sh err "k8s provider $provider is not supported for creating cloud databases"
+                ;;
+            esac
 
-        #rabbitmq reading queue
-        scripts/dektecho.sh cmd "tanzu service class-claim create reading --class rabbitmq-unmanaged --parameter replicas=$rabbitReplicas --parameter storageGB=1 -n $appNamespace"
-        tanzu service class-claim create reading --class rabbitmq-unmanaged --parameter replicas=$rabbitReplicas --parameter storageGB=1 -n $appNamespace
-
+            tanzu service resource-claim create inventory \
+                    --resource-name rds-postgres-db \
+                    --resource-kind Secret \
+                    --resource-api-version v1 \
+                    --namespace $STAGEPROD_NAMESPACE
+      
+       
     }
 
 
-    #prod-deploy
-    prod-deploy() {
+    #apply-prod-deliverable
+    apply-prod-deliverables() {
 
-        clusterName=$1
-
-        kubectl config use-context $clusterName
-    
-        create-service-claims $STAGEPROD_NAMESPACE aws-rds-psql 20 1
-
-        scripts/dektecho.sh status "Applying staging deliverables to $clusterName production cluster..."
         kubectl apply -f ../$STAGE_GITOPS_REPO/config/$STAGEPROD_NAMESPACE/mood-portal -n $STAGEPROD_NAMESPACE
         kubectl apply -f ../$STAGE_GITOPS_REPO/config/$STAGEPROD_NAMESPACE/mood-sensors -n $STAGEPROD_NAMESPACE
         kubectl apply -f ../$STAGE_GITOPS_REPO/config/$STAGEPROD_NAMESPACE/mood-predictor -n $STAGEPROD_NAMESPACE
@@ -184,12 +227,48 @@
 
     }
 
-    #supplychains
-    supplychains () {
+    #track-sensors
+    track-sensors () {
 
-        scripts/dektecho.sh cmd "tanzu apps cluster-supply-chain list"
-        
-        tanzu apps cluster-supply-chain list
+        appNamespace=$1
+        showLogs=$2
+
+        if [ "$showLogs" == "logs" ]
+        then
+            scripts/dektecho.sh cmd "tanzu apps workload tail mood-sensors --since 100m --timestamp  -n $appNamespace"
+            tanzu apps workload tail mood-sensors --since 100m --timestamp  -n $appNamespace
+        else
+            scripts/dektecho.sh cmd "tanzu apps workload get mood-sensors -n $appNamespace"
+            tanzu apps workload get mood-sensors -n $appNamespace
+        fi
+    }
+    #services
+    services () {
+
+        case $1 in
+        dev)
+            kubectl config use-context $DEV_CLUSTER
+            tanzu services class-claims get reading -n $TEAM_NAMESPACE
+            tanzu services class-claims get inventory -n $TEAM_NAMESPACE
+            ;;
+        stage)
+            kubectl config use-context $STAGE_CLUSTER
+            tanzu services class-claims get reading -n $STAGEPROD_NAMESPACE
+            tanzu services resource-claims get inventory -n $STAGEPROD_NAMESPACE
+            ;;
+        prod)
+            kubectl config use-context $PROD1_CLUSTER
+            tanzu services class-claims get reading -n $STAGEPROD_NAMESPACE
+            tanzu services resource-claims get inventory -n $STAGEPROD_NAMESPACE
+            echo
+            kubectl config use-context $PROD2_CLUSTER
+            tanzu services class-claims get reading -n $STAGEPROD_NAMESPACE
+            tanzu services resource-claims get inventory -n $STAGEPROD_NAMESPACE
+            ;;
+        *)
+        incorrect-usage
+        ;;
+    esac
     }
 
     
@@ -246,6 +325,9 @@
         kubectl delete -f .config/workloads -n $appNamespace
         tanzu service class-claim delete reading -y -n $appNamespace
         tanzu service class-claim delete inventory -y -n $appNamespace
+        kubectl delete -f .config/crossplane/aws/rds-postgres-instance.yaml -n $appNamespace
+        kubectl delete -f .config/crossplane/azure/azuresql-postgres-instance.yaml -n $appNamespace
+        kubectl delete -f .config/crossplane/gcp/cloudsql-postgres-instance.yaml -n $appNamespace
     }
 
     #reset-prod
@@ -254,9 +336,14 @@
         clusterName=$1
 
         kubectl config use-context $clusterName
-        kubectl delete -f ../$STAGE_GITOPS_REPO/config/$STAGEPROD_NAMESPACE -n $STAGEPROD_NAMESPACE
+        kubectl delete -f ../$STAGE_GITOPS_REPO/config/$STAGEPROD_NAMESPACE/mood-portal -n $STAGEPROD_NAMESPACE
+        kubectl delete -f ../$STAGE_GITOPS_REPO/config/$STAGEPROD_NAMESPACE/mood-sensors -n $STAGEPROD_NAMESPACE
+        kubectl delete -f ../$STAGE_GITOPS_REPO/config/$STAGEPROD_NAMESPACE/mood-predictor -n $STAGEPROD_NAMESPACE
+        kubectl delete -f ../$STAGE_GITOPS_REPO/config/$STAGEPROD_NAMESPACE/mood-painter -n $STAGEPROD_NAMESPACE
         tanzu service class-claim delete reading -y -n $STAGEPROD_NAMESPACE
-        tanzu service class-claim delete inventory -y -n $STAGEPROD_NAMESPACE
+        kubectl delete -f .config/crossplane/aws/rds-postgres-instance.yaml -n $STAGEPROD_NAMESPACE
+        kubectl delete -f .config/crossplane/azure/azuresql-postgres-instance.yaml -n $STAGEPROD_NAMESPACE
+        kubectl delete -f .config/crossplane/gcp/cloudsql-postgres-instance.yaml -n $STAGEPROD_NAMESPACE
       
       
     }
@@ -295,7 +382,7 @@
         echo
         echo "  track dev/stage [logs]"
         echo
-        echo "  brownfield"
+        echo "  services dev/stage/prod"
         echo
         echo "  behappy"
         echo
@@ -312,11 +399,12 @@ info)
 dev)
     kubectl config use-context $DEV_CLUSTER
     create-mydev
-    create-service-claims  $TEAM_NAMESPACE postgresql-unmanaged 2 1
+    create-team-data-services
     create-workloads $TEAM_NAMESPACE $SNIFF_THRESHOLD_AGGRESSIVE
     ;;
 stage)
     kubectl config use-context $STAGE_CLUSTER
+    create-stageprod-data-services $STAGE_CLUSTER_PROVIDER
     create-workloads $STAGEPROD_NAMESPACE $SNIFF_THRESHOLD_MILD
     ;;
 prod)
@@ -334,16 +422,19 @@ track)
     case $2 in
     dev)
         kubectl config use-context $DEV_CLUSTER
-        track-workloads $TEAM_NAMESPACE $3
+        track-sensors $TEAM_NAMESPACE $3
         ;;
     stage)
         kubectl config use-context $STAGE_CLUSTER
-        track-workloads $STAGEPROD_NAMESPACE $3
+        track-sensors $STAGEPROD_NAMESPACE $3
         ;;
     *)
         incorrect-usage
         ;;
     esac
+    ;;
+services)
+    services $2
     ;;
 brownfield)
     brownfield

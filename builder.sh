@@ -116,6 +116,12 @@
 
         kubectl apply -f .config/custom-supplychains/dekt-medical-scan.yaml
 
+        scripts/tanzu-handler.sh install-tanzu-package "crossplane.tanzu.vmware.com" "crossplane"
+        scripts/tanzu-handler.sh install-tanzu-package "services-toolkit.tanzu.vmware.com " "services-toolkit"
+        scripts/tanzu-handler.sh install-tanzu-package "bitnami.services.tanzu.vmware.com" "bitnami-services"
+
+        scripts/k8s-handler.sh setup-crossplane $STAGE_CLUSTER_PROVIDER
+
         if [ "$APPS_INGRESS_ISSUER" != "tap-ingress-selfsigned" ]  
         then
             kubectl apply -f .config/secrets/ingress-issuer-apps.yaml
@@ -136,7 +142,7 @@
 
         install-tap "tap-prod1.yaml"
 
-        install-rds-psql
+        scripts/k8s-handler.sh setup-crossplane $PROD1_CLUSTER_PROVIDER
 
         scripts/ingress-handler.sh update-tap-dns $PROD1_SUB_DOMAIN $PROD1_CLUSTER_PROVIDER
 
@@ -160,7 +166,7 @@
 
         install-tap "tap-prod2.yaml"
 
-        install-rds-psql
+        scripts/k8s-handler.sh setup-crossplane $PROD2_CLUSTER_PROVIDER
 
         scripts/ingress-handler.sh update-tap-dns $PROD2_SUB_DOMAIN $PROD2_CLUSTER_PROVIDER
 
@@ -300,51 +306,8 @@ EOF
         kubectl apply -f .config/secrets/viewer-rbac.yaml
     } 
 
-    #install-rds-psql
-    install-rds-psql () {
-
-        scripts/dektecho.sh status "Installing rds-postgres DB connector via crossplane"
-        
-        kubectl apply -f .config/crossplane/aws/provider.yaml
-        
-        kubectl wait "providers.pkg.crossplane.io/provider-aws" --for=condition=Installed --timeout=180s
-        kubectl wait "providers.pkg.crossplane.io/provider-aws" --for=condition=Healthy --timeout=180s
-
-        AWS_PROFILE=default && echo -e "[default]\naws_access_key_id = $(aws configure get aws_access_key_id --profile $AWS_PROFILE)\naws_secret_access_key = $(aws configure get aws_secret_access_key --profile $AWS_PROFILE)\naws_session_token = $(aws configure get aws_session_token --profile $AWS_PROFILE)" > creds.conf
-
-        kubectl create secret generic aws-provider-creds -n crossplane-system --from-file=creds=./creds.conf
-
-        rm -f creds.conf
-
-kubectl apply -f -<<EOF
----
-apiVersion: aws.crossplane.io/v1beta1
-kind: ProviderConfig
-metadata:
-  name: default
-spec:
-  credentials:
-    source: Secret
-    secretRef:
-      namespace: crossplane-system
-      name: aws-provider-creds
-      key: creds
-EOF
-
- 
-        
-       kubectl apply -f .config/crossplane/aws/rds-psql-xrd.yaml
-
-       kubectl apply -f .config/crossplane/aws/rds-psql-composition.yaml
-
-       kubectl apply -f .config/crossplane/aws/rds-psql-class.yaml
-
-       kubectl apply -f .config/crossplane/aws/rds-psql-rbac.yaml
-        
-
-    }
-
-
+    
+    
     #process-view-ingress-issuer
     process-view-ingress-issuer() {
 
@@ -483,16 +446,16 @@ EOF
 
         scripts/k8s-handler.sh set-context $PROD1_CLUSTER_PROVIDER $PROD1_CLUSTER_NAME
         scripts/k8s-handler.sh set-context $PROD2_CLUSTER_PROVIDER $PROD2_CLUSTER_NAME
-        scripts/k8s-handler.sh set-context $BROWNFIELD_CLUSTER_PROVIDER $BROWNFIELD_CLUSTER_NAME
+        #scripts/k8s-handler.sh set-context $BROWNFIELD_CLUSTER_PROVIDER $BROWNFIELD_CLUSTER_NAME
 
 
         install-prod-cluster1 
         install-prod-cluster2
-        add-brownfield-apis
+        #add-brownfield-apis
         
         scripts/tanzu-handler.sh tmc-cluster attach $PROD1_CLUSTER_NAME
         scripts/tanzu-handler.sh tmc-cluster attach $PROD2_CLUSTER_NAME
-        scripts/tanzu-handler.sh tmc-cluster attach $BROWNFIELD_CLUSTER_NAME
+        #scripts/tanzu-handler.sh tmc-cluster attach $BROWNFIELD_CLUSTER_NAME
 
     }
 
@@ -502,9 +465,9 @@ EOF
         
         scripts/dektecho.sh err "Incorrect usage. Please specify one of the following: "
         
-        echo "  create-clusters [ all | devstage ]"
+        echo "  clusters  ( devstage | prod ) "
         echo
-        echo "  install  [ all | devstage | prod ]"
+        echo "  demo  ( devstage | prod ) "
         echo 
         echo "  delete-all"
         echo
@@ -524,32 +487,29 @@ EOF
 
 
 case $1 in
-create-clusters)
+clusters)
     case $2 in
-    all)
-        scripts/k8s-handler.sh create $VIEW_CLUSTER_PROVIDER $VIEW_CLUSTER_NAME $VIEW_CLUSTER_NODES \
-        & scripts/k8s-handler.sh create $DEV_CLUSTER_PROVIDER $DEV_CLUSTER_NAME $DEV_CLUSTER_NODES \
-        & scripts/k8s-handler.sh create $STAGE_CLUSTER_PROVIDER $STAGE_CLUSTER_NAME $STAGE_CLUSTER_NODES \
-        & scripts/k8s-handler.sh create $PROD1_CLUSTER_PROVIDER $PROD1_CLUSTER_NAME $PROD1_CLUSTER_NODES \
-        & scripts/k8s-handler.sh create $PROD2_CLUSTER_PROVIDER $PROD2_CLUSTER_NAME $PROD2_CLUSTER_NODES \
-        & scripts/k8s-handler.sh create $BROWNFIELD_CLUSTER_PROVIDER $BROWNFIELD_CLUSTER_NAME $BROWNFIELD_CLUSTER_NODES  
-        ;;
     devstage)
         scripts/k8s-handler.sh create $VIEW_CLUSTER_PROVIDER $VIEW_CLUSTER_NAME $VIEW_CLUSTER_NODES \
         & scripts/k8s-handler.sh create $DEV_CLUSTER_PROVIDER $DEV_CLUSTER_NAME $DEV_CLUSTER_NODES \
         & scripts/k8s-handler.sh create $STAGE_CLUSTER_PROVIDER $STAGE_CLUSTER_NAME $STAGE_CLUSTER_NODES \
         ;;
+    prod)
+        scripts/k8s-handler.sh create $PROD1_CLUSTER_PROVIDER $PROD1_CLUSTER_NAME $PROD1_CLUSTER_NODES \
+        & scripts/k8s-handler.sh create $PROD2_CLUSTER_PROVIDER $PROD2_CLUSTER_NAME $PROD2_CLUSTER_NODES
+        ;;
     *)
-        incorrect-usage
+        scripts/k8s-handler.sh create $VIEW_CLUSTER_PROVIDER $VIEW_CLUSTER_NAME $VIEW_CLUSTER_NODES \
+        & scripts/k8s-handler.sh create $DEV_CLUSTER_PROVIDER $DEV_CLUSTER_NAME $DEV_CLUSTER_NODES \
+        & scripts/k8s-handler.sh create $STAGE_CLUSTER_PROVIDER $STAGE_CLUSTER_NAME $STAGE_CLUSTER_NODES \
+        & scripts/k8s-handler.sh create $PROD1_CLUSTER_PROVIDER $PROD1_CLUSTER_NAME $PROD1_CLUSTER_NODES \
+        & scripts/k8s-handler.sh create $PROD2_CLUSTER_PROVIDER $PROD2_CLUSTER_NAME $PROD2_CLUSTER_NODES
+        #& scripts/k8s-handler.sh create $BROWNFIELD_CLUSTER_PROVIDER $BROWNFIELD_CLUSTER_NAME $BROWNFIELD_CLUSTER_NODES  
         ;;
     esac
     ;;
-install)
+demo)
     case $2 in
-    all)
-        install-devstage
-        install-prod
-        ;;
     devstage)
         install-devstage
         ;;
@@ -557,7 +517,8 @@ install)
         install-prod
         ;; 
     *)
-        incorrect-usage
+        install-devstage
+        install-prod
         ;;
     esac
     ;;

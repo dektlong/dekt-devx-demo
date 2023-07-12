@@ -1,8 +1,7 @@
----
 apiVersion: apiextensions.crossplane.io/v1
 kind: CompositeResourceDefinition
 metadata:
-  name: xpostgresqlinstances.database.rds.example.org
+  name: xpostgresqlinstances.bindable.database.example.org
 spec:
   claimNames:
     kind: PostgreSQLInstance
@@ -15,7 +14,7 @@ spec:
   - database
   - username
   - password
-  group: database.rds.example.org
+  group: bindable.database.example.org
   names:
     kind: XPostgreSQLInstance
     plural: xpostgresqlinstances
@@ -27,9 +26,15 @@ spec:
         properties:
           spec:
             properties:
-              storageGB:
-                type: integer
-                default: 20
+              parameters:
+                properties:
+                  storageGB:
+                    type: integer
+                required:
+                - storageGB
+                type: object
+            required:
+            - parameters
             type: object
         type: object
     served: true
