@@ -200,7 +200,7 @@ setup-cloudsql-crossplane () {
     gcloud projects add-iam-policy-binding "${GCP_PROJECT_ID}" \
         --role="roles/cloudsql.admin" \
         --member "serviceAccount:${SA_NAME}@${GCP_PROJECT_ID}.iam.gserviceaccount.com"
-    gcloud iam service-accounts keys create creds-gcp.json --project "${GCP_PROJECT_ID}" --iam-account "${SA_NAME}@${GCP_PROJECT_ID}.iam.gserviceaccount.com"
+    gcloud iam service-accounts keys create .config/creds-gcp.json --project "${GCP_PROJECT_ID}" --iam-account "${SA_NAME}@${GCP_PROJECT_ID}.iam.gserviceaccount.com"
     kubectl create secret generic gcp-creds -n crossplane-system --from-file=creds=.config/creds-gcp.json
 	rm -f .config/creds-gcp.json
 
