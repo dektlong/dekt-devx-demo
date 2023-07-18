@@ -14,14 +14,14 @@ spec:
       ref:
         branch: main
 
-  serviceClaims:       
-  - name: reading-claim
+  serviceClaims:
+  - name: reading
     ref:
       apiVersion: services.apps.tanzu.vmware.com/v1alpha1
       kind: ClassClaim
-      name: reading
+      name: rabbitmq-claim
 
   params:
-  - name: testing_pipeline_matching_labels
-    value:
-      apps.tanzu.vmware.com/language: nodejs
+    - name: testing_pipeline_matching_labels
+      value:
+        apps.tanzu.vmware.com/language: nodejs

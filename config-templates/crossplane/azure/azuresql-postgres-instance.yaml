@@ -13,4 +13,4 @@ spec:
     name: inventory-db
     metadata:
       labels:
-        services.apps.tanzu.vmware.com/class: azure-postgres
+        services.apps.tanzu.vmware.com/class: azuresql-postgres

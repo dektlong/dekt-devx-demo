@@ -26,8 +26,8 @@ spec:
       apiVersion: services.apps.tanzu.vmware.com/v1alpha1
       kind: ResourceClaim
       name: openai-claim
-  - name: reading-claim
+  - name: reading
     ref:
       apiVersion: services.apps.tanzu.vmware.com/v1alpha1
       kind: ClassClaim
-      name: reading
+      name: rabbitmq-claim

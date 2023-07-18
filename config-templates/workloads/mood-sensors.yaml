@@ -17,16 +17,16 @@ spec:
         branch: main
   
   serviceClaims:
-  - name: inventory-claim
+  - name: inventory
     ref:
       apiVersion: services.apps.tanzu.vmware.com/v1alpha1
       kind: ClassClaim
-      name: inventory
-  - name: reading-claim
+      name: postgres-claim
+  - name: reading
     ref:
       apiVersion: services.apps.tanzu.vmware.com/v1alpha1
       kind: ClassClaim
-      name: reading
+      name: rabbitmq-claim
 
   params:
     - name: testing_pipeline_matching_labels
