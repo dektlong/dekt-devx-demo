@@ -1,5 +1,3 @@
-#@ load("@ytt:data", "data")
----
 apiVersion: apiextensions.crossplane.io/v1
 kind: Composition
 metadata:
@@ -25,7 +23,7 @@ spec:
          engineVersion: "12"
          masterUsername: masteruser
          publiclyAccessible: true
-         region: #@ data.values.clouds.aws.region
+         region: UPDATE_IN_RUNTIME
          skipFinalSnapshotBeforeDeletion: true
        writeConnectionSecretToRef:
          namespace: crossplane-system

@@ -138,9 +138,6 @@ generate-config-yamls() {
     #crossplane
     mkdir -p .config/crossplane
     cp -a config-templates/crossplane/ .config/crossplane
-    ytt -f config-templates/crossplane/aws/rds-postgres-composition.yaml --data-values-file=.config/demo-values.yaml > .config/crossplane/aws/rds-postgres-composition.yaml
-    ytt -f config-templates/crossplane/azure/azuresql-postgres-composition.yaml --data-values-file=.config/demo-values.yaml > .config/crossplane/azure/azuresql-postgres-composition.yaml
-    ytt -f config-templates/crossplane/gcp/cloudsql-postgres-composition.yaml --data-values-file=.config/demo-values.yaml > .config/crossplane/gcp/cloudsql-postgres-composition.yaml
     ytt -f config-templates/crossplane/gcp/gcp-provider-config.yaml --data-values-file=.config/demo-values.yaml > .config/crossplane/gcp/gcp-provider-config.yaml
     
     #workloads

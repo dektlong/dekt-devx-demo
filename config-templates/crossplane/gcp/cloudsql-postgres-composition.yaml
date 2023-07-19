@@ -1,5 +1,3 @@
-#@ load("@ytt:data", "data")
----
 apiVersion: apiextensions.crossplane.io/v1
 kind: Composition
 metadata:
@@ -19,7 +17,7 @@ spec:
       spec:
         forProvider:
           databaseVersion: POSTGRES_14
-          region: #@ data.values.clouds.gcp.region
+          region: UPDATE_IN_RUNTIME
           settings:
             dataDiskType: PD_SSD
             ipConfiguration:

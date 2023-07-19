@@ -1,42 +1,53 @@
 clusters:
-  view: # TAP view profile installed
+  
+  view:             # TAP view profile installed
     name: 
-    provider: #accepted values: aks,eks,gke 
+    provider:       #accepted values: aks,eks,gke 
     nodes: 4
-  dev: # TAP interate profile installed
+    region:         #accepted values for AKS provider: westus,ukwest,germanynorth,eastasia,australiasoutheast 
+                    #accpeted values for EKS provider: us-east-1,us-west-1,eu-west-2,eu-central-1,ap-southeast1,ap-southeast-2 
+                    #accpeted values for GKE provider: us-central1,europe-west2,europe-west3,asia-southeast1,australia-southeast1
+  
+  dev:              # TAP interate profile installed
     name: 
-    provider: #accepted values: aks,eks,gke  
+    provider:
     nodes: 4 
-  stage: #TAP build profile installed
+    region:
+  
+  stage:            #TAP build profile installed
     name: 
-    provider: #accepted values: aks,eks,gke 
+    provider: 
     nodes: 6 
-  prod1: # TAP run profile installed
+    region:
+  
+  prod1:            # TAP run profile installed
     name: 
-    provider: #accepted values: aks,eks,gke  
+    provider: 
     nodes: 3
-  prod2: # TAP run profile installed
+    region:
+
+  prod2:            # TAP run profile installed
     name: 
-    provider: #accepted values: aks,eks,gke  
-    nodes: 3 
-  brownfield: #for bronwfield apis demo, SCGW and TSM, no TAP installed
+    provider: 
+    nodes: 3
+    region: 
+
+  brownfield:       #for bronwfield apis demo, SCGW and TSM, no TAP installed
     name: 
-    provider: #accepted values: aks,eks,gke 
-    nodes: 2 
+    provider: 
+    nodes: 2
+    region: 
 
 clouds:
   azure:
     subscriptionID:
-    location: # US: westus | UK: ukwest | EU: germanynorth | SIN: eastasia | ANZ: australiasoutheast 
     resourceGroup: 
     nodeType: Standard_DS3_v2 
   aws:
     accountID: 
     IAMuser: 
-    region: # US: us-west-1 | UK: eu-west-2 | EU: eu-central-1 | SIN: ap-southeast1 | ANZ: ap-southeast-2
     instanceType: t3.xlarge
   gcp:
-    region: # US: us-central1 | UK: europe-west2 | EU: europe-west3 | SIN: asia-southeast1 | ANZ: australia-southeast1
     projectID: 
     machineType: e2-standard-4
 

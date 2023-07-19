@@ -138,7 +138,7 @@
     #prod-roleout
     prod-roleout () {
 
-        scripts/dektecho.sh status "Pulling staging deliverables from $STAGE_GITOPS_REPO repo"
+        scripts/dektecho.sh info "Pulling staging deliverables from $STAGE_GITOPS_REPO repo"
         
         pushd ../$STAGE_GITOPS_REPO
         git pull 
@@ -146,12 +146,12 @@
 
         scripts/dektecho.sh prompt  "Deliverables pulled to  ../$STAGE_GITOPS_REPO/config/$STAGEPROD_NAMESPACE. Press 'y' to continue deploying to production clusters" && [ $? -eq 0 ] || exit
         
-        scripts/dektecho.sh status "Deploying services and workloads to $PROD1_CLUSTER production cluster..."
+        scripts/dektecho.sh info "Deploying services and workloads to $PROD1_CLUSTER production cluster..."
         kubectl config use-context $PROD1_CLUSTER
         create-stageprod-data-services $PROD1_CLUSTER_PROVIDER
         apply-prod-deliverables
 
-        scripts/dektecho.sh status "Deploying services and workloads to $PROD1_CLUSTER production cluster..."
+        scripts/dektecho.sh info "Deploying services and workloads to $PROD2_CLUSTER production cluster..."
         kubectl config use-context $PROD2_CLUSTER
         create-stageprod-data-services $PROD2_CLUSTER_PROVIDER
         apply-prod-deliverables
@@ -191,22 +191,19 @@
         
         case $provider in
             eks) 
-                scripts/dektecho.sh status "Creating Amazon rds postgres instance named invetory-db and matching postgres claim"
-                kubectl apply -f .config/crossplane/aws/rds-postgres-instance.yaml -n $STAGEPROD_NAMESPACE
+                scripts/dektecho.sh status "Create Amzon RDS postgres claim"
                 tanzu service class-claim create postgres-claim \
                     --class rds-postgres \
                     --namespace $STAGEPROD_NAMESPACE
                 ;;
             gke) 
-                scripts/dektecho.sh status "Creating Google cloudsql postgres instance named invetory-db and matching postgres claim"
-                kubectl apply -f .config/crossplane/gcp/cloudsql-postgres-instance.yaml -n $STAGEPROD_NAMESPACE
+                scripts/dektecho.sh status "Create Google CloudSQL postgres claim"
                 tanzu service class-claim create postgres-claim \
                     --class cloudsql-postgres \
                     --namespace $STAGEPROD_NAMESPACE
                 ;;
             aks) 
-                scripts/dektecho.sh status "Creating Microsoft azuresql postgres instance named invetory-db and matching postgres claim"
-                kubectl apply -f .config/crossplane/azure/azuresql-postgres-instance.yaml -n $STAGEPROD_NAMESPACE
+                scripts/dektecho.sh status "Create Azure SQL postgres claim"
                 tanzu service class-claim create postgres-claim \
                     --class azuresql-postgres \
                     --namespace $STAGEPROD_NAMESPACE

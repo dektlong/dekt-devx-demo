@@ -4,21 +4,27 @@
     #clusters
     DEV_CLUSTER_NAME=$(yq .clusters.dev.name .config/demo-values.yaml)
     DEV_CLUSTER_PROVIDER=$(yq .clusters.dev.provider .config/demo-values.yaml)
+    DEV_CLUSTER_REGION=$(yq .clusters.dev.region .config/demo-values.yaml)
     DEV_CLUSTER_NODES=$(yq .clusters.dev.nodes .config/demo-values.yaml)
     STAGE_CLUSTER_NAME=$(yq .clusters.stage.name .config/demo-values.yaml)
     STAGE_CLUSTER_PROVIDER=$(yq .clusters.stage.provider .config/demo-values.yaml)
+    STAGE_CLUSTER_REGION=$(yq .clusters.stage.region .config/demo-values.yaml)
     STAGE_CLUSTER_NODES=$(yq .clusters.stage.nodes .config/demo-values.yaml)
     PROD1_CLUSTER_NAME=$(yq .clusters.prod1.name .config/demo-values.yaml)
     PROD1_CLUSTER_PROVIDER=$(yq .clusters.prod1.provider .config/demo-values.yaml)
+    PROD1_CLUSTER_REGION=$(yq .clusters.prod1.region .config/demo-values.yaml)
     PROD1_CLUSTER_NODES=$(yq .clusters.prod1.nodes .config/demo-values.yaml)
     PROD2_CLUSTER_NAME=$(yq .clusters.prod2.name .config/demo-values.yaml)
     PROD2_CLUSTER_PROVIDER=$(yq .clusters.prod2.provider .config/demo-values.yaml)
+    PROD2_CLUSTER_REGION=$(yq .clusters.prod2.region .config/demo-values.yaml)
     PROD2_CLUSTER_NODES=$(yq .clusters.prod2.nodes .config/demo-values.yaml)
     VIEW_CLUSTER_NAME=$(yq .clusters.view.name .config/demo-values.yaml)
     VIEW_CLUSTER_PROVIDER=$(yq .clusters.view.provider .config/demo-values.yaml)
+    VIEW_CLUSTER_REGION=$(yq .clusters.view.region .config/demo-values.yaml)
     VIEW_CLUSTER_NODES=$(yq .clusters.view.nodes .config/demo-values.yaml)
     BROWNFIELD_CLUSTER_NAME=$(yq .clusters.brownfield.name .config/demo-values.yaml)
     BROWNFIELD_CLUSTER_PROVIDER=$(yq .clusters.brownfield.provider .config/demo-values.yaml)
+    BROWNFIELD_CLUSTER_REGION=$(yq .clusters.brownfield.region .config/demo-values.yaml)
     BROWNFIELD_CLUSTER_NODES=$(yq .clusters.brownfield.nodes .config/demo-values.yaml)
     PRIVATE_CLUSTER_NAME=$(yq .brownfield_apis.privateClusterContext .config/demo-values.yaml)
 
@@ -120,7 +126,9 @@
         scripts/tanzu-handler.sh install-tanzu-package "services-toolkit.tanzu.vmware.com " "services-toolkit"
         scripts/tanzu-handler.sh install-tanzu-package "bitnami.services.tanzu.vmware.com" "bitnami-services"
 
-        scripts/k8s-handler.sh setup-crossplane $STAGE_CLUSTER_PROVIDER
+        scripts/k8s-handler.sh setup-crossplane $STAGE_CLUSTER_PROVIDER $STAGE_CLUSTER_NAME $STAGE_CLUSTER_REGION
+
+        provision-cloud-db $STAGE_CLUSTER_PROVIDER
 
         if [ "$APPS_INGRESS_ISSUER" != "tap-ingress-selfsigned" ]  
         then
@@ -142,7 +150,9 @@
 
         install-tap "tap-prod1.yaml"
 
-        scripts/k8s-handler.sh setup-crossplane $PROD1_CLUSTER_PROVIDER
+        scripts/k8s-handler.sh setup-crossplane $PROD1_CLUSTER_PROVIDER $PROD1_CLUSTER_NAME $PROD1_CLUSTER_REGION
+
+        provision-cloud-db $PROD1_CLUSTER_PROVIDER
 
         scripts/ingress-handler.sh update-tap-dns $PROD1_SUB_DOMAIN $PROD1_CLUSTER_PROVIDER
 
@@ -166,7 +176,9 @@
 
         install-tap "tap-prod2.yaml"
 
-        scripts/k8s-handler.sh setup-crossplane $PROD2_CLUSTER_PROVIDER
+        scripts/k8s-handler.sh setup-crossplane $PROD2_CLUSTER_PROVIDER $PROD2_CLUSTER_NAME $PROD2_CLUSTER_REGION
+
+        provision-cloud-db $PROD2_CLUSTER_PROVIDER
 
         scripts/ingress-handler.sh update-tap-dns $PROD2_SUB_DOMAIN $PROD2_CLUSTER_PROVIDER
 
@@ -223,6 +235,28 @@
             kubectl apply -f .config/secrets/carbonblack-creds.yaml -n $appnamespace
         fi
 
+    }
+
+    #provision-cloud-db
+    provision-cloud-db() {
+
+        case $1 in
+            eks) 
+                scripts/dektecho.sh status "Provision an Amzon RDS postgres instance"
+                kubectl apply -f .config/crossplane/aws/rds-postgres-instance.yaml -n $STAGEPROD_NAMESPACE
+                ;;
+            gke) 
+                scripts/dektecho.sh status "Provision a Google CloudSQL postgres instance"
+                kubectl apply -f .config/crossplane/gcp/cloudsql-postgres-instance.yaml -n $STAGEPROD_NAMESPACE
+                ;;
+            aks) 
+                scripts/dektecho.sh status "Provision an Azure SQL postgres instance"
+                kubectl apply -f .config/crossplane/azure/azuresql-postgres-instance.yaml -n $STAGEPROD_NAMESPACE
+                ;;
+            *)
+                scripts/dektecho.sh err "k8s provider $1 is not supported for creating cloud databases"
+                ;;
+            esac
     }
     #setup-metadata-store
     setup-metadata-store() {
@@ -427,9 +461,9 @@ EOF
     #install-devstage
     install-devstage () {
         
-        scripts/k8s-handler.sh set-context $VIEW_CLUSTER_PROVIDER $VIEW_CLUSTER_NAME
-        scripts/k8s-handler.sh set-context $DEV_CLUSTER_PROVIDER $DEV_CLUSTER_NAME
-        scripts/k8s-handler.sh set-context $STAGE_CLUSTER_PROVIDER $STAGE_CLUSTER_NAME
+        scripts/k8s-handler.sh set-context $VIEW_CLUSTER_PROVIDER $VIEW_CLUSTER_NAME $VIEW_CLUSTER_REGION
+        scripts/k8s-handler.sh set-context $DEV_CLUSTER_PROVIDER $DEV_CLUSTER_NAME $DEV_CLUSTER_REGION
+        scripts/k8s-handler.sh set-context $STAGE_CLUSTER_PROVIDER $STAGE_CLUSTER_NAME $STAGE_CLUSTER_REGION
 
         install-view-cluster
         install-dev-cluster
@@ -444,18 +478,18 @@ EOF
     #install-prod()
     install-prod() {
 
-        scripts/k8s-handler.sh set-context $PROD1_CLUSTER_PROVIDER $PROD1_CLUSTER_NAME
-        scripts/k8s-handler.sh set-context $PROD2_CLUSTER_PROVIDER $PROD2_CLUSTER_NAME
-        #scripts/k8s-handler.sh set-context $BROWNFIELD_CLUSTER_PROVIDER $BROWNFIELD_CLUSTER_NAME
+        scripts/k8s-handler.sh set-context $PROD1_CLUSTER_PROVIDER $PROD1_CLUSTER_NAME $PROD1_CLUSTER_REGION
+        scripts/k8s-handler.sh set-context $PROD2_CLUSTER_PROVIDER $PROD2_CLUSTER_NAME $PROD2_CLUSTER_REGION
+        scripts/k8s-handler.sh set-context $BROWNFIELD_CLUSTER_PROVIDER $BROWNFIELD_CLUSTER_NAME $BROWNFIELD_CLUSTER_REGION
 
 
         install-prod-cluster1 
         install-prod-cluster2
-        #add-brownfield-apis
+        add-brownfield-apis
         
         scripts/tanzu-handler.sh tmc-cluster attach $PROD1_CLUSTER_NAME
         scripts/tanzu-handler.sh tmc-cluster attach $PROD2_CLUSTER_NAME
-        #scripts/tanzu-handler.sh tmc-cluster attach $BROWNFIELD_CLUSTER_NAME
+        scripts/tanzu-handler.sh tmc-cluster attach $BROWNFIELD_CLUSTER_NAME
 
     }
 
@@ -490,21 +524,21 @@ case $1 in
 clusters)
     case $2 in
     devstage)
-        scripts/k8s-handler.sh create $VIEW_CLUSTER_PROVIDER $VIEW_CLUSTER_NAME $VIEW_CLUSTER_NODES \
-        & scripts/k8s-handler.sh create $DEV_CLUSTER_PROVIDER $DEV_CLUSTER_NAME $DEV_CLUSTER_NODES \
-        & scripts/k8s-handler.sh create $STAGE_CLUSTER_PROVIDER $STAGE_CLUSTER_NAME $STAGE_CLUSTER_NODES \
+        scripts/k8s-handler.sh create $VIEW_CLUSTER_PROVIDER $VIEW_CLUSTER_NAME $VIEW_CLUSTER_REGION $VIEW_CLUSTER_NODES \
+        & scripts/k8s-handler.sh create $DEV_CLUSTER_PROVIDER $DEV_CLUSTER_NAME $DEV_CLUSTER_REGION $DEV_CLUSTER_NODES \
+        & scripts/k8s-handler.sh create $STAGE_CLUSTER_PROVIDER $STAGE_CLUSTER_NAME $STAGE_CLUSTER_REGION $STAGE_CLUSTER_NODES
         ;;
     prod)
-        scripts/k8s-handler.sh create $PROD1_CLUSTER_PROVIDER $PROD1_CLUSTER_NAME $PROD1_CLUSTER_NODES \
-        & scripts/k8s-handler.sh create $PROD2_CLUSTER_PROVIDER $PROD2_CLUSTER_NAME $PROD2_CLUSTER_NODES
+        scripts/k8s-handler.sh create $PROD1_CLUSTER_PROVIDER $PROD1_CLUSTER_NAME $PROD1_CLUSTER_REGION $PROD1_CLUSTER_NODES \
+        & scripts/k8s-handler.sh create $PROD2_CLUSTER_PROVIDER $PROD2_CLUSTER_NAME $PROD2_CLUSTER_REGION $PROD2_CLUSTER_NODES
         ;;
     *)
-        scripts/k8s-handler.sh create $VIEW_CLUSTER_PROVIDER $VIEW_CLUSTER_NAME $VIEW_CLUSTER_NODES \
-        & scripts/k8s-handler.sh create $DEV_CLUSTER_PROVIDER $DEV_CLUSTER_NAME $DEV_CLUSTER_NODES \
-        & scripts/k8s-handler.sh create $STAGE_CLUSTER_PROVIDER $STAGE_CLUSTER_NAME $STAGE_CLUSTER_NODES \
-        & scripts/k8s-handler.sh create $PROD1_CLUSTER_PROVIDER $PROD1_CLUSTER_NAME $PROD1_CLUSTER_NODES \
-        & scripts/k8s-handler.sh create $PROD2_CLUSTER_PROVIDER $PROD2_CLUSTER_NAME $PROD2_CLUSTER_NODES
-        #& scripts/k8s-handler.sh create $BROWNFIELD_CLUSTER_PROVIDER $BROWNFIELD_CLUSTER_NAME $BROWNFIELD_CLUSTER_NODES  
+        scripts/k8s-handler.sh create $VIEW_CLUSTER_PROVIDER $VIEW_CLUSTER_NAME $VIEW_CLUSTER_REGION $VIEW_CLUSTER_NODES \
+        & scripts/k8s-handler.sh create $DEV_CLUSTER_PROVIDER $DEV_CLUSTER_NAME $DEV_CLUSTER_REGION $DEV_CLUSTER_NODES \
+        & scripts/k8s-handler.sh create $STAGE_CLUSTER_PROVIDER $STAGE_CLUSTER_NAME $STAGE_CLUSTER_REGION $STAGE_CLUSTER_NODES \
+        & scripts/k8s-handler.sh create $PROD1_CLUSTER_PROVIDER $PROD1_CLUSTER_NAME $PROD1_CLUSTER_REGION $PROD1_CLUSTER_NODES \
+        & scripts/k8s-handler.sh create $PROD2_CLUSTER_PROVIDER $PROD2_CLUSTER_NAME $PROD2_CLUSTER_REGION $PROD2_CLUSTER_NODES \
+        & scripts/k8s-handler.sh create $BROWNFIELD_CLUSTER_PROVIDER $BROWNFIELD_CLUSTER_NAME $BROWNFIELD_CLUSTER_REGION $BROWNFIELD_CLUSTER_NODES  
         ;;
     esac
     ;;
@@ -526,12 +560,12 @@ delete-all)
     scripts/dektecho.sh prompt  "Are you sure you want to delete all clusters?" && [ $? -eq 0 ] || exit
     ./demo.sh reset
     delete-tmc-clusters
-    scripts/k8s-handler.sh delete $VIEW_CLUSTER_PROVIDER $VIEW_CLUSTER_NAME \
-    & scripts/k8s-handler.sh delete $DEV_CLUSTER_PROVIDER $DEV_CLUSTER_NAME \
-    & scripts/k8s-handler.sh delete $STAGE_CLUSTER_PROVIDER $STAGE_CLUSTER_NAME \
-    & scripts/k8s-handler.sh delete $PROD1_CLUSTER_PROVIDER $PROD1_CLUSTER_NAME \
-    & scripts/k8s-handler.sh delete $PROD2_CLUSTER_PROVIDER $PROD2_CLUSTER_NAME \
-    & scripts/k8s-handler.sh delete $BROWNFIELD_CLUSTER_PROVIDER $BROWNFIELD_CLUSTER_NAME
+    scripts/k8s-handler.sh delete $VIEW_CLUSTER_PROVIDER $VIEW_CLUSTER_NAME $STAGE_CLUSTER_REGION\
+    & scripts/k8s-handler.sh delete $DEV_CLUSTER_PROVIDER $DEV_CLUSTER_NAME $DEV_CLUSTER_REGION \
+    & scripts/k8s-handler.sh delete $STAGE_CLUSTER_PROVIDER $STAGE_CLUSTER_NAME $STAGE_CLUSTER_REGION \
+    & scripts/k8s-handler.sh delete $PROD1_CLUSTER_PROVIDER $PROD1_CLUSTER_NAME $PROD1_CLUSTER_REGION \
+    & scripts/k8s-handler.sh delete $PROD2_CLUSTER_PROVIDER $PROD2_CLUSTER_NAME $PROD2_CLUSTER_REGION \
+    & scripts/k8s-handler.sh delete $BROWNFIELD_CLUSTER_PROVIDER $BROWNFIELD_CLUSTER_NAME $BROWNFIELD_CLUSTER_REGION
     ;;
 generate-configs)
     scripts/tanzu-handler.sh generate-configs

@@ -1,17 +1,14 @@
 #!/usr/bin/env bash
 
 #azure configs
-AZURE_LOCATION=$(yq .clouds.azure.location .config/demo-values.yaml)
 AZURE_SUBSCRIPTION_ID=$(yq .clouds.azure.subscriptionID .config/demo-values.yaml)
 AZURE_RESOURCE_GROUP=$(yq .clouds.azure.resourceGroup .config/demo-values.yaml)
 AZURE_NODE_TYPE=$(yq .clouds.azure.nodeType .config/demo-values.yaml)
 #aws configs
 AWS_ACCOUNT_ID=$(yq .clouds.aws.accountID .config/demo-values.yaml)
 AWS_IAM_USER=$(yq .clouds.aws.IAMuser .config/demo-values.yaml)
-AWS_REGION=$(yq .clouds.aws.region .config/demo-values.yaml)
 AWS_INSTANCE_TYPE=$(yq .clouds.aws.instanceType .config/demo-values.yaml)
 #gcp configs
-GCP_REGION=$(yq .clouds.gcp.region .config/demo-values.yaml)
 GCP_PROJECT_ID=$(yq .clouds.gcp.projectID .config/demo-values.yaml)
 GCP_MACHINE_TYPE=$(yq .clouds.gcp.machineType .config/demo-values.yaml)
 
@@ -20,13 +17,14 @@ GCP_MACHINE_TYPE=$(yq .clouds.gcp.machineType .config/demo-values.yaml)
 create-aks-cluster() {
 
 	cluster_name=$1
-	number_of_nodes=$2
+	location=$2
+	number_of_nodes=$3
 
-	scripts/dektecho.sh info "Creating AKS cluster $cluster_name with $number_of_nodes nodes"
+	scripts/dektecho.sh info "Creating AKS cluster $cluster_name in location $location with $number_of_nodes nodes"
 		
 	#make sure your run 'az login' and use WorkspaceOn SSO prior to running this
 	
-	az group create --name $AZURE_RESOURCE_GROUP --location $AZURE_LOCATION
+	az group create --name $AZURE_RESOURCE_GROUP --location $location
 
 	az aks create --name $cluster_name \
 		--resource-group $AZURE_RESOURCE_GROUP \
@@ -39,8 +37,9 @@ create-aks-cluster() {
 delete-aks-cluster() {
 
 	cluster_name=$1
+	location=$2
 
-	scripts/dektecho.sh status "Starting deleting resources of AKS cluster $cluster_name"
+	scripts/dektecho.sh status "Starting deleting resources of AKS cluster $cluster_name in location $location"
 
 	az aks delete --name $cluster_name --resource-group $AZURE_RESOURCE_GROUP --yes
 }
@@ -52,14 +51,15 @@ create-eks-cluster () {
     #must run after setting access via 'aws configure'
 
     cluster_name=$1
-	number_of_nodes=$2
+	region=$2
+	number_of_nodes=$3
 
-	scripts/dektecho.sh info "Creating EKS cluster $cluster_name with $number_of_nodes nodes"
+	scripts/dektecho.sh info "Creating EKS cluster $cluster_name in region $region with $number_of_nodes nodes"
 
 	eksctl create cluster \
 		--name $cluster_name \
 		--managed \
-		--region $AWS_REGION \
+		--region $region \
 		--instance-types $AWS_INSTANCE_TYPE \
 		--version 1.24 \
         --with-oidc \
@@ -85,27 +85,29 @@ create-eks-cluster () {
 delete-eks-cluster () {
 
     cluster_name=$1
+	region=$2
 
-	scripts/dektecho.sh status "Starting deleting resources of EKS cluster $cluster_name ..."
+	scripts/dektecho.sh status "Starting deleting resources of EKS cluster $cluster_name in region $region..."
 
-	eksctl delete cluster --name $cluster_name --force
+	eksctl delete cluster --name $cluster_name --region $region --force
 }
 
 #create-gke-cluster
 create-gke-cluster () {
 
 	cluster_name=$1
-	number_of_nodes=$2
+	region=$2
+	number_of_nodes=$3
 
-	scripts/dektecho.sh info "Creating GKE cluster $cluster_name with $number_of_nodes nodes"
+	scripts/dektecho.sh info "Creating GKE cluster $cluster_name in region $region with $number_of_nodes nodes"
 	
 	gcloud container clusters create $cluster_name \
-		--region $GCP_REGION \
+		--region $region \
 		--project $GCP_PROJECT_ID \
 		--num-nodes $number_of_nodes \
 		--machine-type $GCP_MACHINE_TYPE
 
-	gcloud container clusters get-credentials $cluster_name --region $GCP_REGION --project $GCP_PROJECT_ID 
+	gcloud container clusters get-credentials $cluster_name --region $region --project $GCP_PROJECT_ID 
 
 	gcloud components install gke-gcloud-auth-plugin
 }
@@ -114,11 +116,12 @@ create-gke-cluster () {
 delete-gke-cluster () {
 
     cluster_name=$1
+	region=$2
 
-	scripts/dektecho.sh status "Starting deleting resources of GKE cluster $cluster_name"
+	scripts/dektecho.sh status "Starting deleting resources of GKE cluster $cluster_name in region $region"
 	
 	gcloud container clusters delete $cluster_name \
-		--region $GCP_REGION \
+		--region $region \
 		--project $GCP_PROJECT_ID \
 		--quiet
 
@@ -129,7 +132,9 @@ delete-gke-cluster () {
 #setup-rds-crossplane
 setup-rds-crossplane () {
 
-        scripts/dektecho.sh status "Installing crossplane provider for AWS and configure RDS Postgres access"
+        cluster_name=$1
+		export region=$2
+		scripts/dektecho.sh status "Installing crossplane provider for AWS cluster $cluster_name in region $region and configure RDS Postgres access"
         
         kubectl apply -f .config/crossplane/aws/aws-provider.yaml
         	kubectl wait "providers.pkg.crossplane.io/provider-aws" --for=condition=Healthy --timeout=3m
@@ -140,6 +145,7 @@ setup-rds-crossplane () {
 
 		kubectl apply -f .config/crossplane/aws/aws-provider-config.yaml
 		kubectl apply -f .config/crossplane/aws/rds-postgres-xrd.yaml
+		yq '.spec.resources.[0].base.spec.forProvider.region = env(region)' .config/crossplane/aws/rds-postgres-composition.yaml -i
 		kubectl apply -f .config/crossplane/aws/rds-postgres-composition.yaml
 		kubectl apply -f .config/crossplane/aws/rds-postgres-class.yaml
 		kubectl apply -f .config/crossplane/aws/rds-postgres-rbac.yaml
@@ -150,7 +156,10 @@ setup-rds-crossplane () {
 #setup-azuresql-crossplane
 setup-azuresql-crossplane () {
 
-	scripts/dektecho.sh status "Installing crossplane provider for Azure and configure AzureSQL Postgres access"
+	cluster_name=$1
+	export location=$2
+
+	scripts/dektecho.sh status "Installing crossplane provider for Azure cluster $cluster_name in location $location and configure AzureSQL Postgres access"
 
 	kubectl apply -f .config/crossplane/azure/azure-provider.yaml
 		kubectl -n crossplane-system wait provider/provider-jet-azure --for=condition=Healthy=True --timeout=3m
@@ -181,6 +190,7 @@ spec:
 EOF
 	
 	kubectl apply -f .config/crossplane/azure/azuresql-postgres-xrd.yaml
+	yq '.spec.resources.[0].base.spec.forProvider.location = env(location)' .config/crossplane/azure/azuresql-postgres-composition.yaml -i
 	kubectl apply -f .config/crossplane/azure/azuresql-postgres-composition.yaml
 	kubectl apply -f .config/crossplane/azure/azuresql-postgres-class.yaml
 	kubectl apply -f .config/crossplane/azure/azuresql-postgres-rbac.yaml
@@ -190,7 +200,10 @@ EOF
 #setup-cloudsql-crossplane
 setup-cloudsql-crossplane () {
 
-	scripts/dektecho.sh status "Installing crossplane provider for GCP and configure CloudSQL Postgres access"
+	cluster_name=$1
+	export region=$2
+
+	scripts/dektecho.sh status "Installing crossplane provider for GCP cluster $cluster_name in region $region and configure CloudSQL Postgres access"
 
 	kubectl apply -f .config/crossplane/gcp/gcp-provider.yaml
 		kubectl wait "providers.pkg.crossplane.io/provider-gcp" --for=condition=Healthy --timeout=3m
@@ -206,6 +219,7 @@ setup-cloudsql-crossplane () {
 
 	kubectl apply -f .config/crossplane/gcp/gcp-provider-config.yaml
 	kubectl apply -f .config/crossplane/gcp/cloudsql-postgres-xrd.yaml
+	yq '.spec.resources.[0].base.spec.forProvider.region = env(region)'  .config/crossplane/gcp/cloudsql-postgres-composition.yaml -i
 	kubectl apply -f .config/crossplane/gcp/cloudsql-postgres-composition.yaml
 	kubectl apply -f .config/crossplane/gcp/cloudsql-postgres-class.yaml
 	kubectl apply -f .config/crossplane/gcp/cloudsql-postgres-rbac.yaml
@@ -248,26 +262,29 @@ wait-for-all-running-pods () {
 incorrect-usage() {
 	
 	scripts/dektecho.sh err "Incorrect usage. Please specify:"
-    echo "  create [aks/eks/gke cluster-name numbber-of-nodes]"
-    echo "  delete [aks/eks/gke cluster-name]"
+    echo "  create [aks/eks/gke cluster-name region number-of-nodes]"
+    echo "  delete [aks/eks/gke cluster-name region]"
+	echo "  set-context [aks/eks/gke cluster-name region]"
     exit
 }
 
 operation=$1
 clusterProvider=$2
 clusterName=$3
-numOfNodes=$4
+region=$4
+numOfNodes=$5
+
 case $operation in
 create)
 	case $clusterProvider in
 	aks)
-  		create-aks-cluster $clusterName $numOfNodes
+  		create-aks-cluster $clusterName $region $numOfNodes
     	;;
 	eks)
-		create-eks-cluster $clusterName $numOfNodes
+		create-eks-cluster $clusterName $region $numOfNodes
 		;;
 	gke)
-		create-gke-cluster $clusterName $numOfNodes
+		create-gke-cluster $clusterName $region $numOfNodes
 		;;
 	*)
 		incorrect-usage
@@ -280,10 +297,10 @@ set-context)
   		az aks get-credentials --overwrite-existing --resource-group $AZURE_RESOURCE_GROUP --name $clusterName
     	;;
 	eks)
-		kubectl config rename-context $AWS_IAM_USER@$clusterName.$AWS_REGION.eksctl.io $clusterName
+		kubectl config rename-context $AWS_IAM_USER@$clusterName.$region.eksctl.io $clusterName
 		;;
 	gke)
-		kubectl config rename-context gke_$GCP_PROJECT_ID"_"$GCP_REGION"_"$clusterName $clusterName
+		kubectl config rename-context gke_$GCP_PROJECT_ID"_"$region"_"$clusterName $clusterName
 		;;
 	*)
 		incorrect-usage
@@ -293,13 +310,13 @@ set-context)
 delete)
 	case $clusterProvider in
 	aks)
-  		delete-aks-cluster $clusterName
+  		delete-aks-cluster $clusterName $region
     	;;
 	eks)
-		delete-eks-cluster $clusterName
+		delete-eks-cluster $clusterName $region
 		;;
 	gke)
-		delete-gke-cluster $clusterName
+		delete-gke-cluster $clusterName $region
 		;;
 	*)
 		incorrect-usage
@@ -309,13 +326,13 @@ delete)
 setup-crossplane)
 	case $clusterProvider in
 	aks)
-  		setup-azuresql-crossplane
+  		setup-azuresql-crossplane $clusterName $region
     	;;
 	eks)
-		setup-rds-crossplane
+		setup-rds-crossplane $clusterName $region
 		;;
 	gke)
-		setup-cloudsql-crossplane
+		setup-cloudsql-crossplane $clusterName $region
 		;;
 	*)
 		incorrect-usage
