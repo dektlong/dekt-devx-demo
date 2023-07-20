@@ -1,0 +1,10 @@
+apiVersion: services.apps.tanzu.vmware.com/v1alpha1
+kind: ClusterInstanceClass
+metadata:
+  name: rabbitmq-operator-corp
+spec:
+  description:
+    short: On-demand RabbitMQ clusters with corporate SLA
+  provisioner:
+    crossplane:
+      compositeResourceDefinition: xrabbitmqclusters.messaging.bigcorp.org

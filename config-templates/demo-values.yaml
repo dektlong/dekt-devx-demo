@@ -7,6 +7,8 @@ clusters:
     region:         #accepted values for AKS provider: westus,ukwest,germanynorth,eastasia,australiasoutheast 
                     #accpeted values for EKS provider: us-east-1,us-west-1,eu-west-2,eu-central-1,ap-southeast1,ap-southeast-2 
                     #accpeted values for GKE provider: us-central1,europe-west2,europe-west3,asia-southeast1,australia-southeast1
+
+                    #selected region is also used to provision cloud postgres (rabbitmq is always oncluster)
   
   dev:              # TAP interate profile installed
     name: 

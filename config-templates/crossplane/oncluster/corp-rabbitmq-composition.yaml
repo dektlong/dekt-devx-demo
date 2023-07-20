@@ -1,0 +1,156 @@
+apiVersion: apiextensions.crossplane.io/v1
+kind: Composition
+metadata:
+  name: xrabbitmqclusters.messaging.bigcorp.org
+spec:
+  compositeTypeRef:
+    apiVersion: messaging.bigcorp.org/v1alpha1
+    kind: XRabbitmqCluster
+  resources:
+  - base:
+      apiVersion: kubernetes.crossplane.io/v1alpha1
+      kind: Object
+      spec:
+        forProvider:
+          manifest:
+            apiVersion: rabbitmq.com/v1beta1
+            kind: RabbitmqCluster
+            metadata:
+              namespace: rmq-corp
+            spec:
+              terminationGracePeriodSeconds: 0
+              replicas: 1
+              persistence:
+                storage: 1Gi
+              resources:
+                requests:
+                  cpu: 200m
+                  memory: 1Gi
+                limits:
+                  cpu: 300m
+                  memory: 1Gi
+              rabbitmq:
+                envConfig: |
+                  RABBITMQ_LOGS=""
+                additionalConfig: |
+                  log.console = true
+                  log.console.level = debug
+                  log.console.formatter = json
+                  log.console.formatter.json.field_map = verbosity:v time msg domain file line pid level:-
+                  log.console.formatter.json.verbosity_map = debug:7 info:6 notice:5 warning:4 error:3 critical:2 alert:1 emergency:0
+                  log.console.formatter.time_format = epoch_usecs
+        connectionDetails:
+        - apiVersion: v1
+          kind: Secret
+          namespace: rmq-corp
+          fieldPath: data.provider
+          toConnectionSecretKey: provider
+        - apiVersion: v1
+          kind: Secret
+          namespace: rmq-corp
+          fieldPath: data.type
+          toConnectionSecretKey: type
+        - apiVersion: v1
+          kind: Secret
+          namespace: rmq-corp
+          fieldPath: data.host
+          toConnectionSecretKey: host
+        - apiVersion: v1
+          kind: Secret
+          namespace: rmq-corp
+          fieldPath: data.port
+          toConnectionSecretKey: port
+        - apiVersion: v1
+          kind: Secret
+          namespace: rmq-corp
+          fieldPath: data.username
+          toConnectionSecretKey: username
+        - apiVersion: v1
+          kind: Secret
+          namespace: rmq-corp
+          fieldPath: data.password
+          toConnectionSecretKey: password
+        writeConnectionSecretToRef:
+          namespace: rmq-corp
+    connectionDetails:
+    - fromConnectionSecretKey: provider
+    - fromConnectionSecretKey: type
+    - fromConnectionSecretKey: host
+    - fromConnectionSecretKey: port
+    - fromConnectionSecretKey: username
+    - fromConnectionSecretKey: password
+    patches:
+      - fromFieldPath: metadata.name
+        toFieldPath: spec.forProvider.manifest.metadata.name
+        type: FromCompositeFieldPath
+      - fromFieldPath: spec.replicas
+        toFieldPath: spec.forProvider.manifest.spec.replicas
+        type: FromCompositeFieldPath
+      - fromFieldPath: spec.storageGB
+        toFieldPath: spec.forProvider.manifest.spec.persistence.storage
+        transforms:
+        - string:
+            fmt: '%dGi'
+            type: Format
+          type: string
+        type: FromCompositeFieldPath
+      - fromFieldPath: metadata.name
+        toFieldPath: spec.writeConnectionSecretToRef.name
+        transforms:
+        - string:
+            fmt: '%s-rmq'
+            type: Format
+          type: string
+        type: FromCompositeFieldPath
+      - fromFieldPath: metadata.name
+        toFieldPath: spec.connectionDetails[0].name
+        transforms:
+        - string:
+            fmt: '%s-default-user'
+            type: Format
+          type: string
+        type: FromCompositeFieldPath
+      - fromFieldPath: metadata.name
+        toFieldPath: spec.connectionDetails[1].name
+        transforms:
+        - string:
+            fmt: '%s-default-user'
+            type: Format
+          type: string
+        type: FromCompositeFieldPath
+      - fromFieldPath: metadata.name
+        toFieldPath: spec.connectionDetails[2].name
+        transforms:
+        - string:
+            fmt: '%s-default-user'
+            type: Format
+          type: string
+        type: FromCompositeFieldPath
+      - fromFieldPath: metadata.name
+        toFieldPath: spec.connectionDetails[3].name
+        transforms:
+        - string:
+            fmt: '%s-default-user'
+            type: Format
+          type: string
+        type: FromCompositeFieldPath
+      - fromFieldPath: metadata.name
+        toFieldPath: spec.connectionDetails[4].name
+        transforms:
+        - string:
+            fmt: '%s-default-user'
+            type: Format
+          type: string
+        type: FromCompositeFieldPath
+      - fromFieldPath: metadata.name
+        toFieldPath: spec.connectionDetails[5].name
+        transforms:
+        - string:
+            fmt: '%s-default-user'
+            type: Format
+          type: string
+        type: FromCompositeFieldPath
+    readinessChecks:
+      - type: MatchString
+        fieldPath: status.atProvider.manifest.status.conditions[1].status # ClusterAvailable
+        matchString: "True"

@@ -16,4 +16,5 @@ excluded_packages:
   - workshops.learningcenter.tanzu.vmware.com
   - eventing.tanzu.vmware.com
   - tap-telemetry.tanzu.vmware.com
+  - bitnami.services.tanzu.vmware.com
 ceip_policy_disclosed: true

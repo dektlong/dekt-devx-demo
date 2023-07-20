@@ -1,13 +1,13 @@
 apiVersion: services.apps.tanzu.vmware.com/v1alpha1
 kind: ClusterInstanceClass
 metadata:
-  name: rds-postgres
+  name: postgres-rds-corp
 spec:
   description:
-    short: AWS RDS Postgresql database instances
+    short: AWS RDS Postgresql corporate SLA database
   pool:
     kind: Secret
     labelSelector:
       matchLabels:
-        services.apps.tanzu.vmware.com/class: rds-postgres
+        services.apps.tanzu.vmware.com/class: postgres-rds-corp
     fieldSelector: type=connection.crossplane.io/v1alpha1

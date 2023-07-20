@@ -184,28 +184,28 @@
         scripts/dektecho.sh status "Creating RabbitMQ HA via class-claim dynamic provisioning"
 
         tanzu service class-claim create rabbitmq-claim \
-            --class rabbitmq-unmanaged \
-            --parameter replicas=2 \
-            --parameter storageGB=1 \
+            --class rabbitmq-operator-corp \
+            --parameter replicas=3 \
+            --parameter storageGB=2 \
             --namespace $STAGEPROD_NAMESPACE
         
         case $provider in
             eks) 
                 scripts/dektecho.sh status "Create Amzon RDS postgres claim"
                 tanzu service class-claim create postgres-claim \
-                    --class rds-postgres \
+                    --class postgres-rds-corp \
                     --namespace $STAGEPROD_NAMESPACE
                 ;;
             gke) 
                 scripts/dektecho.sh status "Create Google CloudSQL postgres claim"
                 tanzu service class-claim create postgres-claim \
-                    --class cloudsql-postgres \
+                    --class postgres-cloudsql-corp \
                     --namespace $STAGEPROD_NAMESPACE
                 ;;
             aks) 
                 scripts/dektecho.sh status "Create Azure SQL postgres claim"
                 tanzu service class-claim create postgres-claim \
-                    --class azuresql-postgres \
+                    --class postgres-azuresql-corp \
                     --namespace $STAGEPROD_NAMESPACE
                 ;;
             *)

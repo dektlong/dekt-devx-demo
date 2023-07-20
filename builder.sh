@@ -124,9 +124,8 @@
 
         scripts/tanzu-handler.sh install-tanzu-package "crossplane.tanzu.vmware.com" "crossplane"
         scripts/tanzu-handler.sh install-tanzu-package "services-toolkit.tanzu.vmware.com " "services-toolkit"
-        scripts/tanzu-handler.sh install-tanzu-package "bitnami.services.tanzu.vmware.com" "bitnami-services"
 
-        scripts/k8s-handler.sh setup-crossplane $STAGE_CLUSTER_PROVIDER $STAGE_CLUSTER_NAME $STAGE_CLUSTER_REGION
+        scripts/crossplane-handler.sh $STAGE_CLUSTER_PROVIDER $STAGE_CLUSTER_NAME $STAGE_CLUSTER_REGION
 
         provision-cloud-db $STAGE_CLUSTER_PROVIDER
 
@@ -150,7 +149,7 @@
 
         install-tap "tap-prod1.yaml"
 
-        scripts/k8s-handler.sh setup-crossplane $PROD1_CLUSTER_PROVIDER $PROD1_CLUSTER_NAME $PROD1_CLUSTER_REGION
+        scripts/crossplane-handler.sh $PROD1_CLUSTER_PROVIDER $PROD1_CLUSTER_NAME $PROD1_CLUSTER_REGION
 
         provision-cloud-db $PROD1_CLUSTER_PROVIDER
 
@@ -176,7 +175,7 @@
 
         install-tap "tap-prod2.yaml"
 
-        scripts/k8s-handler.sh setup-crossplane $PROD2_CLUSTER_PROVIDER $PROD2_CLUSTER_NAME $PROD2_CLUSTER_REGION
+        scripts/crossplane-handler.sh $PROD2_CLUSTER_PROVIDER $PROD2_CLUSTER_NAME $PROD2_CLUSTER_REGION
 
         provision-cloud-db $PROD2_CLUSTER_PROVIDER
 

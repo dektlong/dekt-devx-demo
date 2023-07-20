@@ -1,13 +1,13 @@
 apiVersion: services.apps.tanzu.vmware.com/v1alpha1
 kind: ClusterInstanceClass
 metadata:
-  name: cloudsql-postgres
+  name: postgres-cloudsql-corp
 spec:
   description:
-    short: GCP CloudSQL Postgresql database instances
+    short: GCP CloudSQL Postgresql corporate SLA database
   pool:
     kind: Secret
     labelSelector:
       matchLabels:
-        services.apps.tanzu.vmware.com/class: cloudsql-postgres
+        services.apps.tanzu.vmware.com/class: postgres-cloudsql-corp
     fieldSelector: type=connection.crossplane.io/v1alpha1
