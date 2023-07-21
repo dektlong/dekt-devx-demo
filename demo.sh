@@ -191,21 +191,30 @@
         
         case $provider in
             eks) 
-                scripts/dektecho.sh status "Create Amzon RDS postgres claim"
+                scripts/dektecho.sh status "Create Amazon RDS postgres instance and claim"
+                kubectl apply -f .config/crossplane/aws/rds-postgres-instance.yaml -n $STAGEPROD_NAMESPACE
                 tanzu service class-claim create postgres-claim \
                     --class postgres-rds-corp \
                     --namespace $STAGEPROD_NAMESPACE
                 ;;
             gke) 
-                scripts/dektecho.sh status "Create Google CloudSQL postgres claim"
+                scripts/dektecho.sh status "Create Google CloudSQL postgres instance and claim"
+                kubectl apply -f .config/crossplane/gcp/cloudsql-postgres-instance.yaml -n $STAGEPROD_NAMESPACE
                 tanzu service class-claim create postgres-claim \
                     --class postgres-cloudsql-corp \
                     --namespace $STAGEPROD_NAMESPACE
                 ;;
             aks) 
-                scripts/dektecho.sh status "Create Azure SQL postgres claim"
-                tanzu service class-claim create postgres-claim \
-                    --class postgres-azuresql-corp \
+                scripts/dektecho.sh status "Create Azure SQL postgres instance and claim"
+                #kubectl apply -f .config/crossplane/azure/azuresql-postgres-instance.yaml -n $STAGEPROD_NAMESPACE
+                #tanzu service class-claim create postgres-claim \
+                #    --class postgres-azuresql-corp \
+                #    --namespace $STAGEPROD_NAMESPACE
+                kubectl apply -f .config/crossplane/azure/direct-secret-binding.yaml -n $STAGEPROD_NAMESPACE
+                tanzu service resource-claim create postgres-claim \
+                    --resource-name external-azure-db-binding-compatible \
+                    --resource-kind Secret \
+                    --resource-api-version v1 \
                     --namespace $STAGEPROD_NAMESPACE
                 ;;
             *)

@@ -127,8 +127,6 @@
 
         scripts/crossplane-handler.sh $STAGE_CLUSTER_PROVIDER $STAGE_CLUSTER_NAME $STAGE_CLUSTER_REGION
 
-        provision-cloud-db $STAGE_CLUSTER_PROVIDER
-
         if [ "$APPS_INGRESS_ISSUER" != "tap-ingress-selfsigned" ]  
         then
             kubectl apply -f .config/secrets/ingress-issuer-apps.yaml
@@ -150,8 +148,6 @@
         install-tap "tap-prod1.yaml"
 
         scripts/crossplane-handler.sh $PROD1_CLUSTER_PROVIDER $PROD1_CLUSTER_NAME $PROD1_CLUSTER_REGION
-
-        provision-cloud-db $PROD1_CLUSTER_PROVIDER
 
         scripts/ingress-handler.sh update-tap-dns $PROD1_SUB_DOMAIN $PROD1_CLUSTER_PROVIDER
 
@@ -176,8 +172,6 @@
         install-tap "tap-prod2.yaml"
 
         scripts/crossplane-handler.sh $PROD2_CLUSTER_PROVIDER $PROD2_CLUSTER_NAME $PROD2_CLUSTER_REGION
-
-        provision-cloud-db $PROD2_CLUSTER_PROVIDER
 
         scripts/ingress-handler.sh update-tap-dns $PROD2_SUB_DOMAIN $PROD2_CLUSTER_PROVIDER
 
@@ -236,27 +230,6 @@
 
     }
 
-    #provision-cloud-db
-    provision-cloud-db() {
-
-        case $1 in
-            eks) 
-                scripts/dektecho.sh status "Provision an Amzon RDS postgres instance"
-                kubectl apply -f .config/crossplane/aws/rds-postgres-instance.yaml -n $STAGEPROD_NAMESPACE
-                ;;
-            gke) 
-                scripts/dektecho.sh status "Provision a Google CloudSQL postgres instance"
-                kubectl apply -f .config/crossplane/gcp/cloudsql-postgres-instance.yaml -n $STAGEPROD_NAMESPACE
-                ;;
-            aks) 
-                scripts/dektecho.sh status "Provision an Azure SQL postgres instance"
-                kubectl apply -f .config/crossplane/azure/azuresql-postgres-instance.yaml -n $STAGEPROD_NAMESPACE
-                ;;
-            *)
-                scripts/dektecho.sh err "k8s provider $1 is not supported for creating cloud databases"
-                ;;
-            esac
-    }
     #setup-metadata-store
     setup-metadata-store() {
 
@@ -498,9 +471,11 @@ EOF
         
         scripts/dektecho.sh err "Incorrect usage. Please specify one of the following: "
         
-        echo "  clusters  ( devstage | prod ) "
+        echo "  clusters  #create all clusters"
         echo
-        echo "  demo  ( devstage | prod ) "
+        echo "  install   #install all demo components"
+        echo
+        echo "  devstage    #create view,dev,stage clusters and install demo components"
         echo 
         echo "  delete-all"
         echo
@@ -521,39 +496,22 @@ EOF
 
 case $1 in
 clusters)
-    case $2 in
-    devstage)
-        scripts/k8s-handler.sh create $VIEW_CLUSTER_PROVIDER $VIEW_CLUSTER_NAME $VIEW_CLUSTER_REGION $VIEW_CLUSTER_NODES \
-        & scripts/k8s-handler.sh create $DEV_CLUSTER_PROVIDER $DEV_CLUSTER_NAME $DEV_CLUSTER_REGION $DEV_CLUSTER_NODES \
-        & scripts/k8s-handler.sh create $STAGE_CLUSTER_PROVIDER $STAGE_CLUSTER_NAME $STAGE_CLUSTER_REGION $STAGE_CLUSTER_NODES
-        ;;
-    prod)
-        scripts/k8s-handler.sh create $PROD1_CLUSTER_PROVIDER $PROD1_CLUSTER_NAME $PROD1_CLUSTER_REGION $PROD1_CLUSTER_NODES \
-        & scripts/k8s-handler.sh create $PROD2_CLUSTER_PROVIDER $PROD2_CLUSTER_NAME $PROD2_CLUSTER_REGION $PROD2_CLUSTER_NODES
-        ;;
-    *)
-        scripts/k8s-handler.sh create $VIEW_CLUSTER_PROVIDER $VIEW_CLUSTER_NAME $VIEW_CLUSTER_REGION $VIEW_CLUSTER_NODES \
-        & scripts/k8s-handler.sh create $DEV_CLUSTER_PROVIDER $DEV_CLUSTER_NAME $DEV_CLUSTER_REGION $DEV_CLUSTER_NODES \
-        & scripts/k8s-handler.sh create $STAGE_CLUSTER_PROVIDER $STAGE_CLUSTER_NAME $STAGE_CLUSTER_REGION $STAGE_CLUSTER_NODES \
-        & scripts/k8s-handler.sh create $PROD1_CLUSTER_PROVIDER $PROD1_CLUSTER_NAME $PROD1_CLUSTER_REGION $PROD1_CLUSTER_NODES \
-        & scripts/k8s-handler.sh create $PROD2_CLUSTER_PROVIDER $PROD2_CLUSTER_NAME $PROD2_CLUSTER_REGION $PROD2_CLUSTER_NODES \
-        & scripts/k8s-handler.sh create $BROWNFIELD_CLUSTER_PROVIDER $BROWNFIELD_CLUSTER_NAME $BROWNFIELD_CLUSTER_REGION $BROWNFIELD_CLUSTER_NODES  
-        ;;
-    esac
+    scripts/k8s-handler.sh create $VIEW_CLUSTER_PROVIDER $VIEW_CLUSTER_NAME $VIEW_CLUSTER_REGION $VIEW_CLUSTER_NODES \
+    & scripts/k8s-handler.sh create $DEV_CLUSTER_PROVIDER $DEV_CLUSTER_NAME $DEV_CLUSTER_REGION $DEV_CLUSTER_NODES \
+    & scripts/k8s-handler.sh create $STAGE_CLUSTER_PROVIDER $STAGE_CLUSTER_NAME $STAGE_CLUSTER_REGION $STAGE_CLUSTER_NODES \
+    & scripts/k8s-handler.sh create $PROD1_CLUSTER_PROVIDER $PROD1_CLUSTER_NAME $PROD1_CLUSTER_REGION $PROD1_CLUSTER_NODES \
+    & scripts/k8s-handler.sh create $PROD2_CLUSTER_PROVIDER $PROD2_CLUSTER_NAME $PROD2_CLUSTER_REGION $PROD2_CLUSTER_NODES \
+    & scripts/k8s-handler.sh create $BROWNFIELD_CLUSTER_PROVIDER $BROWNFIELD_CLUSTER_NAME $BROWNFIELD_CLUSTER_REGION $BROWNFIELD_CLUSTER_NODES  
     ;;
-demo)
-    case $2 in
-    devstage)
-        install-devstage
-        ;;
-    prod)
-        install-prod
-        ;; 
-    *)
-        install-devstage
-        install-prod
-        ;;
-    esac
+install)
+    install-devstage
+    install-prod
+    ;;
+devstage)
+    scripts/k8s-handler.sh create $VIEW_CLUSTER_PROVIDER $VIEW_CLUSTER_NAME $VIEW_CLUSTER_REGION $VIEW_CLUSTER_NODES \
+    & scripts/k8s-handler.sh create $DEV_CLUSTER_PROVIDER $DEV_CLUSTER_NAME $DEV_CLUSTER_REGION $DEV_CLUSTER_NODES \
+    & scripts/k8s-handler.sh create $STAGE_CLUSTER_PROVIDER $STAGE_CLUSTER_NAME $STAGE_CLUSTER_REGION $STAGE_CLUSTER_NODES
+    install-devstage
     ;;
 delete-all)
     scripts/dektecho.sh prompt  "Are you sure you want to delete all clusters?" && [ $? -eq 0 ] || exit
@@ -576,7 +534,16 @@ export-packages)
     scripts/tanzu-handler.sh relocate-tanzu-images $2
     ;;
 runme)
-    $2 $3 $4
+    # jwt decode; requires jq
+    jwtd() {
+    if [[ -x $(command -v jq) ]]; then
+         jq -R 'split(".") | .[0],.[1] | @base64d | fromjson' <<< "${2}"
+         expiry=$(date -r $(jq -R 'split(".") | .[1] | @base64d | fromjson | .exp' <<< "${2}"))
+         echo "Expiry: $expiry"
+         echo "Signature: $(echo "${2}" | awk -F'.' '{print $3}')"
+    fi
+    }
+    #$2 $3 $4
     ;;
 *)
     incorrect-usage
