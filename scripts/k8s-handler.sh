@@ -69,6 +69,7 @@ create-eks-cluster () {
   		--name ebs-csi-controller-sa \
   		--namespace kube-system \
   		--cluster $cluster_name \
+		--region $region \
   		--attach-policy-arn arn:aws:iam::aws:policy/service-role/AmazonEBSCSIDriverPolicy \
   		--approve \
   		--role-only \
@@ -77,6 +78,7 @@ create-eks-cluster () {
 	eksctl create addon \
 		--name aws-ebs-csi-driver \
 		--cluster $cluster_name \
+		--region $region \
 		--service-account-role-arn arn:aws:iam::$AWS_ACCOUNT_ID:role/AmazonEKS_EBS_CSI_DriverRole-$cluster_name \
 		--force
 }
