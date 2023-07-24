@@ -125,7 +125,9 @@
         scripts/tanzu-handler.sh install-tanzu-package "crossplane.tanzu.vmware.com" "crossplane"
         scripts/tanzu-handler.sh install-tanzu-package "services-toolkit.tanzu.vmware.com " "services-toolkit"
 
-        scripts/crossplane-handler.sh $STAGE_CLUSTER_PROVIDER $STAGE_CLUSTER_NAME $STAGE_CLUSTER_REGION
+        scripts/db-handler.sh setup $STAGE_CLUSTER_PROVIDER $STAGE_CLUSTER_NAME $STAGE_CLUSTER_REGION
+
+        scripts/db-handler.sh provision-db $STAGE_CLUSTER_PROVIDER
 
         if [ "$APPS_INGRESS_ISSUER" != "tap-ingress-selfsigned" ]  
         then
@@ -147,7 +149,9 @@
 
         install-tap "tap-prod1.yaml"
 
-        scripts/crossplane-handler.sh $PROD1_CLUSTER_PROVIDER $PROD1_CLUSTER_NAME $PROD1_CLUSTER_REGION
+        scripts/db-handler.sh setup $PROD1_CLUSTER_PROVIDER $PROD1_CLUSTER_NAME $PROD1_CLUSTER_REGION
+
+        scripts/db-handler.sh provision-db $PROD1_CLUSTER_PROVIDER
 
         scripts/ingress-handler.sh update-tap-dns $PROD1_SUB_DOMAIN $PROD1_CLUSTER_PROVIDER
 
@@ -171,7 +175,9 @@
 
         install-tap "tap-prod2.yaml"
 
-        scripts/crossplane-handler.sh $PROD2_CLUSTER_PROVIDER $PROD2_CLUSTER_NAME $PROD2_CLUSTER_REGION
+        scripts/db-handler.sh setup $PROD2_CLUSTER_PROVIDER $PROD2_CLUSTER_NAME $PROD2_CLUSTER_REGION
+
+        scripts/db-handler.sh provision-db $PROD2_CLUSTER_PROVIDER
 
         scripts/ingress-handler.sh update-tap-dns $PROD2_SUB_DOMAIN $PROD2_CLUSTER_PROVIDER
 
@@ -397,6 +403,15 @@ EOF
         scripts/tanzu-handler.sh tmc-cluster remove $BROWNFIELD_CLUSTER_NAME
     }
 
+    delete-cloud-db() {
+        
+        kubectl config use-context $STAGE_CLUSTER_NAME
+        scripts/db-handler.sh delete-db $STAGE_CLUSTER_PROVIDER
+        kubectl config use-context $PROD1_CLUSTER_NAME
+        scripts/db-handler.sh delete-db $PROD1_CLUSTER_PROVIDER
+        kubectl config use-context $PROD2_CLUSTER_NAME
+        scripts/db-handler.sh delete-db $PROD2_CLUSTER_PROVIDER
+    }
     #update-tap
     update-tap ()
     {
@@ -517,6 +532,7 @@ delete-all)
     scripts/dektecho.sh prompt  "Are you sure you want to delete all clusters?" && [ $? -eq 0 ] || exit
     ./demo.sh reset
     delete-tmc-clusters
+    delete-cloud-db
     scripts/k8s-handler.sh delete $VIEW_CLUSTER_PROVIDER $VIEW_CLUSTER_NAME $STAGE_CLUSTER_REGION\
     & scripts/k8s-handler.sh delete $DEV_CLUSTER_PROVIDER $DEV_CLUSTER_NAME $DEV_CLUSTER_REGION \
     & scripts/k8s-handler.sh delete $STAGE_CLUSTER_PROVIDER $STAGE_CLUSTER_NAME $STAGE_CLUSTER_REGION \
@@ -534,16 +550,7 @@ export-packages)
     scripts/tanzu-handler.sh relocate-tanzu-images $2
     ;;
 runme)
-    # jwt decode; requires jq
-    jwtd() {
-    if [[ -x $(command -v jq) ]]; then
-         jq -R 'split(".") | .[0],.[1] | @base64d | fromjson' <<< "${2}"
-         expiry=$(date -r $(jq -R 'split(".") | .[1] | @base64d | fromjson | .exp' <<< "${2}"))
-         echo "Expiry: $expiry"
-         echo "Signature: $(echo "${2}" | awk -F'.' '{print $3}')"
-    fi
-    }
-    #$2 $3 $4
+    $2 $3 $4
     ;;
 *)
     incorrect-usage

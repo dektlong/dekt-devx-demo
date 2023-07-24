@@ -148,18 +148,18 @@
         
         scripts/dektecho.sh info "Deploying services and workloads to $PROD1_CLUSTER production cluster..."
         kubectl config use-context $PROD1_CLUSTER
-        create-stageprod-data-services $PROD1_CLUSTER_PROVIDER
+        create-stageprod-claims $PROD1_CLUSTER_PROVIDER
         apply-prod-deliverables
 
         scripts/dektecho.sh info "Deploying services and workloads to $PROD2_CLUSTER production cluster..."
         kubectl config use-context $PROD2_CLUSTER
-        create-stageprod-data-services $PROD2_CLUSTER_PROVIDER
+        create-stageprod-claims $PROD2_CLUSTER_PROVIDER
         apply-prod-deliverables
 
     }
 
-    #create-team-data-services
-    create-team-data-services () {
+    #create-team-claims
+    create-team-claims () {
 
         scripts/dektecho.sh status "Creating data services via class-claim dynamic provisioning"
 
@@ -176,12 +176,12 @@
 
     }
 
-    #create-stageprod-data-services
-    create-stageprod-data-services () {
+    #create-stageprod-claims
+    create-stageprod-claims () {
 
         provider=$1
 
-        scripts/dektecho.sh status "Creating RabbitMQ HA via class-claim dynamic provisioning"
+        scripts/dektecho.sh status "Creating RabbitMQ class-claim"
 
         tanzu service class-claim create rabbitmq-claim \
             --class rabbitmq-operator-corp \
@@ -191,26 +191,23 @@
         
         case $provider in
             eks) 
-                scripts/dektecho.sh status "Create Amazon RDS postgres instance and claim"
-                kubectl apply -f .config/crossplane/aws/rds-postgres-instance.yaml -n $STAGEPROD_NAMESPACE
+                scripts/dektecho.sh status "Create Amazon RDS postgres class claim"
                 tanzu service class-claim create postgres-claim \
                     --class postgres-rds-corp \
                     --namespace $STAGEPROD_NAMESPACE
                 ;;
             gke) 
-                scripts/dektecho.sh status "Create Google CloudSQL postgres instance and claim"
-                kubectl apply -f .config/crossplane/gcp/cloudsql-postgres-instance.yaml -n $STAGEPROD_NAMESPACE
+                scripts/dektecho.sh status "Create Google CloudSQL postgres class claim"
                 tanzu service class-claim create postgres-claim \
                     --class postgres-cloudsql-corp \
                     --namespace $STAGEPROD_NAMESPACE
                 ;;
             aks) 
-                scripts/dektecho.sh status "Create Azure SQL postgres instance and claim"
-                #kubectl apply -f .config/crossplane/azure/azuresql-postgres-instance.yaml -n $STAGEPROD_NAMESPACE
+                scripts/dektecho.sh status "Create Azure SQL postgres resource claim"
+                #kubectl apply -f .config/dataservices/azure/azuresql-postgres-instance.yaml -n $STAGEPROD_NAMESPACE
                 #tanzu service class-claim create postgres-claim \
                 #    --class postgres-azuresql-corp \
                 #    --namespace $STAGEPROD_NAMESPACE
-                kubectl apply -f .config/crossplane/azure/direct-secret-binding.yaml -n $STAGEPROD_NAMESPACE
                 tanzu service resource-claim create postgres-claim \
                     --resource-name external-azure-db-binding-compatible \
                     --resource-kind Secret \
@@ -262,6 +259,7 @@
             kubectl config use-context $STAGE_CLUSTER
             scripts/dektecho.sh cmd "tanzu services class-claim list -n $STAGEPROD_NAMESPACE"
             tanzu services class-claim list -n $STAGEPROD_NAMESPACE
+            tanzu services resource-claims get postgres-claim -n devxmood
             ;;
         prod)
             kubectl config use-context $PROD1_CLUSTER
@@ -332,9 +330,6 @@
         kubectl delete -f .config/workloads -n $appNamespace
         tanzu service class-claim delete postgres-claim -y -n $appNamespace
         tanzu service class-claim delete rabbitmq-claim -y -n $appNamespace
-        kubectl delete -f .config/crossplane/aws/rds-postgres-instance.yaml -n $appNamespace
-        kubectl delete -f .config/crossplane/azure/azuresql-postgres-instance.yaml -n $appNamespace
-        kubectl delete -f .config/crossplane/gcp/cloudsql-postgres-instance.yaml -n $appNamespace
     }
 
     #reset-prod
@@ -349,10 +344,6 @@
         kubectl delete -f ../$STAGE_GITOPS_REPO/config/$STAGEPROD_NAMESPACE/mood-painter -n $STAGEPROD_NAMESPACE
         tanzu service class-claim delete postgres-claim -y -n $STAGEPROD_NAMESPACE
         tanzu service class-claim delete rabbitmq-claim -y -n $STAGEPROD_NAMESPACE
-        kubectl delete -f .config/crossplane/aws/rds-postgres-instance.yaml -n $STAGEPROD_NAMESPACE
-        kubectl delete -f .config/crossplane/azure/azuresql-postgres-instance.yaml -n $STAGEPROD_NAMESPACE
-        kubectl delete -f .config/crossplane/gcp/cloudsql-postgres-instance.yaml -n $STAGEPROD_NAMESPACE
-      
       
     }
 
@@ -407,12 +398,12 @@ info)
 dev)
     kubectl config use-context $DEV_CLUSTER
     create-mydev
-    create-team-data-services
+    create-team-claims
     create-workloads $TEAM_NAMESPACE $SNIFF_THRESHOLD_AGGRESSIVE
     ;;
 stage)
     kubectl config use-context $STAGE_CLUSTER
-    create-stageprod-data-services $STAGE_CLUSTER_PROVIDER
+    create-stageprod-claims $STAGE_CLUSTER_PROVIDER
     create-workloads $STAGEPROD_NAMESPACE $SNIFF_THRESHOLD_MILD
     ;;
 prod)
