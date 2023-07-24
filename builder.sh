@@ -404,6 +404,8 @@ EOF
     }
 
     delete-cloud-db() {
+
+        scripts/dektecho.sh status "Deleting cloud databases instances"
         
         kubectl config use-context $STAGE_CLUSTER_NAME
         scripts/db-handler.sh delete-db $STAGE_CLUSTER_PROVIDER
