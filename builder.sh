@@ -391,7 +391,6 @@ EOF
 
     }
 
-  
     #delete-tmc-cluster
     delete-tmc-clusters() {
 
