@@ -481,18 +481,63 @@ EOF
 
     }
 
+    #create-clusters
+    create-clusters () {
+
+        case $1 in
+        all)
+            scripts/k8s-handler.sh create $VIEW_CLUSTER_PROVIDER $VIEW_CLUSTER_NAME $VIEW_CLUSTER_REGION $VIEW_CLUSTER_NODES \
+            & scripts/k8s-handler.sh create $DEV_CLUSTER_PROVIDER $DEV_CLUSTER_NAME $DEV_CLUSTER_REGION $DEV_CLUSTER_NODES \
+            & scripts/k8s-handler.sh create $STAGE_CLUSTER_PROVIDER $STAGE_CLUSTER_NAME $STAGE_CLUSTER_REGION $STAGE_CLUSTER_NODES \
+            & scripts/k8s-handler.sh create $PROD1_CLUSTER_PROVIDER $PROD1_CLUSTER_NAME $PROD1_CLUSTER_REGION $PROD1_CLUSTER_NODES \
+            & scripts/k8s-handler.sh create $PROD2_CLUSTER_PROVIDER $PROD2_CLUSTER_NAME $PROD2_CLUSTER_REGION $PROD2_CLUSTER_NODES \
+            & scripts/k8s-handler.sh create $BROWNFIELD_CLUSTER_PROVIDER $BROWNFIELD_CLUSTER_NAME $BROWNFIELD_CLUSTER_REGION $BROWNFIELD_CLUSTER_NODES  
+            ;;
+        devstage)
+            scripts/k8s-handler.sh create $VIEW_CLUSTER_PROVIDER $VIEW_CLUSTER_NAME $VIEW_CLUSTER_REGION $VIEW_CLUSTER_NODES \
+            & scripts/k8s-handler.sh create $DEV_CLUSTER_PROVIDER $DEV_CLUSTER_NAME $DEV_CLUSTER_REGION $DEV_CLUSTER_NODES \
+            & scripts/k8s-handler.sh create $STAGE_CLUSTER_PROVIDER $STAGE_CLUSTER_NAME $STAGE_CLUSTER_REGION $STAGE_CLUSTER_NODES
+            ;;
+        prod)
+            scripts/k8s-handler.sh create $PROD1_CLUSTER_PROVIDER $PROD1_CLUSTER_NAME $PROD1_CLUSTER_REGION $PROD1_CLUSTER_NODES \
+            & scripts/k8s-handler.sh create $PROD2_CLUSTER_PROVIDER $PROD2_CLUSTER_NAME $PROD2_CLUSTER_REGION $PROD2_CLUSTER_NODES \
+            & scripts/k8s-handler.sh create $BROWNFIELD_CLUSTER_PROVIDER $BROWNFIELD_CLUSTER_NAME $BROWNFIELD_CLUSTER_REGION $BROWNFIELD_CLUSTER_NODES
+            ;;
+        *)
+            incorrect-usage
+            ;;
+        esac
+    }
+
+    #install-demo
+    install-demo () {
+
+        case $1 in
+        all)
+            install-devstage
+            install-prod
+            ;;
+        devstage)
+            install-devstage
+            ;;
+        prod)
+            install-prod
+            ;;
+        *)
+            incorrect-usage
+            ;;
+        esac
+    }
     
     #incorrect usage
     incorrect-usage() {
         
         scripts/dektecho.sh err "Incorrect usage. Please specify one of the following: "
-        
-        echo "  clusters  #create all clusters"
         echo
-        echo "  install   #install all demo components"
+        echo "  create-clusters  [ all, devstage, prod ]"
         echo
-        echo "  devstage    #create view,dev,stage clusters and install demo components"
-        echo 
+        echo "  install-demo   [ all, devstage, prod ]"
+        echo
         echo "  delete-all"
         echo
         echo "  generate-configs"
@@ -511,23 +556,11 @@ EOF
 
 
 case $1 in
-clusters)
-    scripts/k8s-handler.sh create $VIEW_CLUSTER_PROVIDER $VIEW_CLUSTER_NAME $VIEW_CLUSTER_REGION $VIEW_CLUSTER_NODES \
-    & scripts/k8s-handler.sh create $DEV_CLUSTER_PROVIDER $DEV_CLUSTER_NAME $DEV_CLUSTER_REGION $DEV_CLUSTER_NODES \
-    & scripts/k8s-handler.sh create $STAGE_CLUSTER_PROVIDER $STAGE_CLUSTER_NAME $STAGE_CLUSTER_REGION $STAGE_CLUSTER_NODES \
-    & scripts/k8s-handler.sh create $PROD1_CLUSTER_PROVIDER $PROD1_CLUSTER_NAME $PROD1_CLUSTER_REGION $PROD1_CLUSTER_NODES \
-    & scripts/k8s-handler.sh create $PROD2_CLUSTER_PROVIDER $PROD2_CLUSTER_NAME $PROD2_CLUSTER_REGION $PROD2_CLUSTER_NODES \
-    & scripts/k8s-handler.sh create $BROWNFIELD_CLUSTER_PROVIDER $BROWNFIELD_CLUSTER_NAME $BROWNFIELD_CLUSTER_REGION $BROWNFIELD_CLUSTER_NODES  
+create-clusters)
+    create-clusters $2
     ;;
-install)
-    install-devstage
-    install-prod
-    ;;
-devstage)
-    scripts/k8s-handler.sh create $VIEW_CLUSTER_PROVIDER $VIEW_CLUSTER_NAME $VIEW_CLUSTER_REGION $VIEW_CLUSTER_NODES \
-    & scripts/k8s-handler.sh create $DEV_CLUSTER_PROVIDER $DEV_CLUSTER_NAME $DEV_CLUSTER_REGION $DEV_CLUSTER_NODES \
-    & scripts/k8s-handler.sh create $STAGE_CLUSTER_PROVIDER $STAGE_CLUSTER_NAME $STAGE_CLUSTER_REGION $STAGE_CLUSTER_NODES
-    install-devstage
+install-demo)
+    install-demo $2
     ;;
 delete-all)
     scripts/dektecho.sh prompt  "Are you sure you want to delete all clusters?" && [ $? -eq 0 ] || exit

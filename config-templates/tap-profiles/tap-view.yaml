@@ -8,6 +8,12 @@ tap_gui:
   service_type: ClusterIP
   metadataStoreAutoconfiguration: true
   app_config:
+    customize:
+      custom_name: 'Dekt Developer Portal'
+    organization:
+      name: 'Dekt'
+    auth: 
+      allowGuestAccess: true
     integrations:
       github:
         - host: github.com

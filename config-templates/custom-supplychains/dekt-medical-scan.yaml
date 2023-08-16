@@ -41,18 +41,6 @@ spec:
     templateRef:
       kind: ClusterSourceTemplate
       name: testing-pipeline
-  - name: source-scanner
-    params:
-    - default: scan-policy
-      name: scanning_source_policy
-    - default: blob-source-scan-template
-      name: scanning_source_template
-    sources:
-    - name: source
-      resource: clinical-trials
-    templateRef:
-      kind: ClusterSourceTemplate
-      name: source-scanner-template
   - name: patient-imaging
     params:
     - default: default
@@ -72,7 +60,7 @@ spec:
       name: docker_build_extra_args
     sources:
     - name: source
-      resource: source-scanner
+      resource: patient-imaging
     templateRef:
       kind: ClusterImageTemplate
       options:

@@ -65,9 +65,9 @@ tanzu_network:
 
 tap:
   
-  tapVersion: 1.5.0
-  carvelBundle: "sha256:79abddbc3b49b44fc368fede0dab93c266ff7c1fe305e2d555ed52d00361b446"
-    scanTemplates: #accepted values: carbonblack-private-image-scan-template snyk-private-image-scan-template, private-image-scan-template
+  tapVersion: 1.6.1
+  carvelBundle: sha256:54e516b5d088198558d23cababb3f907cd8073892cacfb2496bb9d66886efe15
+  scanTemplates: #accepted values: carbonblack-private-image-scan-template snyk-private-image-scan-template, private-image-scan-template
     portal: snyk-private-image-scan-template 
     sensors: carbonblack-private-image-scan-template 
     doctor: snyk-private-image-scan-template 

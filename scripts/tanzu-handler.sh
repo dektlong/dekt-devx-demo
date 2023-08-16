@@ -54,22 +54,17 @@ relocate-carvel-bundle() {
 #relocate-tbs-images
 relocate-tbs-images() {
 
-    #check if there is an tap=repo available on cluster
-    
-    tbs_package=$(tanzu package available list -n tap-install | grep 'buildservice' > /dev/null)
-    tbs_version=$(echo ${tbs_package: -20} | sed 's/[[:space:]]//g')
-    
-    scripts/dektecho.sh status "relocating TBS $tbs_version images to $IMGPKG_REGISTRY_HOSTNAME/$PRIVATE_RGISTRY_REPO/tbs-full-deps"
+    scripts/dektecho.sh status "relocating TBS full dependencies for TAP version $TAP_VERSION to $IMGPKG_REGISTRY_HOSTNAME/$PRIVATE_RGISTRY_REPO/full-deps-package-repo"
 
     imgpkg copy \
-        --bundle $TANZU_NETWORK_REGISTRY/tanzu-application-platform/full-tbs-deps-package-repo:$tbs_version \
-        --to-tar=.config/tbs-full-deps.tar
+        --bundle $TANZU_NETWORK_REGISTRY/tanzu-application-platform/full-deps-package-repo:$TAP_VERSION \
+        --to-tar=.config/full-deps-package-repo.tar
     
     imgpkg copy \
-        --tar .config/tbs-full-deps.tar \
-        --to-repo=$IMGPKG_REGISTRY_HOSTNAME/$PRIVATE_RGISTRY_REPO/tbs-full-deps
+        --tar .config/full-deps-package-repo.tar \
+        --to-repo=$IMGPKG_REGISTRY_HOSTNAME/$PRIVATE_RGISTRY_REPO/full-deps-package-repo
 
-    rm -f .config/tbs-full-deps.tar
+    rm -f .config/full-deps-package-repo.tar
 
 }
 
@@ -230,7 +225,6 @@ relocate-tanzu-images)
         relocate-tap-images
         ;;
     tbs)
-        scripts/dektecho.sh prompt  "Verfiy tanzu registry is installed on this k8s cluster. Continue?" && [ $? -eq 0 ] || exit
         relocate-tbs-images 
         ;;
     tds)    
