@@ -181,7 +181,7 @@
 
         provider=$1
 
-        scripts/dektecho.sh status "Creating RabbitMQ class-claim"
+        scripts/dektecho.sh status "Creating RabbitMQ class-claim (dynamic provisioning of resource)"
 
         tanzu service class-claim create rabbitmq-claim \
             --class rabbitmq-operator-corp \
@@ -191,23 +191,21 @@
         
         case $provider in
             eks) 
-                scripts/dektecho.sh status "Create Amazon RDS postgres class claim"
+                scripts/dektecho.sh status "Create Amazon RDS postgres class claim (dynamic provisioning of resource)"
                 tanzu service class-claim create postgres-claim \
                     --class postgres-rds-corp \
+                    -p storageGB=10 \
                     --namespace $STAGEPROD_NAMESPACE
                 ;;
             gke) 
-                scripts/dektecho.sh status "Create Google CloudSQL postgres class claim"
+                scripts/dektecho.sh status "Create Google CloudSQL postgres class claim (dynamic provisioning of resource)"
                 tanzu service class-claim create postgres-claim \
                     --class postgres-cloudsql-corp \
                     --namespace $STAGEPROD_NAMESPACE
                 ;;
             aks) 
-                scripts/dektecho.sh status "Create Azure SQL postgres resource claim"
-                #kubectl apply -f .config/dataservices/azure/azuresql-postgres-instance.yaml -n $STAGEPROD_NAMESPACE
-                #tanzu service class-claim create postgres-claim \
-                #    --class postgres-azuresql-corp \
-                #    --namespace $STAGEPROD_NAMESPACE
+                scripts/dektecho.sh status "Create Azure SQL postgres resource claim (resource should already exist)"
+                kubectl apply -f .config/dataservices/azure/direct-secret-binding.yaml -n $STAGEPROD_NAMESPACE
                 tanzu service resource-claim create postgres-claim \
                     --resource-name external-azure-db-binding-compatible \
                     --resource-kind Secret \

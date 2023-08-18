@@ -1,16 +1,15 @@
-
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:
-  name: stk-secret-reader
+  name: app-operator-claim-aws-rds-psql
   labels:
-    servicebinding.io/controller: "true"
+    apps.tanzu.vmware.com/aggregate-to-app-operator-cluster-access: "true"
 rules:
 - apiGroups:
-  - ""
+  - "services.apps.tanzu.vmware.com"
   resources:
-  - secrets
+  - clusterinstanceclasses
+  resourceNames:
+  - aws-rds-psql
   verbs:
-  - get
-  - list
-  - watch
+  - claim

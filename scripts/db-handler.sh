@@ -30,11 +30,18 @@ setup-rds-crossplane () {
 		scripts/dektecho.sh status "Installing crossplane provider for AWS cluster $cluster_name in region $region and configure RDS Postgres access"
         
         kubectl apply -f .config/dataservices/aws/aws-provider.yaml
-        	kubectl wait "providers.pkg.crossplane.io/provider-aws" --for=condition=Healthy --timeout=3m
+        	kubectl wait "providers.pkg.crossplane.io/upbound-provider-aws-rds" --for=condition=Healthy --timeout=3m
 		
-		awsProfile=default && echo -e "[default]\naws_access_key_id = $(aws configure get aws_access_key_id --profile $awsProfile)\naws_secret_access_key = $(aws configure get aws_secret_access_key --profile $awsProfile)\naws_session_token = $(aws configure get aws_session_token --profile $awsProfile)" > .config/creds-aws.conf
-    	kubectl create secret generic aws-provider-creds -n crossplane-system --from-file=creds=.config/creds-aws.conf
-    	rm -f .config/creds-aws.conf
+cat <<EOF |	kubectl apply -f -
+apiVersion: v1
+kind: Secret
+metadata:
+  name: aws-secret
+  namespace: crossplane-system
+stringData:
+  creds: |
+    $(printf "[default]\n    aws_access_key_id = %s\n    aws_secret_access_key = %s\n    aws_session_token = %s" "${AWS_ACCESS_KEY_ID}" "${AWS_SECRET_ACCESS_KEY}" "${AWS_SESSION_TOKEN}")
+EOF
 
 		kubectl apply -f .config/dataservices/aws/aws-provider-config.yaml
 		kubectl apply -f .config/dataservices/aws/rds-postgres-xrd.yaml
@@ -91,56 +98,6 @@ EOF
 
 }
 
-#provision-azuresql-direct
-provision-azuresql-db-direct () {
-	
-	location=$(yq .clusters.stage.region .config/demo-values.yaml)
-	namespace=$(yq .apps_namespaces.stageProd .config/demo-values.yaml)
-	resourceGroup=db-group
-
-	scripts/dektecho.sh status "Provisioning azuresql db instance named inventory-db in location $location , accesible in namespace $namespace"
-	
-	az group create --name $resourceGroup --location "$location"
-
-	az sql server create --name dekt-db-server \
-		--resource-group $resourceGroup \
-		--location "$location" \
-		--admin-user azure-admin \
-		--admin-password appCl0udlong
-
-	#az sql server firewall-rule create --resource-group $resourceGroup --server $server -n AllowYourIp --start-ip-address $startIp --end-ip-address $endIp
-
-	az sql db create \
-		--resource-group $resourceGroup \
-		--server dekt-db-server \
-		--name inventory-db \
-		--sample-name AdventureWorksLT \
-		--edition GeneralPurpose \
-		--family Gen5 \
-		--capacity 2 
-
-	kubectl apply -f .config/dataservices/azure/direct-secret-binding.yaml -n $namespace
-
-}
-
-#provision-cloudsql-crossplane
-provision-cloudsql-crossplane () {
-
-	namespace=$(yq .apps_namespaces.stageProd .config/demo-values.yaml)
-	kubectl apply -f .config/dataservices/gcp/cloudsql-postgres-instance.yaml -n $namespace
-
-}
-
-#provision-cloudsql-crossplane
-provision-rds-db-crossplane () {
-
-	namespace=$(yq .apps_namespaces.stageProd .config/demo-values.yaml)
-
-	scripts/dektecho.sh status "Provisioning rds postgres instance name inventory-db, accesible in namespace $namespace"
-	
-	kubectl apply -f .config/dataservices/aws/rds-postgres-instance.yaml -n $namespace
-}
-
 #setup-cloudsql-crossplane
 setup-cloudsql-crossplane () {
 
@@ -174,76 +131,25 @@ setup-cloudsql-crossplane () {
 
 #################### main #######################
 
-#incorrect-usage
-incorrect-usage() {
-	
-	scripts/dektecho.sh err "Incorrect usage. Please specify:"
-    echo "  setup [ provider,clusterName, region ]"
-	echo " 	provision-db [provider]"
-	echo "	delete-db [provider] "
-    exit
-}
 
-provider=$2
-clusterName=$3
-region=$4
+provider=$1
+clusterName=$2
+region=$3
 
-case $1 in
-setup)
-	case $provider in
-	aks)
-		setup-azuresql-crossplane $clusterName $region
-		setup-rabbitmq-crossplane $clusterName
-		;;
-	eks)
-		setup-rds-crossplane $clusterName $region
-		setup-rabbitmq-crossplane $clusterName
-		;;
-	gke)
-		setup-cloudsql-crossplane $clusterName $region
-		setup-rabbitmq-crossplane $clusterName
-		;;
-	*)
-		incorrect-usage
-		;;
-	esac
+case $provider in
+aks)
+	setup-azuresql-crossplane $clusterName $region
+	setup-rabbitmq-crossplane $clusterName
 	;;
-provision-db)
-	case $provider in
-	aks)
-		provision-azuresql-db-direct
-		#provision-azuresql-db-crossplane
-		;;
-	eks)
-		provision-rds-db-crossplane
-		;;
-	gke)
-		provision-cloudsql-db-crossplane
-		;;
-	*)
-		incorrect-usage
-		;;
-	esac
+eks)
+	setup-rds-crossplane $clusterName $region
+	setup-rabbitmq-crossplane $clusterName
 	;;
-delete-db)
-	namespace=$(yq .apps_namespaces.stageProd .config/demo-values.yaml)
-	case $provider in
-	aks)
-		az group delete --name db-group --yes
-		#kubectl delete -f .config/dataservices/azure/azuresql-postgres-instance.yaml -n $namespace
-		;;
-	eks)
-		kubectl delete -f .config/dataservices/aws/rds-postgres-instance.yaml -n $namespace
-		;;
-	gke)
-		kubectl delete -f .config/dataservices/gcp/cloudsql-postgres-instance.yaml -n $namespace
-		;;
-	*)
-		incorrect-usage
-		;;
-	esac
+gke)
+	setup-cloudsql-crossplane $clusterName $region
+	setup-rabbitmq-crossplane $clusterName
 	;;
 *)
-	incorrect-usage
+	scripts/dektecho.sh err "Incorrect usage. Please specify provider, clusterName, region"
 	;;
 esac

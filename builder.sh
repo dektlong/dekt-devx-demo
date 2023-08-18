@@ -125,9 +125,7 @@
         scripts/tanzu-handler.sh install-tanzu-package "crossplane.tanzu.vmware.com" "crossplane"
         scripts/tanzu-handler.sh install-tanzu-package "services-toolkit.tanzu.vmware.com " "services-toolkit"
 
-        scripts/db-handler.sh setup $STAGE_CLUSTER_PROVIDER $STAGE_CLUSTER_NAME $STAGE_CLUSTER_REGION
-
-        scripts/db-handler.sh provision-db $STAGE_CLUSTER_PROVIDER
+        scripts/db-handler.sh $STAGE_CLUSTER_PROVIDER $STAGE_CLUSTER_NAME $STAGE_CLUSTER_REGION
 
         if [ "$APPS_INGRESS_ISSUER" != "tap-ingress-selfsigned" ]  
         then
@@ -149,9 +147,7 @@
 
         install-tap "tap-prod1.yaml"
 
-        scripts/db-handler.sh setup $PROD1_CLUSTER_PROVIDER $PROD1_CLUSTER_NAME $PROD1_CLUSTER_REGION
-
-        scripts/db-handler.sh provision-db $PROD1_CLUSTER_PROVIDER
+        scripts/db-handler.sh $PROD1_CLUSTER_PROVIDER $PROD1_CLUSTER_NAME $PROD1_CLUSTER_REGION
 
         scripts/ingress-handler.sh update-tap-dns $PROD1_SUB_DOMAIN $PROD1_CLUSTER_PROVIDER
 
@@ -175,9 +171,7 @@
 
         install-tap "tap-prod2.yaml"
 
-        scripts/db-handler.sh setup $PROD2_CLUSTER_PROVIDER $PROD2_CLUSTER_NAME $PROD2_CLUSTER_REGION
-
-        scripts/db-handler.sh provision-db $PROD2_CLUSTER_PROVIDER
+        scripts/db-handler.sh $PROD2_CLUSTER_PROVIDER $PROD2_CLUSTER_NAME $PROD2_CLUSTER_REGION
 
         scripts/ingress-handler.sh update-tap-dns $PROD2_SUB_DOMAIN $PROD2_CLUSTER_PROVIDER
 
@@ -402,17 +396,6 @@ EOF
         scripts/tanzu-handler.sh tmc-cluster remove $BROWNFIELD_CLUSTER_NAME
     }
 
-    delete-cloud-db() {
-
-        scripts/dektecho.sh status "Deleting cloud databases instances"
-        
-        kubectl config use-context $STAGE_CLUSTER_NAME
-        scripts/db-handler.sh delete-db $STAGE_CLUSTER_PROVIDER
-        kubectl config use-context $PROD1_CLUSTER_NAME
-        scripts/db-handler.sh delete-db $PROD1_CLUSTER_PROVIDER
-        kubectl config use-context $PROD2_CLUSTER_NAME
-        scripts/db-handler.sh delete-db $PROD2_CLUSTER_PROVIDER
-    }
     #update-tap
     update-tap ()
     {
@@ -566,7 +549,6 @@ delete-all)
     scripts/dektecho.sh prompt  "Are you sure you want to delete all clusters?" && [ $? -eq 0 ] || exit
     ./demo.sh reset
     delete-tmc-clusters
-    delete-cloud-db
     scripts/k8s-handler.sh delete $VIEW_CLUSTER_PROVIDER $VIEW_CLUSTER_NAME $STAGE_CLUSTER_REGION\
     & scripts/k8s-handler.sh delete $DEV_CLUSTER_PROVIDER $DEV_CLUSTER_NAME $DEV_CLUSTER_REGION \
     & scripts/k8s-handler.sh delete $STAGE_CLUSTER_PROVIDER $STAGE_CLUSTER_NAME $STAGE_CLUSTER_REGION \

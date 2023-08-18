@@ -3,7 +3,7 @@
 
 This repo contains artifacts to run a demo illustrating the vision and capabilities of Tanzu for Dev, AppOps and Platform Ops
 
-## Preparations (one time setup)
+## Preparations
 
 - Install the following
   - clouds CLIs for the clouds you plan to use
@@ -17,8 +17,13 @@ This repo contains artifacts to run a demo illustrating the vision and capabilit
   - jq
   - yq
     
-
-- Login with your cloud credentials for each cloud you plan to deploy on
+- Export login environment variables for each cloud provider you are using
+  ``` 
+  # AWS example
+  export AWS_ACCESS_KEY_ID=CHANGE_ME
+  export AWS_SECRET_ACCESS_KEY=CHANGE_ME
+  export AWS_SESSION_TOKEN=CHANGE_ME
+  ```
 
 - Clone the dekt-devx-demo repo ```git clone https://github.com/dektlong/dekt-devx-demo```
 
@@ -38,14 +43,6 @@ This repo contains artifacts to run a demo illustrating the vision and capabilit
 export Tanzu packages to your private registry
 ```
 ./builder.sh export-packages tap (relocates TAP and Cluster Essentials packages)
-
-./builder.sh export-packages tbs !!requires tap registery to be installed to determine the latest TBS version
-
-./builder.sh export-packages tds
-```
-
-```
-./builder.sh export-packages scgw (if planning to use it for brownfield apis)
 ```
 
 ## Installation

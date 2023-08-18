@@ -5,9 +5,6 @@ metadata:
 spec:
   description:
     short: AWS RDS Postgresql corporate SLA database
-  pool:
-    kind: Secret
-    labelSelector:
-      matchLabels:
-        services.apps.tanzu.vmware.com/class: postgres-rds-corp
-    fieldSelector: type=connection.crossplane.io/v1alpha1
+  provisioner:
+    crossplane:
+      compositeResourceDefinition: xpostgresqlinstances.database.rds.example.org
