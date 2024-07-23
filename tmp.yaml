@@ -1,0 +1,56 @@
+account               TMC account management for the organization                                       mission-control  v0.3.3          v0.3.3       installed
+  agentartifacts        Image artifacts of all the agents to be made available on the cluster             mission-control  v0.1.19         v0.1.19      installed
+  aks-cluster           aks-cluster plugin is used to provision and manage the tmc aks clusters.          mission-control  v0.3.5          v0.3.5       installed
+  apply                 Apply a resource file                                                             mission-control  v0.4.1          v0.4.1       installed
+  apply                 Apply a resource file                                                             operations       v0.1.3                       installed
+  appsv2                Applications on Kubernetes for TAP (SaaS distribution)                            kubernetes       v0.2.0-beta.3                installed
+  audit                 Run an audit request on an organization                                           mission-control  v0.1.19         v0.1.19      installed
+  build                 Generate app image from source code                                               global           v0.3.0-beta.16               installed
+  builder               Build Tanzu components                                                            global           v1.3.0-alpha.3               installed
+  cluster               A TMC managed Kubernetes cluster                                                  mission-control  v0.2.16         v0.2.16      installed
+  cluster               Plugin for operating clusters in the organization                                 operations       v0.2.0                       installed
+  clustergroup          A group of Kubernetes clusters                                                    mission-control  v0.1.19         v0.1.19      installed
+  clustergroup          A group of Kubernetes clusters                                                    operations       v0.1.6                       installed
+  context               Management for TMC contexts                                                       mission-control  v0.1.14         v0.1.14      installed
+  continuousdelivery    Manage cluster configurations                                                     mission-control  v0.2.0          v0.2.0       installed
+  data-protection       Backup, restore, or migrate cluster data.                                         mission-control  v0.1.19         v0.1.19      installed
+  ekscluster            ekscluster plugin is used to provision and manage the tmc eks clusters.           mission-control  v0.2.4          v0.2.4       installed
+  ekscluster            ekscluster plugin is used to provision and manage the tmc eks clusters.           operations       v0.1.1                       installed
+  events                TMC events for any meaningful user activity or system state change                mission-control  v0.1.19         v0.1.19      installed
+  helm                  Manage helm deployments                                                           mission-control  v0.1.20         v0.1.20      installed
+  iam                   IAM Policies for tmc resources                                                    mission-control  v0.1.19         v0.1.19      installed
+  iam                   IAM Policies for tap resources                                                    operations       v0.1.6                       installed
+  inspection            Run an inspection on a cluster                                                    mission-control  v0.1.19         v0.1.19      installed
+  integration           Get available integrations and their information from registry.                   mission-control  v0.1.19         v0.1.19      installed
+  management-cluster    A TMC registered Management cluster                                               mission-control  v0.2.21         v0.2.21      installed
+  package               tanzu package management                                                          kubernetes       v0.34.4                      installed
+  policy                Policy management for resources                                                   mission-control  v0.1.19         v0.1.19      installed
+  policy                Policy management for resources                                                   operations       v0.1.8                       installed
+  project               View, list and use Tanzu Projects.                                                kubernetes       v0.2.0-beta.1                installed
+  provider-aks-cluster  provider-aks-cluster plugin is used to manage and unmanage tmc provider aks       mission-control  v0.1.21         v0.1.21      installed
+                        clusters
+  provider-eks-cluster  provider-eks-cluster plugin is used to manage and unmanage tmc provider eks       mission-control  v0.1.19         v0.1.19      installed
+                        clusters
+  provider-eks-cluster  provider-eks-cluster plugin is used to manage and unmanage tmc provider eks       operations       v0.1.1                       installed
+                        clusters
+  resource              manage resources in a Kubernetes cluster                                          kubernetes       v0.0.10                      installed
+  secret                Tanzu secret management                                                           kubernetes       v0.32.1                      installed
+  secret                Manage kubernetes secrets resource for a cluster                                  mission-control  v0.1.21         v0.1.21      installed
+  services              Commands for working with service instances, classes and claims                   kubernetes       v0.10.0-rc.4                 installed
+  setting               Manage default settings for some tmc features                                     mission-control  v0.2.17         v0.2.17      installed
+  space                 Tanzu space, space profile, and space trait management                            kubernetes       v0.2.0-beta.1                installed
+  tanzupackage          Install and manage Tanzu packages. Note: tanzu-standard package repository is     mission-control  v0.4.7          v0.4.7       installed
+                        unavailable for non-TKG clusters.
+  telemetry             configure cluster-wide settings for vmware tanzu telemetry                        global           v1.1.0                       installed
+  test                  Test the CLI                                                                      global           v1.3.0-alpha.3               installed
+  workload              create, update, view and list Tanzu Workloads.                                    kubernetes       v0.1.0-beta.3                installed
+  workspace             A group of Kubernetes namespaces                                                  mission-control  v0.1.21         v0.1.21      installed
+
+
+
+
+
+
+
+
+

@@ -1,0 +1,5 @@
+server:
+  service_type: "LoadBalancer"
+  watched_namespace: "accelerator-system"
+samples:
+  include: true

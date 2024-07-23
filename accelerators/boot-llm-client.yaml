@@ -1,0 +1,10 @@
+apiVersion: accelerator.apps.tanzu.vmware.com/v1alpha1
+kind: Accelerator
+metadata:
+  name: genai-tp
+spec:
+  git:
+    interval: 10s
+    url: https://github.com/0pens0/spring-metal/
+    ref:
+      branch: main
