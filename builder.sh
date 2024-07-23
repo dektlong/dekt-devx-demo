@@ -521,6 +521,8 @@ EOF
         echo
         echo "  install-demo   [ all, devstage, prod ]"
         echo
+        echo "  accelerators"
+        echo
         echo "  delete-all"
         echo
         echo "  generate-configs"
@@ -545,7 +547,7 @@ create-clusters)
 install-demo)
     install-demo $2
     ;;
-starters)
+accelerators)
     scripts/k8s-handler.sh create $VIEW_CLUSTER_PROVIDER $VIEW_CLUSTER_NAME $VIEW_CLUSTER_REGION $VIEW_CLUSTER_NODES
     scripts/k8s-handler.sh set-context $VIEW_CLUSTER_PROVIDER $VIEW_CLUSTER_NAME $VIEW_CLUSTER_REGION
     install-view-cluster
