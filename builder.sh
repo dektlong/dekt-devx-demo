@@ -441,9 +441,9 @@ EOF
         install-stage-cluster
         update-tap multicluster
 
-        scripts/tanzu-handler.sh tmc-cluster attach $VIEW_CLUSTER_NAME
-        scripts/tanzu-handler.sh tmc-cluster attach $DEV_CLUSTER_NAME
-        scripts/tanzu-handler.sh tmc-cluster attach $STAGE_CLUSTER_NAME
+        #scripts/tanzu-handler.sh tmc-cluster attach $VIEW_CLUSTER_NAME
+        #scripts/tanzu-handler.sh tmc-cluster attach $DEV_CLUSTER_NAME
+        #scripts/tanzu-handler.sh tmc-cluster attach $STAGE_CLUSTER_NAME
     }
 
     #install-prod()
@@ -458,9 +458,9 @@ EOF
         install-prod-cluster2
         add-brownfield-apis
         
-        scripts/tanzu-handler.sh tmc-cluster attach $PROD1_CLUSTER_NAME
-        scripts/tanzu-handler.sh tmc-cluster attach $PROD2_CLUSTER_NAME
-        scripts/tanzu-handler.sh tmc-cluster attach $BROWNFIELD_CLUSTER_NAME
+        #scripts/tanzu-handler.sh tmc-cluster attach $PROD1_CLUSTER_NAME
+        #scripts/tanzu-handler.sh tmc-cluster attach $PROD2_CLUSTER_NAME
+        #scripts/tanzu-handler.sh tmc-cluster attach $BROWNFIELD_CLUSTER_NAME
 
     }
 
@@ -525,7 +525,7 @@ EOF
         echo
         echo "  generate-configs"
         echo
-        echo "  update-tap view [ dev | stage | prod | multicluster ]"
+        echo "  update-tap [ view | dev | stage | prod | multicluster ]"
         echo
         echo "  export-packages [ tap | tbs | tds | scgw ]"
         echo
@@ -545,10 +545,15 @@ create-clusters)
 install-demo)
     install-demo $2
     ;;
+starters)
+    scripts/k8s-handler.sh create $VIEW_CLUSTER_PROVIDER $VIEW_CLUSTER_NAME $VIEW_CLUSTER_REGION $VIEW_CLUSTER_NODES
+    scripts/k8s-handler.sh set-context $VIEW_CLUSTER_PROVIDER $VIEW_CLUSTER_NAME $VIEW_CLUSTER_REGION
+    install-view-cluster
+    ;;
 delete-all)
     scripts/dektecho.sh prompt  "Are you sure you want to delete all clusters?" && [ $? -eq 0 ] || exit
     ./demo.sh reset
-    delete-tmc-clusters
+    #delete-tmc-clusters
     scripts/k8s-handler.sh delete $VIEW_CLUSTER_PROVIDER $VIEW_CLUSTER_NAME $STAGE_CLUSTER_REGION\
     & scripts/k8s-handler.sh delete $DEV_CLUSTER_PROVIDER $DEV_CLUSTER_NAME $DEV_CLUSTER_REGION \
     & scripts/k8s-handler.sh delete $STAGE_CLUSTER_PROVIDER $STAGE_CLUSTER_NAME $STAGE_CLUSTER_REGION \
