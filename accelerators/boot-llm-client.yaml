@@ -1,10 +1,9 @@
 apiVersion: accelerator.apps.tanzu.vmware.com/v1alpha1
-kind: Accelerator
+kind: Fragment
 metadata:
-  name: genai-tp
+  name: dekt-test
 spec:
   git:
-    interval: 10s
-    url: https://github.com/0pens0/spring-metal/
     ref:
       branch: main
+    url: https://github.com/0pens0/spring-metal/
